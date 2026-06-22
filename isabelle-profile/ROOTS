@@ -1,0 +1,21 @@
+# Additional session root directories for the local UTP angelic CSP stack.
+#
+# Copy this file to:
+#
+#   $HOME/.isabelle/$UTP_PROFILE/ROOTS
+#
+# Keep PROJECT_DIR exported when invoking Isabelle, because the entries below
+# refer to it.
+
+$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Optics
+$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Shallow-Expressions
+$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Shallow-Expressions/Z
+$PROJECT_DIR/repos/Abstract_Prog_Syntax
+$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Z_Toolkit
+$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Circus_Toolkit
+
+$PROJECT_DIR/repos/UTP
+$PROJECT_DIR/repos/UTP-Designs
+$PROJECT_DIR/repos/UTP-Reactive
+$PROJECT_DIR/repos/UTP-Reactive-Designs
+$PROJECT_DIR/repos/UTP-Angelic-CSP

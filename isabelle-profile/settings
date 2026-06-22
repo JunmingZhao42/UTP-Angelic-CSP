@@ -1,0 +1,12 @@
+# Recommended Isabelle settings for this UTP stack.
+#
+# Copy this file to:
+#
+#   $HOME/.isabelle/$UTP_PROFILE/etc/settings
+#
+# These defaults give jEdit/PIDE and Poly/ML more memory for the large UTP
+# sessions. Increase or decrease them if your machine needs a different memory
+# budget.
+
+ISABELLE_TOOL_JAVA_OPTIONS="-Xms1g -Xmx8g -Xss16m"
+ML_OPTIONS="--minheap 8000"

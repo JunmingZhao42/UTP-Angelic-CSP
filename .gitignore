@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Editor backup and autosave files
+*~
+\#*\#
+.\#*
+*.swp
+*.swo
+
+# Local editor/project state
+.vscode/
+
+# Isabelle build and generated output.
+# Normal heap images live under $HOME/.isabelle/$UTP_PROFILE, but ignore these
+# names in case a local build directory is created inside the repository.
+.isabelle/
+heaps/
+browser_info/
+generated/
+
+# Temporary local scratch files
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+*.log
