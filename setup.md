@@ -2,6 +2,7 @@
 
 This project is intended to use a plain Isabelle2025 installation with a separate
 Isabelle user profile for the local UTP source stack.
+I have only tested the setup on macOS.
 
 ## What You Need
 
@@ -91,9 +92,6 @@ cp "$PROJECT_DIR/repos/UTP-Angelic-CSP/isabelle-profile/ROOTS" \
   "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
 ```
 
-This intentionally uses the standalone `Abstract_Prog_Syntax` clone and the
-local editable UTP clones.
-
 Install the recommended Isabelle settings:
 
 ```bash
@@ -148,7 +146,6 @@ stack.
 
 If you use the [unofficial Isabelle2025 VS Code extension](https://github.com/ponder-j/Isabelle-Vscode), 
 set up the below environment and launch vscode:
-variables:
 
 ```bash
 ISABELLE_HOME="$PROJECT_DIR/Isabelle2025.app"
@@ -157,27 +154,11 @@ ISABELLE_VSCODIUM_ARGS='{"logic":"UTP-Angelic-CSP","logic_requirements":true,"op
 
 ```
 
-The important part is `logic_requirements:true`: it makes the extension pass
-`-R UTP-Angelic-CSP` to the Isabelle VS Code server, so the session sources are
-editable. Without it, the extension uses `-l`, which loads a finished logic image.
-
 If VS Code was already open with a different Isabelle environment, fully quit VS
 Code and run `utp-vscode` from a fresh shell. The function opens a new VS Code
 window for this project.
 
 ## (Optional) Inspect Parent Sessions
-
-When working in `UTP-Angelic-CSP`, imported parent constants can be inspected with
-temporary commands such as:
-
-```isabelle
-term "pre\<^sub>R"
-term "post\<^sub>R"
-term "SRD"
-term "NSRD"
-thm SRD_def
-find_theorems pre\<^sub>R
-```
 
 For faster editable work in a parent repository with jEdit, open that
 repository's main theory on top of its prebuilt parent session:
@@ -192,7 +173,9 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -i Abstract_Prog_Syntax -i Z_Toolkit -i HOL-Algebra \
   -d "$PROJECT_DIR/repos/UTP" \
   "$PROJECT_DIR/repos/UTP/utp.thy"
+```
 
+```bash
 # UTP-Designs: edit UTP-Designs on top of fixed UTP2
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
   -b -o system_heaps=false UTP2
@@ -201,7 +184,9 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -l UTP2 \
   -d "$PROJECT_DIR/repos/UTP-Designs" \
   "$PROJECT_DIR/repos/UTP-Designs/utp_designs.thy"
+```
 
+```bash
 # UTP-Reactive: edit UTP-Reactive on top of fixed UTP-Designs
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
   -b -o system_heaps=false UTP-Designs Circus_Toolkit
@@ -211,7 +196,9 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -i Circus_Toolkit \
   -d "$PROJECT_DIR/repos/UTP-Reactive" \
   "$PROJECT_DIR/repos/UTP-Reactive/utp_reactive.thy"
+```
 
+```bash
 # UTP-Reactive-Designs: edit UTP-Reactive-Designs on top of fixed UTP-Reactive
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
   -b -o system_heaps=false UTP-Reactive
@@ -221,7 +208,3 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -d "$PROJECT_DIR/repos/UTP-Reactive-Designs" \
   "$PROJECT_DIR/repos/UTP-Reactive-Designs/utp_rea_designs.thy"
 ```
-
-The key rule is `-l ParentSession -d CurrentRepo`: the parent is fixed as a
-prebuilt logic image, while the current repository remains editable. Use `-i`
-for side sessions that the current repository imports by qualified session name.

@@ -1,4 +1,7 @@
 session "UTP-Angelic-CSP" = "UTP-Reactive-Designs" +
   options [document = false]
   theories
+    utp_ades_core
+    utp_ades_healthy
+    utp_ades
     Angelic_CSP
