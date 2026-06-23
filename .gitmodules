@@ -1,0 +1,15 @@
+[submodule "deps/Abstract_Prog_Syntax"]
+	path = deps/Abstract_Prog_Syntax
+	url = https://github.com/isabelle-utp/Abstract_Prog_Syntax.git
+[submodule "deps/UTP"]
+	path = deps/UTP
+	url = https://github.com/isabelle-utp/UTP.git
+[submodule "deps/UTP-Designs"]
+	path = deps/UTP-Designs
+	url = https://github.com/isabelle-utp/UTP-Designs.git
+[submodule "deps/UTP-Reactive"]
+	path = deps/UTP-Reactive
+	url = https://github.com/isabelle-utp/UTP-Reactive.git
+[submodule "deps/UTP-Reactive-Designs"]
+	path = deps/UTP-Reactive-Designs
+	url = https://github.com/isabelle-utp/UTP-Reactive-Designs.git

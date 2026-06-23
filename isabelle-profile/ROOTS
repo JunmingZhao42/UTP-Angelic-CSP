@@ -4,18 +4,18 @@
 #
 #   $HOME/.isabelle/$UTP_PROFILE/ROOTS
 #
-# Keep PROJECT_DIR exported when invoking Isabelle, because the entries below
-# refer to it.
+# Keep PROJECT_DIR and CYPHYASSURE_HOME exported when invoking Isabelle,
+# because the entries below refer to them.
 
-$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Optics
-$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Shallow-Expressions
-$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Shallow-Expressions/Z
-$PROJECT_DIR/repos/Abstract_Prog_Syntax
-$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Z_Toolkit
-$PROJECT_DIR/Isabelle2025-CyPhyAssure.app/src/CyPhyAssure/Circus_Toolkit
+$CYPHYASSURE_HOME/src/CyPhyAssure/Optics
+$CYPHYASSURE_HOME/src/CyPhyAssure/Shallow-Expressions
+$CYPHYASSURE_HOME/src/CyPhyAssure/Shallow-Expressions/Z
+$PROJECT_DIR/deps/Abstract_Prog_Syntax
+$CYPHYASSURE_HOME/src/CyPhyAssure/Z_Toolkit
+$CYPHYASSURE_HOME/src/CyPhyAssure/Circus_Toolkit
 
-$PROJECT_DIR/repos/UTP
-$PROJECT_DIR/repos/UTP-Designs
-$PROJECT_DIR/repos/UTP-Reactive
-$PROJECT_DIR/repos/UTP-Reactive-Designs
-$PROJECT_DIR/repos/UTP-Angelic-CSP
+$PROJECT_DIR/deps/UTP
+$PROJECT_DIR/deps/UTP-Designs
+$PROJECT_DIR/deps/UTP-Reactive
+$PROJECT_DIR/deps/UTP-Reactive-Designs
+$PROJECT_DIR

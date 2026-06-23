@@ -14,65 +14,59 @@ This setup uses three pieces:
    sources such as `Optics`, `Shallow-Expressions`, `Z_Toolkit`, and
    `Circus_Toolkit`. Download it from
    [the Isabelle/UTP download page](https://isabelle-utp.york.ac.uk/download).
-3. Editable source clones in `$PROJECT_DIR/repos`, including the UTP stack and
-   this project.
+3. This project checkout, including its UTP stack submodules.
 
 ## Project Setup
 
 Set up these environment variables to match your machine:
 
 ```bash
-export PROJECT_DIR="$HOME/path/to/project"
-export ISABELLE="$PROJECT_DIR/Isabelle2025.app/bin/isabelle"
+export PROJECT_DIR="$HOME/path/to/UTP-Angelic-CSP"
+export ISABELLE_HOME="$HOME/path/to/Isabelle2025.app"
+export CYPHYASSURE_HOME="$HOME/path/to/Isabelle2025-CyPhyAssure.app"
+export ISABELLE="$ISABELLE_HOME/bin/isabelle"
 export UTP_PROFILE="Isabelle2025-utp"
 ```
 
-Here `PROJECT_DIR` is the directory that contains the Isabelle apps and the
-`repos` directory. `UTP_PROFILE` is the name of the isolated Isabelle user
-profile for this project. 
+Here `PROJECT_DIR` is the root of this repository checkout. `ISABELLE_HOME`
+and `CYPHYASSURE_HOME` point to the two Isabelle app bundles. `UTP_PROFILE` is
+the name of the isolated Isabelle user profile for this project.
 
-Create the project root and the `repos` directory:
-
-```bash
-mkdir -p "$PROJECT_DIR/repos"
-cd "$PROJECT_DIR/repos"
-```
-
-All source repositories below should be cloned directly inside
-`$PROJECT_DIR/repos`.
-
-Clone the editable UTP stack:
+Clone this project from your own repository or fork, including its pinned
+submodules:
 
 ```bash
-git clone https://github.com/isabelle-utp/Abstract_Prog_Syntax.git
-git clone https://github.com/isabelle-utp/UTP.git
-git clone https://github.com/isabelle-utp/UTP-Designs.git
-git clone https://github.com/isabelle-utp/UTP-Reactive.git
-git clone https://github.com/isabelle-utp/UTP-Reactive-Designs.git
+git clone --recurse-submodules <your-UTP-Angelic-CSP-repo-url> "$PROJECT_DIR"
+cd "$PROJECT_DIR"
 ```
 
-Clone this project from your own repository or fork:
+For an existing checkout, initialise or refresh the submodules with:
 
 ```bash
-git clone <your-UTP-Angelic-CSP-repo-url> UTP-Angelic-CSP
+cd "$PROJECT_DIR"
+git submodule update --init --recursive
 ```
+
+The UTP stack is recorded as git submodules under `deps/`. The submodule commit
+pointers in this repository are the known-good versions for this project.
 
 The expected directory layout is:
 
 ```text
-$PROJECT_DIR/
+$WORKSPACE/
   Isabelle2025.app
   Isabelle2025-CyPhyAssure.app
-  repos/
-    Abstract_Prog_Syntax/
-    UTP/
-    UTP-Designs/
-    UTP-Reactive/
-    UTP-Reactive-Designs/
-    UTP-Angelic-CSP/
+  UTP-Angelic-CSP/
+    deps/
+      Abstract_Prog_Syntax/
+      UTP/
+      UTP-Designs/
+      UTP-Reactive/
+      UTP-Reactive-Designs/
 ```
 
-The current working setup uses the `main` branch of the cloned repositories.
+The current working setup uses pinned submodule commits from the upstream
+`isabelle-utp` repositories.
 
 ## Isabelle Profile
 
@@ -88,14 +82,13 @@ This profile keeps ROOTS, settings, and build products separate from the default
 Install the repo copy of `ROOTS` into the Isabelle profile:
 
 ```bash
-cp "$PROJECT_DIR/repos/UTP-Angelic-CSP/isabelle-profile/ROOTS" \
-  "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
+cp "$PROJECT_DIR/isabelle-profile/ROOTS" "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
 ```
 
 Install the recommended Isabelle settings:
 
 ```bash
-cp "$PROJECT_DIR/repos/UTP-Angelic-CSP/isabelle-profile/settings" \
+cp "$PROJECT_DIR/isabelle-profile/settings" \
   "$HOME/.isabelle/$UTP_PROFILE/etc/settings"
 ```
 
@@ -127,7 +120,7 @@ First editable open, or after changing session dependencies:
 ```bash
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -u -R UTP-Angelic-CSP \
-  "$PROJECT_DIR/repos/UTP-Angelic-CSP/Angelic_CSP.thy"
+  "$PROJECT_DIR/Angelic_CSP.thy"
 ```
 
 Normal fast reopen after the first build succeeds:
@@ -135,7 +128,7 @@ Normal fast reopen after the first build succeeds:
 ```bash
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -R UTP-Angelic-CSP \
-  "$PROJECT_DIR/repos/UTP-Angelic-CSP/Angelic_CSP.thy"
+  "$PROJECT_DIR/Angelic_CSP.thy"
 ```
 
 Use `-u`, not `-s`. The `-u` flag uses user heaps. The `-s` flag asks Isabelle to
@@ -145,18 +138,18 @@ stack.
 ## (Optional) Open with VS Code
 
 If you use the [unofficial Isabelle2025 VS Code extension](https://github.com/ponder-j/Isabelle-Vscode), 
-set up the below environment and launch vscode:
+configure the extension environment to use the same Isabelle profile and project
+session:
 
 ```bash
-ISABELLE_HOME="$PROJECT_DIR/Isabelle2025.app"
-ISABELLE_IDENTIFIER="$UTP_PROFILE"
+export ISABELLE_IDENTIFIER="$UTP_PROFILE"
 ISABELLE_VSCODIUM_ARGS='{"logic":"UTP-Angelic-CSP","logic_requirements":true,"options":["system_heaps=false"]}'
-
+export ISABELLE_VSCODIUM_ARGS
 ```
 
-If VS Code was already open with a different Isabelle environment, fully quit VS
-Code and run `utp-vscode` from a fresh shell. The function opens a new VS Code
-window for this project.
+The exact way to provide these variables depends on how you launch VS Code on
+your machine. If VS Code was already open with a different Isabelle environment,
+fully quit it and reopen the project after changing the environment.
 
 ## (Optional) Inspect Parent Sessions
 
@@ -171,8 +164,8 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -l Shallow_Expressions_Z \
   -i Abstract_Prog_Syntax -i Z_Toolkit -i HOL-Algebra \
-  -d "$PROJECT_DIR/repos/UTP" \
-  "$PROJECT_DIR/repos/UTP/utp.thy"
+  -d "$PROJECT_DIR/deps/UTP" \
+  "$PROJECT_DIR/deps/UTP/utp.thy"
 ```
 
 ```bash
@@ -182,8 +175,8 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
 
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -l UTP2 \
-  -d "$PROJECT_DIR/repos/UTP-Designs" \
-  "$PROJECT_DIR/repos/UTP-Designs/utp_designs.thy"
+  -d "$PROJECT_DIR/deps/UTP-Designs" \
+  "$PROJECT_DIR/deps/UTP-Designs/utp_designs.thy"
 ```
 
 ```bash
@@ -194,8 +187,8 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -l UTP-Designs \
   -i Circus_Toolkit \
-  -d "$PROJECT_DIR/repos/UTP-Reactive" \
-  "$PROJECT_DIR/repos/UTP-Reactive/utp_reactive.thy"
+  -d "$PROJECT_DIR/deps/UTP-Reactive" \
+  "$PROJECT_DIR/deps/UTP-Reactive/utp_reactive.thy"
 ```
 
 ```bash
@@ -205,6 +198,6 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
 
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -l UTP-Reactive \
-  -d "$PROJECT_DIR/repos/UTP-Reactive-Designs" \
-  "$PROJECT_DIR/repos/UTP-Reactive-Designs/utp_rea_designs.thy"
+  -d "$PROJECT_DIR/deps/UTP-Reactive-Designs" \
+  "$PROJECT_DIR/deps/UTP-Reactive-Designs/utp_rea_designs.thy"
 ```

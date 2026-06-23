@@ -17,13 +17,18 @@ Useful background reading:
 
 ## Isabelle/UTP Stack
 
-This repository depends on the existing Isabelle/UTP stack rather than copying
-its theories. The expected sibling repositories are:
+This repository depends on the Isabelle/UTP stack through pinned git
+submodules under `deps/`:
 
+- [isabelle-utp/Abstract_Prog_Syntax](https://github.com/isabelle-utp/Abstract_Prog_Syntax)
 - [isabelle-utp/UTP](https://github.com/isabelle-utp/UTP)
 - [isabelle-utp/UTP-Designs](https://github.com/isabelle-utp/UTP-Designs)
 - [isabelle-utp/UTP-Reactive](https://github.com/isabelle-utp/UTP-Reactive)
 - [isabelle-utp/UTP-Reactive-Designs](https://github.com/isabelle-utp/UTP-Reactive-Designs)
+
+Use `git clone --recurse-submodules` or `git submodule update --init
+--recursive` so that the checked-out dependency versions match the known-good
+commit pointers recorded by this repository.
 
 ## Setup
 
@@ -36,7 +41,7 @@ The normal editable open command, after the first build succeeds, is:
 ```bash
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -R UTP-Angelic-CSP \
-  "$PROJECT_DIR/repos/UTP-Angelic-CSP/Angelic_CSP.thy"
+  "$PROJECT_DIR/Angelic_CSP.thy"
 ```
 
 For VS Code, use the helper shell functions documented in `setup.md` if they
