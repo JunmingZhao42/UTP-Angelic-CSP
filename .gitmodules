@@ -13,3 +13,15 @@
 [submodule "deps/UTP-Reactive-Designs"]
 	path = deps/UTP-Reactive-Designs
 	url = https://github.com/isabelle-utp/UTP-Reactive-Designs.git
+[submodule "deps/Shallow-Expressions"]
+	path = deps/Shallow-Expressions
+	url = https://github.com/isabelle-utp/Shallow-Expressions.git
+[submodule "deps/Optics"]
+	path = deps/Optics
+	url = https://github.com/isabelle-utp/Optics.git
+[submodule "deps/Z_Toolkit"]
+	path = deps/Z_Toolkit
+	url = https://github.com/isabelle-utp/Z_Toolkit.git
+[submodule "deps/Circus_Toolkit"]
+	path = deps/Circus_Toolkit
+	url = https://github.com/isabelle-utp/Circus_Toolkit.git
