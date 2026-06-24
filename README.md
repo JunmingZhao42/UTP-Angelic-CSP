@@ -44,8 +44,8 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   "$PROJECT_DIR/Angelic_CSP.thy"
 ```
 
-For VS Code, use the helper shell functions documented in `setup.md` if they
-are installed in the local shell profile.
+For VS Code, configure the Isabelle extension environment as described in
+`setup.md`.
 
 ## Todo
 
@@ -58,3 +58,43 @@ are installed in the local shell profile.
   - [ ] Mechanise the first healthiness conditions.
   For each condition, prove monotonicity and idempotence.
 - [ ] Finish draft plan for the fellowship.
+
+## Plan
+
+### 1. Angelic Designs
+Mechanise Section 5.
+- Healthiness:
+  - A0, PBMH, A1, and A.
+  - Complete-lattice result.
+- Operators:
+  - Sequential composition.
+  - Skip, assignment, demonic choice, and angelic choice.
+  - A2 and other lemmas.
+- Correspondence with extended binary multirelations and ordinary designs.
+
+### 2. Reactive Angelic Designs
+Mechanise Section 6.
+- Healthiness:
+  - RAD healthiness conditions.
+  - Lattice and closure results.
+- Operators:
+  - Chaos, Stop, Skip, sequence, choice, prefixing, and external choice.
+- Correspondence:
+  - Relationship with existing reactive-design or CSP models.
+  - Preservation of the Section 6 operators.
+
+### 3. Angelic Processes
+Mechanise Section 7.
+- Healthiness:
+  - AP and NDAP healthiness conditions.
+  - Lattice and closure results.
+- Operators:
+  - Process-level choice, Stop, Skip, sequence, prefixing, and
+    divergence-related operators.
+  - Closure and algebraic laws.
+- Correspondence:
+  - Relationship with RAD and CSP process models.
+
+### 4. Investigate other properties
+- Parallel operator:
+  - Algebraic laws such as commutativty, associativity and monoticity etc.
