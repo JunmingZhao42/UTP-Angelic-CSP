@@ -77,11 +77,9 @@ Mechanise Section 6.
 - Healthiness:
   - RAD healthiness conditions.
   - Lattice and closure results.
+- Correspondence with original theory of CSP.
 - Operators:
-  - Chaos, Stop, Skip, sequence, choice, prefixing, and external choice.
-- Correspondence:
-  - Relationship with existing reactive-design or CSP models.
-  - Preservation of the Section 6 operators.
+  - Chaos, Stop, Skip, sequence, choice, prefixing, and external choice etc.
 
 ### 3. Angelic Processes
 Mechanise Section 7.
@@ -91,9 +89,7 @@ Mechanise Section 7.
 - Operators:
   - Process-level choice, Stop, Skip, sequence, prefixing, and
     divergence-related operators.
-  - Closure and algebraic laws.
-- Correspondence:
-  - Relationship with RAD and CSP process models.
+- Correspondence with reactive angelic designs.
 
 ### 4. Investigate other properties
 - Parallel operator:
