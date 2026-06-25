@@ -2,7 +2,7 @@ section \<open>Angelic Design Healthiness Conditions\<close>
 (* Sec. 5.1 Definition 17. *)
 
 theory utp_ades_healthy
-  imports utp_ades_core
+  imports utp_ades_ops
 begin
 
 subsection \<open>PBMH\<close>
@@ -48,6 +48,7 @@ lemma PBMH_ac_empty [simp]:
   "PBMH (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e) = true"
   by (pred_auto)
 
+(* Lemma 15. PBMH (ac' \<noteq> \<emptyset>) = (ac' \<noteq> \<emptyset>) *)
 lemma PBMH_ac_non_empty [simp]:
   "PBMH (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e) =
    (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
@@ -56,6 +57,21 @@ lemma PBMH_ac_non_empty [simp]:
 lemma PBMH_disj:
   "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
+
+(* Theorem 64. PBMH commutes with the H1 guard. *)
+lemma PBMH_H1_commute:
+  "PBMH (ok\<^sup>< \<longrightarrow> P) = (ok\<^sup>< \<longrightarrow> PBMH P)"
+  by (pred_auto)
+
+lemma H2_lift_desr:
+  "H2 (\<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
+  by (pred_auto)
+
+(* Theorem 65. PBMH and H2 commute, lifted through the design shell. *)
+lemma PBMH_H2_commute:
+  "H2 (\<lceil>PBMH P\<rceil>\<^sub>D) =
+   \<lceil>PBMH (\<lfloor>H2 (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D)\<rceil>\<^sub>D"
+  by (simp add: H2_lift_desr)
 
 subsection \<open>A0\<close>
 
@@ -89,6 +105,12 @@ subsection \<open>A1\<close>
 
 definition A1 :: "'s ades \<Rightarrow> 's ades" where
 [pred]: "A1 P = ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r PBMH (post\<^sub>D P))"
+
+(* Lemma 16. Putting a design in PBMH. *)
+lemma PBMH_rdesign:
+  "A1 (P \<turnstile>\<^sub>r Q) =
+   ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
+  by (simp add: A1_def PBMH_disj rdesign_refinement, pred_auto)
 
 lemma A1_idem:
   "A1 (A1 P) = A1 P"
