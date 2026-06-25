@@ -4,18 +4,9 @@
 #
 #   $HOME/.isabelle/$UTP_PROFILE/ROOTS
 #
-# Keep PROJECT_DIR and CYPHYASSURE_HOME exported when invoking Isabelle,
-# because the entries below refer to them.
+# Keep PROJECT_DIR exported when invoking Isabelle, because the entries below
+# refer to it. The deps/ROOT and deps/ROOTS files describe the pinned submodule
+# sessions.
 
-$CYPHYASSURE_HOME/src/CyPhyAssure/Optics
-$CYPHYASSURE_HOME/src/CyPhyAssure/Shallow-Expressions
-$CYPHYASSURE_HOME/src/CyPhyAssure/Shallow-Expressions/Z
-$PROJECT_DIR/deps/Abstract_Prog_Syntax
-$CYPHYASSURE_HOME/src/CyPhyAssure/Z_Toolkit
-$CYPHYASSURE_HOME/src/CyPhyAssure/Circus_Toolkit
-
-$PROJECT_DIR/deps/UTP
-$PROJECT_DIR/deps/UTP-Designs
-$PROJECT_DIR/deps/UTP-Reactive
-$PROJECT_DIR/deps/UTP-Reactive-Designs
+$PROJECT_DIR/deps
 $PROJECT_DIR

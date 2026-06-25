@@ -2,19 +2,15 @@
 
 This project is intended to use a plain Isabelle2025 installation with a separate
 Isabelle user profile for the local UTP source stack.
-I have only tested the setup on macOS.
+**Note:** I have only tested the setup on macOS.
 
 ## What You Need
 
-This setup uses three pieces:
+This setup uses two pieces:
 
 1. A plain `Isabelle2025.app`, used as the Isabelle executable. Download it
    from [the Isabelle2025 distribution page](https://isabelle.in.tum.de/website-Isabelle2025/dist/).
-2. A `Isabelle2025-CyPhyAssure.app` bundle, used for support session
-   sources such as `Optics`, `Shallow-Expressions`, `Z_Toolkit`, and
-   `Circus_Toolkit`. Download it from
-   [the Isabelle/UTP download page](https://isabelle-utp.york.ac.uk/download).
-3. This project checkout, including its UTP stack submodules.
+2. This project checkout, including its pinned submodules under `deps/`.
 
 ## Project Setup
 
@@ -23,14 +19,13 @@ Set up these environment variables to match your machine:
 ```bash
 export PROJECT_DIR="$HOME/path/to/UTP-Angelic-CSP"
 export ISABELLE_HOME="$HOME/path/to/Isabelle2025.app"
-export CYPHYASSURE_HOME="$HOME/path/to/Isabelle2025-CyPhyAssure.app"
 export ISABELLE="$ISABELLE_HOME/bin/isabelle"
 export UTP_PROFILE="Isabelle2025-utp"
 ```
 
 Here `PROJECT_DIR` is the root of this repository checkout. `ISABELLE_HOME`
-and `CYPHYASSURE_HOME` point to the two Isabelle app bundles. `UTP_PROFILE` is
-the name of the isolated Isabelle user profile for this project.
+points to the plain Isabelle app bundle. `UTP_PROFILE` is the name of the
+isolated Isabelle user profile for this project.
 
 Clone this project from your own repository or fork, including its pinned
 submodules:
@@ -55,18 +50,22 @@ The expected directory layout is:
 ```text
 $WORKSPACE/
   Isabelle2025.app
-  Isabelle2025-CyPhyAssure.app
   UTP-Angelic-CSP/
     deps/
       Abstract_Prog_Syntax/
+      Circus_Toolkit/
+      Optics/
+      Shallow-Expressions/
       UTP/
       UTP-Designs/
       UTP-Reactive/
       UTP-Reactive-Designs/
+      Z_Toolkit/
 ```
 
 The current working setup uses pinned submodule commits from the upstream
-`isabelle-utp` repositories.
+`isabelle-utp` repositories. The `deps/ROOT` and `deps/ROOTS` files describe
+the dependency sessions, and the project profile points Isabelle at `deps/`.
 
 ## Isabelle Profile
 
@@ -77,7 +76,7 @@ mkdir -p "$HOME/.isabelle/$UTP_PROFILE/etc"
 ```
 
 This profile keeps ROOTS, settings, and build products separate from the default
-`Isabelle2025` profile and from the CyPhyAssure app profile.
+`Isabelle2025` profile.
 
 Install the repo copy of `ROOTS` into the Isabelle profile:
 
