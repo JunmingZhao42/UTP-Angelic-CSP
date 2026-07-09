@@ -216,6 +216,40 @@ VSCodium on your machine. If the editor was already open with a different
 Isabelle environment, fully quit it and reopen the project after changing the
 environment.
 
+## (Optional) Use Isabelle PIDE MCP
+
+This repository does not provide or install an MCP server. The normal setup above
+prepares the Isabelle executable, profile, ROOTS file, and project session so that
+an external Isabelle PIDE MCP server can load the same project.
+
+If you use Codex or another client with an Isabelle PIDE MCP integration:
+
+1. Complete the shell, submodule, and Isabelle profile setup above.
+2. Launch the client from an environment where these variables are visible:
+
+   ```bash
+   PROJECT_DIR
+   ISABELLE_HOME
+   ISABELLE
+   UTP_PROFILE
+   ISABELLE_IDENTIFIER
+   ```
+
+3. Make sure the MCP server uses the same Isabelle executable and profile:
+
+   ```bash
+   ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE"
+   ```
+
+4. In the client, ask it to use the Isabelle PIDE MCP tools to load or inspect
+   project theories, for example `Angelic_CSP.thy` or `utp_ades_core.thy`.
+
+The MCP server should discover the project sessions through
+`$HOME/.isabelle/$UTP_PROFILE/ROOTS`, which points to `$PROJECT_DIR/deps` and
+`$PROJECT_DIR`. If the MCP server cannot find `UTP-Angelic-CSP`, first check that
+the profile `ROOTS` file was copied correctly and that the client was restarted
+after updating the environment.
+
 ## (Optional) Inspect Parent Sessions
 
 For faster editable work in a parent repository with jEdit, open that
