@@ -1,0 +1,12 @@
+# Additional session root directories for the local UTP angelic CSP stack.
+#
+# Copy this file to:
+#
+#   $HOME/.isabelle/$UTP_PROFILE/ROOTS
+#
+# Keep PROJECT_DIR exported when invoking Isabelle, because the entries below
+# refer to it. The deps/ROOT and deps/ROOTS files describe the pinned submodule
+# sessions.
+
+$PROJECT_DIR/deps
+$PROJECT_DIR

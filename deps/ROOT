@@ -1,0 +1,55 @@
+chapter UTP_Dependencies
+
+session "Optics" (AFP) in "Optics" = "HOL-Eisbach" +
+  options [timeout = 600, document = false]
+  sessions
+    "HOL-Library"
+    "HOL-Algebra"
+  theories
+    Interp
+    Two
+    Lens_Laws
+    Lens_Algebra
+    Lens_Order
+    Lens_Instances
+    Lens_Symmetric
+    Lenses
+    Prisms
+    Channel_Type
+    Dataspace
+    Scenes
+    Optics
+  theories [document = false]
+    Lens_Record_Example
+  theories
+    Lens_State
+
+session "Shallow_Expressions" in "Shallow-Expressions" = "Optics" +
+  options [document = false]
+  sessions
+    "HOL-Library"
+  theories
+    Shallow_Expressions
+    Expressions_Tests
+    Shallow_Expressions_Examples
+
+session "Z_Toolkit" in "Z_Toolkit" = "Optics" +
+  options [document = false]
+  theories
+    Z_Toolkit_Overview
+    Relation_Lib
+    Z_Toolkit
+    Z_Toolkit_Pretty
+
+session "Shallow_Expressions_Z" in "Shallow-Expressions/Z" = "Shallow_Expressions" +
+  options [document = false]
+  sessions
+    "Z_Toolkit"
+  theories
+    Shallow_Expressions_Z
+    Shallow_Expressions_Z_All
+
+session "Circus_Toolkit" in "Circus_Toolkit" = "Z_Toolkit" +
+  options [document = false]
+  theories
+    Circus_Toolkit
