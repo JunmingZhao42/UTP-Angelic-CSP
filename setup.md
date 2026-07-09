@@ -1,7 +1,7 @@
 # Isabelle Setup
 
-This project is intended to use a plain Isabelle2025 installation with a separate
-Isabelle user profile for the local UTP source stack.
+This project is intended to use a plain Isabelle2025-2 installation with a
+separate Isabelle user profile for the local UTP source stack.
 **Note:** I have only tested the setup on macOS.
 
 The current setup no longer depends on a CyPhyAssure Isabelle app bundle or on
@@ -12,8 +12,8 @@ provided by this repository's pinned git submodules under `deps/`.
 
 This setup uses two pieces:
 
-1. A plain `Isabelle2025.app`, used as the Isabelle executable. Download it
-   from [the Isabelle2025 distribution page](https://isabelle.in.tum.de/website-Isabelle2025/dist/).
+1. A plain `Isabelle2025-2.app`, used as the Isabelle executable. Download the
+   current Isabelle2025-2 application from the Isabelle distribution site.
 2. This project checkout, including its pinned submodules under `deps/`.
 
 ## Shell Environment
@@ -23,16 +23,17 @@ put them in `~/.zshrc`:
 
 ```bash
 export PROJECT_DIR="$HOME/path/to/UTP-Angelic-CSP"
-export ISABELLE_HOME="$HOME/path/to/Isabelle2025.app"
+export ISABELLE_HOME="/Applications/Isabelle2025-2.app"
 export ISABELLE="$ISABELLE_HOME/bin/isabelle"
-export UTP_PROFILE="Isabelle2025-utp"
+export UTP_PROFILE="Isabelle2025-2-utp"
 export ISABELLE_IDENTIFIER="$UTP_PROFILE"
 export ISABELLE_VSCODIUM_ARGS='{"logic":"UTP-Angelic-CSP","logic_requirements":true,"options":["system_heaps=false"]}'
 ```
 
 Here `PROJECT_DIR` is the root of this repository checkout. `ISABELLE_HOME`
 points to the plain Isabelle app bundle. `UTP_PROFILE` is the name of the
-isolated Isabelle user profile for this project.
+isolated Isabelle user profile for this project. Use a release-specific profile
+name so old Isabelle heaps and ROOTS files are not reused accidentally.
 
 Reload the shell after editing `~/.zshrc`:
 
@@ -47,8 +48,9 @@ test -x "$ISABELLE" && "$ISABELLE" version
 test -d "$PROJECT_DIR" && cd "$PROJECT_DIR"
 ```
 
-If you are migrating from the previous setup, make sure `ISABELLE_HOME` points to
-plain `Isabelle2025.app`, not `Isabelle2025-CyPhyAssure.app`.
+If you are migrating from the previous setup, make sure `ISABELLE_HOME` points
+to plain `Isabelle2025-2.app`, not `Isabelle2025-CyPhyAssure.app` or an older
+`Isabelle2025.app`.
 
 ## Project Setup
 
@@ -80,7 +82,7 @@ The expected directory layout is:
 
 ```text
 $WORKSPACE/
-  Isabelle2025.app
+  Isabelle2025-2.app
   UTP-Angelic-CSP/
     deps/
       Abstract_Prog_Syntax/
@@ -101,7 +103,7 @@ project profile points Isabelle at `deps/`.
 
 On a machine that already has the previous setup, do this in order:
 
-1. Update `~/.zshrc` to use plain `Isabelle2025.app` and the variables in
+1. Update `~/.zshrc` to use plain `Isabelle2025-2.app` and the variables in
    [Shell Environment](#shell-environment).
 2. Reload the shell with `source ~/.zshrc`.
 3. Update the project checkout:
@@ -136,7 +138,7 @@ mkdir -p "$HOME/.isabelle/$UTP_PROFILE/etc"
 ```
 
 This profile keeps ROOTS, settings, and build products separate from the default
-`Isabelle2025` profile.
+`Isabelle2025-2` or older UTP profile.
 
 Install the repo copy of `ROOTS` into the Isabelle profile:
 
@@ -201,7 +203,7 @@ stack.
 
 ## (Optional) Open with VS Code
 
-If you use the [unofficial Isabelle2025 VS Code extension](https://github.com/ponder-j/Isabelle-Vscode), 
+If you use the [unofficial Isabelle VS Code extension](https://github.com/ponder-j/Isabelle-Vscode),
 configure the extension environment to use the same Isabelle profile and project
 session. These are already included in the `~/.zshrc` block above:
 

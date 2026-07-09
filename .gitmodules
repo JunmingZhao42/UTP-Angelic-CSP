@@ -12,16 +12,18 @@
 	url = https://github.com/isabelle-utp/UTP-Reactive.git
 [submodule "deps/UTP-Reactive-Designs"]
 	path = deps/UTP-Reactive-Designs
-	url = git@github.com:JunmingZhao42/UTP-Reactive-Designs.git
+	url = https://github.com/isabelle-utp/UTP-Reactive-Designs.git
 [submodule "deps/Shallow-Expressions"]
 	path = deps/Shallow-Expressions
-	url = git@github.com:JunmingZhao42/Shallow-Expressions.git
+	url = https://github.com/isabelle-utp/Shallow-Expressions.git
 [submodule "deps/Optics"]
 	path = deps/Optics
 	url = git@github.com:JunmingZhao42/Optics.git
+	branch = optics-2025-2
 [submodule "deps/Z_Toolkit"]
 	path = deps/Z_Toolkit
 	url = git@github.com:JunmingZhao42/Z_Toolkit.git
+	branch = z-2025-2
 [submodule "deps/Circus_Toolkit"]
 	path = deps/Circus_Toolkit
-	url = git@github.com:JunmingZhao42/Circus_Toolkit.git
+	url = https://github.com/isabelle-utp/Circus_Toolkit.git
