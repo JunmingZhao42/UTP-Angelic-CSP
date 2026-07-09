@@ -4,6 +4,10 @@ This project is intended to use a plain Isabelle2025 installation with a separat
 Isabelle user profile for the local UTP source stack.
 **Note:** I have only tested the setup on macOS.
 
+The current setup no longer depends on a CyPhyAssure Isabelle app bundle or on
+UTP sources installed inside another Isabelle distribution. The UTP stack is
+provided by this repository's pinned git submodules under `deps/`.
+
 ## What You Need
 
 This setup uses two pieces:
@@ -12,20 +16,41 @@ This setup uses two pieces:
    from [the Isabelle2025 distribution page](https://isabelle.in.tum.de/website-Isabelle2025/dist/).
 2. This project checkout, including its pinned submodules under `deps/`.
 
-## Project Setup
+## Shell Environment
 
-Set up these environment variables to match your machine:
+Set up these environment variables to match your machine. On macOS with `zsh`,
+put them in `~/.zshrc`:
 
 ```bash
 export PROJECT_DIR="$HOME/path/to/UTP-Angelic-CSP"
 export ISABELLE_HOME="$HOME/path/to/Isabelle2025.app"
 export ISABELLE="$ISABELLE_HOME/bin/isabelle"
 export UTP_PROFILE="Isabelle2025-utp"
+export ISABELLE_IDENTIFIER="$UTP_PROFILE"
+export ISABELLE_VSCODIUM_ARGS='{"logic":"UTP-Angelic-CSP","logic_requirements":true,"options":["system_heaps=false"]}'
 ```
 
 Here `PROJECT_DIR` is the root of this repository checkout. `ISABELLE_HOME`
 points to the plain Isabelle app bundle. `UTP_PROFILE` is the name of the
 isolated Isabelle user profile for this project.
+
+Reload the shell after editing `~/.zshrc`:
+
+```bash
+source ~/.zshrc
+```
+
+Check the important paths:
+
+```bash
+test -x "$ISABELLE" && "$ISABELLE" version
+test -d "$PROJECT_DIR" && cd "$PROJECT_DIR"
+```
+
+If you are migrating from the previous setup, make sure `ISABELLE_HOME` points to
+plain `Isabelle2025.app`, not `Isabelle2025-CyPhyAssure.app`.
+
+## Project Setup
 
 Clone this project from your own repository or fork, including its pinned
 submodules:
@@ -39,8 +64,14 @@ For an existing checkout, initialise or refresh the submodules with:
 
 ```bash
 cd "$PROJECT_DIR"
+git submodule sync --recursive
 git submodule update --init --recursive
 ```
+
+Use `git submodule sync --recursive` on machines that already had the old setup:
+it refreshes the submodule URLs from `.gitmodules` before checkout. Some
+submodules currently point at forked GitHub repositories, so SSH access to those
+forks must work if the URL starts with `git@github.com:`.
 
 The UTP stack is recorded as git submodules under `deps/`. The submodule commit
 pointers in this repository are the known-good versions for this project.
@@ -63,9 +94,38 @@ $WORKSPACE/
       Z_Toolkit/
 ```
 
-The current working setup uses pinned submodule commits from the upstream
-`isabelle-utp` repositories. The `deps/ROOT` and `deps/ROOTS` files describe
-the dependency sessions, and the project profile points Isabelle at `deps/`.
+The `deps/ROOT` and `deps/ROOTS` files describe the dependency sessions, and the
+project profile points Isabelle at `deps/`.
+
+## Migrating an Existing Old Setup
+
+On a machine that already has the previous setup, do this in order:
+
+1. Update `~/.zshrc` to use plain `Isabelle2025.app` and the variables in
+   [Shell Environment](#shell-environment).
+2. Reload the shell with `source ~/.zshrc`.
+3. Update the project checkout:
+
+   ```bash
+   cd "$PROJECT_DIR"
+   git pull
+   git submodule sync --recursive
+   git submodule update --init --recursive
+   ```
+
+4. Reinstall the profile files:
+
+   ```bash
+   mkdir -p "$HOME/.isabelle/$UTP_PROFILE/etc"
+   cp "$PROJECT_DIR/isabelle-profile/ROOTS" "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
+   cp "$PROJECT_DIR/isabelle-profile/settings" \
+     "$HOME/.isabelle/$UTP_PROFILE/etc/settings"
+   ```
+
+5. Fully quit and reopen VS Code/VSCodium so that it sees the updated
+   `ISABELLE_IDENTIFIER` and `ISABELLE_VSCODIUM_ARGS`.
+
+After this, the old CyPhyAssure Isabelle instance is not used by this project.
 
 ## Isabelle Profile
 
@@ -93,6 +153,11 @@ cp "$PROJECT_DIR/isabelle-profile/settings" \
 
 The settings file gives jEdit/PIDE and Poly/ML more memory for the large UTP
 sessions. You can adjust it if your machine needs a different memory budget.
+
+If you are migrating an existing profile, overwrite the old `ROOTS` and
+`etc/settings` files with the copies above. The current profile should point to
+`$PROJECT_DIR/deps` and `$PROJECT_DIR`, not to old UTP source directories inside
+another Isabelle app bundle.
 
 Use this command prefix for all Isabelle commands in this project:
 
@@ -138,7 +203,7 @@ stack.
 
 If you use the [unofficial Isabelle2025 VS Code extension](https://github.com/ponder-j/Isabelle-Vscode), 
 configure the extension environment to use the same Isabelle profile and project
-session:
+session. These are already included in the `~/.zshrc` block above:
 
 ```bash
 export ISABELLE_IDENTIFIER="$UTP_PROFILE"
@@ -146,9 +211,10 @@ ISABELLE_VSCODIUM_ARGS='{"logic":"UTP-Angelic-CSP","logic_requirements":true,"op
 export ISABELLE_VSCODIUM_ARGS
 ```
 
-The exact way to provide these variables depends on how you launch VS Code on
-your machine. If VS Code was already open with a different Isabelle environment,
-fully quit it and reopen the project after changing the environment.
+The exact way to provide these variables depends on how you launch VS Code or
+VSCodium on your machine. If the editor was already open with a different
+Isabelle environment, fully quit it and reopen the project after changing the
+environment.
 
 ## (Optional) Inspect Parent Sessions
 

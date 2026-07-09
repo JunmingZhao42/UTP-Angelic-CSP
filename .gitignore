@@ -22,6 +22,7 @@ generated/
 # Temporary local scratch files
 tmp/
 temp/
+project-plan.md
 *.tmp
 *.bak
 *.orig
