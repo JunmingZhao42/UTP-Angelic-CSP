@@ -23,6 +23,7 @@ generated/
 tmp/
 temp/
 project-plan.md
+AGENTS.md
 *.tmp
 *.bak
 *.orig
