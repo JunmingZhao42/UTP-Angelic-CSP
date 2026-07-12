@@ -7,14 +7,6 @@ begin
 
 subsection \<open>PBMH\<close>
 
-(* ac \<subseteq> ac' \<and> v' = v. *)
-definition pbmh_step :: "(('s, '\<alpha>) achoices_scheme, ('s, '\<alpha>) achoices_scheme) urel" where
-[pred]: "pbmh_step = (($ac\<^sup>< \<subseteq> $ac\<^sup>>) \<and> $\<^bold>v\<^sub>A\<^sup>> = $\<^bold>v\<^sub>A\<^sup><)\<^sub>e"
-
-(* Definition 15. *)
-definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarrow> ('\<beta>, ('s, '\<alpha>) achoices_scheme) urel" where
-[pred]: "PBMH P = (P ;; pbmh_step)"
-
 lemma pbmh_step_idem:
   "pbmh_step ;; pbmh_step = pbmh_step"
   by (pred_auto)
