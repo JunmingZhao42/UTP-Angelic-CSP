@@ -42,6 +42,20 @@ type_synonym 's arel = "'s angelic_rel"
 type_synonym 's ades_rel = "'s angelic_design_rel"
 type_synonym 's ades = "'s angelic_design"
 
+abbreviation arel_state_subst ::
+  "('s, '\<alpha>) astate_ext subst \<Rightarrow>
+   ('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow>
+   ('s, '\<alpha>, '\<beta>) angelic_rel_ext"
+where
+  "arel_state_subst st_subst P \<equiv> (st_subst \<up>\<^sub>s \<^bold>v\<^sup><) \<dagger> P"
+
+abbreviation ades_state_subst ::
+  "('s, '\<alpha>) astate_ext subst \<Rightarrow>
+   ('s, '\<alpha>, '\<beta>) angelic_design_rel_ext \<Rightarrow>
+   ('s, '\<alpha>, '\<beta>) angelic_design_rel_ext"
+where
+  "ades_state_subst st_subst P \<equiv> (st_subst \<up>\<^sub>s \<^bold>v\<^sub>D\<^sup><) \<dagger> P"
+
 definition arel_to_ades ::
   "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_design_rel_ext"
 where

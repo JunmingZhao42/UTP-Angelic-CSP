@@ -50,6 +50,15 @@ lemma PBMH_disj:
   "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
 
+lemma PBMH_state_subst:
+  "arel_state_subst st_subst (PBMH P) = PBMH (arel_state_subst st_subst P)"
+  apply (simp add: PBMH_def)
+  apply (rule subst_seq_left)
+  apply (simp add: out\<alpha>_def)
+  apply (rule unrest_subst_aext)
+  apply simp
+  done
+
 (* Theorem 64. PBMH commutes with the H1 guard. *)
 lemma PBMH_H1_commute:
   "PBMH (ok\<^sup>< \<longrightarrow> P) = (ok\<^sup>< \<longrightarrow> PBMH P)"
@@ -89,6 +98,10 @@ lemma A0_Monotonic [closure]:
   "Monotonic A0"
   by (rule MonotonicI, rule A0_mono) 
 
+lemma A0_state_subst:
+  "ades_state_subst st_subst (A0 P) = A0 (ades_state_subst st_subst P)"
+  by (simp add: A0_def, pred_auto)
+
 (* Theorem 3. *)
 lemma "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
@@ -100,9 +113,35 @@ definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 
 (* Lemma 16. Putting a design in PBMH. *)
 lemma PBMH_rdesign:
-  "A1 (P \<turnstile>\<^sub>r Q) =
-   ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
+  "A1 (P \<turnstile>\<^sub>r Q) = ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
   by (simp add: A1_def PBMH_disj rdesign_refinement, pred_auto)
+
+lemma des_vars_update_commute:
+  "x\<lparr>ok\<^sub>v := ok_val, des_vars.more := more_val\<rparr> =
+   x\<lparr>des_vars.more := more_val, ok\<^sub>v := ok_val\<rparr>"
+  by (cases x, simp)
+
+lemma A1_state_subst:
+  "ades_state_subst st_subst (A1 P) = A1 (ades_state_subst st_subst P)"
+proof -
+  have pre_subst:
+    "pre\<^sub>D (ades_state_subst st_subst P) = arel_state_subst st_subst (pre\<^sub>D P)"
+    apply (pred_auto)
+     apply (simp add: des_vars_update_commute)
+    apply (simp add: des_vars_update_commute)
+    done
+  have post_subst:
+    "post\<^sub>D (ades_state_subst st_subst P) = arel_state_subst st_subst (post\<^sub>D P)"
+    apply (pred_auto)
+     apply (simp add: des_vars_update_commute)
+    apply (simp add: des_vars_update_commute)
+    done
+  show ?thesis
+    unfolding A1_def
+    apply (simp add: PBMH_state_subst usubst)
+    apply (simp add: pre_subst post_subst)
+    done
+qed
 
 lemma A1_idem:
   "A1 (A1 P) = A1 P"
@@ -168,6 +207,11 @@ lemma A_H2_commute:
   "H2 (A P) = A (H2 P)"
   by (simp add: A_design_form H2_rdesign H2_split PBMH_disj rdesign_refinement, pred_auto)
 
+(* Paper Lemma 18: state substitution commutes with A. *)
+lemma A_state_subst:
+  "ades_state_subst st_subst (A P) = A (ades_state_subst st_subst P)"
+  by (simp add: A_def A0_state_subst A1_state_subst)
+
 lemma A_is_H1:
   "H1 (A P) = A P"
   by (simp add: A_design_form H1_rdesign)
@@ -176,16 +220,15 @@ lemma A_is_H2:
   "H2 (A P) = A P"
   by (simp add: A_design_form H2_rdesign)
 
-lemma A_is_design [closure]:
-  "A P is \<^bold>H"
-  by (simp add: A_design_form closure)
+lemma A_is_H:
+  "\<^bold>H (A P) = A P"
+  by (simp add: A_design_form H1_rdesign H2_rdesign)
 
 lemma A_healthy_design_form:
-  "P is A \<Longrightarrow>
-   P =
+  "P is A \<Longrightarrow> P =
    ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r
      (PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
-  by (metis A_design_form Healthy_if)
+  by (simp add: A_design_form Healthy_def')
 
 (* corollary *)
 lemma A_healthy_complete_lattice:
@@ -201,59 +244,33 @@ qed
 subsection \<open>A2\<close>
 
 (* {s} = ac' *)
-definition singleton_ac ::
-  "('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
-[pred]: "singleton_ac = (\<lambda> (s0, ac').
-  get\<^bsub>ac\<^esub> ac' = {get\<^bsub>s\<^esub> s0})"
+definition singleton_ac :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
+[pred]: "singleton_ac = (\<lambda> (s0, ac'). get\<^bsub>ac\<^esub> ac' = {get\<^bsub>s\<^esub> s0})"
 
-(* Definition 20. *)
+(* Definition 20: A2 = PBMH (P ;; {s} = ac') *)
 definition A2_rel ::
   "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where [pred]:
   "A2_rel P = PBMH (P ;;\<^sub>A singleton_ac)"
 
 (* Theorem 4: expanded form of @{const A2_rel}. *)
-definition A2_rel_expanded ::
-  "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow>
-   ('s, '\<alpha>, '\<beta>) angelic_rel_ext"
-where
+(* P[\<emptyset>/ac'] \<or> \<exists>y. y \<in> ac' P[{y'}/ac'] *)
+definition A2_rel_expanded :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "A2_rel_expanded P = (\<lambda> (s0, ac').
-  P (s0, put\<^bsub>ac\<^esub> ac' {}) \<or>
-  (\<exists> y \<in> get\<^bsub>ac\<^esub> ac'. P (s0, put\<^bsub>ac\<^esub> ac' {y})))"
+  P (s0, put\<^bsub>ac\<^esub> ac' {}) \<or> (\<exists> y \<in> get\<^bsub>ac\<^esub> ac'. P (s0, put\<^bsub>ac\<^esub> ac' {y})))"
 
-lemma singleton_choice_set_cases:
-  assumes "P {x. X = {x}}" "X \<subseteq> Y" "\<And> y. y \<in> Y \<Longrightarrow> \<not> P {y}"
-  shows "P {}"
-proof (cases "\<exists> y. X = {y}")
-  case True
-  then obtain y where "X = {y}"
-    by auto
-  with assms show ?thesis
-    by auto
-next
-  case False
-  then have "{x. X = {x}} = {}"
-    by auto
-  with assms show ?thesis
-    by auto
-qed
-
-lemma singleton_choice_set_empty_intro:
-  "P {} \<Longrightarrow> \<exists> X. P {x. X = {x}} \<and> X \<subseteq> Y"
-  by (rule_tac x="{}" in exI, auto)
-
-lemma singleton_choice_set_single_intro:
-  "y \<in> Y \<Longrightarrow> P {y} \<Longrightarrow> \<exists> X. P {x. X = {x}} \<and> X \<subseteq> Y"
-  by (rule_tac x="{y}" in exI, auto)
+(* Lift the definition from angelic relation to angelic designs: lemma L.4.2.3 in thesis *)
+definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
+[pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
 
 lemma A2_rel_eq_expanded:
   "A2_rel P = A2_rel_expanded P"
   apply (pred_auto)
-    apply (rule singleton_choice_set_cases)
-      apply assumption
-     apply assumption
-    apply blast
-  apply (rule singleton_choice_set_empty_intro, assumption)
-  apply (rule singleton_choice_set_single_intro, assumption+)
+  subgoal for s more ac morea X
+    by (cases "\<exists> y. X = {y}", auto)
+  subgoal for s more ac morea
+    by (rule_tac x="{}" in exI, auto)
+  subgoal for s more ac morea y
+    by (rule_tac x="{y}" in exI, auto)
   done
 
 lemma A2_rel_expanded_disj:
@@ -292,10 +309,7 @@ lemma A2_rel_guarded_post:
   "A2_rel (P \<and> Q) \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<and> A2_rel Q)"
   by (simp add: A2_rel_eq_expanded, pred_auto)
 
-(* lemma L.4.2.3 in thesis *)
-definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
-
+(* Appendix Lemma 17. *)
 lemma A2_rdesign:
   "A2 (P \<turnstile>\<^sub>r Q) = ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
   by (simp add: A2_def A2_rel_disj rdesign_refinement, pred_auto)
@@ -306,8 +320,15 @@ lemma A2_arel_to_ades:
 
 lemma A2_idem:
   "A2 (A2 P) = A2 P"
-  by (simp add: A2_def A2_rel_eq_expanded A2_rel_expanded_disj
-      A2_rel_expanded_idem rdesign_refinement, pred_auto)
+  apply (simp add: A2_def A2_rdesign A2_rel_idem)
+  apply (rule ref_antisym)
+   apply (simp add: rdesign_refinement)
+   apply (simp add: A2_rel_eq_expanded impl_pred_def)
+   apply (pred_auto; blast)
+  apply (simp add: rdesign_refinement)
+  apply (simp add: A2_rel_eq_expanded impl_pred_def)
+  apply (pred_auto; blast)
+  done
 
 lemma A2_Idempotent [closure]:
   "Idempotent A2"
