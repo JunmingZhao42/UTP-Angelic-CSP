@@ -320,15 +320,27 @@ lemma A2_arel_to_ades:
 
 lemma A2_idem:
   "A2 (A2 P) = A2 P"
-  apply (simp add: A2_def A2_rdesign A2_rel_idem)
-  apply (rule ref_antisym)
-   apply (simp add: rdesign_refinement)
-   apply (simp add: A2_rel_eq_expanded impl_pred_def)
-   apply (pred_auto; blast)
-  apply (simp add: rdesign_refinement)
-  apply (simp add: A2_rel_eq_expanded impl_pred_def)
-  apply (pred_auto; blast)
-  done
+proof -
+  have elim:
+    "\<And>P Q. taut [\<lambda>s. (\<not> A2_rel (\<not> P)) s \<and>
+        (A2_rel [\<lambda>t. (\<not> A2_rel (\<not> P)) t \<longrightarrow> A2_rel Q t]\<^sub>e) s \<longrightarrow>
+        A2_rel Q s]\<^sub>e"
+    apply (simp add: A2_rel_eq_expanded impl_pred_def)
+    apply (pred_auto; blast)
+    done
+  have intro:
+    "\<And>P Q. taut [\<lambda>s. (\<not> A2_rel (\<not> P)) s \<and> A2_rel Q s \<longrightarrow>
+        (A2_rel [\<lambda>t. (\<not> A2_rel (\<not> P)) t \<longrightarrow> A2_rel Q t]\<^sub>e) s]\<^sub>e"
+    apply (simp add: A2_rel_eq_expanded impl_pred_def)
+    apply (pred_auto; blast)
+    done
+  show ?thesis
+    apply (simp add: A2_def A2_rdesign A2_rel_idem)
+    apply (rule ref_antisym)
+     apply (simp add: rdesign_refinement elim)
+    apply (simp add: rdesign_refinement intro)
+    done
+qed
 
 lemma A2_Idempotent [closure]:
   "Idempotent A2"
