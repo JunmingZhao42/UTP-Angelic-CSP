@@ -46,6 +46,15 @@ lemma PBMH_ac_non_empty [simp]:
    (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
   by (pred_auto)
 
+lemma PBMH_unrest_ac:
+  "$ac\<^sup>> \<sharp> P \<Longrightarrow> PBMH P = P"
+  by (simp add: PBMH_def pbmh_step_def, pred_auto)
+
+lemma PBMH_conj_nonempty:
+  "PBMH (PBMH P \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e) =
+   (PBMH P \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
+  by (simp add: PBMH_def pbmh_step_def, pred_auto)
+
 lemma PBMH_disj:
   "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
