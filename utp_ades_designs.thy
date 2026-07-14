@@ -91,8 +91,7 @@ lemma d2ac_mono:
   apply (simp add: d2ac_def)
   apply (rule rdesign_refine_intro')
    apply (pred_auto; blast)
-  apply (pred_auto; blast)
-  done
+  by (pred_auto; blast)
 
 subsection \<open>Angelic Design to Design\<close>
 
@@ -103,8 +102,7 @@ definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" wher
   in PBMH (\<lambda> (s, ac). let s1' = put\<^bsub>\<^bold>v\<^sub>D\<^esub> s1 ac
     in P (s, s1')) (s0, ac'))"
 
-(* Paper Definition 24; thesis Definition 103. The two records implement
-   StateII on the input and dash on the output. *)
+(* Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 [pred]: "ac2p P = (\<lambda> (s0, s1).
   let ades_in = \<lparr>ok\<^sub>v = ok\<^sub>v s0,
@@ -112,6 +110,11 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
       ades_out = \<lparr>ok\<^sub>v = ok\<^sub>v s1,
                     \<dots> = \<lparr>ac\<^sub>v = {des_vars.more s1}, \<dots> = ()\<rparr>\<rparr>
   in PBMH_ades P (ades_in, ades_out))"
+
+(* The relation-level instance of ac2p used in the paper's design proof. *)
+definition ac2p_rel :: "'s angelic_rel \<Rightarrow> ('s, 's) urel" where
+[pred]: "ac2p_rel P = (\<lambda> (s0, s1).
+  PBMH P (StateII s0, \<lparr>ac\<^sub>v = {s1}, \<dots> = ()\<rparr>))"
 
 (* Thesis Appendix C.5.3, Lemma L.C.5.20 (ac2p-alternative-3). *)
 lemma ac2p_subset:
@@ -123,7 +126,13 @@ lemma ac2p_subset:
     in P (ades_in, ades_out) \<and> ac \<subseteq> {des_vars.more s1})"
   by (pred_auto)
 
-(* Thesis Lemma L.4.6.2 (ac2p-alternative-1). *)
+lemma ac2p_rel_subset:
+  "ac2p_rel P = (\<lambda> (s0, s1). \<exists> ac.
+    P (StateII s0, \<lparr>ac\<^sub>v = ac, \<dots> = ()\<rparr>) \<and> ac \<subseteq> {s1})"
+  by (pred_auto)
+
+(* Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
+(* My understanding: ac2p(P)(s,z) = P(s, {z}) *)
 lemma ac2p_alt:
   "ac2p P = (\<lambda> (s0, s1). \<exists> ac.
     let ades_in = \<lparr>ok\<^sub>v = ok\<^sub>v s0,
@@ -133,24 +142,24 @@ lemma ac2p_alt:
     in P (ades_in, ades_out) \<and> (\<forall> z \<in> ac. z = des_vars.more s1))"
   by (pred_auto)
 
+lemma ac2p_rdesign:
+  "ac2p (P \<turnstile>\<^sub>r Q) = ((\<not> ac2p_rel (\<not> P)) \<turnstile>\<^sub>r ac2p_rel Q)"
+  by (simp only: ac2p_subset ac2p_rel_subset; pred_auto)
+  
 subsection \<open>Isomorphism and Galois Connection\<close>
 
 lemma ac2p_d2ac_rdesign:
-  fixes P Q :: "('s, 's) urel"
-  shows "ac2p (d2ac (P \<turnstile>\<^sub>r Q)) = (P \<turnstile>\<^sub>r Q)"
-  apply (simp only: d2ac_rdesign ac2p_subset)
-  apply (pred_simp)
-  apply (auto)
-  done
+  "ac2p (d2ac (P \<turnstile>\<^sub>r Q)) = (P \<turnstile>\<^sub>r Q)"
+  by (simp only: d2ac_rdesign ac2p_subset; pred_auto)
 
-(* Paper Theorem 5; thesis Theorem T.4.6.7. *)
+(* Theorem 5 *)
 theorem ac2p_d2ac:
-  fixes P :: "'s des_hrel"
   assumes "P is \<^bold>H"
   shows "ac2p (d2ac P) = P"
 proof -
   have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
-    using assms by (metis H1_H2_eq_rdesign Healthy_def')
+    using H1_H2_eq_rdesign[of P] assms
+    by (simp add: Healthy_def')
   have "ac2p (d2ac P) =
       ac2p (d2ac (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P))"
     by (rule arg_cong[OF P_form])
@@ -160,5 +169,73 @@ proof -
     using P_form by (rule sym)
   finally show ?thesis .
 qed
+
+(* Thesis Theorem T.5.3.6, specialised to the relation-level mapping. *)
+lemma p2ac_ac2p_rel_refine:
+  assumes "PBMH P = P"
+  shows "P \<sqsubseteq> p2ac (ac2p_rel P)"
+  using assms
+  by (simp only: ac2p_rel_subset p2ac_def; pred_auto)
+
+lemma ac2p_rel_feasible_unrest:
+  assumes "$ac\<^sup>> \<sharp> P"
+  shows "taut ((\<not> P) \<longrightarrow> p2ac_exist (\<not> ac2p_rel P))"
+  using assms
+  apply (simp only: ac2p_rel_subset p2ac_exist_def)
+  apply (pred_auto)
+  apply (rule_tac x=undefined in exI)
+  by auto
+
+lemma d2ac_ac2p_rdesign_refine:
+  assumes "PBMH (\<not> P) = (\<not> P)" "PBMH Q = Q"
+    and feasible: "taut (P \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> P)))"
+  shows "(P \<turnstile>\<^sub>r Q) \<sqsubseteq> d2ac (ac2p (P \<turnstile>\<^sub>r Q))"
+  apply (simp only: ac2p_rdesign d2ac_rdesign)
+  apply (rule rdesign_refine_intro)
+   apply (insert p2ac_ac2p_rel_refine[OF assms(1)] feasible)
+   apply (pred_auto)
+  apply (insert p2ac_ac2p_rel_refine[OF assms(2)])
+  by (pred_auto)
+
+(* thesis Theorem T.4.6.8.
+   Normality makes the precondition independent of the output choice ac'. *)
+lemma d2ac_ac2p_normal:
+  fixes D :: "'s angelic_design"
+  defines "P \<equiv> \<not> PBMH (\<not> pre\<^sub>D D)"
+    and "Q \<equiv> PBMH (post\<^sub>D D) \<and>
+      ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
+  assumes healthy: "D is A"
+    and normal: "D is \<^bold>N"
+  shows "D \<sqsubseteq> d2ac (ac2p D)"
+proof -
+  have pre_unrest: "$ac\<^sup>> \<sharp> pre\<^sub>D D"
+    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF normal])
+  have P_eq: "P = pre\<^sub>D D"
+    using PBMH_unrest_ac[of "\<not> pre\<^sub>D D"] pre_unrest
+    by (simp add: P_def unrest)
+  have failure_P_unrest: "$ac\<^sup>> \<sharp> (\<not> P)"
+    using pre_unrest by (simp add: P_eq unrest)
+  have feasible: "taut (P \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> P)))"
+    using ac2p_rel_feasible_unrest[OF failure_P_unrest] by simp
+  have failure_healthy: "PBMH (\<not> P) = (\<not> P)"
+    by (rule PBMH_unrest_ac[OF failure_P_unrest])
+  have Q_healthy: "PBMH Q = Q"
+    by (simp add: Q_def PBMH_conj_nonempty)
+  have D_form: "D = (P \<turnstile>\<^sub>r Q)"
+    using A_healthy_design_form[OF healthy]
+    by (simp add: P_def Q_def)
+  from d2ac_ac2p_rdesign_refine[
+    OF failure_healthy Q_healthy feasible]
+  show ?thesis
+    by (simp only: D_form)
+qed
+
+(* Theorem 6. But with normal designs only *)
+corollary d2ac_ac2p_ndesign:
+  fixes p :: "'s astate pred"
+    and Q :: "'s angelic_rel"
+  assumes "(p \<turnstile>\<^sub>n Q) is A"
+  shows "(p \<turnstile>\<^sub>n Q) \<sqsubseteq> d2ac (ac2p (p \<turnstile>\<^sub>n Q))"
+  by (rule d2ac_ac2p_normal[OF assms ndesign_H1_H3])
 
 end
