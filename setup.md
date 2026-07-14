@@ -179,6 +179,11 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
 
 This stores the compiled sessions under the isolated Isabelle profile.
 
+As a reference point on the MCP-compatible macOS worktree, a full build that
+also had to build the pinned `deps/` sessions took about 9 minutes 10 seconds.
+Once those dependency heaps were already available, rebuilding the top
+`UTP-Angelic-CSP` session took about 8 seconds.
+
 ## Open This Project
 
 First editable open, or after changing session dependencies:
