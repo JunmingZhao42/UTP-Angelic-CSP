@@ -27,14 +27,13 @@ subsection \<open>Demonic Choice\<close>
 abbreviation dchoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<sqinter>\<^sub>D\<^sub>A" 65)
 where "P \<sqinter>\<^sub>D\<^sub>A Q \<equiv> P \<sqinter> Q"
 
-lemma adem_choice_def:
+lemma angelic_rel_demonic:
   fixes P Q :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
   shows "P \<sqinter> Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
-lemma dchoice_ades_eq_disj:
-  fixes P Q :: "'s angelic_design"
-  shows "P \<sqinter>\<^sub>D\<^sub>A Q = (P \<or> Q)"
+lemma angelic_design_demonic:
+  "P \<sqinter>\<^sub>D\<^sub>A Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
 subsection \<open>Angelic Choice\<close>
@@ -42,15 +41,31 @@ subsection \<open>Angelic Choice\<close>
 abbreviation achoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<squnion>\<^sub>D\<^sub>A" 70)
 where "P \<squnion>\<^sub>D\<^sub>A Q \<equiv> P \<squnion> Q"
 
-lemma aang_choice_def:
+lemma angelic_rel_angelic:
   fixes P Q :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
   shows "P \<squnion> Q = (P \<and> Q)"
   by (simp add: conj_pred_def)
 
-lemma achoice_ades_eq_conj:
-  fixes P Q :: "'s angelic_design"
-  shows "P \<squnion>\<^sub>D\<^sub>A Q = (P \<and> Q)"
+lemma angelic_design_angelic:
+  "P \<squnion>\<^sub>D\<^sub>A Q = (P \<and> Q)"
   by (simp add: conj_pred_def)
+
+(* TODO: Thesis T.4.5.16: A-healthy designs are closed under \<squnion>\<^sub>D\<^sub>A. *)
+
+(* Thesis Theorem T.4.5.18 *)
+lemma angelic_design_angelic_top:
+  fixes P :: "'s angelic_design"
+  assumes "P is \<^bold>H"
+  shows "P \<squnion>\<^sub>D\<^sub>A \<top>\<^sub>D = \<top>\<^sub>D"
+proof -
+  have H1H2_eq: "H1 (H2 P) = P"
+    using assms by (simp only: Healthy_def')
+  have P_le_top: "P \<sqsubseteq> \<top>\<^sub>D"
+    using H1_below_top[of "H2 P"] H1H2_eq by simp
+  show ?thesis
+    using P_le_top
+    by (simp only: ref_lattice.le_iff_sup)
+qed
 
 subsection \<open>Angelic Relation Sequential Composition\<close>
 
@@ -112,6 +127,12 @@ where [pred]: "angelic_design_seq_simplified P Q =
 abbreviation dseq_ades ::
   "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design"
 where "dseq_ades \<equiv> angelic_design_seq"
+
+(* Thesis Theorem T.4.5.15 *)
+lemma angelic_design_seq_demonic:
+  "(P \<sqinter>\<^sub>D\<^sub>A Q) ;;\<^sub>D\<^sub>A R =
+   (P ;;\<^sub>D\<^sub>A R) \<sqinter>\<^sub>D\<^sub>A (Q ;;\<^sub>D\<^sub>A R)"
+  by (simp add: angelic_design_seq_def angelic_design_demonic, pred_auto)
 
 lemma angelic_design_seq_simplified_alt:
   "angelic_design_seq_simplified (P \<turnstile>\<^sub>r Q) (R \<turnstile>\<^sub>r S) =
