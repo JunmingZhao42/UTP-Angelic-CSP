@@ -191,9 +191,68 @@ lemma A_design_form:
      (PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
   by (pred_auto)
 
+lemma preD_H1:
+  "pre\<^sub>D (H1 P) = pre\<^sub>D P"
+  by (simp add: H1_def pre_design_def, pred_simp)
+
+lemma postD_H1:
+  "post\<^sub>D (H1 P) = post\<^sub>D P"
+  by (simp add: H1_def post_design_def, pred_simp)
+
+lemma preD_H2:
+  "pre\<^sub>D (H2 P) = pre\<^sub>D P"
+  by (simp add: H2_split pre_design_def, pred_simp)
+
+lemma postD_H2:
+  "post\<^sub>D (H2 P) = ((\<not> pre\<^sub>D P) \<or> post\<^sub>D P)"
+  by (simp add: H2_split pre_design_def post_design_def, pred_simp)
+
+lemma preD_disj:
+  "pre\<^sub>D (P \<or> Q) = (pre\<^sub>D P \<and> pre\<^sub>D Q)"
+  by (simp add: pre_design_def, pred_simp)
+
+lemma postD_disj:
+  "post\<^sub>D (P \<or> Q) = (post\<^sub>D P \<or> post\<^sub>D Q)"
+  by (simp add: post_design_def, pred_simp)
+
+lemma rdesign_disj:
+  "((P1 \<turnstile>\<^sub>r Q1) \<or> (P2 \<turnstile>\<^sub>r Q2)) =
+   ((P1 \<and> P2) \<turnstile>\<^sub>r (Q1 \<or> Q2))"
+  by (simp add: rdesign_def design_union, pred_simp)
+
+(* Theorem T.4.5.11 *)
+lemma A_disj:
+  "A (P \<or> Q) = (A P \<or> A Q)"
+  by (simp add: A_design_form preD_disj postD_disj PBMH_disj rdesign_disj
+      pred_ba.boolean_algebra.conj_disj_distrib
+      pred_ba.boolean_algebra.conj_disj_distrib2)
+
+lemma A_demonic:
+  "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (A P \<sqinter>\<^sub>D\<^sub>A A Q)"
+  by (simp add: angelic_design_demonic A_disj)
+
+(* Theorem T.4.5.12 *)
+lemma A_demonic_closure:
+  assumes "P is A" "Q is A"
+  shows "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (P \<sqinter>\<^sub>D\<^sub>A Q)"
+  using assms by (simp add: A_demonic Healthy_def')
+
+(* Theorem T.4.5.14 *)
+lemma angelic_design_demonic_bottom:
+  "P \<sqinter>\<^sub>D\<^sub>A \<bottom>\<^sub>D = \<bottom>\<^sub>D"
+  by (simp add: angelic_design_demonic bot_d_true)
+
 lemma A_idem:
   "A (A P) = A P"
-  by (simp add: A_design_form PBMH_idem rdesign_refinement, pred_auto)
+  apply (simp add: A_design_form PBMH_idem)
+  apply (rule pred_ba.order_antisym)
+   apply (rule rdesign_refine_intro)
+    apply pred_auto
+   apply (pred_simp; blast)
+  apply (rule rdesign_refine_intro)
+   apply pred_auto
+  apply (pred_simp; blast)
+  done
 
 lemma A_Idempotent [closure]:
   "Idempotent A"
@@ -201,11 +260,22 @@ lemma A_Idempotent [closure]:
 
 lemma A_H1_commute:
   "H1 (A P) = A (H1 P)"
-  by (simp add: A_design_form H1_rdesign, pred_auto)
+  by (simp add: A_design_form H1_rdesign preD_H1 postD_H1)
 
 lemma A_H2_commute:
   "H2 (A P) = A (H2 P)"
-  by (simp add: A_design_form H2_rdesign H2_split PBMH_disj rdesign_refinement, pred_auto)
+proof -
+  have post_absorb:
+    "\<And>P Q N.
+      ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r ((PBMH (\<not> P) \<or> PBMH Q) \<and> N)) =
+      ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r (PBMH Q \<and> N))"
+    apply (rule pred_ba.order_antisym)
+     apply (rule rdesign_refine_intro; pred_auto)
+    apply (rule rdesign_refine_intro; pred_auto)
+    done
+  show ?thesis
+    by (simp add: A_design_form H2_rdesign preD_H2 postD_H2 PBMH_disj post_absorb)
+qed
 
 (* Paper Lemma 18: state substitution commutes with A. *)
 lemma A_state_subst:
