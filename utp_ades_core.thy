@@ -25,6 +25,11 @@ syntax
 translations
   "_svid_ades_alpha" => "CONST achoices.more\<^sub>L"
 
+(* Definition 25. *)
+(* Package the ordinary variables as the state observed by an angelic predicate. *)
+definition StateII :: "'s \<Rightarrow> 's astate" where
+[pred]: "StateII st = \<lparr>s\<^sub>v = st, \<dots> = ()\<rparr>"
+
 type_synonym ('s, '\<alpha>) astate_ext       = "('s, '\<alpha>) astate_scheme"
 type_synonym ('s, '\<alpha>) achoices_ext     = "('s, '\<alpha>) achoices_scheme"
 type_synonym ('s, '\<alpha>, '\<beta>) angelic_rel_ext =
