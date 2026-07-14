@@ -197,45 +197,137 @@ lemma d2ac_ac2p_rdesign_refine:
   apply (insert p2ac_ac2p_rel_refine[OF assms(2)])
   by (pred_auto)
 
-(* thesis Theorem T.4.6.8.
-   Normality makes the precondition independent of the output choice ac'. *)
-lemma d2ac_ac2p_normal:
-  fixes D :: "'s angelic_design"
-  defines "P \<equiv> \<not> PBMH (\<not> pre\<^sub>D D)"
-    and "Q \<equiv> PBMH (post\<^sub>D D) \<and>
-      ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
-  assumes healthy: "D is A"
-    and normal: "D is \<^bold>N"
-  shows "D \<sqsubseteq> d2ac (ac2p D)"
+(* The A0-A2 rdesign form is preserved by the round trip up to refinement. *)
+lemma d2ac_ac2p_A2_rdesign_refine:
+  "d2ac (ac2p ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
+      A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)))
+    \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
+      A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
 proof -
-  have pre_unrest: "$ac\<^sup>> \<sharp> pre\<^sub>D D"
-    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF normal])
-  have P_eq: "P = pre\<^sub>D D"
-    using PBMH_unrest_ac[of "\<not> pre\<^sub>D D"] pre_unrest
-    by (simp add: P_def unrest)
-  have failure_P_unrest: "$ac\<^sup>> \<sharp> (\<not> P)"
-    using pre_unrest by (simp add: P_eq unrest)
-  have feasible: "taut (P \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> P)))"
-    using ac2p_rel_feasible_unrest[OF failure_P_unrest] by simp
-  have failure_healthy: "PBMH (\<not> P) = (\<not> P)"
-    by (rule PBMH_unrest_ac[OF failure_P_unrest])
-  have Q_healthy: "PBMH Q = Q"
-    by (simp add: Q_def PBMH_conj_nonempty)
-  have D_form: "D = (P \<turnstile>\<^sub>r Q)"
-    using A_healthy_design_form[OF healthy]
-    by (simp add: P_def Q_def)
-  from d2ac_ac2p_rdesign_refine[
-    OF failure_healthy Q_healthy feasible]
+  have round_trip: "p2ac (ac2p_rel R) =
+      (A2_rel R \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)" for R
+    apply (simp only: p2ac_def ac2p_rel_subset A2_rel_eq_expanded
+        A2_rel_expanded_def)
+    apply (pred_auto)
+    subgoal premises assms for s0 ac' z ac
+      using assms subset_singletonD[OF assms(3)]
+      by (elim disjE; simp)
+    done
   show ?thesis
-    by (simp only: D_form)
+    apply (simp only: ac2p_rdesign d2ac_rdesign round_trip A2_rel_idem)
+    apply (rule rdesign_refine_intro)
+     apply (simp add: p2ac_exist_def ac2p_rel_subset
+        A2_rel_eq_expanded A2_rel_expanded_def)
+     apply (pred_auto; blast)
+    apply (simp add: A2_rel_eq_expanded A2_rel_expanded_def)
+    by (pred_auto)
 qed
 
-(* Theorem 6. But with normal designs only *)
-corollary d2ac_ac2p_ndesign:
-  fixes p :: "'s astate pred"
-    and Q :: "'s angelic_rel"
-  assumes "(p \<turnstile>\<^sub>n Q) is A"
-  shows "(p \<turnstile>\<^sub>n Q) \<sqsubseteq> d2ac (ac2p (p \<turnstile>\<^sub>n Q))"
-  by (rule d2ac_ac2p_normal[OF assms ndesign_H1_H3])
+(* Counterexample: P_dummy \<equiv> (ac' = \<emptyset>) \<turnstile> (ac' \<noteq> \<emptyset>). *)
+definition P_dummy :: "unit angelic_design" where
+[pred]: "P_dummy =
+  (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e \<turnstile>\<^sub>r
+   ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
+
+lemma P_dummy_is_A:
+  "P_dummy is A"
+  by (simp add: Healthy_def' P_dummy_def A_design_form, pred_auto)
+
+lemma P_dummy_not_normal:
+  "\<not> (P_dummy is \<^bold>N)"
+proof
+  assume normal: "P_dummy is \<^bold>N"
+  have out_unrest: "out\<alpha> \<sharp> pre\<^sub>D P_dummy"
+    by (rule H3_unrest_out_alpha[OF normal])
+  have "$ac\<^sup>> \<sharp> pre\<^sub>D P_dummy"
+    by (rule unrest_out_var[OF _ out_unrest], simp)
+  then show False
+    by (simp add: P_dummy_def unrest unrest_lens; pred_auto)
+qed
+
+lemma ac2p_P_dummy:
+  "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
+  unfolding P_dummy_def
+  apply (simp only: ac2p_rdesign ac2p_rel_subset)
+  by (pred_auto)
+
+lemma d2ac_ac2p_P_dummy:
+  "d2ac (ac2p P_dummy) = true"
+  apply (simp only: ac2p_P_dummy d2ac_rdesign p2ac_false p2ac_true
+      p2ac_exist_def)
+  by (pred_auto)
+
+lemma P_dummy_fails_theorem6:
+  "\<not> (P_dummy \<sqsubseteq> d2ac (ac2p P_dummy))"
+  apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
+  by (pred_auto)
+
+(* Theorem 6.
+   Normality is required: it makes the precondition independent of the output choice ac'. *)
+lemma d2ac_ac2p_normal:
+  fixes P :: "'s angelic_design"
+  assumes healthy: "P is A"
+    and normal: "P is \<^bold>N"
+  shows "P \<sqsubseteq> d2ac (ac2p P)"
+proof -
+  define pre_A :: "'s angelic_rel" where
+    "pre_A \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
+  define post_A :: "'s angelic_rel" where
+    "post_A \<equiv> PBMH (post\<^sub>D P) \<and>
+      ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
+  have pre_unrest: "$ac\<^sup>> \<sharp> pre\<^sub>D P"
+    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF normal])
+  have pre_A_eq: "pre_A = pre\<^sub>D P"
+    using PBMH_unrest_ac[of "\<not> pre\<^sub>D P"] pre_unrest
+    by (simp add: pre_A_def unrest)
+  have failure_pre_unrest: "$ac\<^sup>> \<sharp> (\<not> pre_A)"
+    using pre_unrest by (simp add: pre_A_eq unrest)
+  have feasible: "taut (pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
+    using ac2p_rel_feasible_unrest[OF failure_pre_unrest] by simp
+  have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"
+    by (rule PBMH_unrest_ac[OF failure_pre_unrest])
+  have post_A_healthy: "PBMH post_A = post_A"
+    by (simp add: post_A_def PBMH_conj_nonempty)
+  have P_form: "P = (pre_A \<turnstile>\<^sub>r post_A)"
+    using A_healthy_design_form[OF healthy]
+    by (simp add: pre_A_def post_A_def)
+  from d2ac_ac2p_rdesign_refine[
+    OF failure_healthy post_A_healthy feasible]
+  show ?thesis
+    by (simp only: P_form)
+qed
+
+(* Theorem 7. *)
+lemma d2ac_ac2p_A2:
+  fixes P :: "'s angelic_design"
+  defines "Pre \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
+    and "Post \<equiv> PBMH (post\<^sub>D P)"
+  assumes healthy: "P is A"
+    and a2_healthy: "P is A2"
+  shows "d2ac (ac2p P) \<sqsubseteq> P"
+proof -
+  have P_form: "P = (Pre \<turnstile>\<^sub>r
+      (Post \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
+    using A_healthy_design_form[OF healthy]
+    by (simp add: Pre_def Post_def)
+  have P_A2_form: "P = ((\<not> A2_rel (\<not> Pre)) \<turnstile>\<^sub>r
+      A2_rel (Post \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
+    using a2_healthy
+    by (simp only: Healthy_def' P_form A2_rdesign)
+  from d2ac_ac2p_A2_rdesign_refine[of Pre Post]
+  show ?thesis
+    by (simp only: P_A2_form)
+qed
+
+(* Theorem 8.
+   Normality is required in the d2d direction because of Theorem 6. *)
+lemma d2ac_ac2p_A2_normal:
+  assumes healthy: "P is A"
+    and a2_healthy: "P is A2"
+    and normal: "P is \<^bold>N"
+  shows "d2ac (ac2p P) = P"
+  apply (rule ref_antisym)
+   apply (rule d2ac_ac2p_normal[OF healthy normal])
+  by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
 
 end
