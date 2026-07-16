@@ -4,7 +4,7 @@ theory utp_ades_core
   imports "UTP-Designs.utp_designs"
 begin
 
-subsection \<open>Alphabet (Definition 16)\<close>
+subsection \<open>Alphabet (Paper Definition 16)\<close>
 
 text \<open>
   Angelic designs package ordinary program variables into an initial state @{term s}, 
@@ -25,7 +25,20 @@ syntax
 translations
   "_svid_ades_alpha" => "CONST achoices.more\<^sub>L"
 
-(* Definition 25. *)
+(* some shortcut to modify the angelic design fields *)
+lemma astate_s_v_put [simp]:
+  "astate.s\<^sub>v (put\<^bsub>s\<^esub> st v) = v"
+  by (simp add: astate.s_def)
+
+lemma achoices_ac_v_put [simp]:
+  "achoices.ac\<^sub>v (put\<^bsub>ac\<^esub> c cs) = cs"
+  by (simp add: achoices.ac_def)
+
+lemma des_vars_more_put [simp]:
+  "des_vars.more (put\<^bsub>\<^bold>v\<^sub>D\<^esub> d v) = v"
+  by (simp add: des_vars.more\<^sub>L_def)
+
+(* Paper Definition 25. *)
 (* Package the ordinary variables as the state observed by an angelic predicate. *)
 definition StateII :: "'s \<Rightarrow> 's astate" where
 [pred]: "StateII st = \<lparr>s\<^sub>v = st, \<dots> = ()\<rparr>"

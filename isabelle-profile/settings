@@ -8,5 +8,5 @@
 # sessions. Increase or decrease them if your machine needs a different memory
 # budget.
 
-ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms1g -Xmx8g -Xss16m"
-ML_OPTIONS="--minheap 8000"
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ML_OPTIONS="--minheap 2000"
