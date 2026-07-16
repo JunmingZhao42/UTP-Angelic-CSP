@@ -6,11 +6,12 @@ begin
 
 subsection \<open>Assignment\<close>
 
-(* Definition 94. The assigned state is one available angelic choice. *)
+(* Thesis Definition 94. The assigned state is one available angelic choice. *)
 definition assign_arel :: 
   "('a \<Longrightarrow> 's) \<Rightarrow> ('a, 's) expr \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "assign_arel x e = (\<lambda> (s0, ac').
-  put\<^bsub>x\<^esub> (get\<^bsub>s\<^esub> s0) (e (get\<^bsub>s\<^esub> s0)) \<in> get\<^bsub>ac\<^esub> ac')"
+  put\<^bsub>x\<^esub> (astate.s\<^sub>v s0) (e (astate.s\<^sub>v s0))
+    \<in> achoices.ac\<^sub>v ac')"
 
 definition assigns_ades :: "('a \<Longrightarrow> 's) \<Rightarrow> ('a, 's) expr \<Rightarrow> 's angelic_design" where
 [pred]: "assigns_ades x e = arel_to_ades (assign_arel x e)"
@@ -69,7 +70,7 @@ qed
 
 subsection \<open>Angelic Relation Sequential Composition\<close>
 
-(* Definition 19. *)
+(* Paper Definition 19. *)
 definition aseq ::
   "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow>
    ('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow>
@@ -77,7 +78,8 @@ definition aseq ::
 where
 (* P(s0, ac'[ac := {s1 | Q(s0[s := s1], ac')}]) *)
 [pred]: "P ;;\<^sub>A Q = (\<lambda> (s0, ac').
-  P (s0, put\<^bsub>ac\<^esub> ac' {s1. Q (put\<^bsub>s\<^esub> s0 s1, ac')}))"
+  P (s0, achoices.ac\<^sub>v_update
+    (\<lambda>_. {s1. Q (astate.s\<^sub>v_update (\<lambda>_. s1) s0, ac')}) ac'))"
 
 lemma aseq_true_left [simp]:
   "true ;;\<^sub>A P = true"
@@ -103,7 +105,7 @@ subsection \<open>PBMH\<close>
 definition pbmh_step :: "(('s, '\<alpha>) achoices_scheme, ('s, '\<alpha>) achoices_scheme) urel" where
 [pred]: "pbmh_step = (($ac\<^sup>< \<subseteq> $ac\<^sup>>) \<and> $\<^bold>v\<^sub>A\<^sup>> = $\<^bold>v\<^sub>A\<^sup><)\<^sub>e"
 
-(* Definition 15. *)
+(* Paper Definition 15. *)
 definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarrow> ('\<beta>, ('s, '\<alpha>) achoices_scheme) urel" where
 [pred]: "PBMH P = (P ;; pbmh_step)"
 
@@ -114,8 +116,10 @@ definition angelic_design_seq ::
   "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl ";;\<^sub>D\<^sub>A" 75)
 where
 [pred]: "angelic_design_seq P Q = (\<lambda> (s0, ac'). \<exists> ok0.
-  P (s0, put\<^bsub>ok\<^esub> (put\<^bsub>\<^bold>v\<^sub>D\<^esub> ac' (put\<^bsub>ac\<^esub> (get\<^bsub>\<^bold>v\<^sub>D\<^esub> ac')
-    {s1. Q (put\<^bsub>ok\<^esub> (put\<^bsub>\<^bold>v\<^sub>D\<^esub> s0 (put\<^bsub>s\<^esub> (get\<^bsub>\<^bold>v\<^sub>D\<^esub> s0) s1)) ok0, ac')})) ok0))"
+  P (s0, put\<^bsub>ok\<^esub> (put\<^bsub>\<^bold>v\<^sub>D\<^esub> ac'
+    (put\<^bsub>ac\<^esub> (des_vars.more ac')
+      {s1. Q (put\<^bsub>ok\<^esub> (put\<^bsub>\<^bold>v\<^sub>D\<^esub> s0
+        (put\<^bsub>s\<^esub> (des_vars.more s0) s1)) ok0, ac')})) ok0))"
 
 (* Thesis Theorem T.4.5.1: pre/postcondition form. *)
 definition angelic_design_seq_simplified ::

@@ -14,6 +14,7 @@ text \<open>
   a replacement for the complete reactive-process alphabet.
 \<close>
 
+(* Paper Definition 26. *)
 alphabet 'e rad_state =
   tr :: "'e list"
   ref :: "'e set"

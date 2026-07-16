@@ -1,5 +1,5 @@
 section \<open>Angelic Design Healthiness Conditions\<close>
-(* Sec. 5.1 Definition 17. *)
+(* Paper Section 5.1, Definition 17. *)
 
 theory utp_ades_healthy
   imports utp_ades_ops
@@ -35,12 +35,12 @@ lemma PBMH_guarded_post:
   "PBMH (P \<and> Q) \<sqsubseteq> ((\<not> PBMH (\<not> P)) \<and> PBMH Q)"
   by (pred_auto)
 
-(* Lemma 3. PBMH (ac' = \<emptyset>) = true *)
+(* Paper Lemma 3. PBMH (ac' = \<emptyset>) = true *)
 lemma PBMH_ac_empty [simp]:
   "PBMH (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e) = true"
   by (pred_auto)
 
-(* Lemma 15. PBMH (ac' \<noteq> \<emptyset>) = (ac' \<noteq> \<emptyset>) *)
+(* Paper Lemma 15. PBMH (ac' \<noteq> \<emptyset>) = (ac' \<noteq> \<emptyset>) *)
 lemma PBMH_ac_non_empty [simp]:
   "PBMH (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e) =
    (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
@@ -68,7 +68,7 @@ lemma PBMH_state_subst:
   apply simp
   done
 
-(* Theorem 64. PBMH commutes with the H1 guard. *)
+(* Paper Theorem 64. PBMH commutes with the H1 guard. *)
 lemma PBMH_H1_commute:
   "PBMH (ok\<^sup>< \<longrightarrow> P) = (ok\<^sup>< \<longrightarrow> PBMH P)"
   by (pred_auto)
@@ -77,7 +77,7 @@ lemma H2_lift_desr:
   "H2 (\<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   by (pred_auto)
 
-(* Theorem 65. PBMH and H2 commute, lifted through the design shell. *)
+(* Paper Theorem 65. PBMH and H2 commute, lifted through the design shell. *)
 lemma PBMH_H2_commute:
   "H2 (\<lceil>PBMH P\<rceil>\<^sub>D) =
    \<lceil>PBMH (\<lfloor>H2 (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D)\<rceil>\<^sub>D"
@@ -111,7 +111,7 @@ lemma A0_state_subst:
   "ades_state_subst st_subst (A0 P) = A0 (ades_state_subst st_subst P)"
   by (simp add: A0_def, pred_auto)
 
-(* Theorem 3. *)
+(* Paper Theorem 3. *)
 lemma "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
 
@@ -120,7 +120,7 @@ subsection \<open>A1\<close>
 definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A1 P = ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r PBMH (post\<^sub>D P))"
 
-(* Lemma 16. Putting a design in PBMH. *)
+(* Paper Lemma 16. Putting a design in PBMH. *)
 lemma PBMH_rdesign:
   "A1 (P \<turnstile>\<^sub>r Q) = ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
   by (simp add: A1_def PBMH_disj rdesign_refinement, pred_auto)
@@ -229,7 +229,7 @@ lemma rdesign_disj:
    ((P1 \<and> P2) \<turnstile>\<^sub>r (Q1 \<or> Q2))"
   by (simp add: rdesign_def design_union, pred_simp)
 
-(* Theorem T.4.5.11 *)
+(* Thesis Theorem T.4.5.11 *)
 lemma A_disj:
   "A (P \<or> Q) = (A P \<or> A Q)"
   by (simp add: A_design_form preD_disj postD_disj PBMH_disj rdesign_disj
@@ -240,13 +240,13 @@ lemma A_demonic:
   "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (A P \<sqinter>\<^sub>D\<^sub>A A Q)"
   by (simp add: angelic_design_demonic A_disj)
 
-(* Theorem T.4.5.12 *)
+(* Thesis Theorem T.4.5.12 *)
 lemma A_demonic_closure:
   assumes "P is A" "Q is A"
   shows "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (P \<sqinter>\<^sub>D\<^sub>A Q)"
   using assms by (simp add: A_demonic Healthy_def')
 
-(* Theorem T.4.5.14 *)
+(* Thesis Theorem T.4.5.14 *)
 lemma angelic_design_demonic_bottom:
   "P \<sqinter>\<^sub>D\<^sub>A \<bottom>\<^sub>D = \<bottom>\<^sub>D"
   by (simp add: angelic_design_demonic bot_d_true)
@@ -324,18 +324,21 @@ subsection \<open>A2\<close>
 
 (* {s} = ac' *)
 definition singleton_ac :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
-[pred]: "singleton_ac = (\<lambda> (s0, ac'). get\<^bsub>ac\<^esub> ac' = {get\<^bsub>s\<^esub> s0})"
+[pred]: "singleton_ac = (\<lambda> (s0, ac').
+  achoices.ac\<^sub>v ac' = {astate.s\<^sub>v s0})"
 
-(* Definition 20: A2 = PBMH (P ;; {s} = ac') *)
+(* Paper Definition 20: A2 = PBMH (P ;; {s} = ac') *)
 definition A2_rel ::
   "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where [pred]:
   "A2_rel P = PBMH (P ;;\<^sub>A singleton_ac)"
 
-(* Theorem 4: expanded form of @{const A2_rel}. *)
+(* Paper Theorem 4: expanded form of @{const A2_rel}. *)
 (* P[\<emptyset>/ac'] \<or> \<exists>y. y \<in> ac' P[{y'}/ac'] *)
 definition A2_rel_expanded :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "A2_rel_expanded P = (\<lambda> (s0, ac').
-  P (s0, put\<^bsub>ac\<^esub> ac' {}) \<or> (\<exists> y \<in> get\<^bsub>ac\<^esub> ac'. P (s0, put\<^bsub>ac\<^esub> ac' {y})))"
+  P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {}) ac') \<or>
+  (\<exists> y \<in> achoices.ac\<^sub>v ac'.
+    P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {y}) ac')))"
 
 (* Lift the definition from angelic relation to angelic designs: lemma L.4.2.3 in thesis *)
 definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
@@ -388,7 +391,7 @@ lemma A2_rel_guarded_post:
   "A2_rel (P \<and> Q) \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<and> A2_rel Q)"
   by (simp add: A2_rel_eq_expanded, pred_auto)
 
-(* Appendix Lemma 17. *)
+(* Paper Appendix Lemma 17. *)
 lemma A2_rdesign:
   "A2 (P \<turnstile>\<^sub>r Q) = ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
   by (simp add: A2_def A2_rel_disj rdesign_refinement, pred_auto)

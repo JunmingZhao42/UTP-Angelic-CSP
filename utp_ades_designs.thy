@@ -10,13 +10,13 @@ subsection \<open>Predicate Mapping\<close>
    p2ac(P)(s, A) = \<exists>z\<in>A. P(s, z) *)
 definition p2ac :: "('s, 's) urel \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "p2ac P = (\<lambda> (s0, ac').
-  \<exists> z \<in> get\<^bsub>ac\<^esub> ac'. P (get\<^bsub>s\<^esub> s0, z))"
+  \<exists> z \<in> achoices.ac\<^sub>v ac'. P (astate.s\<^sub>v s0, z))"
 
 (* The second conjunction of the d2ac pre-condition:
   \<not>P^f [s/in\<alpha>_ok]; true \<equiv> \<exists>z. P(s, z) *)
 definition p2ac_exist :: "('s, 's) urel \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "p2ac_exist P = (\<lambda> (s0, ac').
-  \<exists> z. P (get\<^bsub>s\<^esub> s0, z))"
+  \<exists> z. P (astate.s\<^sub>v s0, z))"
 
 (* Thesis Appendix C.5.2, Lemma L.C.5.3. *)
 lemma p2ac_false [simp]:
@@ -50,7 +50,7 @@ lemma A2_rel_p2ac [simp]:
 
 subsection \<open>Design to Angelic Design\<close>
 
-(* Definition 21. *)
+(* Paper Definition 21. *)
 definition d2ac :: "'s des_hrel \<Rightarrow> 's angelic_design" where
 [pred]: "d2ac P =
   ((\<not> p2ac (\<not> pre\<^sub>D P) \<and> p2ac_exist (pre\<^sub>D P)) \<turnstile>\<^sub>r p2ac (post\<^sub>D P))"
@@ -98,8 +98,8 @@ subsection \<open>Angelic Design to Design\<close>
 (* Apply PBMH to the nested angelic-choice output while carrying ok' unchanged. *)
 definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "PBMH_ades P = (\<lambda> (s0, s1).
-  let ac' = get\<^bsub>\<^bold>v\<^sub>D\<^esub> s1
-  in PBMH (\<lambda> (s, ac). let s1' = put\<^bsub>\<^bold>v\<^sub>D\<^esub> s1 ac
+  let ac' = des_vars.more s1
+  in PBMH (\<lambda> (s, ac). let s1' = des_vars.more_update (\<lambda>_. ac) s1
     in P (s, s1')) (s0, ac'))"
 
 lemma PBMH_ades_mono:
@@ -109,7 +109,7 @@ lemma PBMH_ades_mono:
 lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
   by (rule MonotonicI, rule PBMH_ades_mono)
 
-(* Definition 24. *)
+(* Paper Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 [pred]: "ac2p P = (\<lambda> (s0, s1).
   let ades_in = \<lparr>ok\<^sub>v = ok\<^sub>v s0,
@@ -138,7 +138,7 @@ lemma ac2p_rel_subset:
     P (StateII s0, \<lparr>ac\<^sub>v = ac, \<dots> = ()\<rparr>) \<and> ac \<subseteq> {s1})"
   by (pred_auto)
 
-(* Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
+(* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
 (* My understanding: ac2p(P)(s,z) = P(s, {z}) *)
 lemma ac2p_alt:
   "ac2p P = (\<lambda> (s0, s1). \<exists> ac.
@@ -149,7 +149,7 @@ lemma ac2p_alt:
     in P (ades_in, ades_out) \<and> (\<forall> z \<in> ac. z = des_vars.more s1))"
   by (pred_auto)
 
-(* Lemma 24. *)
+(* Paper Lemma 24. *)
 lemma ac2p_rdesign:
   "ac2p (P \<turnstile>\<^sub>r Q) = ((\<not> ac2p_rel (\<not> P)) \<turnstile>\<^sub>r ac2p_rel Q)"
   by (simp only: ac2p_subset ac2p_rel_subset; pred_auto)
@@ -160,7 +160,7 @@ lemma ac2p_d2ac_rdesign:
   "ac2p (d2ac (P \<turnstile>\<^sub>r Q)) = (P \<turnstile>\<^sub>r Q)"
   by (simp only: d2ac_rdesign ac2p_subset; pred_auto)
 
-(* Theorem 5 *)
+(* Paper Theorem 5. *)
 theorem ac2p_d2ac:
   assumes "P is \<^bold>H"
   shows "ac2p (d2ac P) = P"
@@ -270,7 +270,7 @@ lemma P_dummy_fails_theorem6:
   apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
   by (pred_auto)
 
-(* Theorem 6.
+(* Paper Theorem 6.
    Normality is required: it makes the precondition independent of the output choice ac'. *)
 lemma d2ac_ac2p_normal:
   fixes P :: "'s angelic_design"
@@ -305,7 +305,7 @@ proof -
     by (simp only: P_form)
 qed
 
-(* Theorem 7. *)
+(* Paper Theorem 7. *)
 lemma d2ac_ac2p_A2:
   fixes P :: "'s angelic_design"
   defines "Pre \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
@@ -327,7 +327,7 @@ proof -
     by (simp only: P_A2_form)
 qed
 
-(* Theorem 8.
+(* Paper Theorem 8.
    Normality is required in the d2d direction because of Theorem 6. *)
 lemma d2ac_ac2p_A2_normal:
   assumes healthy: "P is A"
@@ -337,5 +337,76 @@ lemma d2ac_ac2p_A2_normal:
   apply (rule ref_antisym)
    apply (rule d2ac_ac2p_normal[OF healthy normal])
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
+
+(* Pre(s, <emptyset>) ⟹ <exists>z. Pre(s, {z}) *)
+lemma d2ac_ac2p_normal_weaker:
+  fixes P :: "'s angelic_design"
+  assumes healthy: "P is A"
+    and singleton_supported:
+      "\<forall> s :: 's astate. pre\<^sub>D P
+          (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
+        (\<exists> z. pre\<^sub>D P
+          (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
+  shows "P \<sqsubseteq> d2ac (ac2p P)"
+proof -
+  define pre_A :: "'s angelic_rel" where
+    "pre_A \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
+  define post_A :: "'s angelic_rel" where
+    "post_A \<equiv> PBMH (post\<^sub>D P) \<and>
+      ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
+  have P_form: "P = (pre_A \<turnstile>\<^sub>r post_A)"
+    using A_healthy_design_form[OF healthy]
+    by (simp add: pre_A_def post_A_def)
+  have pre_A_eq: "pre_A = pre\<^sub>D P"
+    by (simp add: P_form)
+  have singleton_supported_A:
+      "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
+        (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
+    using singleton_supported by (simp add: pre_A_eq)
+  have pre_A_downward:
+      "B \<subseteq> A \<Longrightarrow>
+       pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>
+       pre_A (s, \<lparr>ac\<^sub>v = B, \<dots> = ()\<rparr>)"
+    for s A B
+    by (simp add: pre_A_def PBMH_def pbmh_step_def; pred_auto; blast)
+  have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"
+    by (simp add: pre_A_def PBMH_idem)
+  have feasible:
+      "taut (pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
+  proof (rule tautI)
+    fix x :: "'s astate \<times> 's achoices"
+    obtain st cs where x_eq: "x = (st, cs)"
+      by (cases x)
+    obtain s where st_eq: "st = StateII s"
+      by (cases st, simp add: StateII_def)
+    obtain ac where cs_eq: "cs = \<lparr>ac\<^sub>v = ac, \<dots> = ()\<rparr>"
+      by (cases cs, simp)
+    show "(pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A))) x"
+      unfolding impl_pred_def
+    proof
+      assume pre: "pre_A x"
+      have pre_empty:
+          "pre_A (StateII s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>)"
+        using pre_A_downward[of "{}" ac "StateII s"] pre
+        by (simp add: x_eq st_eq cs_eq)
+      obtain z where pre_singleton:
+          "pre_A (StateII s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)"
+        using singleton_supported_A[rule_format, of "StateII s"] pre_empty
+        by blast
+      have not_failure: "\<not> ac2p_rel (\<not> pre_A) (s, z)"
+        using pre_A_downward[of _ "{z}" "StateII s"] pre_singleton
+        by (simp only: ac2p_rel_subset; pred_auto; blast)
+      show "p2ac_exist (\<not> ac2p_rel (\<not> pre_A)) x"
+        unfolding p2ac_exist_def
+        using not_failure x_eq st_eq cs_eq
+        by (pred_auto; blast)
+    qed
+  qed
+  have post_A_healthy: "PBMH post_A = post_A"
+    by (simp add: post_A_def PBMH_conj_nonempty)
+  from d2ac_ac2p_rdesign_refine[OF failure_healthy post_A_healthy feasible]
+  show ?thesis
+    by (simp only: P_form)
+qed
 
 end

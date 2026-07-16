@@ -1,7 +1,7 @@
 # UTP-Angelic-CSP
 
 This repository is an Isabelle/UTP workspace for mechanising ideas from
-Ribeiro and Cavalcanti's paper on angelic processes for CSP. 
+Ribeiro and Cavalcanti's paper on angelic processes for CSP.
 It is currently a child session based on the Isabelle/UTP reactive-design stack.
 
 ## Basis
@@ -15,34 +15,53 @@ Useful background reading:
 - Ana Cavalcanti and Jim Woodcock, [A Tutorial Introduction to CSP in Unifying Theories of Programming](../../UTP-tutorial/CW06.pdf) for the UTP, designs, reactive processes, and CSP background.
 - Hoare and He's UTP book, especially the chapters on alphabetised predicates, designs, recursion, and reactive processes.
 
-## Isabelle/UTP Stack
+## Requirements
 
-This repository depends on the Isabelle/UTP stack through pinned git
-submodules under `deps/`:
+This repository uses:
 
-- [isabelle-utp/Abstract_Prog_Syntax](https://github.com/isabelle-utp/Abstract_Prog_Syntax)
-- [isabelle-utp/UTP](https://github.com/isabelle-utp/UTP)
-- [isabelle-utp/UTP-Designs](https://github.com/isabelle-utp/UTP-Designs)
-- [isabelle-utp/UTP-Reactive](https://github.com/isabelle-utp/UTP-Reactive)
-- [isabelle-utp/UTP-Reactive-Designs](https://github.com/isabelle-utp/UTP-Reactive-Designs)
+- the official `Isabelle2025-2` distribution;
+- the profile `utp-isabelle-2025-2`; and
+- dependency commits pinned under `deps/`.
 
-Use `git clone --recurse-submodules` or `git submodule update --init
---recursive` so that the checked-out dependency versions match the known-good
-commit pointers recorded by this repository.
+Most dependencies are pinned from `github.com/isabelle-utp`. `Optics` and
+`Z_Toolkit` use the `optics-2025-2` and `z-2025-2` compatibility forks.
 
-## Setup
+## Quick Start
 
-See [setup.md](setup.md) for the machine setup, expected repository layout,
-Isabelle profile files, and commands for opening this project or inspecting the
-parent sessions.
+Clone the repository with its pinned dependencies, then set `PROJECT_DIR` to
+the repository root, `ISABELLE` to the Isabelle executable, and `UTP_PROFILE`
+to the project's Isabelle user profile:
 
-The normal editable open command, after the first build succeeds, is:
+```bash
+git clone --recurse-submodules <repository-url> UTP-Angelic-CSP
+cd UTP-Angelic-CSP
+
+export PROJECT_DIR="$PWD"
+export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
+export UTP_PROFILE="utp-isabelle-2025-2"
+```
+
+Adjust the Isabelle executable path for your installation. Then run:
+
+```bash
+cd "$PROJECT_DIR"
+git submodule sync --recursive
+git submodule update --init --recursive
+
+mkdir -p "$HOME/.isabelle/$UTP_PROFILE/etc"
+cp "$PROJECT_DIR/isabelle-profile/ROOTS" \
+  "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
+cp "$PROJECT_DIR/isabelle-profile/settings" \
+  "$HOME/.isabelle/$UTP_PROFILE/etc/settings"
+
+ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
+  -b -o system_heaps=false UTP-Angelic-CSP
+```
+
+Open the checked project for editing with:
 
 ```bash
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
   -n -u -R UTP-Angelic-CSP \
   "$PROJECT_DIR/Angelic_CSP.thy"
 ```
-
-For VS Code, configure the Isabelle extension environment as described in
-`setup.md`.
