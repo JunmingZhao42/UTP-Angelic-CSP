@@ -102,6 +102,13 @@ definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" wher
   in PBMH (\<lambda> (s, ac). let s1' = put\<^bsub>\<^bold>v\<^sub>D\<^esub> s1 ac
     in P (s, s1')) (s0, ac'))"
 
+lemma PBMH_ades_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> PBMH_ades P \<sqsubseteq> PBMH_ades Q"
+  by (simp add: PBMH_ades_def; pred_auto; blast)
+
+lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
+  by (rule MonotonicI, rule PBMH_ades_mono)
+
 (* Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 [pred]: "ac2p P = (\<lambda> (s0, s1).
@@ -142,6 +149,7 @@ lemma ac2p_alt:
     in P (ades_in, ades_out) \<and> (\<forall> z \<in> ac. z = des_vars.more s1))"
   by (pred_auto)
 
+(* Lemma 24. *)
 lemma ac2p_rdesign:
   "ac2p (P \<turnstile>\<^sub>r Q) = ((\<not> ac2p_rel (\<not> P)) \<turnstile>\<^sub>r ac2p_rel Q)"
   by (simp only: ac2p_subset ac2p_rel_subset; pred_auto)
