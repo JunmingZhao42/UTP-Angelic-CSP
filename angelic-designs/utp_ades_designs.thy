@@ -400,15 +400,12 @@ lemma d2ac_ac2p_A2_normal:
    apply (rule d2ac_ac2p_normal[OF healthy normal])
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
 
-(* Pre(s, <emptyset>) ⟹ <exists>z. Pre(s, {z}) *)
 lemma d2ac_ac2p_normal_weaker:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
-    and singleton_supported:
-      "\<forall> s :: 's astate. pre\<^sub>D P
-          (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
-        (\<exists> z. pre\<^sub>D P
-          (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
+    and witness_exists:
+      (* Pre(s, \<emptyset>) ⟹ ∃z. Pre(s, {z}) *)
+      "\<forall>s. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow> (\<exists> z. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
   shows "P \<sqsubseteq> d2ac (ac2p P)"
 proof -
   define pre_A :: "'s angelic_rel" where
@@ -421,10 +418,10 @@ proof -
     by (simp add: pre_A_def post_A_def)
   have pre_A_eq: "pre_A = pre\<^sub>D P"
     by (simp add: P_form)
-  have singleton_supported_A:
+  have witness_exists_A:
       "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
         (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
-    using singleton_supported by (simp add: pre_A_eq)
+    using witness_exists by (simp add: pre_A_eq)
   have pre_A_downward:
       "B \<subseteq> A \<Longrightarrow>
        pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>
@@ -438,7 +435,7 @@ proof -
     apply (rule tautI)
     apply (simp only: impl_pred_def p2ac_exist_def ac2p_rel_subset)
     apply (pred_auto)
-    by (meson pre_A_downward empty_subsetI singleton_supported_A)
+    by (meson pre_A_downward empty_subsetI witness_exists_A)
   have post_A_healthy: "PBMH post_A = post_A"
     by (simp add: post_A_def PBMH_conj_nonempty)
   from d2ac_ac2p_rdesign_refine[OF failure_healthy post_A_healthy feasible]

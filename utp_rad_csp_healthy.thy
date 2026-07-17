@@ -52,6 +52,11 @@ lemma RA1_CSPA1_commute:
   "RA1 (CSPA1 P) = CSPA1 (RA1 P)"
   by (simp add: RA1_CSPA1 CSPA1_RA1)
 
+lemma RA_CSPA1:
+  "RA (CSPA1 P) = RA (H1 P)"
+  by (simp add: RA_def RA1_RA2_commute RA1_RA3_commute
+      RA2_RA3_commute RA1_CSPA1)
+
 subsection \<open>CSPA2\<close>
 
 (* Paper Definition 34. *)
@@ -99,5 +104,32 @@ lemma RAD_Monotonic [closure]:
   unfolding RAD_def
   by (intro Monotonic_comp RA_Monotonic CSPA1_Monotonic
       CSPA2_Monotonic PBMH_ades_Monotonic)
+
+lemma RAD_H1_H2_PBMH:
+  "RAD P = RA (H1 (H2 (PBMH_ades P)))"
+  by (simp add: RAD_def CSPA2_def RA_CSPA1)
+
+(* Paper Theorem 11. *)
+theorem RAD_design_form:
+  "RAD P =
+   RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+     (rad_wait_false P)\<^sup>t))"
+proof -
+  have "RAD P = RA (H1 (H2 (PBMH_ades P)))"
+    by (rule RAD_H1_H2_PBMH)
+  also have "... = RA (PBMH_ades (H1 (H2 P)))"
+    by (simp add: PBMH_ades_H1_H2)
+  also have "... = RA (A (H1 (H2 P)))"
+    by (metis RA_A H1_H2_idempotent Healthy_def')
+  also have "... = RA (A (rad_wait_false (H1 (H2 P))))"
+    unfolding RA_def comp_apply
+    by (metis RA3_wait_false rad_wait_false_A)
+  also have "... = RA (A (H1 (H2 (rad_wait_false P))))"
+    by (simp add: rad_wait_false_H1_H2)
+  also have "... = RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+        (rad_wait_false P)\<^sup>t))"
+    by (simp add: H1_H2_eq_design)
+  finally show ?thesis .
+qed
 
 end

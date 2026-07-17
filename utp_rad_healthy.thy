@@ -107,6 +107,11 @@ lemma PBMH_ades_RA1_not_ok [simp]:
    RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x)"
   by (metis PBMH_ades_RA1_PBMH_ades PBMH_ades_not_ok)
 
+lemma PBMH_ades_H1_H2:
+  "PBMH_ades (H1 (H2 P)) = H1 (H2 (PBMH_ades P))"
+  by (simp add: PBMH_ades_def H1_def H2_split fun_eq_iff;
+      pred_auto; blast)
+
 subsection \<open>RA2: Trace-history independence\<close>
 
 (* s \<oplus> {tr ↦ []} *)
@@ -259,6 +264,23 @@ abbreviation rad_wait_lens where
 definition rad_wait_false ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
 [pred]: "rad_wait_false P = P\<lbrakk>False/rad_wait_lens\<^sup><\<rbrakk>"
+
+lemma rad_wait_false_as_state_subst:
+  "rad_wait_false P =
+   ades_state_subst
+     (subst_upd subst_id (rad_state.wait ;\<^sub>L astate.s) (\<lambda>_. False)) P"
+  by (simp add: rad_wait_false_def subst_app_def subst_upd_def
+      subst_id_def subst_aext_def fun_eq_iff lens_defs)
+
+lemma rad_wait_false_A:
+  "rad_wait_false (A P) = A (rad_wait_false P)"
+  by (simp add: rad_wait_false_as_state_subst A_state_subst)
+
+lemma rad_wait_false_H1_H2:
+  "rad_wait_false (H1 (H2 P)) = H1 (H2 (rad_wait_false P))"
+  by (simp add: rad_wait_false_def H1_def H2_split fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+      pred_auto)
 
 (* Paper Definition 31. *)
 definition RA3 ::
