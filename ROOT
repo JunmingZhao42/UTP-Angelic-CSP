@@ -1,4 +1,4 @@
-session "UTP-Angelic-CSP" = "UTP-Reactive-Designs" +
+session "UTP-Angelic-Designs" in "angelic-designs" = "UTP-Reactive-Designs" +
   options [document = false]
   theories
     utp_ades_core
@@ -6,9 +6,13 @@ session "UTP-Angelic-CSP" = "UTP-Reactive-Designs" +
     utp_ades_healthy
     utp_ades_designs
     utp_ades
+
+session "UTP-Angelic-CSP" = "UTP-Angelic-Designs" +
+  options [document = false]
+  theories
     utp_rad_core
     utp_rad_bridge
     utp_rad_healthy
-    utp_rad_designs
+    utp_rad_csp_healthy
     utp_rad
     Angelic_CSP

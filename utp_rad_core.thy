@@ -1,7 +1,7 @@
 section \<open>Reactive Angelic Design Core\<close>
 
 theory utp_rad_core
-  imports utp_ades
+  imports "UTP-Angelic-Designs.utp_ades"
 begin
 
 subsection \<open>Alphabet (Paper Definition 26)\<close>

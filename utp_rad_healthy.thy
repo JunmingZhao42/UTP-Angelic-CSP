@@ -30,8 +30,12 @@ lemma RA1_idem: "RA1 (RA1 P) = RA1 P"
 
 lemma RA1_design_post:
   "RA1 (P \<turnstile> Q) = RA1 (P \<turnstile> RA1 Q)"
-  by (simp add: RA1_def design_def fun_eq_iff; pred_auto;
-      simp_all add: Let_def; blast)
+  by (simp add: RA1_def design_def fun_eq_iff Let_def; pred_auto; blast)
+
+(* Thesis Theorem T.5.2.3. *)
+lemma RA1_disj:
+  "RA1 (P \<or> Q) = (RA1 P \<or> RA1 Q)"
+  by (simp add: RA1_def fun_eq_iff Let_def; pred_auto; blast)
 
 (* Paper Lemma 23 *)
 lemma RA1_design_pre:
@@ -51,10 +55,8 @@ lemma RA1_Monotonic [closure]:
 
 (* Paper Theorem 9. *)
 lemma RA1_A0: "RA1 (A0 P) = RA1 P"
-  apply (simp add: RA1_def A0_def ac_non_empty_def fun_eq_iff)
-  apply (pred_auto)
-  apply (simp_all add: Let_def)
-  done
+  by (simp add: RA1_def A0_def ac_non_empty_def fun_eq_iff Let_def;
+      pred_auto)
 
 (* Paper Example 11.  PBMH_ades is the lifting of the paper's PBMH through
    the outer design record. *)
@@ -88,6 +90,22 @@ lemma RA1_PBMH_ades_not_commute:
 lemma PBMH_ades_RA1_PBMH_ades:
   "PBMH_ades (RA1 (PBMH_ades P)) = RA1 (PBMH_ades P)"
   by (simp add: PBMH_ades_def RA1_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_disj:
+  "PBMH_ades (P \<or> Q) = (PBMH_ades P \<or> PBMH_ades Q)"
+  apply (simp add: PBMH_ades_def PBMH_disj fun_eq_iff)
+  apply pred_auto
+  done
+
+lemma PBMH_ades_not_ok [simp]:
+  "PBMH_ades (\<lambda> (x, y). \<not> ok\<^sub>v x) =
+   (\<lambda> (x, y). \<not> ok\<^sub>v x)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_RA1_not_ok [simp]:
+  "PBMH_ades (RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x)) =
+   RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x)"
+  by (metis PBMH_ades_RA1_PBMH_ades PBMH_ades_not_ok)
 
 subsection \<open>RA2: Trace-history independence\<close>
 

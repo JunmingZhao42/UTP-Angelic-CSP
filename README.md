@@ -2,7 +2,8 @@
 
 This repository is an Isabelle/UTP workspace for mechanising ideas from
 Ribeiro and Cavalcanti's paper on angelic processes for CSP.
-It is currently a child session based on the Isabelle/UTP reactive-design stack.
+It provides an angelic-design session and a child angelic-CSP session based on
+the Isabelle/UTP reactive-design stack.
 
 ## Basis
 
@@ -62,6 +63,29 @@ Open the checked project for editing with:
 
 ```bash
 ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
-  -n -u -R UTP-Angelic-CSP \
+  -n -u -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
   "$PROJECT_DIR/Angelic_CSP.thy"
 ```
+
+The same session setup can be used by the VS Code language server:
+
+```bash
+ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" vscode_server \
+  -n -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
+  -d "$PROJECT_DIR/deps" -d "$PROJECT_DIR" \
+  -o system_heaps=false
+```
+
+Start the editable PIDE MCP server with:
+
+```bash
+ISABELLE_IDENTIFIER="$UTP_PROFILE" PROJECT_DIR="$PROJECT_DIR" \
+  "$ISABELLE" pide_mcp -v -u \
+  -d "$PROJECT_DIR/deps" -d "$PROJECT_DIR" \
+  -A UTP-Angelic-Designs -R UTP-Angelic-CSP
+```
+
+These commands load the finished `UTP-Angelic-Designs` heap and keep the
+reactive angelic design and angelic-process theories editable. To edit the
+`utp_ades_*` theories as well, replace `-A UTP-Angelic-Designs` with
+`-A UTP-Reactive-Designs`.

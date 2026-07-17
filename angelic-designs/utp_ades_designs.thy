@@ -6,11 +6,26 @@ begin
 
 subsection \<open>Predicate Mapping\<close>
 
-(* Paper Definition 23.
-   p2ac(P)(s, A) = \<exists>z\<in>A. P(s, z) *)
-definition p2ac :: "('s, 's) urel \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
+(* Paper Definition 23. *)
+definition p2ac :: "'s des_hrel \<Rightarrow> 's angelic_design" where
 [pred]: "p2ac P = (\<lambda> (s0, ac').
-  \<exists> z \<in> achoices.ac\<^sub>v ac'. P (astate.s\<^sub>v s0, z))"
+  \<exists> z \<in> achoices.ac\<^sub>v (des_vars.more ac').
+    P (\<lparr>ok\<^sub>v = ok\<^sub>v s0,
+         \<dots> = astate.s\<^sub>v (des_vars.more s0)\<rparr>,
+       \<lparr>ok\<^sub>v = ok\<^sub>v ac', \<dots> = z\<rparr>))"
+
+(* Relation-level specialisation via design lifting. *)
+definition p2ac_rel :: "('s, 's) urel \<Rightarrow> 's angelic_rel" where
+"p2ac_rel P = \<lfloor>p2ac (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D"
+
+lemma p2ac_rel_alt [pred]:
+  "p2ac_rel P = (\<lambda> (s0, ac').
+    \<exists> z \<in> achoices.ac\<^sub>v ac'. P (astate.s\<^sub>v s0, z))"
+  by (simp add: p2ac_rel_def p2ac_def; pred_auto)
+
+lemma p2ac_lift [simp]:
+  "p2ac (\<lceil>P\<rceil>\<^sub>D) = \<lceil>p2ac_rel P\<rceil>\<^sub>D"
+  by (simp add: p2ac_rel_def p2ac_def; pred_auto)
 
 (* The second conjunction of the d2ac pre-condition:
   \<not>P^f [s/in\<alpha>_ok]; true \<equiv> \<exists>z. P(s, z) *)
@@ -25,10 +40,10 @@ lemma p2ac_false [simp]:
 
 (* Thesis Appendix C.5.2, Lemma L.C.5.2. *)
 lemma p2ac_true [simp]:
-  "p2ac true = (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
-  by (pred_auto)
+  "p2ac true = ac_non_empty"
+  by (simp add: ac_non_empty_def, pred_auto)
 
-(* Thesis Theorem T.4.6.1. *) 
+(* Thesis Theorem T.4.6.1. *)
 lemma p2ac_disj:
   "p2ac (P \<or> Q) = (p2ac P \<or> p2ac Q)"
   by (pred_auto)
@@ -38,30 +53,36 @@ lemma p2ac_conj:
   "p2ac (P \<and> Q) x \<longrightarrow> (p2ac P \<and> p2ac Q) x"
   by (pred_auto)
 
-(* Lift p2ac through the design shell, preserving ok and ok'.  This is the
-   shallow-embedding counterpart of applying the paper's p2ac to a design. *)
-definition p2ac_des :: "'s des_hrel \<Rightarrow> 's angelic_design" where
-[pred]: "p2ac_des P = (\<lambda> (s0, ac').
-  \<exists> z \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    P (\<lparr>ok\<^sub>v = ok\<^sub>v s0,
-         \<dots> = astate.s\<^sub>v (des_vars.more s0)\<rparr>,
-       \<lparr>ok\<^sub>v = ok\<^sub>v ac', \<dots> = z\<rparr>))"
+lemma p2ac_rel_false [simp]:
+  "p2ac_rel false = false"
+  by (pred_auto)
+
+lemma p2ac_rel_true [simp]:
+  "p2ac_rel true = (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
+  by (pred_auto)
+
+lemma p2ac_rel_disj:
+  "p2ac_rel (P \<or> Q) = (p2ac_rel P \<or> p2ac_rel Q)"
+  by (pred_auto)
+
+lemma p2ac_rel_conj:
+  "p2ac_rel (P \<and> Q) x \<longrightarrow> (p2ac_rel P \<and> p2ac_rel Q) x"
+  by (pred_auto)
 
 (* Paper Theorem 72 *)
-lemma p2ac_des_design:
-  "(ac_non_empty \<and> p2ac_des ((\<not> P) \<turnstile>\<^sub>r Q)) =
-   (ac_non_empty \<and> ((\<not> p2ac P) \<turnstile>\<^sub>r p2ac Q))"
-  by (simp add: ac_non_empty_def p2ac_des_def p2ac_def
+lemma p2ac_design:
+  "(ac_non_empty \<and> p2ac ((\<not> P) \<turnstile>\<^sub>r Q)) =
+   (ac_non_empty \<and> ((\<not> p2ac_rel P) \<turnstile>\<^sub>r p2ac_rel Q))"
+  by (simp add: ac_non_empty_def p2ac_rel_alt
       rdesign_refinement; pred_auto)
 
-(* Paper Appendix A.3, Lemma 26 *)
-lemma PBMH_p2ac [simp]:
-  "PBMH (p2ac P) = p2ac P"
+lemma PBMH_p2ac_rel [simp]:
+  "PBMH (p2ac_rel P) = p2ac_rel P"
   by (pred_auto)
 
 (* Thesis Theorem T.4.6.3, in relational form. *)
-lemma A2_rel_p2ac [simp]:
-  "A2_rel (p2ac P) = p2ac P"
+lemma A2_rel_p2ac_rel [simp]:
+  "A2_rel (p2ac_rel P) = p2ac_rel P"
   by (simp add: A2_rel_eq_expanded, pred_auto)
 
 subsection \<open>Design to Angelic Design\<close>
@@ -69,20 +90,22 @@ subsection \<open>Design to Angelic Design\<close>
 (* Paper Definition 21. *)
 definition d2ac :: "'s des_hrel \<Rightarrow> 's angelic_design" where
 [pred]: "d2ac P =
-  ((\<not> p2ac (\<not> pre\<^sub>D P) \<and> p2ac_exist (pre\<^sub>D P)) \<turnstile>\<^sub>r p2ac (post\<^sub>D P))"
+  ((\<not> p2ac_rel (\<not> pre\<^sub>D P) \<and> p2ac_exist (pre\<^sub>D P))
+    \<turnstile>\<^sub>r p2ac_rel (post\<^sub>D P))"
 
 (* \<forall>z\<in>A. P(s, z)) \<and> (\<exists>z. P(s, z)) \<turnstile>\<^sub>r \<exists>z\<in>A. Q(s, z) *)
 lemma d2ac_rdesign:
-  "d2ac (P \<turnstile>\<^sub>r Q) = ((\<not> p2ac (\<not> P) \<and> p2ac_exist P) \<turnstile>\<^sub>r p2ac Q)"
-  by (simp add: d2ac_def rdesign_refinement, pred_auto)
+  "d2ac (P \<turnstile>\<^sub>r Q) =
+   ((\<not> p2ac_rel (\<not> P) \<and> p2ac_exist P) \<turnstile>\<^sub>r p2ac_rel Q)"
+  by (simp add: d2ac_def, pred_auto)
 
 lemma d2ac_A0 [simp]:
   "A0 (d2ac P) = d2ac P"
-  by (simp add: A0_def d2ac_def rdesign_refinement, pred_auto)
+  by (simp add: A0_def d2ac_def, pred_auto)
 
 lemma d2ac_A1 [simp]:
   "A1 (d2ac P) = d2ac P"
-  by (simp add: A1_def d2ac_def rdesign_refinement, pred_auto)
+  by (simp add: A1_def d2ac_def, pred_auto)
 
 lemma d2ac_A [simp]:
   "A (d2ac P) = d2ac P"
@@ -118,6 +141,11 @@ definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" wher
   in PBMH (\<lambda> (s, ac). let s1' = des_vars.more_update (\<lambda>_. ac) s1
     in P (s, s1')) (s0, ac'))"
 
+(* Paper Appendix A.3, Lemma 26 *)
+lemma PBMH_ades_p2ac [simp]:
+  "PBMH_ades (p2ac P) = p2ac P"
+  by (simp add: PBMH_ades_def p2ac_def fun_eq_iff; pred_auto)
+
 lemma PBMH_ades_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> PBMH_ades P \<sqsubseteq> PBMH_ades Q"
   by (simp add: PBMH_ades_def; pred_auto; blast)
@@ -141,14 +169,9 @@ lemma A1_PBMH_ades_rdesign:
 lemma A1_eq_PBMH_ades:
   assumes "P is \<^bold>H"
   shows "A1 P = PBMH_ades P"
-proof -
-  have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
-    using H1_H2_eq_rdesign[of P] assms
-    by (simp add: Healthy_def')
-  show ?thesis
-    using A1_PBMH_ades_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
-    by (simp only: P_form[symmetric])
-qed
+  using A1_PBMH_ades_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
+    H1_H2_eq_rdesign[of P] assms
+  by (simp add: Healthy_def')
 
 (* Paper Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
@@ -158,6 +181,11 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
       ades_out = \<lparr>ok\<^sub>v = ok\<^sub>v s1,
                     \<dots> = \<lparr>ac\<^sub>v = {des_vars.more s1}, \<dots> = ()\<rparr>\<rparr>
   in PBMH_ades P (ades_in, ades_out))"
+
+(* Paper Lemma 25 *)
+lemma ac2p_PBMH_ades [simp]:
+  "ac2p (PBMH_ades P) = ac2p P"
+  by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
 
 (* The relation-level instance of ac2p used in the paper's design proof. *)
 definition ac2p_rel :: "'s angelic_rel \<Rightarrow> ('s, 's) urel" where
@@ -175,8 +203,8 @@ lemma ac2p_subset:
   by (pred_auto)
 
 lemma ac2p_rel_subset:
-  "ac2p_rel P = (\<lambda> (s0, s1). \<exists> ac.
-    P (StateII s0, \<lparr>ac\<^sub>v = ac, \<dots> = ()\<rparr>) \<and> ac \<subseteq> {s1})"
+  "ac2p_rel P = (\<lambda> (s0, s1). \<exists> A.
+    P (StateII s0, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<and> A \<subseteq> {s1})"
   by (pred_auto)
 
 (* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
@@ -213,26 +241,16 @@ lemma ac2p_d2ac_rdesign:
 theorem ac2p_d2ac:
   assumes "P is \<^bold>H"
   shows "ac2p (d2ac P) = P"
-proof -
-  have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
-    using H1_H2_eq_rdesign[of P] assms
-    by (simp add: Healthy_def')
-  have "ac2p (d2ac P) =
-      ac2p (d2ac (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P))"
-    by (rule arg_cong[OF P_form])
-  also have "... = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
-    by (rule ac2p_d2ac_rdesign)
-  also have "... = P"
-    using P_form by (rule sym)
-  finally show ?thesis .
-qed
+  using ac2p_d2ac_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
+    H1_H2_eq_rdesign[of P] assms
+  by (simp add: Healthy_def')
 
 (* Thesis Theorem T.5.3.6, specialised to the relation-level mapping. *)
 lemma p2ac_ac2p_rel_refine:
   assumes "PBMH P = P"
-  shows "P \<sqsubseteq> p2ac (ac2p_rel P)"
+  shows "P \<sqsubseteq> p2ac_rel (ac2p_rel P)"
   using assms
-  by (simp only: ac2p_rel_subset p2ac_def; pred_auto)
+  by (simp only: ac2p_rel_subset p2ac_rel_alt; pred_auto)
 
 lemma ac2p_rel_feasible_unrest:
   assumes "$ac\<^sup>> \<sharp> P"
@@ -256,20 +274,20 @@ lemma d2ac_ac2p_rdesign_refine:
 
 (* The A0-A2 rdesign form is preserved by the round trip up to refinement. *)
 lemma d2ac_ac2p_A2_rdesign_refine:
-  "d2ac (ac2p ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
+  fixes P Q :: "'s angelic_rel"
+  shows "d2ac (ac2p ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
       A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)))
     \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
       A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
 proof -
-  have round_trip: "p2ac (ac2p_rel R) =
-      (A2_rel R \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)" for R
-    apply (simp only: p2ac_def ac2p_rel_subset A2_rel_eq_expanded
+  have round_trip: "p2ac_rel (ac2p_rel R) =
+      (A2_rel R \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
+    for R :: "'s angelic_rel"
+    apply (simp only: p2ac_rel_alt ac2p_rel_subset A2_rel_eq_expanded
         A2_rel_expanded_def)
     apply (pred_auto)
-    subgoal premises assms for s0 ac' z ac
-      using assms subset_singletonD[OF assms(3)]
-      by (elim disjE; simp)
-    done
+    apply (drule subset_singletonD)
+    by (elim disjE; simp)
   show ?thesis
     apply (simp only: ac2p_rdesign d2ac_rdesign round_trip A2_rel_idem)
     apply (rule rdesign_refine_intro)
@@ -294,10 +312,9 @@ lemma P_dummy_not_normal:
   "\<not> (P_dummy is \<^bold>N)"
 proof
   assume normal: "P_dummy is \<^bold>N"
-  have out_unrest: "out\<alpha> \<sharp> pre\<^sub>D P_dummy"
-    by (rule H3_unrest_out_alpha[OF normal])
   have "$ac\<^sup>> \<sharp> pre\<^sub>D P_dummy"
-    by (rule unrest_out_var[OF _ out_unrest], simp)
+    by (rule unrest_out_var;
+        simp add: H3_unrest_out_alpha[OF normal])
   then show False
     by (simp add: P_dummy_def unrest unrest_lens; pred_auto)
 qed
@@ -310,7 +327,7 @@ lemma ac2p_P_dummy:
 
 lemma d2ac_ac2p_P_dummy:
   "d2ac (ac2p P_dummy) = true"
-  apply (simp only: ac2p_P_dummy d2ac_rdesign p2ac_false p2ac_true
+  apply (simp only: ac2p_P_dummy d2ac_rdesign p2ac_rel_false p2ac_rel_true
       p2ac_exist_def)
   by (pred_auto)
 
@@ -334,11 +351,9 @@ proof -
       ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
   have pre_unrest: "$ac\<^sup>> \<sharp> pre\<^sub>D P"
     by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF normal])
-  have pre_A_eq: "pre_A = pre\<^sub>D P"
+  have failure_pre_unrest: "$ac\<^sup>> \<sharp> (\<not> pre_A)"
     using PBMH_unrest_ac[of "\<not> pre\<^sub>D P"] pre_unrest
     by (simp add: pre_A_def unrest)
-  have failure_pre_unrest: "$ac\<^sup>> \<sharp> (\<not> pre_A)"
-    using pre_unrest by (simp add: pre_A_eq unrest)
   have feasible: "taut (pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
     using ac2p_rel_feasible_unrest[OF failure_pre_unrest] by simp
   have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"
@@ -357,23 +372,21 @@ qed
 (* Paper Theorem 7. *)
 lemma d2ac_ac2p_A2:
   fixes P :: "'s angelic_design"
-  defines "Pre \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
-    and "Post \<equiv> PBMH (post\<^sub>D P)"
   assumes healthy: "P is A"
     and a2_healthy: "P is A2"
   shows "d2ac (ac2p P) \<sqsubseteq> P"
 proof -
+  define Pre :: "'s angelic_rel" where
+    "Pre \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
+  define Post :: "'s angelic_rel" where
+    "Post \<equiv> PBMH (post\<^sub>D P)"
   have P_form: "P = (Pre \<turnstile>\<^sub>r
       (Post \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
     using A_healthy_design_form[OF healthy]
     by (simp add: Pre_def Post_def)
-  have P_A2_form: "P = ((\<not> A2_rel (\<not> Pre)) \<turnstile>\<^sub>r
-      A2_rel (Post \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
-    using a2_healthy
-    by (simp only: Healthy_def' P_form A2_rdesign)
-  from d2ac_ac2p_A2_rdesign_refine[of Pre Post]
+  from d2ac_ac2p_A2_rdesign_refine[of Pre Post] a2_healthy
   show ?thesis
-    by (simp only: P_A2_form)
+    by (simp only: Healthy_def' P_form A2_rdesign)
 qed
 
 (* Paper Theorem 8.
@@ -422,35 +435,10 @@ proof -
     by (simp add: pre_A_def PBMH_idem)
   have feasible:
       "taut (pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
-  proof (rule tautI)
-    fix x :: "'s astate \<times> 's achoices"
-    obtain st cs where x_eq: "x = (st, cs)"
-      by (cases x)
-    obtain s where st_eq: "st = StateII s"
-      by (cases st, simp add: StateII_def)
-    obtain ac where cs_eq: "cs = \<lparr>ac\<^sub>v = ac, \<dots> = ()\<rparr>"
-      by (cases cs, simp)
-    show "(pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A))) x"
-      unfolding impl_pred_def
-    proof
-      assume pre: "pre_A x"
-      have pre_empty:
-          "pre_A (StateII s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>)"
-        using pre_A_downward[of "{}" ac "StateII s"] pre
-        by (simp add: x_eq st_eq cs_eq)
-      obtain z where pre_singleton:
-          "pre_A (StateII s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)"
-        using singleton_supported_A[rule_format, of "StateII s"] pre_empty
-        by blast
-      have not_failure: "\<not> ac2p_rel (\<not> pre_A) (s, z)"
-        using pre_A_downward[of _ "{z}" "StateII s"] pre_singleton
-        by (simp only: ac2p_rel_subset; pred_auto; blast)
-      show "p2ac_exist (\<not> ac2p_rel (\<not> pre_A)) x"
-        unfolding p2ac_exist_def
-        using not_failure x_eq st_eq cs_eq
-        by (pred_auto; blast)
-    qed
-  qed
+    apply (rule tautI)
+    apply (simp only: impl_pred_def p2ac_exist_def ac2p_rel_subset)
+    apply (pred_auto)
+    by (meson pre_A_downward empty_subsetI singleton_supported_A)
   have post_A_healthy: "PBMH post_A = post_A"
     by (simp add: post_A_def PBMH_conj_nonempty)
   from d2ac_ac2p_rdesign_refine[OF failure_healthy post_A_healthy feasible]
