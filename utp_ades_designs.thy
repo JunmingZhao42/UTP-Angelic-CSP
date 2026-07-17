@@ -6,7 +6,7 @@ begin
 
 subsection \<open>Predicate Mapping\<close>
 
-(* Paper Definition 23; thesis Definition 102.
+(* Paper Definition 23.
    p2ac(P)(s, A) = \<exists>z\<in>A. P(s, z) *)
 definition p2ac :: "('s, 's) urel \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
 [pred]: "p2ac P = (\<lambda> (s0, ac').
@@ -28,7 +28,7 @@ lemma p2ac_true [simp]:
   "p2ac true = (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
   by (pred_auto)
 
-(* Thesis Theorem T.4.6.1. *)
+(* Thesis Theorem T.4.6.1. *) 
 lemma p2ac_disj:
   "p2ac (P \<or> Q) = (p2ac P \<or> p2ac Q)"
   by (pred_auto)
@@ -38,7 +38,23 @@ lemma p2ac_conj:
   "p2ac (P \<and> Q) x \<longrightarrow> (p2ac P \<and> p2ac Q) x"
   by (pred_auto)
 
-(* Paper Appendix A.3, Lemma 26; thesis Lemma L.4.6.1. *)
+(* Lift p2ac through the design shell, preserving ok and ok'.  This is the
+   shallow-embedding counterpart of applying the paper's p2ac to a design. *)
+definition p2ac_des :: "'s des_hrel \<Rightarrow> 's angelic_design" where
+[pred]: "p2ac_des P = (\<lambda> (s0, ac').
+  \<exists> z \<in> achoices.ac\<^sub>v (des_vars.more ac').
+    P (\<lparr>ok\<^sub>v = ok\<^sub>v s0,
+         \<dots> = astate.s\<^sub>v (des_vars.more s0)\<rparr>,
+       \<lparr>ok\<^sub>v = ok\<^sub>v ac', \<dots> = z\<rparr>))"
+
+(* Paper Theorem 72 *)
+lemma p2ac_des_design:
+  "(ac_non_empty \<and> p2ac_des ((\<not> P) \<turnstile>\<^sub>r Q)) =
+   (ac_non_empty \<and> ((\<not> p2ac P) \<turnstile>\<^sub>r p2ac Q))"
+  by (simp add: ac_non_empty_def p2ac_des_def p2ac_def
+      rdesign_refinement; pred_auto)
+
+(* Paper Appendix A.3, Lemma 26 *)
 lemma PBMH_p2ac [simp]:
   "PBMH (p2ac P) = p2ac P"
   by (pred_auto)
@@ -109,6 +125,31 @@ lemma PBMH_ades_mono:
 lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
   by (rule MonotonicI, rule PBMH_ades_mono)
 
+(* Paper Appendix A.1, Lemma 16 *)
+lemma PBMH_ades_rdesign:
+  "PBMH_ades (P \<turnstile>\<^sub>r Q) =
+   ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma A1_PBMH_ades_rdesign:
+  "A1 (P \<turnstile>\<^sub>r Q) = PBMH_ades (P \<turnstile>\<^sub>r Q)"
+  by (simp add: PBMH_rdesign PBMH_ades_rdesign)
+
+(* Paper Definition 17 defines A1 on designs and observes that A1 and PBMH are
+   interchangeable.  In the shallow embedding, H records that an arbitrary
+   predicate P is a design. *)
+lemma A1_eq_PBMH_ades:
+  assumes "P is \<^bold>H"
+  shows "A1 P = PBMH_ades P"
+proof -
+  have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
+    using H1_H2_eq_rdesign[of P] assms
+    by (simp add: Healthy_def')
+  show ?thesis
+    using A1_PBMH_ades_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
+    by (simp only: P_form[symmetric])
+qed
+
 (* Paper Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 [pred]: "ac2p P = (\<lambda> (s0, s1).
@@ -149,10 +190,18 @@ lemma ac2p_alt:
     in P (ades_in, ades_out) \<and> (\<forall> z \<in> ac. z = des_vars.more s1))"
   by (pred_auto)
 
-(* Paper Lemma 24. *)
+(* Reactive-design instance of ac2p. *)
 lemma ac2p_rdesign:
   "ac2p (P \<turnstile>\<^sub>r Q) = ((\<not> ac2p_rel (\<not> P)) \<turnstile>\<^sub>r ac2p_rel Q)"
   by (simp only: ac2p_subset ac2p_rel_subset; pred_auto)
+
+(* Paper Lemma 24 *)
+lemma ac2p_design:
+  assumes "P is \<^bold>H"
+  shows "ac2p P = ((\<not> ac2p (P\<^sup>f)) \<turnstile> ac2p (P\<^sup>t))"
+  by (subst (1) Healthy_if[OF assms, symmetric];
+      simp only: H1_H2_eq_design design_def ac2p_subset;
+      pred_auto)
   
 subsection \<open>Isomorphism and Galois Connection\<close>
 

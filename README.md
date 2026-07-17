@@ -20,7 +20,7 @@ Useful background reading:
 This repository uses:
 
 - the official `Isabelle2025-2` distribution;
-- the profile `utp-isabelle-2025-2`; and
+- the profile `utp-2025-2`; and
 - dependency commits pinned under `deps/`.
 
 Most dependencies are pinned from `github.com/isabelle-utp`. `Optics` and
@@ -38,7 +38,7 @@ cd UTP-Angelic-CSP
 
 export PROJECT_DIR="$PWD"
 export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
-export UTP_PROFILE="utp-isabelle-2025-2"
+export UTP_PROFILE="utp-2025-2"
 ```
 
 Adjust the Isabelle executable path for your installation. Then run:

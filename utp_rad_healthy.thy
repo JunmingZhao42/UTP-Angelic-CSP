@@ -28,6 +28,16 @@ definition RA1 ::
 lemma RA1_idem: "RA1 (RA1 P) = RA1 P"
   by (simp add: RA1_def rad_trace_extensions_def fun_eq_iff; blast)
 
+lemma RA1_design_post:
+  "RA1 (P \<turnstile> Q) = RA1 (P \<turnstile> RA1 Q)"
+  by (simp add: RA1_def design_def fun_eq_iff; pred_auto;
+      simp_all add: Let_def; blast)
+
+(* Paper Lemma 23 *)
+lemma RA1_design_pre:
+  "RA1 (P \<turnstile> Q) = RA1 ((\<not> RA1 (\<not> P)) \<turnstile> Q)"
+  by (simp add: RA1_def design_def fun_eq_iff Let_def; pred_auto; blast)
+
 lemma RA1_Idempotent: "Idempotent RA1"
   by (simp add: Idempotent_def RA1_idem)
 
@@ -74,6 +84,11 @@ lemma RA1_PBMH_ades_not_commute:
   by (simp only: RA1_PBMH_ades_ac_empty PBMH_ades_RA1_ac_empty;
       simp add: RA1_def rad_trace_extensions_def fun_eq_iff; pred_auto)
 
+(* Paper Theorem 70 *)
+lemma PBMH_ades_RA1_PBMH_ades:
+  "PBMH_ades (RA1 (PBMH_ades P)) = RA1 (PBMH_ades P)"
+  by (simp add: PBMH_ades_def RA1_def fun_eq_iff; pred_auto)
+
 subsection \<open>RA2: Trace-history independence\<close>
 
 (* s \<oplus> {tr ↦ []} *)
@@ -96,6 +111,12 @@ definition rad_normalise_choices ::
     z \<in> ac' \<and>
     rad_state.tr\<^sub>v s\<^sub>0 \<le> rad_state.tr\<^sub>v z}"
 
+lemma rad_normalise_choices_mono:
+  "choices \<subseteq> choices' \<Longrightarrow>
+   rad_normalise_choices s0 choices \<subseteq>
+   rad_normalise_choices s0 choices'"
+  by (auto simp add: rad_normalise_choices_def)
+
 (* Paper Definition 29. *)
 (* RA2(P)(s,ac') = P(s[[]/tr], rad_normalise_choices(s, ac')) *)
 definition RA2 ::
@@ -116,6 +137,10 @@ where "RA2 P = (\<lambda> (x, y).
 lemma RA2_idem: "RA2 (RA2 P) = RA2 P"
   by (simp add: RA2_def rad_zero_trace_def rad_normalise_choices_def
       rad_trace_difference_def fun_eq_iff)
+
+lemma RA2_design:
+  "RA2 (P \<turnstile> Q) = (RA2 P \<turnstile> RA2 Q)"
+  by (simp add: RA2_def design_def fun_eq_iff; pred_auto)
 
 lemma RA2_Idempotent: "Idempotent RA2"
   by (simp add: Idempotent_def RA2_idem)
@@ -151,12 +176,28 @@ lemma rad_zero_trace_in_normalise:
     by (rule exI[where x=s0], simp)
   done
 
-(* Thesis T.5.2.10. *)
+(* Paper Theorem 71 *)
 lemma RA1_RA2_commute:
   "RA1 (RA2 P) = RA2 (RA1 P)"
   by (simp add: RA1_def RA2_def fun_eq_iff
       rad_normalise_choices_extensions rad_normalise_choices_nonempty
       rad_zero_trace_extensions Let_def)
+
+(* Paper Theorem 66 *)
+lemma PBMH_ades_RA2_PBMH_ades:
+  "PBMH_ades (RA2 (PBMH_ades P)) = RA2 (PBMH_ades P)"
+  apply (simp add: PBMH_ades_def RA2_def fun_eq_iff)
+  apply pred_auto
+  subgoal for ok tr ref wait ok' ac ac' ac''
+    apply (rule exI[where x=ac''])
+    apply (intro conjI)
+     apply assumption
+    apply (rule subset_trans)
+     apply assumption
+    apply (rule rad_normalise_choices_mono)
+    apply assumption
+    done
+  done
 
 lemma RA2_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RA2 P \<sqsubseteq> RA2 Q"
@@ -196,6 +237,11 @@ abbreviation rad_wait_lens where
 "rad_wait_lens \<equiv>
   rad_state.wait ;\<^sub>L astate.s ;\<^sub>L des_vars.more\<^sub>L"
 
+(* P_f \<equiv> P[s\<oplus>(wait ↦ false)/s] *)
+definition rad_wait_false ::
+  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
+[pred]: "rad_wait_false P = P\<lbrakk>False/rad_wait_lens\<^sup><\<rbrakk>"
+
 (* Paper Definition 31. *)
 definition RA3 ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
@@ -222,14 +268,29 @@ lemma RA3_Idempotent:
   "Idempotent RA3"
   by (simp add: Idempotent_def RA3_idem)
 
-(* Thesis T.5.2.16--T.5.2.17. *)
+(* Paper Theorem 68.  The paper's theorem statement repeats
+   RA3 \<circ> RA1 on both sides, but its proof establishes this commutation law. *)
 lemma RA1_RA3_commute:
   "RA1 (RA3 P) = RA3 (RA1 P)"
   by (simp add: RA3_def RA1_wait_cond RA1_II_Rac)
 
+(* Paper Theorem 69 *)
 lemma RA2_RA3_commute:
   "RA2 (RA3 P) = RA3 (RA2 P)"
   by (simp add: RA3_def RA2_wait_cond RA2_II_Rac)
+
+(* Paper Lemma 19 *)
+lemma RA3_wait_false:
+  "RA3 P = RA3 (rad_wait_false P)"
+  apply (simp add: RA3_def rad_wait_false_def expr_if_def fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def)
+  apply clarify
+  subgoal for a b
+    by (cases "astate.s\<^sub>v (des_vars.more a)";
+        cases "des_vars.more a"; cases a;
+        simp add: lens_defs rad_state.wait_def astate.s_def
+          des_vars.more\<^sub>L_def)
+  done
 
 lemma RA3_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RA3 P \<sqsubseteq> RA3 Q"
@@ -245,6 +306,88 @@ subsection \<open>RA\<close>
 definition RA ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
 "RA = RA1 \<circ> RA2 \<circ> RA3"
+
+lemma RA_A1:
+  "RA (A P) = RA (A1 P)"
+  by (simp add: RA_def A_def RA1_RA2_commute RA1_RA3_commute
+      RA2_RA3_commute RA1_A0)
+
+(* Paper Theorem 67 *)
+lemma RA_A:
+  assumes "P is \<^bold>H"
+  shows "RA (A P) = RA (PBMH_ades P)"
+  by (simp add: RA_A1 A1_eq_PBMH_ades[OF assms])
+
+lemma RA_wait_false_ok_subst:
+  "(rad_wait_false (RA P)) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk> =
+   RA2 (RA1 ((rad_wait_false P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk>))"
+  apply (simp add: RA_def RA3_def rad_wait_false_def RA1_def RA2_def
+      expr_if_def fun_eq_iff Let_def subst_app_def subst_upd_def
+      subst_id_def SEXP_def)
+  apply clarify
+  subgoal for a b
+    by (cases "astate.s\<^sub>v (des_vars.more a)";
+        cases "des_vars.more a"; cases a;
+        cases "des_vars.more b"; cases b;
+        auto simp add: lens_defs des_vars.ok_def rad_state.wait_def astate.s_def
+          des_vars.more\<^sub>L_def rad_trace_extensions_def
+          rad_zero_trace_def rad_normalise_choices_def
+          rad_trace_difference_def conj_commute conj_left_commute)
+  done
+
+(* Paper Lemma 20 *)
+(* (rad_wait_false (RA (A
+     (\<not> (rad_wait_false P)^f \<turnstile> (rad_wait_false P)^t))))^f =
+   RA2 \<circ> RA1 \<circ> PBMH (\<not> ok ∨ (rad_wait_false P)^f) *)
+lemma RA_design_wait_false:
+  "(rad_wait_false
+      (RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+        (rad_wait_false P)\<^sup>t))))\<^sup>f =
+   RA2 (RA1 (PBMH_ades
+     ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f)))"
+proof -
+  have pbmh_design:
+    "(rad_wait_false
+        (PBMH_ades ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+          (rad_wait_false P)\<^sup>t)))\<^sup>f =
+     PBMH_ades ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f)"
+    apply (simp add: rad_wait_false_def PBMH_ades_def design_def fun_eq_iff
+        subst_app_def subst_upd_def subst_id_def SEXP_def Let_def)
+    apply (simp add: PBMH_def pbmh_step_def)
+    apply pred_auto
+    done
+  show ?thesis
+    apply (subst RA_A)
+     apply (rule design_is_H1_H2)
+      apply pred_auto
+     apply pred_auto
+    apply (simp only: RA_wait_false_ok_subst pbmh_design)
+    done
+qed
+
+(* Paper Lemma 21 *)
+(* (RA \<circ> A(\<not>P^f_f \<turnstile> P^t_f))^t_f = RA2 \<circ> RA1 \<circ> PBMH(\<not>ok ∨ P^f_f ∨ P^t_f) *)
+lemma RA_design_wait_false_ok_true:
+  "(rad_wait_false
+      (RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+        (rad_wait_false P)\<^sup>t))))\<^sup>t =
+   RA2 (RA1 (PBMH_ades
+     ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f \<or>
+       (rad_wait_false P)\<^sup>t)))"
+  apply (subst RA_A)
+   apply (rule design_is_H1_H2; pred_auto)
+  apply (simp only: RA_wait_false_ok_subst)
+  apply (rule arg_cong[where f=RA2])
+  apply (rule arg_cong[where f=RA1])
+  by (simp add: rad_wait_false_def PBMH_ades_def design_def fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def Let_def
+      PBMH_def pbmh_step_def; pred_auto)
+
+(* Paper Lemma 22 *)
+lemma RA_design_post:
+  "RA (P \<turnstile> Q) = RA (P \<turnstile> RA2 (RA1 Q))"
+  by (metis RA_def comp_apply RA1_RA2_commute RA1_RA3_commute
+      RA2_RA3_commute RA1_design_post RA2_design RA2_idem)
 
 lemma RA_idem:
   "RA (RA P) = RA P"
