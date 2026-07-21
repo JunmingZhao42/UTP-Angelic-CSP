@@ -8,7 +8,7 @@ subsection \<open>CSPA1\<close>
 
 (* Paper definition 33. *)
 definition CSPA1 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
-"CSPA1 P = (P \<or> RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x))"
+[pred]: "CSPA1 P = (P \<or> RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x))"
 
 lemma CSPA1_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> CSPA1 P \<sqsubseteq> CSPA1 Q"
@@ -33,35 +33,42 @@ lemma PBMH_ades_CSPA1:
   shows "PBMH_ades (CSPA1 P) = CSPA1 P"
   by (simp add: CSPA1_def PBMH_ades_disj assms)
 
-(* Thesis Theorem T.5.2.18. *)
-lemma CSPA1_RA1:
-  "CSPA1 (RA1 P) = RA1 (H1 P)"
+(* Paper Theorem 10. *)
+lemma RA1_CSPA1:
+  "(RA1 \<circ> CSPA1) P = (RA1 \<circ> H1) P"
   apply (simp add: CSPA1_def H1_def RA1_def Let_def)
   apply pred_auto
   done
 
-(* Paper Theorem 10. *)
-lemma RA1_CSPA1:
-  "RA1 (CSPA1 P) = RA1 (H1 P)"
-  apply (simp add: CSPA1_def H1_def RA1_def Let_def)
-  apply pred_auto
-  done
+(* Thesis Theorem T.5.2.18. *)
+lemma CSPA1_RA1:
+  "(CSPA1 \<circ> RA1) P = (RA1 \<circ> H1) P"
+proof -
+  have "(CSPA1 \<circ> RA1) P = (RA1 \<circ> CSPA1) P"
+    by (simp add: CSPA1_def RA1_disj RA1_idem)
+  also have "... = (RA1 \<circ> H1) P"
+    by (rule RA1_CSPA1)
+  finally show ?thesis .
+qed
 
 (* Thesis Theorem T.G.5.4. *)
 lemma RA1_CSPA1_commute:
-  "RA1 (CSPA1 P) = CSPA1 (RA1 P)"
-  by (simp add: RA1_CSPA1 CSPA1_RA1)
+  "(RA1 \<circ> CSPA1) P = (CSPA1 \<circ> RA1) P"
+  by (simp add: RA1_CSPA1[simplified comp_apply]
+      CSPA1_RA1[simplified comp_apply])
 
 lemma RA_CSPA1:
-  "RA (CSPA1 P) = RA (H1 P)"
-  by (simp add: RA_def RA1_RA2_commute RA1_RA3_commute
-      RA2_RA3_commute RA1_CSPA1)
+  "(RA \<circ> CSPA1) P = (RA \<circ> H1) P"
+  by (simp add: RA_def RA1_RA2_commute[simplified comp_apply]
+      RA1_RA3_commute[simplified comp_apply]
+      RA2_RA3_commute[simplified comp_apply]
+      RA1_CSPA1[simplified comp_apply])
 
 subsection \<open>CSPA2\<close>
 
 (* Paper Definition 34. *)
 definition CSPA2 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
-where "CSPA2 P = H2 P"
+where [pred]: "CSPA2 P = H2 P"
 
 lemma CSPA2_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> CSPA2 P \<sqsubseteq> CSPA2 Q"
@@ -84,16 +91,23 @@ lemma CSPA2_Idempotent [closure]:
 lemma PBMH_ades_CSPA2:
   assumes "PBMH_ades P = P"
   shows "PBMH_ades (CSPA2 P) = CSPA2 P"
-  using assms
-  by (simp add: CSPA2_def PBMH_ades_def H2_split fun_eq_iff;
-      pred_auto; blast)
+proof -
+  have ok_substs:
+    "PBMH_ades (P\<^sup>f) = (PBMH_ades P)\<^sup>f \<and>
+     PBMH_ades (P\<^sup>t) = (PBMH_ades P)\<^sup>t"
+    by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+  show ?thesis
+    using assms ok_substs
+    by (simp add: CSPA2_def H2_split PBMH_ades_disj
+        PBMH_ades_conj_ok)
+qed
 
 subsection \<open>RAD\<close>
 
 (* Paper Definition 35. *)
 definition RAD ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
-"RAD = RA \<circ> CSPA1 \<circ> CSPA2 \<circ> PBMH_ades"
+[pred]: "RAD = RA \<circ> CSPA1 \<circ> CSPA2 \<circ> PBMH_ades"
 
 lemma RAD_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RAD P \<sqsubseteq> RAD Q"
@@ -106,30 +120,41 @@ lemma RAD_Monotonic [closure]:
       CSPA2_Monotonic PBMH_ades_Monotonic)
 
 lemma RAD_H1_H2_PBMH:
-  "RAD P = RA (H1 (H2 (PBMH_ades P)))"
-  by (simp add: RAD_def CSPA2_def RA_CSPA1)
+  "RAD P = (RA \<circ> H1 \<circ> H2 \<circ> PBMH_ades) P"
+  by (simp add: RAD_def CSPA2_def RA_CSPA1[simplified comp_apply])
 
 (* Paper Theorem 11. *)
 theorem RAD_design_form:
   "RAD P =
-   RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-     (rad_wait_false P)\<^sup>t))"
+   (RA \<circ> A) ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+     (rad_wait_false P)\<^sup>t)"
 proof -
-  have "RAD P = RA (H1 (H2 (PBMH_ades P)))"
-    by (rule RAD_H1_H2_PBMH)
-  also have "... = RA (PBMH_ades (H1 (H2 P)))"
-    by (simp add: PBMH_ades_H1_H2)
-  also have "... = RA (A (H1 (H2 P)))"
-    by (metis RA_A H1_H2_idempotent Healthy_def')
-  also have "... = RA (A (rad_wait_false (H1 (H2 P))))"
-    unfolding RA_def comp_apply
-    by (metis RA3_wait_false rad_wait_false_A)
+  have design_healthy: "H1 (H2 P) is \<^bold>H"
+    by (simp only: Healthy_def' H1_H2_idempotent)
+  have "RAD P = RA (A (H1 (H2 P)))"
+    by (simp only: comp_apply RAD_H1_H2_PBMH
+        RA_A[OF design_healthy, simplified comp_apply]
+        PBMH_ades_H1_H2[simplified comp_apply])
   also have "... = RA (A (H1 (H2 (rad_wait_false P))))"
-    by (simp add: rad_wait_false_H1_H2)
-  also have "... = RA (A ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-        (rad_wait_false P)\<^sup>t))"
+    unfolding RA_def comp_apply
+    by (simp only: RA3_wait_false[simplified comp_apply,
+          of "A (H1 (H2 P))"]
+        rad_wait_false_A[simplified comp_apply]
+        rad_wait_false_H1_H2[simplified comp_apply])
+  finally show ?thesis
     by (simp add: H1_H2_eq_design)
-  finally show ?thesis .
 qed
+
+lemma RAD_idem:
+  "RAD (RAD P) = RAD P"
+  by (simp only: RAD_design_form RA_design_form_idem)
+
+lemma RAD_Idempotent [closure]:
+  "Idempotent RAD"
+  by (simp add: Idempotent_def RAD_idem)
+
+lemma RAD_healthy [closure]:
+  "RAD P is RAD"
+  by (simp add: Healthy_def' RAD_idem)
 
 end

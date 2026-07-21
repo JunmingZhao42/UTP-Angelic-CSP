@@ -4,26 +4,15 @@ theory utp_rad_bridge
   imports utp_rad_core "UTP-Reactive.utp_rea_healths"
 begin
 
-(* todo: need to go through this file *)
 subsection \<open>Observation isomorphism\<close>
 
-text \<open>
-  The reactive-process alphabet already supplies @{term ok}, @{term wait}, and
-  @{term tr}.  We instantiate its open extension with the refusal set.  This
-  gives the flat paper alphabet @{text "{ok, tr, ref, wait}"}, with
-  @{const rea_vars.more} representing @{text ref}.
-\<close>
-
+(* CSP's flat alphabet is {ok, tr, ref, wait}; rea_vars.more stores ref. *)
 type_synonym 'e csp_obs = "('e list, 'e set) rp"
 
-text \<open>
-  Reactive angelic designs instead package @{text "{tr, ref, wait}"} beneath
-  the design continuation.  The following functions flatten and unflatten
-  these two record presentations.
-\<close>
-
-definition rad_flatten :: "'e rad_state des_vars_scheme \<Rightarrow> 'e csp_obs" where
-"rad_flatten x =
+(* Repackage one nested RAD observation as a flat CSP observation. *)
+definition rad2csp_obs ::
+  "'e rad_state des_vars_scheme \<Rightarrow> 'e csp_obs" where
+[pred]: "rad2csp_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     utp_rea_core.rea_vars.wait\<^sub>v =
       utp_rad_core.rad_state.wait\<^sub>v (des_vars.more x),
@@ -31,58 +20,57 @@ definition rad_flatten :: "'e rad_state des_vars_scheme \<Rightarrow> 'e csp_obs
       utp_rad_core.rad_state.tr\<^sub>v (des_vars.more x),
     \<dots> = utp_rad_core.rad_state.ref\<^sub>v (des_vars.more x) \<rparr>"
 
-definition rad_unflatten :: "'e csp_obs \<Rightarrow> 'e rad_state des_vars_scheme" where
-"rad_unflatten x =
+(* Repackage one flat CSP observation as a nested RAD observation. *)
+definition csp2rad_obs ::
+  "'e csp_obs \<Rightarrow> 'e rad_state des_vars_scheme" where
+[pred]: "csp2rad_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     \<dots> = \<lparr> utp_rad_core.rad_state.tr\<^sub>v = rea_vars.tr\<^sub>v x,
           utp_rad_core.rad_state.ref\<^sub>v = rea_vars.more x,
           utp_rad_core.rad_state.wait\<^sub>v = rea_vars.wait\<^sub>v x,
           \<dots> = () \<rparr> \<rparr>"
 
-lemma rad_unflatten_flatten [simp]: "rad_unflatten (rad_flatten x) = x"
-  by (cases x; simp add: rad_flatten_def rad_unflatten_def)
+(* The observation conversions are bijective. *)
+lemma csp2rad_obs_inverse [simp]:
+  "csp2rad_obs (rad2csp_obs x) = x"
+  by (cases x; simp add: rad2csp_obs_def csp2rad_obs_def)
 
-lemma rad_flatten_unflatten [simp]: "rad_flatten (rad_unflatten x) = x"
-  by (cases x; simp add: rad_flatten_def rad_unflatten_def)
+lemma rad2csp_obs_inverse [simp]:
+  "rad2csp_obs (csp2rad_obs x) = x"
+  by (cases x; simp add: rad2csp_obs_def csp2rad_obs_def)
 
 subsection \<open>Relation and design mappings\<close>
 
-definition rad_rel_flatten ::
-  "'e rad_state des_hrel \<Rightarrow> ('e list, 'e set) rp_hrel"
-where
-"rad_rel_flatten P = (\<lambda> (x, y). P (rad_unflatten x, rad_unflatten y))"
+(* Lift the observation conversions pointwise to both ends of a relation. *)
+definition rad2csp_rel :: "'e rad_state des_hrel \<Rightarrow> ('e list, 'e set) rp_hrel"
+where [pred]: "rad2csp_rel P = (\<lambda> (x, y). P (csp2rad_obs x, csp2rad_obs y))"
 
-definition rad_rel_unflatten ::
-  "('e list, 'e set) rp_hrel \<Rightarrow> 'e rad_state des_hrel"
-where
-"rad_rel_unflatten P = (\<lambda> (x, y). P (rad_flatten x, rad_flatten y))"
+definition csp2rad_rel :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e rad_state des_hrel"
+where [pred]: "csp2rad_rel P = (\<lambda> (x, y). P (rad2csp_obs x, rad2csp_obs y))"
 
-lemma rad_rel_unflatten_flatten [simp]:
-  "rad_rel_unflatten (rad_rel_flatten P) = P"
-  by (simp add: rad_rel_flatten_def rad_rel_unflatten_def fun_eq_iff)
+lemma csp2rad_rel_inverse [simp]:
+  "csp2rad_rel (rad2csp_rel P) = P"
+  by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
-lemma rad_rel_flatten_unflatten [simp]:
-  "rad_rel_flatten (rad_rel_unflatten P) = P"
-  by (simp add: rad_rel_flatten_def rad_rel_unflatten_def fun_eq_iff)
+lemma rad2csp_rel_inverse [simp]:
+  "rad2csp_rel (csp2rad_rel P) = P"
+  by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
-text \<open>
-  These are the paper-level links specialised to the reactive alphabet.  They
-  reuse the generic angelic-design mappings @{const ac2p} and @{const d2ac}.
-\<close>
+definition rad_ac2p :: "'e reactive_angelic_design \<Rightarrow> ('e list, 'e set) rp_hrel"
+where [pred]: "rad_ac2p P = rad2csp_rel (ac2p P)"
 
-definition rad_ac2p ::
-  "'e reactive_angelic_design \<Rightarrow> ('e list, 'e set) rp_hrel"
-where
-"rad_ac2p P = rad_rel_flatten (ac2p P)"
+(* Paper predicate mapping p2ac, after repackaging the observations. *)
+definition rad_p2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
+where [pred]: "rad_p2ac P = p2ac (csp2rad_rel P)"
 
-definition rad_p2ac ::
-  "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
-where
-"rad_p2ac P = d2ac (rad_rel_unflatten P)"
+(* The design-level adapter uses d2ac rather than the paper's predicate p2ac. *)
+definition rad_d2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
+where [pred]: "rad_d2ac P = d2ac (csp2rad_rel P)"
 
-lemma rad_ac2p_p2ac:
-  assumes "rad_rel_unflatten P is \<^bold>H"
-  shows "rad_ac2p (rad_p2ac P) = P"
-  by (simp add: rad_ac2p_def rad_p2ac_def ac2p_d2ac assms)
+lemma rad_ac2p_d2ac:
+  assumes "csp2rad_rel P is \<^bold>H"
+  shows "(rad_ac2p \<circ> rad_d2ac) P = P"
+  by (simp add: rad_ac2p_def rad_d2ac_def
+      ac2p_d2ac[simplified comp_apply] assms)
 
 end

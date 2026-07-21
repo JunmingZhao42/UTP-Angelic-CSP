@@ -268,11 +268,11 @@ lemma A_Idempotent [closure]:
   by (simp add: Idempotent_def A_idem)
 
 lemma A_H1_commute:
-  "H1 (A P) = A (H1 P)"
+  "(H1 \<circ> A) P = (A \<circ> H1) P"
   by (simp add: A_design_form H1_rdesign preD_H1 postD_H1)
 
 lemma A_H2_commute:
-  "H2 (A P) = A (H2 P)"
+  "(H2 \<circ> A) P = (A \<circ> H2) P"
 proof -
   have post_absorb:
     "\<And>P Q N.

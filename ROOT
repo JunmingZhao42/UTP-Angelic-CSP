@@ -14,5 +14,6 @@ session "UTP-Angelic-CSP" = "UTP-Angelic-Designs" +
     utp_rad_bridge
     utp_rad_healthy
     utp_rad_csp_healthy
+    utp_rad_links
     utp_rad
     Angelic_CSP
