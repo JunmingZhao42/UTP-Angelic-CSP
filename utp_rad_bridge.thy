@@ -63,16 +63,17 @@ lemma csp2rad_rel_design:
   by (simp add: csp2rad_rel_def design_def fun_eq_iff
       rad2csp_obs_def; pred_auto)
 
+(* Forget the angelic choices, then repackage the resulting observations as CSP. *)
 definition rad_ac2p :: "'e reactive_angelic_design \<Rightarrow> ('e list, 'e set) rp_hrel"
-where [pred]: "rad_ac2p P = rad2csp_rel (ac2p P)"
+where [pred]: "rad_ac2p = rad2csp_rel \<circ> ac2p"
 
-(* Paper predicate mapping p2ac, after repackaging the observations. *)
+(* Repackage CSP observations as RAD state, then introduce angelic choices. *)
 definition rad_p2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
-where [pred]: "rad_p2ac P = p2ac (csp2rad_rel P)"
+where [pred]: "rad_p2ac = p2ac \<circ> csp2rad_rel"
 
 (* The design-level adapter uses d2ac rather than the paper's predicate p2ac. *)
 definition rad_d2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
-where [pred]: "rad_d2ac P = d2ac (csp2rad_rel P)"
+where [pred]: "rad_d2ac = d2ac \<circ> csp2rad_rel"
 
 lemma rad_p2ac_PBMH_ades [closure]:
   "rad_p2ac P is PBMH_ades"

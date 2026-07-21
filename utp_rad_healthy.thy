@@ -354,6 +354,11 @@ lemma rad_wait_false_H1_H2:
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
       pred_auto)
 
+lemma rad_wait_false_design_healthy [closure]:
+  "((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+    (rad_wait_false P)\<^sup>t) is \<^bold>H"
+  by (rule design_is_H1_H2; pred_auto)
+
 (* Paper Definition 31. *)
 definition RA3 ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
@@ -434,6 +439,26 @@ lemma RA_alt_def:
       RA1_RA2_commute[simplified comp_apply]
       RA1_RA3_commute[simplified comp_apply]
       RA2_RA3_commute[simplified comp_apply])
+
+lemma RA_design_components:
+  "RA (P \<turnstile> Q) =
+   RA ((\<not> RA1 (\<not> P)) \<turnstile> RA1 Q)"
+proof -
+  have "RA1 (P \<turnstile> Q) =
+      RA1 ((\<not> RA1 (\<not> P)) \<turnstile> Q)"
+    by (rule RA1_design_pre)
+  also have "... =
+      RA1 ((\<not> RA1 (\<not> P)) \<turnstile> RA1 Q)"
+    by (rule RA1_design_post)
+  finally show ?thesis
+    by (simp only: RA_alt_def)
+qed
+
+lemma RA_cong_ac_non_empty:
+  assumes "(ac_non_empty \<and> P) = (ac_non_empty \<and> Q)"
+  shows "RA P = RA Q"
+  using arg_cong[where f=RA1, OF assms]
+  by (simp only: RA1_ac_non_empty_absorb RA_alt_def)
 
 lemma RA_A1:
   "(RA \<circ> A) P = (RA \<circ> A1) P"
@@ -662,19 +687,15 @@ lemma RA_design_form_idem:
      ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
        (rad_wait_false P)\<^sup>t)"
 proof -
-  have normal_design_healthy:
-      "\<And>X. ((\<not> (rad_wait_false X)\<^sup>f) \<turnstile>
-        (rad_wait_false X)\<^sup>t) is \<^bold>H"
-    by (rule design_is_H1_H2; pred_auto)
   show ?thesis
     unfolding comp_apply
-    apply (subst RA_A[OF normal_design_healthy,
+    apply (subst RA_A[OF rad_wait_false_design_healthy,
         simplified comp_apply])
     apply (simp only:
         RA_design_wait_false[simplified comp_apply]
         RA_design_wait_false_ok_true[simplified comp_apply])
     apply (subst RA_design_PBMH_normalise)
-    by (rule RA_A[OF normal_design_healthy,
+    by (rule RA_A[OF rad_wait_false_design_healthy,
         simplified comp_apply, symmetric])
 qed
 

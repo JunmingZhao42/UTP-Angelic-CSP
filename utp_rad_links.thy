@@ -53,7 +53,7 @@ qed
 
 lemma rad_ac2p_II_Rac [simp]:
   "rad_ac2p (II_Rac :: 'e reactive_angelic_design) = II\<^sub>C"
-  apply (simp only: rad_ac2p_def rad2csp_rel_def ac2p_def
+  apply (simp only: rad_ac2p_def comp_apply rad2csp_rel_def ac2p_def
       PBMH_ades_II_Rac)
   apply (simp add: II_Rac_def RA1_def csp2rad_obs_def
       rad_trace_extensions_def StateII_def skip_rea_def pred_skip
@@ -85,7 +85,7 @@ proof -
       "rad_ac2p (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
        (rad_ac2p P \<triangleleft> $wait\<^sup>< \<triangleright> rad_ac2p Q)"
       for P Q
-    by (simp only: rad_ac2p_def rad2csp_rel_def ac2p_def pbmh_wait;
+    by (simp only: rad_ac2p_def comp_apply rad2csp_rel_def ac2p_def pbmh_wait;
         simp add: csp2rad_obs_def expr_if_def fun_eq_iff lens_defs;
         pred_auto)
   show ?thesis
@@ -111,14 +111,14 @@ proof -
     "(\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
       (rad_wait_false P)\<^sup>t"
   have design_healthy: "?D is \<^bold>H"
-    by (rule design_is_H1_H2; pred_auto)
+    by (rule rad_wait_false_design_healthy)
   have pbmh_healthy: "PBMH_ades ?D is PBMH_ades"
     by (rule Healthy_Idempotent[OF PBMH_ades_Idempotent])
   have mapped_design:
       "rad_ac2p ?D =
        ((\<not> rad_ac2p ((rad_wait_false P)\<^sup>f)) \<turnstile>
         rad_ac2p ((rad_wait_false P)\<^sup>t))"
-    unfolding rad_ac2p_def
+    unfolding rad_ac2p_def comp_apply
     by (subst ac2p_design[OF design_healthy];
         simp add: rad2csp_rel_def design_def fun_eq_iff
           csp2rad_obs_def subst_app_def subst_upd_def subst_id_def SEXP_def;
@@ -129,7 +129,7 @@ proof -
   also have "... = \<^bold>R (rad_ac2p (PBMH_ades ?D))"
     by (rule rad_ac2p_RA[OF pbmh_healthy, simplified comp_apply])
   also have "... = \<^bold>R (rad_ac2p ?D)"
-    by (simp only: rad_ac2p_def ac2p_PBMH_ades)
+    by (simp only: rad_ac2p_def comp_apply ac2p_PBMH_ades)
   also have "... =
       \<^bold>R ((\<not> rad_ac2p ((rad_wait_false P)\<^sup>f)) \<turnstile>
         rad_ac2p ((rad_wait_false P)\<^sup>t))"
@@ -235,7 +235,7 @@ proof -
       "rad2csp_rel (ac2p (II_Rac :: 'e reactive_angelic_design)) =
        (II\<^sub>C :: ('e list, 'e set) rp_hrel)"
     using rad_ac2p_II_Rac
-    by (simp only: rad_ac2p_def)
+    by (simp only: rad_ac2p_def comp_apply)
   have rel:
       "csp2rad_rel (II\<^sub>C :: ('e list, 'e set) rp_hrel) =
        ac2p (II_Rac :: 'e reactive_angelic_design)"
@@ -318,18 +318,8 @@ proof -
     by (simp add: RA_design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok rad_p2ac_def)
   let ?S = "rad_p2ac ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
-  have mapped_ra1: "RA1 ?S = RA1 ?D"
-  proof -
-    have "RA1 ?S = RA1 (ac_non_empty \<and> ?S)"
-      by (simp only: RA1_ac_non_empty_absorb)
-    also have "... = RA1 (ac_non_empty \<and> ?D)"
-      by (simp only: mapped_design)
-    also have "... = RA1 ?D"
-      by (simp only: RA1_ac_non_empty_absorb)
-    finally show ?thesis .
-  qed
   have mapped_RA: "RA ?S = RA ?D"
-    by (simp only: RA_alt_def mapped_ra1)
+    by (rule RA_cong_ac_non_empty[OF mapped_design])
   have A_absorb: "RA (A ?D) = RA ?D"
     by (simp only: RA_A[OF design_healthy, simplified comp_apply]
         design_pbmh)
@@ -338,6 +328,178 @@ proof -
     by (simp only: comp_apply rad_p2ac_R[simplified comp_apply])
   also have "... = RA ?D"
     by (rule mapped_RA)
+  also have "... = (RA \<circ> A) ?D"
+    by (simp only: comp_apply A_absorb)
+  finally show ?thesis .
+qed
+
+(* Paper Theorem 16 / Thesis Theorem T.5.3.5. *)
+theorem rad_ac2p_p2ac:
+  "(rad_ac2p \<circ> rad_p2ac) P = P"
+proof -
+  have base_round_trip:
+      "(ac2p \<circ> p2ac) Q = Q" for Q :: "'s des_hrel"
+    apply (simp only: comp_apply ac2p_subset p2ac_def)
+    apply (simp add: fun_eq_iff StateII_def)
+    by (pred_auto)
+  show ?thesis
+    by (simp only: comp_apply rad_ac2p_def rad_p2ac_def
+        base_round_trip[simplified comp_apply] rad2csp_rel_inverse)
+qed
+
+(* Paper Lemma 6. *)
+lemma rad_p2ac_ac2p:
+  fixes P :: "'e reactive_angelic_design"
+  shows "(rad_p2ac \<circ> rad_ac2p) P =
+    (\<lambda> (s0, ac'). \<exists> ac0 y.
+      P (s0, des_vars.more_update
+        (achoices.ac\<^sub>v_update (\<lambda>_. ac0)) ac') \<and>
+      ac0 \<subseteq> {y} \<and> y \<in> achoices.ac\<^sub>v (des_vars.more ac'))"
+proof -
+  have input_repackage:
+      "\<lparr>ok\<^sub>v = ok\<^sub>v s0,
+        \<dots> = StateII (astate.s\<^sub>v (des_vars.more s0))\<rparr> = s0"
+      for s0 :: "'s astate des_vars_scheme"
+    by (rule des_vars.equality; simp add: StateII_def;
+        rule astate.equality; simp add: StateII_def)
+  have output_repackage:
+      "des_vars.more_update (achoices.ac\<^sub>v_update (\<lambda>_. ac0)) ac' =
+       \<lparr>ok\<^sub>v = ok\<^sub>v ac',
+         \<dots> = \<lparr>ac\<^sub>v = ac0, \<dots> = ()\<rparr>\<rparr>"
+      for ac0 and ac' :: "'s achoices des_vars_scheme"
+    by (rule des_vars.equality; simp;
+        rule achoices.equality; simp)
+  show ?thesis
+    apply (simp only: comp_apply rad_p2ac_def rad_ac2p_def
+        csp2rad_rel_inverse p2ac_def ac2p_subset)
+    apply (simp add: fun_eq_iff input_repackage output_repackage)
+    by auto
+qed
+
+(* Paper Theorem 17. *)
+theorem rad_p2ac_ac2p_refine:
+  assumes "P is PBMH_ades"
+  shows "P \<sqsubseteq> (rad_p2ac \<circ> rad_ac2p) P"
+  using assms
+  apply (simp only: Healthy_def' rad_p2ac_ac2p)
+  apply (simp add: PBMH_ades_def pred_refine_iff)
+  by (pred_auto; blast)
+
+(* Thesis Lemma L.G.7.11. *)
+lemma rad_p2ac_ac2p_A2:
+  fixes P :: "'e reactive_angelic_design"
+  assumes "P is A2"
+  shows "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> P)"
+proof -
+  have bridge:
+      "(rad_p2ac \<circ> rad_ac2p) Q = (p2ac \<circ> ac2p) Q"
+      for Q :: "'e reactive_angelic_design"
+    by (simp add: rad_p2ac_def rad_ac2p_def)
+  have nonempty: "p2ac Q = (ac_non_empty \<and> p2ac Q)"
+      for Q :: "'s des_hrel"
+    by (simp add: p2ac_def ac_non_empty_def fun_eq_iff; pred_auto)
+  have fixed: "A2 P = P"
+    using assms by (simp add: Healthy_def')
+  have "(rad_p2ac \<circ> rad_ac2p) P = p2ac (ac2p (A2 P))"
+    by (subst bridge; simp only: comp_apply fixed)
+  also have "... = (ac_non_empty \<and> p2ac (ac2p (A2 P)))"
+    by (rule nonempty)
+  also have "... = (ac_non_empty \<and>
+      ((\<not> (A2_rel (\<not> pre\<^sub>D P) \<and>
+          ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)) \<turnstile>\<^sub>r
+       (A2_rel (post\<^sub>D P) \<and>
+          ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)))"
+    by (simp add: A2_def ac2p_rdesign p2ac_design
+        p2ac_ac2p_rel_A2[simplified comp_apply] A2_rel_idem)
+  also have "... = (ac_non_empty \<and> A2 P)"
+    by (simp add: A2_def ac_non_empty_def rdesign_refinement fun_eq_iff;
+        pred_simp; auto)
+  also have "... = (ac_non_empty \<and> P)"
+    by (simp only: fixed)
+  finally show ?thesis .
+qed
+
+(* Paper Theorem 18 / Thesis Theorem T.5.3.7. *)
+theorem rad_p2ac_ac2p_RA_design:
+  assumes "(rad_wait_false P)\<^sup>f is A2"
+    and "(rad_wait_false P)\<^sup>t is A2"
+  shows "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A)
+      ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+        (rad_wait_false P)\<^sup>t) =
+    (RA \<circ> A)
+      ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
+        (rad_wait_false P)\<^sup>t)"
+proof -
+  let ?F = "(rad_wait_false P)\<^sup>f"
+  let ?T = "(rad_wait_false P)\<^sup>t"
+  let ?D = "(\<not> ?F) \<turnstile> ?T"
+  let ?C = "(\<not> rad_ac2p ?F) \<turnstile> rad_ac2p ?T"
+  let ?S = "rad_p2ac ?C"
+  let ?M = "((\<not> (rad_p2ac \<circ> rad_ac2p) ?F) \<turnstile>
+    (rad_p2ac \<circ> rad_ac2p) ?T)"
+  have mapped_design:
+      "(ac_non_empty \<and> ?S) = (ac_non_empty \<and> ?M)"
+    using p2ac_design_nonempty[
+        of "csp2rad_rel (rad_ac2p ?F)"
+           "csp2rad_rel (rad_ac2p ?T)"]
+    by (simp add: rad_p2ac_def csp2rad_rel_design)
+  have mapped_RA: "RA ?S = RA ?M"
+    by (rule RA_cong_ac_non_empty[OF mapped_design])
+  have F_round:
+      "(rad_p2ac \<circ> rad_ac2p) ?F = (ac_non_empty \<and> ?F)"
+    by (rule rad_p2ac_ac2p_A2[OF assms(1)])
+  have T_round:
+      "(rad_p2ac \<circ> rad_ac2p) ?T = (ac_non_empty \<and> ?T)"
+    by (rule rad_p2ac_ac2p_A2[OF assms(2)])
+  have nonempty_design_absorb:
+      "RA ((\<not> (ac_non_empty \<and> ?F)) \<turnstile>
+          (ac_non_empty \<and> ?T)) = RA ?D"
+  proof -
+    have "RA ((\<not> (ac_non_empty \<and> ?F)) \<turnstile>
+        (ac_non_empty \<and> ?T)) =
+      RA ((\<not> RA1 (ac_non_empty \<and> ?F)) \<turnstile>
+        RA1 (ac_non_empty \<and> ?T))"
+      using RA_design_components[
+          of "\<not> (ac_non_empty \<and> ?F)" "ac_non_empty \<and> ?T"]
+      by (simp only: pred_ba.boolean_algebra.double_compl)
+    also have "... = RA ((\<not> RA1 ?F) \<turnstile> RA1 ?T)"
+      by (simp only: RA1_ac_non_empty_absorb)
+    also have "... = RA ?D"
+      using RA_design_components[of "\<not> ?F" ?T, symmetric]
+      by (simp only: pred_ba.boolean_algebra.double_compl)
+    finally show ?thesis .
+  qed
+  have A2_PBMH: "PBMH_ades (A2 Q) = A2 Q"
+      for Q :: "'e reactive_angelic_design"
+    by (simp add: A2_def PBMH_ades_rdesign A2_rel_def PBMH_idem)
+  have F_pbmh: "PBMH_ades ?F = ?F"
+    using assms(1) A2_PBMH[of ?F]
+    by (simp add: Healthy_def')
+  have T_pbmh: "PBMH_ades ?T = ?T"
+    using assms(2) A2_PBMH[of ?T]
+    by (simp add: Healthy_def')
+  have design_healthy: "?D is \<^bold>H"
+    by (rule rad_wait_false_design_healthy)
+  have design_pbmh: "PBMH_ades ?D = ?D"
+    by (simp add: RA_design_as_disj PBMH_ades_disj
+        PBMH_ades_not_ok_expr PBMH_ades_conj_ok F_pbmh T_pbmh)
+  have A_absorb: "RA (A ?D) = RA ?D"
+    by (simp only: RA_A[OF design_healthy, simplified comp_apply]
+        design_pbmh)
+  have "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ?D =
+      rad_p2ac (\<^bold>R ?C)"
+    by (simp only: comp_apply
+        rad_ac2p_RA_design[simplified comp_apply])
+  also have "... = RA ?S"
+    by (simp only: rad_p2ac_R[simplified comp_apply])
+  also have "... = RA ?M"
+    by (rule mapped_RA)
+  also have "... = RA
+      ((\<not> (ac_non_empty \<and> ?F)) \<turnstile>
+        (ac_non_empty \<and> ?T))"
+    by (simp only: F_round T_round)
+  also have "... = RA ?D"
+    by (rule nonempty_design_absorb)
   also have "... = (RA \<circ> A) ?D"
     by (simp only: comp_apply A_absorb)
   finally show ?thesis .
