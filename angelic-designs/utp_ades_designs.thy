@@ -214,7 +214,7 @@ lemma ac2p_rel_subset:
     P (StateII s0, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<and> A \<subseteq> {s1})"
   by (pred_auto)
 
-(* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
+(* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) \<and> \<forall>y \<in> ac. y = z *)
 (* My understanding: ac2p(P)(s,z) = P(s, {z}) *)
 lemma ac2p_alt:
   "ac2p P = (\<lambda> (s0, s1). \<exists> ac.
@@ -230,7 +230,7 @@ lemma ac2p_rdesign:
   "ac2p (P \<turnstile>\<^sub>r Q) = ((\<not> ac2p_rel (\<not> P)) \<turnstile>\<^sub>r ac2p_rel Q)"
   by (simp only: ac2p_subset ac2p_rel_subset; pred_auto)
 
-(* Paper Lemma 24 *)
+(* Paper Lemma 24 (aka L.C.5.28) *)
 lemma ac2p_design:
   assumes "P is \<^bold>H"
   shows "ac2p P = ((\<not> ac2p (P\<^sup>f)) \<turnstile> ac2p (P\<^sup>t))"
@@ -325,6 +325,15 @@ lemma ac2p_P_dummy:
   apply (simp only: ac2p_rdesign ac2p_rel_subset)
   by (pred_auto)
 
+lemma p2ac_exist_false:
+  "p2ac_exist false = false"
+  by (pred_auto)
+
+lemma d2ac_bot:
+  "d2ac (false \<turnstile>\<^sub>r true) = \<bottom>\<^sub>D"
+  apply (simp add:d2ac_rdesign p2ac_exist_false)
+  by (pred_auto)
+
 lemma d2ac_ac2p_P_dummy:
   "(d2ac \<circ> ac2p) P_dummy = true"
   apply (simp only: comp_apply ac2p_P_dummy d2ac_rdesign
@@ -337,10 +346,47 @@ lemma P_dummy_fails_theorem6:
   apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
   by (pred_auto)
 
+(* What does P_dummy mean? *)
+lemma "P_dummy = (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e \<turnstile>\<^sub>r false)"
+  by pred_auto
+
+lemma "ac2p_rel (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e) = true"
+  unfolding ac2p_rel_def by pred_auto
+
 definition pre_singleton_witness :: "'s angelic_design \<Rightarrow> bool" where
 "pre_singleton_witness P \<longleftrightarrow>
   (\<forall>s. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
     (\<exists>z. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
+
+(* In which cases does this work? *)
+lemma "pre_singleton_witness (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright> \<or> $ac\<^sup>> = \<guillemotleft>{z}\<guillemotright>)\<^sub>e \<turnstile>\<^sub>r Q)"
+  unfolding pre_singleton_witness_def by pred_auto
+
+lemma "($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e ;;\<^sub>A true = false"
+  by pred_auto
+
+lemma "(P ;;\<^sub>A ($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e) = P"
+  by pred_auto
+
+lemma aseq_false: "P\<lbrakk>{}/ac\<^sup>>\<rbrakk> = P ;;\<^sub>A false"
+  by pred_auto
+
+text \<open> Below, some attempts at re-expressing the same condition using relational refinement. \<close>
+
+lemma "pre_singleton_witness (P \<turnstile>\<^sub>r Q) \<longleftrightarrow> (P ;;\<^sub>A false \<sqsupseteq> (\<exists>z. P\<lbrakk>{z}/ac\<^sup>>\<rbrakk>)\<^sub>e)"
+  unfolding pre_singleton_witness_def by pred_auto
+
+lemma "pre_singleton_witness (P \<turnstile>\<^sub>r Q) \<longleftrightarrow> ((P ;;\<^sub>A false) \<sqsupseteq> (P ;; (\<exists>z. $ac\<^sup>< = {z})\<^sub>e))"
+  unfolding pre_singleton_witness_def by pred_auto
+
+lemma "pre_singleton_witness (P \<turnstile>\<^sub>r Q) \<longrightarrow> ((P ;;\<^sub>A false) \<sqsupseteq> (\<exists>ac\<^sup>> \<Zspot> P ;;\<^sub>A ($ac\<^sup>> \<noteq> {})\<^sub>e))"
+  unfolding pre_singleton_witness_def by pred_auto
+
+lemma "pre_singleton_witness (P \<turnstile>\<^sub>r Q) \<longrightarrow> ((P ;;\<^sub>A false) \<sqsupseteq> (\<exists>ac\<^sup>> \<Zspot> P ;;\<^sub>A ({$s\<^sup><} = $ac\<^sup>>)\<^sub>e))"
+  unfolding pre_singleton_witness_def apply pred_auto
+  by (metis (mono_tags, lifting) Collect_empty_eq singleton_conv)
+
+(* Q: Is pre_singleton_witness the weakest predicate required to uphold the theorem? *)
 
 (* Paper Theorem 6, with the missing singleton-witness premise. *)
 lemma d2ac_ac2p:
