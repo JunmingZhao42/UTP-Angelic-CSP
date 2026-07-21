@@ -56,6 +56,13 @@ lemma rad2csp_rel_inverse [simp]:
   "rad2csp_rel (csp2rad_rel P) = P"
   by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
+(* Designs distribute through the observation repackaging. *)
+lemma csp2rad_rel_design:
+  "csp2rad_rel ((\<not> F) \<turnstile> T) =
+   ((\<not> csp2rad_rel F) \<turnstile> csp2rad_rel T)"
+  by (simp add: csp2rad_rel_def design_def fun_eq_iff
+      rad2csp_obs_def; pred_auto)
+
 definition rad_ac2p :: "'e reactive_angelic_design \<Rightarrow> ('e list, 'e set) rp_hrel"
 where [pred]: "rad_ac2p P = rad2csp_rel (ac2p P)"
 
@@ -66,6 +73,10 @@ where [pred]: "rad_p2ac P = p2ac (csp2rad_rel P)"
 (* The design-level adapter uses d2ac rather than the paper's predicate p2ac. *)
 definition rad_d2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
 where [pred]: "rad_d2ac P = d2ac (csp2rad_rel P)"
+
+lemma rad_p2ac_PBMH_ades [closure]:
+  "rad_p2ac P is PBMH_ades"
+  by (simp add: Healthy_def rad_p2ac_def)
 
 lemma rad_ac2p_d2ac:
   assumes "csp2rad_rel P is \<^bold>H"

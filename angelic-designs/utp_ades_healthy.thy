@@ -340,6 +340,21 @@ definition A2_rel_expanded :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Right
   (\<exists> y \<in> achoices.ac\<^sub>v ac'.
     P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {y}) ac')))"
 
+(* Paper Definition 36: some y in ac' is the single angelic choice
+   admitted by P.  \<exists> y \<bullet> y \<in> ac' \<and> P[{y}/ac'] *)
+definition ac_singleton_choice ::
+  "('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow> ('s, '\<alpha>, '\<beta>) angelic_rel_ext" where
+[pred]: "ac_singleton_choice P = (\<lambda> (s0, ac').
+  \<exists> y \<in> achoices.ac\<^sub>v ac'.
+    P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {y}) ac'))"
+
+(* A2 keeps exactly the empty choice set plus the singleton choices. *)
+lemma A2_rel_expanded_singleton_choice:
+  "A2_rel_expanded P =
+   ((\<lambda> (s0, ac'). P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {}) ac')) \<or>
+    ac_singleton_choice P)"
+  by (pred_auto)
+
 (* Lift the definition from angelic relation to angelic designs: lemma L.4.2.3 in thesis *)
 definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"

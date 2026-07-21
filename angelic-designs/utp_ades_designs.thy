@@ -53,6 +53,10 @@ lemma p2ac_conj:
   "p2ac (P \<and> Q) x \<longrightarrow> (p2ac P \<and> p2ac Q) x"
   by (pred_auto)
 
+lemma p2ac_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> p2ac P \<sqsubseteq> p2ac Q"
+  by (auto simp add: p2ac_def pred_refine_iff split: prod.splits)
+
 lemma p2ac_rel_false [simp]:
   "p2ac_rel false = false"
   by (pred_auto)
@@ -75,6 +79,13 @@ lemma p2ac_design:
    (ac_non_empty \<and> ((\<not> p2ac_rel P) \<turnstile>\<^sub>r p2ac_rel Q))"
   by (simp add: ac_non_empty_def p2ac_rel_alt
       rdesign_refinement; pred_auto)
+
+(* Paper Theorem 72, at the design level. *)
+lemma p2ac_design_nonempty:
+  "(ac_non_empty \<and> p2ac ((\<not> F) \<turnstile> T)) =
+   (ac_non_empty \<and> ((\<not> p2ac F) \<turnstile> p2ac T))"
+  by (simp add: ac_non_empty_def p2ac_def design_def fun_eq_iff;
+      pred_auto)
 
 lemma PBMH_p2ac_rel [simp]:
   "PBMH (p2ac_rel P) = p2ac_rel P"
@@ -194,6 +205,12 @@ lemma ac2p_PBMH_ades [simp]:
   "ac2p (PBMH_ades P) = ac2p P"
   by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
 
+lemma ac2p_mono:
+  assumes "P \<sqsubseteq> Q"
+  shows "ac2p P \<sqsubseteq> ac2p Q"
+  using PBMH_ades_mono[OF assms]
+  by (auto simp add: ac2p_def pred_refine_iff Let_def split: prod.splits)
+
 (* The relation-level instance of ac2p used in the paper's design proof. *)
 definition ac2p_rel :: "'s angelic_rel \<Rightarrow> ('s, 's) urel" where
 [pred]: "ac2p_rel P = (\<lambda> (s0, s1).
@@ -259,6 +276,18 @@ lemma p2ac_ac2p_rel_refine:
   using assms
   by (simp only: comp_apply ac2p_rel_subset p2ac_rel_alt; pred_auto)
 
+(* Paper Lemma 6, at the relation level: the p2ac/ac2p round trip is
+   exact up to A2 and non-empty angelic choices. *)
+lemma p2ac_ac2p_rel_A2:
+  fixes R :: "'s angelic_rel"
+  shows "(p2ac_rel \<circ> ac2p_rel) R =
+    (A2_rel R \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
+  apply (simp only: comp_apply p2ac_rel_alt ac2p_rel_subset A2_rel_eq_expanded
+      A2_rel_expanded_def)
+  apply (pred_auto)
+  apply (drule subset_singletonD)
+  by (elim disjE; simp)
+
 lemma d2ac_ac2p_rdesign_refine:
   assumes "PBMH (\<not> P) = (\<not> P)" "PBMH Q = Q"
     and feasible: "taut (P \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> P)))"
@@ -278,25 +307,14 @@ lemma d2ac_ac2p_A2_rdesign_refine:
       A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))
     \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
       A2_rel (Q \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
-proof -
-  have round_trip: "(p2ac_rel \<circ> ac2p_rel) R =
-      (A2_rel R \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
-    for R :: "'s angelic_rel"
-    apply (simp only: comp_apply p2ac_rel_alt ac2p_rel_subset A2_rel_eq_expanded
-        A2_rel_expanded_def)
-    apply (pred_auto)
-    apply (drule subset_singletonD)
-    by (elim disjE; simp)
-  show ?thesis
-    apply (simp only: comp_apply ac2p_rdesign d2ac_rdesign round_trip
-        A2_rel_idem)
-    apply (rule rdesign_refine_intro)
-     apply (simp add: p2ac_exist_def ac2p_rel_subset
-        A2_rel_eq_expanded A2_rel_expanded_def)
-     apply (pred_auto; blast)
-    apply (simp add: A2_rel_eq_expanded A2_rel_expanded_def)
-    by (pred_auto)
-qed
+  apply (simp only: comp_apply ac2p_rdesign d2ac_rdesign p2ac_ac2p_rel_A2
+      A2_rel_idem)
+  apply (rule rdesign_refine_intro)
+   apply (simp add: p2ac_exist_def ac2p_rel_subset
+      A2_rel_eq_expanded A2_rel_expanded_def)
+   apply (pred_auto; blast)
+  apply (simp add: A2_rel_eq_expanded A2_rel_expanded_def)
+  by (pred_auto)
 
 (* Counterexample: P_dummy \<equiv> (ac' = \<emptyset>) \<turnstile> (ac' \<noteq> \<emptyset>). *)
 definition P_dummy :: "unit angelic_design" where

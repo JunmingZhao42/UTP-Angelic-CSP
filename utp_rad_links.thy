@@ -281,56 +281,39 @@ proof -
     by simp
 qed
 
+(* After fixing ok' and wait in the source, the mapped predicate no
+   longer depends on ok'. *)
+lemma rad_p2ac_subst_unrest_ok:
+  "$ok\<^sup>> \<sharp>
+    rad_p2ac ((P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>) \<^sub>f)"
+  apply (simp add: unrest_lens rad_p2ac_def p2ac_def
+      csp2rad_rel_def rad2csp_obs_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs)
+  done
+
 (* Paper Theorem 15 / Thesis Theorem T.5.3.4. *)
 theorem rad_p2ac_R_design:
-  "(rad_p2ac \<circ> \<^bold>R)
-      ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) =
-   (RA \<circ> A)
-      ((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
-        rad_p2ac (P\<^sup>t\<^sub>f))"
+  "(rad_p2ac \<circ> \<^bold>R) ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) =
+   (RA \<circ> A) ((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile> rad_p2ac (P\<^sup>t\<^sub>f))"
 proof -
-  have csp2rad_design:
-      "csp2rad_rel ((\<not> F) \<turnstile> T) =
-       ((\<not> csp2rad_rel F) \<turnstile> csp2rad_rel T)"
-    for F T
-    by (simp add: csp2rad_rel_def design_def fun_eq_iff
-        rad2csp_obs_def; pred_auto)
-  have p2ac_design_full:
-      "(ac_non_empty \<and> p2ac ((\<not> F) \<turnstile> T)) =
-       (ac_non_empty \<and>
-         ((\<not> p2ac F) \<turnstile> p2ac T))"
-    for F T
-    by (simp add: ac_non_empty_def p2ac_def design_def fun_eq_iff;
-        pred_auto)
   have mapped_design:
       "(ac_non_empty \<and>
         rad_p2ac ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)) =
        (ac_non_empty \<and>
         ((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
           rad_p2ac (P\<^sup>t\<^sub>f)))"
-    using p2ac_design_full[
+    using p2ac_design_nonempty[
         of "csp2rad_rel (P\<^sup>f\<^sub>f)"
            "csp2rad_rel (P\<^sup>t\<^sub>f)"]
-    by (simp add: rad_p2ac_def csp2rad_design)
-  have mapped_unrest:
-      "$ok\<^sup>> \<sharp>
-        rad_p2ac ((P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>) \<^sub>f)"
-    for b
-    apply (simp add: unrest_lens rad_p2ac_def p2ac_def
-        csp2rad_rel_def rad2csp_obs_def)
-    apply (simp add: subst_app_def subst_upd_def subst_id_def
-        SEXP_def lens_defs alpha_defs)
-    done
+    by (simp add: rad_p2ac_def csp2rad_rel_design)
   let ?D = "((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
     rad_p2ac (P\<^sup>t\<^sub>f))"
   have design_healthy: "?D is \<^bold>H"
     apply (rule design_is_H1_H2)
      apply (rule unrest_pred(6))
-     apply (rule mapped_unrest)
-    by (rule mapped_unrest)
-  have RA1_nonempty: "RA1 (ac_non_empty \<and> X) = RA1 X" for X
-    by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
-        pred_auto)
+     apply (rule rad_p2ac_subst_unrest_ok)
+    by (rule rad_p2ac_subst_unrest_ok)
   have design_pbmh: "PBMH_ades ?D = ?D"
     by (simp add: RA_design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok rad_p2ac_def)
@@ -338,20 +321,15 @@ proof -
   have mapped_ra1: "RA1 ?S = RA1 ?D"
   proof -
     have "RA1 ?S = RA1 (ac_non_empty \<and> ?S)"
-      by (simp only: RA1_nonempty)
+      by (simp only: RA1_ac_non_empty_absorb)
     also have "... = RA1 (ac_non_empty \<and> ?D)"
       by (simp only: mapped_design)
     also have "... = RA1 ?D"
-      by (simp only: RA1_nonempty)
+      by (simp only: RA1_ac_non_empty_absorb)
     finally show ?thesis .
   qed
-  have RA_via_components: "RA X = RA3 (RA2 (RA1 X))" for X
-    by (simp add: RA_def
-        RA1_RA2_commute[simplified comp_apply]
-        RA1_RA3_commute[simplified comp_apply]
-        RA2_RA3_commute[simplified comp_apply])
   have mapped_RA: "RA ?S = RA ?D"
-    by (simp only: RA_via_components mapped_ra1)
+    by (simp only: RA_alt_def mapped_ra1)
   have A_absorb: "RA (A ?D) = RA ?D"
     by (simp only: RA_A[OF design_healthy, simplified comp_apply]
         design_pbmh)

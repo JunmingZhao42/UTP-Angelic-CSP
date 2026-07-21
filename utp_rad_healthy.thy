@@ -62,6 +62,12 @@ lemma RA1_A0: "RA1 (A0 P) = RA1 P"
   by (simp add: RA1_def A0_def ac_non_empty_def fun_eq_iff Let_def;
       pred_auto)
 
+(* RA1 absorbs the A0 non-emptiness requirement. *)
+lemma RA1_ac_non_empty_absorb:
+  "RA1 (ac_non_empty \<and> P) = RA1 P"
+  by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
+      pred_auto)
+
 (* Paper Example 11.  PBMH_ades is the lifting of the paper's PBMH through
    the outer design record. *)
 definition rad_ac_empty :: "'e reactive_angelic_design" where
@@ -420,6 +426,14 @@ definition RA ::
 lemma RA_disj:
   "RA (P \<or> Q) = (RA P \<or> RA Q)"
   by (simp add: RA_def RA1_disj RA2_disj RA3_disj)
+
+(* The components of RA commute, so RA may be recomposed in any order. *)
+lemma RA_alt_def:
+  "RA P = RA3 (RA2 (RA1 P))"
+  by (simp add: RA_def
+      RA1_RA2_commute[simplified comp_apply]
+      RA1_RA3_commute[simplified comp_apply]
+      RA2_RA3_commute[simplified comp_apply])
 
 lemma RA_A1:
   "(RA \<circ> A) P = (RA \<circ> A1) P"
