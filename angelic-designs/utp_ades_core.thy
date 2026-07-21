@@ -51,14 +51,7 @@ type_synonym ('s, '\<alpha>, '\<beta>) angelic_design_rel_ext =
   "(('s, '\<alpha>) astate_ext, ('s, '\<beta>) achoices_ext) des_rel"
 
 type_synonym 's angelic_rel = "('s, unit, unit) angelic_rel_ext"
-type_synonym 's angelic_design_rel = "('s, unit, unit) angelic_design_rel_ext"
-type_synonym 's angelic_design = "'s angelic_design_rel"
-
-type_synonym ('s, '\<alpha>, '\<beta>) arel_ext = "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
-type_synonym ('s, '\<alpha>, '\<beta>) ades_rel_ext = "('s, '\<alpha>, '\<beta>) angelic_design_rel_ext"
-type_synonym 's arel = "'s angelic_rel"
-type_synonym 's ades_rel = "'s angelic_design_rel"
-type_synonym 's ades = "'s angelic_design"
+type_synonym 's angelic_design = "('s, unit, unit) angelic_design_rel_ext"
 
 abbreviation arel_state_subst ::
   "('s, '\<alpha>) astate_ext subst \<Rightarrow>
