@@ -1,6 +1,6 @@
 section \<open>Reactive Angelic Designs\<close>
 
-theory utp_rad_csp_healthy
+theory utp_rad_designs
   imports utp_rad_healthy
 begin
 
@@ -125,9 +125,7 @@ lemma RAD_H1_H2_PBMH:
 
 (* Paper Theorem 11. *)
 theorem RAD_design_form:
-  "RAD P =
-   (RA \<circ> A) ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-     (rad_wait_false P)\<^sup>t)"
+  "RAD P = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
 proof -
   have design_healthy: "H1 (H2 P) is \<^bold>H"
     by (simp only: Healthy_def' H1_H2_idempotent)
@@ -135,7 +133,7 @@ proof -
     by (simp only: comp_apply RAD_H1_H2_PBMH
         RA_A[OF design_healthy, simplified comp_apply]
         PBMH_ades_H1_H2[simplified comp_apply])
-  also have "... = RA (A (H1 (H2 (rad_wait_false P))))"
+  also have "... = RA (A (H1 (H2 (P \<^sub>wf))))"
     unfolding RA_def comp_apply
     by (simp only: RA3_wait_false[simplified comp_apply,
           of "A (H1 (H2 P))"]

@@ -11,9 +11,8 @@ session "UTP-Angelic-CSP" = "UTP-Angelic-Designs" +
   options [document = false]
   theories
     utp_rad_core
-    utp_rad_bridge
     utp_rad_healthy
-    utp_rad_csp_healthy
-    utp_rad_links
+    utp_rad_designs
+    utp_rad_csp
     utp_rad
     Angelic_CSP

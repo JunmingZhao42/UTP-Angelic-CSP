@@ -1,7 +1,7 @@
 section \<open>Reactive Angelic Healthiness Conditions\<close>
 
 theory utp_rad_healthy
-  imports utp_rad_bridge
+  imports utp_rad_core "UTP-Reactive.utp_rea_healths"
 begin
 
 subsection \<open>RA1: Trace extension\<close>
@@ -31,6 +31,11 @@ lemma RA1_idem: "RA1 (RA1 P) = RA1 P"
 lemma RA1_design_post:
   "RA1 (P \<turnstile> Q) = RA1 (P \<turnstile> RA1 Q)"
   by (simp add: RA1_def design_def fun_eq_iff Let_def; pred_auto; blast)
+
+(* Thesis Theorem T.5.2.2. *)
+lemma RA1_conj:
+  "RA1 (P \<and> Q) = (RA1 P \<and> RA1 Q)"
+  by (simp add: RA1_def fun_eq_iff Let_def; pred_auto; blast)
 
 (* Thesis Theorem T.5.2.3. *)
 lemma RA1_disj:
@@ -100,6 +105,12 @@ lemma RA1_PBMH_ades_not_commute:
 lemma PBMH_ades_RA1_PBMH_ades:
   "(PBMH_ades \<circ> RA1 \<circ> PBMH_ades) P = (RA1 \<circ> PBMH_ades) P"
   by (simp add: PBMH_ades_def RA1_def fun_eq_iff; pred_auto)
+
+lemma RA1_PBMH_ades_healthy [closure]:
+  assumes "P is PBMH_ades"
+  shows "RA1 P is PBMH_ades"
+  using assms PBMH_ades_RA1_PBMH_ades[of P]
+  by (simp add: Healthy_def')
 
 lemma PBMH_ades_disj:
   "PBMH_ades (P \<or> Q) = (PBMH_ades P \<or> PBMH_ades Q)"
@@ -182,6 +193,12 @@ lemma RA2_design:
   "RA2 (P \<turnstile> Q) = (RA2 P \<turnstile> RA2 Q)"
   by (simp add: RA2_def design_def fun_eq_iff; pred_auto)
 
+(* Thesis Theorem T.5.2.6. *)
+lemma RA2_conj:
+  "RA2 (P \<and> Q) = (RA2 P \<and> RA2 Q)"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+(* Thesis Theorem T.5.2.7. *)
 lemma RA2_disj:
   "RA2 (P \<or> Q) = (RA2 P \<or> RA2 Q)"
   by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
@@ -258,6 +275,12 @@ lemma PBMH_ades_RA2_PBMH_ades:
     done
   done
 
+lemma RA2_PBMH_ades_healthy [closure]:
+  assumes "P is PBMH_ades"
+  shows "RA2 P is PBMH_ades"
+  using assms PBMH_ades_RA2_PBMH_ades[of P]
+  by (simp add: Healthy_def')
+
 lemma RA2_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RA2 P \<sqsubseteq> RA2 Q"
   by (auto simp add: RA2_def pred_refine_iff Let_def split: prod.splits)
@@ -275,7 +298,7 @@ definition II_Rac :: "'e reactive_angelic_design" where
       A = achoices.ac\<^sub>v (des_vars.more y)
   in RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x) (x, y) \<or> (ok\<^sub>v y \<and> s0 \<in> A))"
 
-(* Thesis T.G.3.1--T.G.3.4. *)
+(* Thesis Theorems T.G.3.1, T.G.3.2, and T.G.3.4. *)
 lemma RA1_II_Rac:
   "RA1 II_Rac = II_Rac"
   apply (simp only: RA1_def II_Rac_def fun_eq_iff)
@@ -336,6 +359,8 @@ definition rad_wait_false ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
 [pred]: "rad_wait_false P = P\<lbrakk>False/rad_wait_lens\<^sup><\<rbrakk>"
 
+notation rad_wait_false ("_\<^sub>wf" [1000] 1000)
+
 lemma rad_wait_false_as_state_subst:
   "rad_wait_false P =
    ades_state_subst
@@ -355,9 +380,15 @@ lemma rad_wait_false_H1_H2:
       pred_auto)
 
 lemma rad_wait_false_design_healthy [closure]:
-  "((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-    (rad_wait_false P)\<^sup>t) is \<^bold>H"
+  "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is \<^bold>H"
   by (rule design_is_H1_H2; pred_auto)
+
+lemma PBMH_ades_wait_cond:
+  "PBMH_ades (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
+   (PBMH_ades P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+    PBMH_ades Q)"
+  by (simp add: PBMH_ades_def PBMH_def pbmh_step_def expr_if_def
+      fun_eq_iff lens_defs; pred_auto; blast)
 
 (* Paper Definition 31. *)
 definition RA3 ::
@@ -381,9 +412,37 @@ lemma RA3_idem:
   "RA3 (RA3 P) = RA3 P"
   by (simp add: RA3_def)
 
+(* Thesis Theorem T.G.3.3. *)
+lemma RA3_II_Rac:
+  "RA3 II_Rac = II_Rac"
+  by (simp add: RA3_def)
+
+lemma II_Rac_RA3_healthy [closure]:
+  "II_Rac is RA3"
+  by (simp add: Healthy_def' RA3_II_Rac)
+
+(* Thesis Theorem T.5.2.12. *)
+lemma RA3_conj:
+  "RA3 (P \<and> Q) = (RA3 P \<and> RA3 Q)"
+  by (simp add: RA3_def expr_if_def fun_eq_iff; pred_auto)
+
+(* Thesis Theorem T.5.2.13. *)
 lemma RA3_disj:
   "RA3 (P \<or> Q) = (RA3 P \<or> RA3 Q)"
   by (simp add: RA3_def expr_if_def fun_eq_iff; pred_auto)
+
+lemma RA3_PBMH_ades_healthy [closure]:
+  assumes "P is PBMH_ades"
+  shows "RA3 P is PBMH_ades"
+  using assms
+  by (simp add: Healthy_def' RA3_def PBMH_ades_wait_cond)
+
+(* Thesis Theorem T.5.2.15. *)
+lemma PBMH_ades_RA3_PBMH_ades:
+  "(PBMH_ades \<circ> RA3 \<circ> PBMH_ades) P =
+   (RA3 \<circ> PBMH_ades) P"
+  using RA3_PBMH_ades_healthy[of "PBMH_ades P"]
+  by (simp add: Healthy_def' PBMH_ades_idem)
 
 lemma RA3_Idempotent [closure]:
   "Idempotent RA3"
@@ -427,6 +486,23 @@ subsection \<open>RA\<close>
 definition RA ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
 [pred]: "RA = RA1 \<circ> RA2 \<circ> RA3"
+
+lemma RA_PBMH_ades_healthy [closure]:
+  assumes "P is PBMH_ades"
+  shows "RA P is PBMH_ades"
+  unfolding RA_def comp_apply
+  by (intro RA1_PBMH_ades_healthy RA2_PBMH_ades_healthy
+      RA3_PBMH_ades_healthy assms)
+
+lemma PBMH_ades_RA_PBMH_ades:
+  "(PBMH_ades \<circ> RA \<circ> PBMH_ades) P =
+   (RA \<circ> PBMH_ades) P"
+  using RA_PBMH_ades_healthy[of "PBMH_ades P"]
+  by (simp add: Healthy_def' PBMH_ades_idem)
+
+lemma RA_conj:
+  "RA (P \<and> Q) = (RA P \<and> RA Q)"
+  by (simp add: RA_def RA1_conj RA2_conj RA3_conj)
 
 lemma RA_disj:
   "RA (P \<or> Q) = (RA P \<or> RA Q)"
@@ -477,7 +553,7 @@ lemma RA_A:
 lemma RA_wait_false_ok_subst:
   "((rad_wait_false \<circ> RA) P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk> =
    (RA2 \<circ> RA1)
-     ((rad_wait_false P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk>)"
+     ((P \<^sub>wf) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk>)"
   apply (simp add: RA_def RA3_def rad_wait_false_def RA1_def RA2_def
       expr_if_def fun_eq_iff Let_def subst_app_def subst_upd_def
       subst_id_def SEXP_def)
@@ -494,20 +570,18 @@ lemma RA_wait_false_ok_subst:
 
 (* Paper Lemma 20 *)
 (* (rad_wait_false (RA (A
-     (\<not> (rad_wait_false P)^f \<turnstile> (rad_wait_false P)^t))))^f =
-   RA2 \<circ> RA1 \<circ> PBMH (\<not> ok ∨ (rad_wait_false P)^f) *)
+     (\<not> (P \<^sub>wf)^f \<turnstile> (P \<^sub>wf)^t))))^f =
+   RA2 \<circ> RA1 \<circ> PBMH (\<not> ok ∨ (P \<^sub>wf)^f) *)
 lemma RA_design_wait_false:
   "((rad_wait_false \<circ> RA \<circ> A)
-      ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-        (rad_wait_false P)\<^sup>t))\<^sup>f =
+      ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))\<^sup>f =
    (RA2 \<circ> RA1 \<circ> PBMH_ades)
-     ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f)"
+     ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f)"
 proof -
   have pbmh_design:
     "(rad_wait_false
-        (PBMH_ades ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-          (rad_wait_false P)\<^sup>t)))\<^sup>f =
-     PBMH_ades ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f)"
+        (PBMH_ades ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>f =
+     PBMH_ades ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f)"
     apply (simp add: rad_wait_false_def PBMH_ades_def design_def fun_eq_iff
         subst_app_def subst_upd_def subst_id_def SEXP_def Let_def)
     apply (simp add: PBMH_def pbmh_step_def)
@@ -527,11 +601,9 @@ qed
 (* (RA \<circ> A(\<not>P^f_f \<turnstile> P^t_f))^t_f = RA2 \<circ> RA1 \<circ> PBMH(\<not>ok ∨ P^f_f ∨ P^t_f) *)
 lemma RA_design_wait_false_ok_true:
   "((rad_wait_false \<circ> RA \<circ> A)
-      ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-        (rad_wait_false P)\<^sup>t))\<^sup>t =
+      ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))\<^sup>t =
    (RA2 \<circ> RA1 \<circ> PBMH_ades)
-     ((\<not> ok\<^sup><) \<or> (rad_wait_false P)\<^sup>f \<or>
-       (rad_wait_false P)\<^sup>t)"
+     ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f \<or> (P \<^sub>wf)\<^sup>t)"
   unfolding comp_apply
   apply (subst RA_A[simplified comp_apply])
    apply (rule design_is_H1_H2; pred_auto)
@@ -677,15 +749,12 @@ lemma RA_design_form_idem:
   "(RA \<circ> A)
       ((\<not> (rad_wait_false
           ((RA \<circ> A)
-            ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-              (rad_wait_false P)\<^sup>t)))\<^sup>f) \<turnstile>
+            ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>f) \<turnstile>
         (rad_wait_false
           ((RA \<circ> A)
-            ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-              (rad_wait_false P)\<^sup>t)))\<^sup>t) =
+            ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>t) =
    (RA \<circ> A)
-     ((\<not> (rad_wait_false P)\<^sup>f) \<turnstile>
-       (rad_wait_false P)\<^sup>t)"
+     ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
 proof -
   show ?thesis
     unfolding comp_apply
@@ -709,6 +778,10 @@ lemma RA_idem:
 lemma RA_Idempotent [closure]:
   "Idempotent RA"
   by (simp add: Idempotent_def RA_idem)
+
+lemma RA_healthy [closure]:
+  "RA P is RA"
+  by (simp add: Healthy_def' RA_idem)
 
 lemma RA_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RA P \<sqsubseteq> RA Q"
