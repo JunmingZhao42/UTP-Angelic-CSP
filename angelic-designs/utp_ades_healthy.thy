@@ -59,6 +59,22 @@ lemma PBMH_disj:
   "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
 
+lemma PBMH_healthy [closure]:
+  "PBMH P is PBMH"
+  by (simp add: Healthy_def' PBMH_idem)
+
+lemma PBMH_conj_closure [closure]:
+  assumes "P is PBMH" "Q is PBMH"
+  shows "(P \<and> Q) is PBMH"
+  using assms
+  by (simp add: Healthy_def' PBMH_def pbmh_step_def fun_eq_iff;
+      pred_auto; blast)
+
+lemma PBMH_disj_closure [closure]:
+  assumes "P is PBMH" "Q is PBMH"
+  shows "(P \<or> Q) is PBMH"
+  using assms by (simp add: Healthy_def' PBMH_disj)
+
 lemma neg_PBMH_eval:
   fixes P :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
   shows "(\<not> PBMH (\<not> P)) (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
@@ -88,6 +104,72 @@ lemma PBMH_H2_commute:
   "H2 (\<lceil>PBMH P\<rceil>\<^sub>D) =
    \<lceil>PBMH (\<lfloor>H2 (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D)\<rceil>\<^sub>D"
   by (simp add: H2_lift_desr)
+
+subsection \<open>PBMH_ades\<close>
+
+(* Apply PBMH to the nested angelic-choice output while carrying ok' unchanged. *)
+definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" where
+[pred]: "PBMH_ades P = (\<lambda> (s0, s1).
+  let ac' = des_vars.more s1
+  in PBMH (\<lambda> (s, ac). let s1' = des_vars.more_update (\<lambda>_. ac) s1
+    in P (s, s1')) (s0, ac'))"
+
+lemma PBMH_ades_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> PBMH_ades P \<sqsubseteq> PBMH_ades Q"
+  by (simp add: PBMH_ades_def; pred_auto; blast)
+
+lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
+  by (rule MonotonicI, rule PBMH_ades_mono)
+
+lemma PBMH_ades_idem:
+  "PBMH_ades (PBMH_ades P) = PBMH_ades P"
+  by (simp add: PBMH_ades_def fun_eq_iff PBMH_idem)
+
+lemma PBMH_ades_Idempotent [closure]: "Idempotent PBMH_ades"
+  by (simp add: Idempotent_def PBMH_ades_idem)
+
+lemma PBMH_ades_conj_closure [closure]:
+  assumes "P is PBMH_ades" "Q is PBMH_ades"
+  shows "(P \<and> Q) is PBMH_ades"
+  using assms
+  by (simp add: Healthy_def' PBMH_ades_def PBMH_def pbmh_step_def
+      fun_eq_iff; pred_auto; blast)
+
+lemma PBMH_ades_disj:
+  "PBMH_ades (P \<or> Q) = (PBMH_ades P \<or> PBMH_ades Q)"
+  by (simp add: PBMH_ades_def PBMH_disj fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_conj_ok:
+  "PBMH_ades (P \<and> ok\<^sup>>) = (PBMH_ades P \<and> ok\<^sup>>)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_not_ok [simp]:
+  "PBMH_ades (\<lambda> (x, y). \<not> ok\<^sub>v x) =
+   (\<lambda> (x, y). \<not> ok\<^sub>v x)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_not_ok_expr [simp]:
+  "PBMH_ades (\<not> ok\<^sup><) = (\<not> ok\<^sup><)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_design_closure:
+  assumes "F is PBMH_ades" "T is PBMH_ades"
+  shows "((\<not> F) \<turnstile> T) is PBMH_ades"
+  using assms
+  by (simp add: Healthy_def' PBMH_ades_def design_def fun_eq_iff;
+      pred_auto; blast)
+
+(* Paper Appendix A.1, Lemma 16 *)
+lemma PBMH_ades_rdesign:
+  "PBMH_ades (P \<turnstile>\<^sub>r Q) =
+   ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_H1_H2:
+  "(PBMH_ades \<circ> H1 \<circ> H2) P =
+   (H1 \<circ> H2 \<circ> PBMH_ades) P"
+  by (simp add: PBMH_ades_def H1_def H2_split fun_eq_iff;
+      pred_auto; blast)
 
 subsection \<open>A0\<close>
 
@@ -130,6 +212,20 @@ definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 lemma PBMH_rdesign:
   "A1 (P \<turnstile>\<^sub>r Q) = ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
   by (simp add: A1_def PBMH_disj rdesign_refinement, pred_auto)
+
+lemma A1_PBMH_ades_rdesign:
+  "A1 (P \<turnstile>\<^sub>r Q) = PBMH_ades (P \<turnstile>\<^sub>r Q)"
+  by (simp add: PBMH_rdesign PBMH_ades_rdesign)
+
+(* Paper Definition 17 defines A1 on designs and observes that A1 and PBMH are
+   interchangeable.  In the shallow embedding, H records that an arbitrary
+   predicate P is a design. *)
+lemma A1_eq_PBMH_ades:
+  assumes "P is \<^bold>H"
+  shows "A1 P = PBMH_ades P"
+  using A1_PBMH_ades_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
+    H1_H2_eq_rdesign[of P] assms
+  by (simp add: Healthy_def')
 
 lemma des_vars_update_commute:
   "x\<lparr>ok\<^sub>v := ok_val, des_vars.more := more_val\<rparr> =
@@ -251,6 +347,65 @@ lemma A_demonic_closure:
   assumes "P is A" "Q is A"
   shows "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (P \<sqinter>\<^sub>D\<^sub>A Q)"
   using assms by (simp add: A_demonic Healthy_def')
+
+(* Thesis Theorem T.4.5.16. *)
+lemma A_angelic_closure:
+  assumes "P is A" "Q is A"
+  shows "P \<squnion>\<^sub>D\<^sub>A Q is A"
+proof -
+  let ?N = "($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
+  let ?PF = "PBMH (\<not> pre\<^sub>D P)"
+  let ?PT = "PBMH (post\<^sub>D P)"
+  let ?QF = "PBMH (\<not> pre\<^sub>D Q)"
+  let ?QT = "PBMH (post\<^sub>D Q)"
+  let ?Pre = "(\<not> ?PF) \<or> (\<not> ?QF)"
+  let ?Post =
+    "(?PF \<or> (?PT \<and> ?N)) \<and>
+     (?QF \<or> (?QT \<and> ?N))"
+  let ?PostD = "(?PF \<and> ?QF) \<or> ?Post"
+  let ?DP = "(\<not> ?PF) \<turnstile>\<^sub>r (?PT \<and> ?N)"
+  let ?DQ = "(\<not> ?QF) \<turnstile>\<^sub>r (?QT \<and> ?N)"
+
+  have P_form: "P = ?DP"
+    using assms(1) by (simp add: Healthy_def' A_design_form)
+  have Q_form: "Q = ?DQ"
+    using assms(2) by (simp add: Healthy_def' A_design_form)
+  have choice_rewrite:
+      "P \<squnion>\<^sub>D\<^sub>A Q = ?DP \<squnion> ?DQ"
+    using arg_cong2[where f=inf, OF P_form Q_form] .
+  have choice_form:
+      "P \<squnion>\<^sub>D\<^sub>A Q = (?Pre \<turnstile>\<^sub>r ?Post)"
+    apply (subst choice_rewrite)
+    apply (simp only: rdesign_inf)
+    apply pred_auto
+    done
+
+  have pre_not: "(\<not> ?Pre) = (?PF \<and> ?QF)"
+    by pred_auto
+  have pre_healthy: "(?PF \<and> ?QF) is PBMH"
+    by (intro PBMH_conj_closure PBMH_healthy)
+  have pre_norm: "PBMH (\<not> ?Pre) = (?PF \<and> ?QF)"
+    using pre_healthy by (simp add: pre_not Healthy_def')
+
+  have post_of_design:
+      "post\<^sub>D (?Pre \<turnstile>\<^sub>r ?Post) = ?PostD"
+    by pred_auto
+  have non_empty_healthy: "?N is PBMH"
+    by (simp add: Healthy_def')
+  have post_healthy: "?PostD is PBMH"
+    by (intro PBMH_disj_closure PBMH_conj_closure PBMH_healthy
+        non_empty_healthy)
+  have post_norm:
+      "PBMH (post\<^sub>D (?Pre \<turnstile>\<^sub>r ?Post)) = ?PostD"
+    using post_healthy by (simp only: post_of_design Healthy_def')
+
+  show ?thesis
+    apply (simp only: choice_form Healthy_def')
+    apply (simp only: A_design_form rdesign_pre post_of_design
+        pre_norm post_norm)
+    apply (rule ref_antisym; rule rdesign_refine_intro; pred_simp; blast)
+    done
+qed
 
 (* Thesis Theorem T.4.5.14 *)
 lemma angelic_design_demonic_bottom:

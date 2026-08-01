@@ -112,33 +112,12 @@ lemma RA1_PBMH_ades_healthy [closure]:
   using assms PBMH_ades_RA1_PBMH_ades[of P]
   by (simp add: Healthy_def')
 
-lemma PBMH_ades_disj:
-  "PBMH_ades (P \<or> Q) = (PBMH_ades P \<or> PBMH_ades Q)"
-  apply (simp add: PBMH_ades_def PBMH_disj fun_eq_iff)
-  apply pred_auto
-  done
-
-lemma PBMH_ades_conj_ok:
-  "PBMH_ades (P \<and> ok\<^sup>>) = (PBMH_ades P \<and> ok\<^sup>>)"
-  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
-
-lemma PBMH_ades_not_ok [simp]:
-  "PBMH_ades (\<lambda> (x, y). \<not> ok\<^sub>v x) =
-   (\<lambda> (x, y). \<not> ok\<^sub>v x)"
-  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
-
 lemma PBMH_ades_RA1_not_ok [simp]:
   "PBMH_ades (RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x)) =
    RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x)"
   using PBMH_ades_RA1_PBMH_ades[
       of "(\<lambda> (x, y). \<not> ok\<^sub>v x)"]
   by simp
-
-lemma PBMH_ades_H1_H2:
-  "(PBMH_ades \<circ> H1 \<circ> H2) P =
-   (H1 \<circ> H2 \<circ> PBMH_ades) P"
-  by (simp add: PBMH_ades_def H1_def H2_split fun_eq_iff;
-      pred_auto; blast)
 
 subsection \<open>RA2: Trace-history independence\<close>
 
@@ -550,6 +529,41 @@ lemma RA_A:
   by (simp add: RA_A1[simplified comp_apply]
       A1_eq_PBMH_ades[OF assms])
 
+lemma RA_A_angelic_choice:
+  fixes P Q :: "'e reactive_angelic_design"
+  assumes "P is PBMH_ades" "Q is PBMH_ades"
+      "P is \<^bold>H" "Q is \<^bold>H"
+  shows
+    "(RA \<circ> A) P \<squnion> (RA \<circ> A) Q =
+     (RA \<circ> A) (P \<squnion> Q)"
+proof -
+  have choice_PBMH: "(P \<squnion> Q) is PBMH_ades"
+    using PBMH_ades_conj_closure[OF assms(1,2)]
+    by (simp only: angelic_design_angelic)
+  have choice_design: "(P \<squnion> Q) is \<^bold>H"
+    using Inf_H1_H2_closed[of "{P, Q}"] assms(3,4)
+    by simp
+  have A_absorb:
+      "(RA \<circ> A) X = RA X"
+      if "X is PBMH_ades" "X is \<^bold>H"
+      for X :: "'e reactive_angelic_design"
+  proof -
+    have "(RA \<circ> A) X = (RA \<circ> PBMH_ades) X"
+      by (rule RA_A[OF that(2)])
+    also have "... = RA X"
+      using that(1) by (simp only: comp_apply Healthy_def')
+    finally show ?thesis .
+  qed
+  have "(RA \<circ> A) P \<squnion> (RA \<circ> A) Q = RA P \<squnion> RA Q"
+    by (simp only: A_absorb[OF assms(1) assms(3)]
+        A_absorb[OF assms(2) assms(4)])
+  also have "... = RA (P \<squnion> Q)"
+    by (simp only: conj_pred_def[symmetric] RA_conj)
+  also have "... = (RA \<circ> A) (P \<squnion> Q)"
+    by (rule A_absorb[OF choice_PBMH choice_design, symmetric])
+  finally show ?thesis .
+qed
+
 lemma RA_wait_false_ok_subst:
   "((rad_wait_false \<circ> RA) P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk> =
    (RA2 \<circ> RA1)
@@ -680,10 +694,6 @@ proof -
     by (simp only: RA_RA2_RA1_absorb)
   finally show ?thesis .
 qed
-
-lemma PBMH_ades_not_ok_expr:
-  "PBMH_ades (\<not> ok\<^sup><) = (\<not> ok\<^sup><)"
-  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
 
 lemma RA_design_PBMH_normalise:
   "RA (PBMH_ades

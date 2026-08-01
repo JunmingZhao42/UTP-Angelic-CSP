@@ -50,8 +50,8 @@ lemma p2ac_disj:
 
 (* Thesis Theorem T.4.6.2. *)
 lemma p2ac_conj:
-  "p2ac (P \<and> Q) x \<longrightarrow> (p2ac P \<and> p2ac Q) x"
-  by (pred_auto)
+  "(p2ac P \<and> p2ac Q) \<sqsubseteq> p2ac (P \<and> Q)"
+  by (simp add: pred_refine_iff conj_pred_def; pred_auto)
 
 lemma p2ac_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> p2ac P \<sqsubseteq> p2ac Q"
@@ -90,6 +90,11 @@ lemma p2ac_design_nonempty:
 lemma PBMH_p2ac_rel [simp]:
   "PBMH (p2ac_rel P) = p2ac_rel P"
   by (pred_auto)
+
+(* Paper Appendix A.3, Lemma 26 *)
+lemma PBMH_ades_p2ac [simp]:
+  "PBMH_ades (p2ac P) = p2ac P"
+  by (simp add: PBMH_ades_def p2ac_def fun_eq_iff; pred_auto)
 
 (* Thesis Theorem T.4.6.3, in relational form. *)
 lemma A2_rel_p2ac_rel [simp]:
@@ -145,52 +150,6 @@ lemma d2ac_mono:
 
 subsection \<open>Angelic Design to Design\<close>
 
-(* Apply PBMH to the nested angelic-choice output while carrying ok' unchanged. *)
-definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "PBMH_ades P = (\<lambda> (s0, s1).
-  let ac' = des_vars.more s1
-  in PBMH (\<lambda> (s, ac). let s1' = des_vars.more_update (\<lambda>_. ac) s1
-    in P (s, s1')) (s0, ac'))"
-
-(* Paper Appendix A.3, Lemma 26 *)
-lemma PBMH_ades_p2ac [simp]:
-  "PBMH_ades (p2ac P) = p2ac P"
-  by (simp add: PBMH_ades_def p2ac_def fun_eq_iff; pred_auto)
-
-lemma PBMH_ades_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> PBMH_ades P \<sqsubseteq> PBMH_ades Q"
-  by (simp add: PBMH_ades_def; pred_auto; blast)
-
-lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
-  by (rule MonotonicI, rule PBMH_ades_mono)
-
-lemma PBMH_ades_idem:
-  "PBMH_ades (PBMH_ades P) = PBMH_ades P"
-  by (simp add: PBMH_ades_def fun_eq_iff PBMH_idem)
-
-lemma PBMH_ades_Idempotent [closure]: "Idempotent PBMH_ades"
-  by (simp add: Idempotent_def PBMH_ades_idem)
-
-(* Paper Appendix A.1, Lemma 16 *)
-lemma PBMH_ades_rdesign:
-  "PBMH_ades (P \<turnstile>\<^sub>r Q) =
-   ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
-  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
-
-lemma A1_PBMH_ades_rdesign:
-  "A1 (P \<turnstile>\<^sub>r Q) = PBMH_ades (P \<turnstile>\<^sub>r Q)"
-  by (simp add: PBMH_rdesign PBMH_ades_rdesign)
-
-(* Paper Definition 17 defines A1 on designs and observes that A1 and PBMH are
-   interchangeable.  In the shallow embedding, H records that an arbitrary
-   predicate P is a design. *)
-lemma A1_eq_PBMH_ades:
-  assumes "P is \<^bold>H"
-  shows "A1 P = PBMH_ades P"
-  using A1_PBMH_ades_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
-    H1_H2_eq_rdesign[of P] assms
-  by (simp add: Healthy_def')
-
 (* Paper Definition 24. *)
 definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 [pred]: "ac2p P = (\<lambda> (s0, s1).
@@ -204,6 +163,13 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 lemma ac2p_PBMH_ades [simp]:
   "ac2p (PBMH_ades P) = ac2p P"
   by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
+
+(* Thesis Theorem T.C.5.2. *)
+lemma ac2p_conj:
+  assumes "P is PBMH_ades" "Q is PBMH_ades"
+  shows "ac2p (P \<and> Q) = (ac2p P \<and> ac2p Q)"
+  using assms PBMH_ades_conj_closure[OF assms]
+  by (simp add: Healthy_def' ac2p_def fun_eq_iff conj_pred_def Let_def)
 
 lemma ac2p_mono:
   assumes "P \<sqsubseteq> Q"

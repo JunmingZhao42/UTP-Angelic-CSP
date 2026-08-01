@@ -119,6 +119,15 @@ lemma RAD_Monotonic [closure]:
   by (intro Monotonic_comp RA_Monotonic CSPA1_Monotonic
       CSPA2_Monotonic PBMH_ades_Monotonic)
 
+lemma RAD_PBMH_ades_healthy [closure]:
+  "RAD P is PBMH_ades"
+  unfolding RAD_def comp_apply
+  apply (rule RA_PBMH_ades_healthy)
+  apply (simp only: Healthy_def')
+  apply (rule PBMH_ades_CSPA1)
+  apply (rule PBMH_ades_CSPA2)
+  by (simp only: PBMH_ades_idem)
+
 lemma RAD_H1_H2_PBMH:
   "RAD P = (RA \<circ> H1 \<circ> H2 \<circ> PBMH_ades) P"
   by (simp add: RAD_def CSPA2_def RA_CSPA1[simplified comp_apply])
@@ -141,6 +150,60 @@ proof -
         rad_wait_false_H1_H2[simplified comp_apply])
   finally show ?thesis
     by (simp add: H1_H2_eq_design)
+qed
+
+lemma RAD_wait_false_PBMH:
+  assumes "P is RAD"
+  shows "(P \<^sub>wf)\<^sup>f is PBMH_ades"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?D = "(\<not> ?F) \<turnstile> ?T"
+  let ?X = "(\<not> ok\<^sup><) \<or> ?F"
+  let ?R = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ?X"
+  have P_form: "P = (RA \<circ> A) ?D"
+    using assms by (simp only: Healthy_def' RAD_design_form)
+  have component: "?F = ?R"
+  proof -
+    have "?F = (rad_wait_false ((RA \<circ> A) ?D))\<^sup>f"
+      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>f", OF P_form])
+    also have "... = ?R"
+      unfolding comp_apply
+      by (rule RA_design_wait_false[simplified comp_apply])
+    finally show ?thesis .
+  qed
+  show ?thesis
+    unfolding Healthy_def'
+    apply (subst component)
+    apply (simp only: comp_apply PBMH_ades_RA2_RA1_PBMH_ades)
+    by (rule component[symmetric, simplified comp_apply])
+qed
+
+lemma RAD_wait_true_PBMH:
+  assumes "P is RAD"
+  shows "(P \<^sub>wf)\<^sup>t is PBMH_ades"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?D = "(\<not> ?F) \<turnstile> ?T"
+  let ?X = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
+  let ?R = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ?X"
+  have P_form: "P = (RA \<circ> A) ?D"
+    using assms by (simp only: Healthy_def' RAD_design_form)
+  have component: "?T = ?R"
+  proof -
+    have "?T = (rad_wait_false ((RA \<circ> A) ?D))\<^sup>t"
+      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form])
+    also have "... = ?R"
+      unfolding comp_apply
+      by (rule RA_design_wait_false_ok_true[simplified comp_apply])
+    finally show ?thesis .
+  qed
+  show ?thesis
+    unfolding Healthy_def'
+    apply (subst component)
+    apply (simp only: comp_apply PBMH_ades_RA2_RA1_PBMH_ades)
+    by (rule component[symmetric, simplified comp_apply])
 qed
 
 lemma RAD_idem:

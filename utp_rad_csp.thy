@@ -85,6 +85,18 @@ lemma rad_p2ac_PBMH_ades [closure]:
   "rad_p2ac P is PBMH_ades"
   by (simp add: Healthy_def rad_p2ac_def)
 
+lemma rad_p2ac_conj:
+  "(rad_p2ac P \<and> rad_p2ac Q) \<sqsubseteq> rad_p2ac (P \<and> Q)"
+proof -
+  have map_conj:
+      "csp2rad_rel (P \<and> Q) =
+       (csp2rad_rel P \<and> csp2rad_rel Q)"
+    by (simp add: csp2rad_rel_def fun_eq_iff conj_pred_def)
+  show ?thesis
+    unfolding rad_p2ac_def comp_apply map_conj
+    by (rule p2ac_conj)
+qed
+
 lemma rad_ac2p_d2ac:
   assumes "csp2rad_rel P is \<^bold>H"
   shows "(rad_ac2p \<circ> rad_d2ac) P = P"
