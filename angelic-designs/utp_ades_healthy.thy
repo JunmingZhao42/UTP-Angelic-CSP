@@ -59,6 +59,12 @@ lemma PBMH_disj:
   "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
 
+lemma neg_PBMH_eval:
+  fixes P :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
+  shows "(\<not> PBMH (\<not> P)) (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
+    (\<forall>Y \<subseteq> X. P (s, \<lparr>ac\<^sub>v = Y, \<dots> = ()\<rparr>))"
+  by (simp add: PBMH_def pbmh_step_def; pred_auto; blast)
+
 lemma PBMH_state_subst:
   "arel_state_subst st_subst (PBMH P) = PBMH (arel_state_subst st_subst P)"
   apply (simp add: PBMH_def)
@@ -370,6 +376,14 @@ lemma A2_rel_eq_expanded:
     by (rule_tac x="{y}" in exI, auto)
   done
 
+lemma neg_A2_rel_eval:
+  fixes P :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
+  shows "(\<not> A2_rel (\<not> P))
+      (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
+    (P (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<and>
+      (\<forall>y \<in> X. P (s, \<lparr>ac\<^sub>v = {y}, \<dots> = ()\<rparr>)))"
+  by (simp add: A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
+
 lemma A2_rel_expanded_disj:
   "A2_rel_expanded (P \<or> Q) = (A2_rel_expanded P \<or> A2_rel_expanded Q)"
   by (simp add: A2_rel_expanded_def, pred_auto)
@@ -460,5 +474,215 @@ lemma A2_mono:
 lemma A2_Monotonic [closure]:
   "Monotonic A2"
   by (rule MonotonicI, rule A2_mono)
+
+subsection \<open>Singleton-Witness (SW) Healthiness (for supporting theorem 6)\<close>
+
+(* SW R \<equiv> R \<and> (ac' \<noteq> \<emptyset> \<or> \<exists>z. R(s, {z})) *)
+definition SW :: "'s angelic_rel \<Rightarrow> 's angelic_rel" where
+[pred]: "SW R = (\<lambda>(s, ac').
+  R (s, ac') \<and>
+  (achoices.ac\<^sub>v ac' \<noteq> {} \<or>
+    (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))))"
+
+lemma SW_healthy_alt:
+  "R is SW \<longleftrightarrow>
+    (\<forall>s. R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow> (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
+  by (simp add: Healthy_def' SW_def fun_eq_iff; pred_auto)
+
+lemma SW_nonempty [simp]:
+  fixes R :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
+  assumes "X \<noteq> {}"
+  shows "SW R (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) = R (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>)"
+  using assms by (simp add: SW_def)
+
+lemma SW_empty [simp]:
+  fixes R :: "'s angelic_rel" and s :: "'s astate"
+  shows "SW R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) =
+    (R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<and> (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
+  by (simp add: SW_def)
+
+(* The healthiness condition over angelic design to make sure that
+  the design precondition holds SW (singleton witness) *)
+definition SW_D :: "'s angelic_design \<Rightarrow> 's angelic_design" where
+[pred]: "SW_D P = (SW (pre\<^sub>D P) \<turnstile>\<^sub>r post\<^sub>D P)"
+
+lemma SW_D_healthy:
+  assumes "P is A"
+  shows "P is SW_D \<longleftrightarrow> pre\<^sub>D P is SW"
+proof
+  assume sw_healthy: "P is SW_D"
+  have "pre\<^sub>D (SW_D P) = pre\<^sub>D P"
+    using sw_healthy by (simp add: Healthy_def')
+  then show "pre\<^sub>D P is SW"
+    by (simp add: Healthy_def' SW_D_def)
+next
+  assume pre_healthy: "pre\<^sub>D P is SW"
+  have design_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
+    using assms A_is_H[of P] H1_H2_eq_rdesign[of P]
+    by (simp add: Healthy_def')
+  show "P is SW_D"
+    using design_form pre_healthy
+    by (simp add: Healthy_def' SW_D_def)
+qed
+
+lemma SW_PBMH:
+  fixes P :: "'s angelic_rel"
+  shows "SW (\<not> PBMH (\<not> P)) = (\<not> PBMH (\<not> SW P))"
+  apply (rule ext)
+  subgoal for x
+    apply (cases x)
+    subgoal for s ac'
+      apply (cases ac')
+      subgoal for X
+        apply (cases "X = {}")
+        subgoal
+          by (simp_all add: SW_def neg_PBMH_eval;
+              auto dest: subset_singletonD)
+        subgoal
+          by (simp_all add: SW_def neg_PBMH_eval; blast)
+        done
+      done
+    done
+  done
+
+lemma SW_rdesign_post:
+  "(SW P \<turnstile>\<^sub>r [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e) = (SW P \<turnstile>\<^sub>r Q)"
+  apply (rule ref_antisym; rule rdesign_refine_intro;
+      simp add: SW_def; pred_auto)
+  done
+
+lemma SW_mono:
+  assumes "P \<sqsubseteq> Q"
+  shows "SW P \<sqsubseteq> SW Q"
+  using assms
+  by (auto simp add: SW_def pred_refine_iff split: prod.splits)
+
+lemma SW_Monotonic [closure]:
+  "Monotonic SW"
+  by (rule MonotonicI, rule SW_mono)
+
+lemma SW_idem:
+  "SW (SW P) = SW P"
+  by (simp add: SW_def fun_eq_iff; pred_auto)
+
+lemma SW_Idempotent [closure]:
+  "Idempotent SW"
+  by (simp add: Idempotent_def SW_idem)
+
+lemma SW_D_mono:
+  assumes "P \<sqsubseteq> Q"
+  shows "SW_D P \<sqsubseteq> SW_D Q"
+  apply (simp add: SW_D_def)
+  apply (rule rdesign_refine_intro')
+   apply (rule SW_mono)
+   apply (insert design_refine_thms(1)[OF assms])
+   apply (pred_auto)
+  apply (insert design_refine_thms(2)[OF assms])
+  apply (simp add: SW_def pred_refine_iff)
+  apply (pred_auto)
+  done
+
+lemma SW_D_Monotonic [closure]:
+  "Monotonic SW_D"
+  by (rule MonotonicI, rule SW_D_mono)
+
+lemma SW_D_idem:
+  "SW_D (SW_D P) = SW_D P"
+  by (simp add: SW_D_def SW_idem; pred_auto)
+
+lemma SW_D_Idempotent [closure]:
+  "Idempotent SW_D"
+  by (simp add: Idempotent_def SW_D_idem)
+
+lemma SW_D_A_commute:
+  "SW_D (A P) = A (SW_D P)"
+proof -
+  have post_absorb:
+      "\<And>P Q N :: 's angelic_rel.
+        ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r
+          (PBMH [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e \<and> N)) =
+        ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r (PBMH Q \<and> N))"
+  proof -
+    fix P Q N :: "'s angelic_rel"
+    have imp_eq:
+        "[\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e = ((\<not> P) \<or> Q)"
+      by pred_auto
+    show "((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r
+        (PBMH [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e \<and> N)) =
+      ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r (PBMH Q \<and> N))"
+      apply (simp only: imp_eq PBMH_disj)
+      apply (rule ref_antisym; rule rdesign_refine_intro; pred_auto)
+      done
+  qed
+  show ?thesis
+    apply (simp add: SW_D_def A_design_form SW_rdesign_post post_absorb)
+    apply (simp add: SW_PBMH)
+    done
+qed
+
+lemma SW_D_A2_commute:
+  "SW_D (A2 P) = A2 (SW_D P)"
+proof -
+  have pre_commute:
+      "SW (\<not> A2_rel (\<not> pre\<^sub>D P)) =
+        (\<not> A2_rel (\<not> SW (pre\<^sub>D P)))"
+    apply (rule ext)
+    subgoal for x
+      apply (cases x)
+      subgoal for s ac'
+        apply (cases ac')
+        subgoal for X
+          apply (cases "X = {}")
+          subgoal
+            by (simp_all add: SW_def neg_A2_rel_eval)
+          subgoal
+            by (simp_all add: SW_def neg_A2_rel_eval; blast)
+          done
+        done
+      done
+    done
+  have post_absorb:
+      "\<And>P Q :: 's angelic_rel.
+        ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
+          A2_rel [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e) =
+        ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
+  proof -
+    fix P Q :: "'s angelic_rel"
+    have imp_eq:
+        "[\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e = ((\<not> P) \<or> Q)"
+      by pred_auto
+    show "((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
+        A2_rel [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e) =
+      ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
+      apply (simp only: imp_eq A2_rel_disj)
+      apply (rule ref_antisym; rule rdesign_refine_intro; pred_auto)
+      done
+  qed
+  show ?thesis
+    apply (simp add: SW_D_def A2_def SW_rdesign_post post_absorb)
+    apply (simp add: pre_commute)
+    done
+qed
+
+(* other lemmas to show the compatibility *)
+lemma A_preserves_SW_D:
+  "P is SW_D \<Longrightarrow> A P is SW_D"
+  apply (simp add: Healthy_def' SW_D_A_commute)
+  done
+
+lemma A2_preserves_SW_D:
+  "P is SW_D \<Longrightarrow> A2 P is SW_D"
+  apply (simp add: Healthy_def' SW_D_A2_commute)
+  done
+
+lemma SW_D_preserves_A:
+  "P is A \<Longrightarrow> SW_D P is A"
+  apply (simp add: Healthy_def' SW_D_A_commute[symmetric])
+  done
+
+lemma SW_D_preserves_A2:
+  "P is A2 \<Longrightarrow> SW_D P is A2"
+  apply (simp add: Healthy_def' SW_D_A2_commute[symmetric])
+  done
 
 end
