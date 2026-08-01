@@ -164,6 +164,12 @@ lemma ac2p_PBMH_ades [simp]:
   "ac2p (PBMH_ades P) = ac2p P"
   by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
 
+(* Thesis Theorem T.C.5.1. *)
+lemma ac2p_disj:
+  "ac2p (P \<or> Q) = (ac2p P \<or> ac2p Q)"
+  apply (simp only: ac2p_def PBMH_ades_disj)
+  by (simp add: fun_eq_iff disj_pred_def Let_def)
+
 (* Thesis Theorem T.C.5.2. *)
 lemma ac2p_conj:
   assumes "P is PBMH_ades" "Q is PBMH_ades"

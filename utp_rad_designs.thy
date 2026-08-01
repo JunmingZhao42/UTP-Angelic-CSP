@@ -218,4 +218,28 @@ lemma RAD_healthy [closure]:
   "RAD P is RAD"
   by (simp add: Healthy_def' RAD_idem)
 
+lemma RAD_RA_healthy [closure]:
+  assumes "P is RAD"
+  shows "P is RA"
+proof -
+  have "RAD P is RA"
+    unfolding RAD_def comp_apply
+    by (rule RA_healthy)
+  then show ?thesis
+    using assms by (simp only: Healthy_def')
+qed
+
+lemma RAD_design_closure:
+  assumes "P is \<^bold>H" "(P \<^sub>wf) = P"
+  shows "(RA \<circ> A) P is RAD"
+proof -
+  have normal_form:
+      "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t = P"
+    using assms
+    by (simp only: Healthy_def' H1_H2_eq_design)
+  show ?thesis
+    using RAD_healthy[of P]
+    by (simp only: RAD_design_form normal_form)
+qed
+
 end

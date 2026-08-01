@@ -85,6 +85,23 @@ lemma rad_p2ac_PBMH_ades [closure]:
   "rad_p2ac P is PBMH_ades"
   by (simp add: Healthy_def rad_p2ac_def)
 
+lemma rad_ac2p_disj:
+  "rad_ac2p (P \<or> Q) = (rad_ac2p P \<or> rad_ac2p Q)"
+  unfolding rad_ac2p_def comp_apply ac2p_disj
+  by (simp add: rad2csp_rel_def fun_eq_iff disj_pred_def)
+
+lemma rad_p2ac_disj:
+  "rad_p2ac (P \<or> Q) = (rad_p2ac P \<or> rad_p2ac Q)"
+proof -
+  have map_disj:
+      "csp2rad_rel (P \<or> Q) =
+       (csp2rad_rel P \<or> csp2rad_rel Q)"
+    by (simp add: csp2rad_rel_def fun_eq_iff disj_pred_def)
+  show ?thesis
+    unfolding rad_p2ac_def comp_apply map_disj
+    by (rule p2ac_disj)
+qed
+
 lemma rad_p2ac_conj:
   "(rad_p2ac P \<and> rad_p2ac Q) \<sqsubseteq> rad_p2ac (P \<and> Q)"
 proof -
@@ -556,6 +573,24 @@ proof -
     by (rule nonempty_design_absorb)
   also have "... = (RA \<circ> A) ?D"
     by (simp only: comp_apply A_absorb)
+  finally show ?thesis .
+qed
+
+lemma rad_p2ac_ac2p_RAD_A2:
+  assumes "P is RAD" "P is A2"
+  shows "(rad_p2ac \<circ> rad_ac2p) P = P"
+proof -
+  have fixed: "RAD P = P"
+    using assms(1) by (simp only: Healthy_def')
+  have "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> P)"
+    by (rule rad_p2ac_ac2p_A2[OF assms(2)])
+  also have "... = (ac_non_empty \<and> RAD P)"
+    by (simp only: fixed)
+  also have "... = RAD P"
+    unfolding RAD_def comp_apply
+    by (rule RA_ac_non_empty)
+  also have "... = P"
+    by (rule fixed)
   finally show ?thesis .
 qed
 

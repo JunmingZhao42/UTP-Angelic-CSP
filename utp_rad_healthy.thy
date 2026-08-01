@@ -515,6 +515,11 @@ lemma RA_cong_ac_non_empty:
   using arg_cong[where f=RA1, OF assms]
   by (simp only: RA1_ac_non_empty_absorb RA_alt_def)
 
+lemma RA_ac_non_empty:
+  "(ac_non_empty \<and> RA P) = RA P"
+  by (simp add: RA_def comp_apply RA1_def ac_non_empty_def
+      fun_eq_iff Let_def; pred_auto)
+
 lemma RA_A1:
   "(RA \<circ> A) P = (RA \<circ> A1) P"
   by (simp add: RA_def A_def
@@ -563,6 +568,10 @@ proof -
     by (rule A_absorb[OF choice_PBMH choice_design, symmetric])
   finally show ?thesis .
 qed
+
+lemma RA_A_demonic_choice:
+  "(RA \<circ> A) P \<sqinter> (RA \<circ> A) Q = (RA \<circ> A) (P \<sqinter> Q)"
+  by (simp only: angelic_design_demonic comp_apply A_disj RA_disj)
 
 lemma RA_wait_false_ok_subst:
   "((rad_wait_false \<circ> RA) P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk> =

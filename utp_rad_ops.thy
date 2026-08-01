@@ -59,6 +59,26 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RAD_angelic_closure [closure]:
+  assumes "P is RAD" "Q is RAD"
+  shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q is RAD"
+proof -
+  let ?D =
+    "((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
+      (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
+       ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t))"
+  have D_design: "?D is \<^bold>H"
+    by (rule design_is_H1_H2; pred_auto)
+  have D_wait: "(?D \<^sub>wf) = ?D"
+    by (simp add: rad_wait_false_def design_def fun_eq_iff
+        subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+        pred_auto)
+  have "(RA \<circ> A) ?D is RAD"
+    by (rule RAD_design_closure[OF D_design D_wait])
+  then show ?thesis
+    by (simp only: RAD_angelic_choice_design[OF assms])
+qed
+
 (* Paper Theorem 20 / Thesis Theorem T.5.4.2. *)
 theorem RAD_angelic_choice_CSP:
   "rad_ac2p (rad_p2ac P \<squnion>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<squnion> Q"
@@ -113,5 +133,138 @@ where "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P \<sqinter> Q"
 lemma RAD_demonic_choice:
   "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
+
+(* Paper Theorem 22 / Thesis Theorem T.5.4.4. *)
+theorem RAD_demonic_choice_design:
+  assumes "P is RAD" "Q is RAD"
+  shows "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q =
+    (RA \<circ> A) (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
+      ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t))"
+proof -
+  let ?DP = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
+  let ?DQ = "(\<not> (Q \<^sub>wf)\<^sup>f) \<turnstile> (Q \<^sub>wf)\<^sup>t"
+  have P_form: "P = (RA \<circ> A) ?DP"
+    using assms(1) by (simp only: Healthy_def' RAD_design_form)
+  have Q_form: "Q = (RA \<circ> A) ?DQ"
+    using assms(2) by (simp only: Healthy_def' RAD_design_form)
+  have "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q =
+      (RA \<circ> A) ?DP \<sqinter> (RA \<circ> A) ?DQ"
+    using arg_cong2[where f=sup, OF P_form Q_form] .
+  also have "... = (RA \<circ> A) (?DP \<sqinter> ?DQ)"
+    by (rule RA_A_demonic_choice)
+  also have "... = (RA \<circ> A)
+      (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
+        ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t))"
+    apply (rule arg_cong[where f="RA \<circ> A"])
+    by (simp only: angelic_design_demonic design_union)
+  finally show ?thesis .
+qed
+
+lemma RAD_demonic_closure [closure]:
+  assumes "P is RAD" "Q is RAD"
+  shows "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q is RAD"
+proof -
+  let ?D =
+    "((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
+      ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t)"
+  have D_design: "?D is \<^bold>H"
+    by (rule design_is_H1_H2; pred_auto)
+  have D_wait: "(?D \<^sub>wf) = ?D"
+    by (simp add: rad_wait_false_def design_def fun_eq_iff
+        subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+        pred_auto)
+  have "(RA \<circ> A) ?D is RAD"
+    by (rule RAD_design_closure[OF D_design D_wait])
+  then show ?thesis
+    by (simp only: RAD_demonic_choice_design[OF assms])
+qed
+
+(* Paper Theorem 23 / Thesis Theorem T.5.4.5. *)
+theorem RAD_demonic_choice_CSP:
+  "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) =
+   rad_p2ac (rad_ac2p P) \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac (rad_ac2p Q)"
+  by (rule rad_p2ac_disj[simplified disj_pred_def])
+
+(* Paper Lemma 7 / Thesis Lemma L.5.4.1. *)
+lemma RAD_demonic_choice_CSP_A2:
+  assumes "P is RAD" "Q is RAD"
+    and "P is A2" "Q is A2"
+  shows "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
+  by (simp only: RAD_demonic_choice_CSP
+      rad_p2ac_ac2p_RAD_A2[OF assms(1,3), simplified comp_apply]
+      rad_p2ac_ac2p_RAD_A2[OF assms(2,4), simplified comp_apply])
+
+(* Paper Theorem 24 / Thesis Theorem T.5.4.6. *)
+theorem RAD_demonic_choice_CSP_inverse:
+  "rad_ac2p (rad_p2ac P \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<sqinter> Q"
+  by (simp only: rad_ac2p_disj[simplified disj_pred_def]
+      rad_ac2p_p2ac[simplified comp_apply])
+
+(* Paper Section 6.4.2: angelic and demonic choice distribute over each other. *)
+(* P \<squnion> (Q \<Sqinter> R) = (P \<squnion> Q) \<sqinter> (P \<squnion> R) *)
+lemma RAD_angelic_demonic_distrib:
+  "P \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<sqinter>\<^sub>R\<^sub>A\<^sub>D R) =
+   (P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (P \<squnion>\<^sub>R\<^sub>A\<^sub>D R)"
+  by (rule inf_sup_distrib1)
+
+(* P \<sqinter> (Q \<squnion> R) = (P \<sqinter> Q) \<squnion> (P \<sqinter> R) *)
+lemma RAD_demonic_angelic_distrib:
+  "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q \<squnion>\<^sub>R\<^sub>A\<^sub>D R) =
+   (P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P \<sqinter>\<^sub>R\<^sub>A\<^sub>D R)"
+  by (rule sup_inf_distrib1)
+
+subsection \<open>Chaos\<close>
+
+(* Paper Definition 39. *)
+definition Chaos_RAD :: "'e reactive_angelic_design" ("Chaos\<^sub>R\<^sub>A\<^sub>D") where
+[pred]: "Chaos_RAD = (RA \<circ> A) (false \<turnstile> ac_non_empty)"
+
+lemma Chaos_RAD_alt:
+  "Chaos\<^sub>R\<^sub>A\<^sub>D = (RA \<circ> A) (false \<turnstile> true)"
+  by (simp only: Chaos_RAD_def design_false_pre)
+
+lemma Chaos_RAD_RA:
+  "Chaos\<^sub>R\<^sub>A\<^sub>D = RA true"
+  apply (simp only: Chaos_RAD_alt design_false_pre comp_apply)
+  apply (subst RA_A[simplified comp_apply])
+   apply (simp add: Healthy_def' H1_H2_comp comp_apply H1_def H2_true)
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma RAD_Chaos [closure]:
+  "Chaos\<^sub>R\<^sub>A\<^sub>D is RAD"
+  unfolding Chaos_RAD_def
+  apply (rule RAD_design_closure)
+   apply (rule design_is_H1_H2; pred_auto)
+  apply (simp add: rad_wait_false_def ac_non_empty_def design_def fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+      pred_auto)
+  done
+
+(* Paper Theorem 25. *)
+theorem Chaos_RAD_angelic_choice:
+  assumes "P is RAD"
+  shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = P"
+proof -
+  have P_RA: "RA P = P"
+    by (rule Healthy_if[OF RAD_RA_healthy[OF assms]])
+  show ?thesis
+    apply (simp only: RAD_angelic_choice Chaos_RAD_RA)
+    apply (subst P_RA[symmetric])
+    apply (simp add: RA_conj[symmetric])
+    by (rule P_RA)
+qed
+
+(* The dual law of Paper Theorem 25. *)
+theorem Chaos_RAD_demonic_choice:
+  assumes "P is RAD"
+  shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P = Chaos\<^sub>R\<^sub>A\<^sub>D"
+proof -
+  have P_RA: "RA P = P"
+    by (rule Healthy_if[OF RAD_RA_healthy[OF assms]])
+  show ?thesis
+    apply (simp only: RAD_demonic_choice Chaos_RAD_RA)
+    apply (subst P_RA[symmetric])
+    by (simp add: RA_disj[symmetric])
+qed
 
 end
