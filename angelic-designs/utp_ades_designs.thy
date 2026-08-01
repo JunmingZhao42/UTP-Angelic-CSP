@@ -355,17 +355,12 @@ lemma P_dummy_fails_theorem6:
   apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
   by (pred_auto)
 
-definition pre_singleton_witness :: "'s angelic_design \<Rightarrow> bool" where
-"pre_singleton_witness P \<longleftrightarrow>
-  (\<forall>s. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
-    (\<exists>z. pre\<^sub>D P (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
-
-(* Paper Theorem 6, with the missing singleton-witness premise. *)
-lemma d2ac_ac2p:
+(* Showing that SW_D is the weakest additional healthiness condition 
+    required by Paper Theorem 6 on A-healthy designs. *)
+lemma d2ac_ac2p_iff_SW_D:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
-    and witness_exists: "pre_singleton_witness P"
-  shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P"
+  shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P \<longleftrightarrow> P is SW_D"
 proof -
   define pre_A :: "'s angelic_rel" where
     "pre_A \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
@@ -377,44 +372,75 @@ proof -
     by (simp add: pre_A_def post_A_def)
   have pre_A_eq: "pre_A = pre\<^sub>D P"
     by (simp add: P_form)
-  have witness_exists_A:
-      "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
-        (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
-    using witness_exists by (simp add: pre_singleton_witness_def pre_A_eq)
-  have pre_A_downward:
-      "B \<subseteq> A \<Longrightarrow>
-       pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>
-       pre_A (s, \<lparr>ac\<^sub>v = B, \<dots> = ()\<rparr>)"
-    for s A B
-    by (simp add: pre_A_def PBMH_def pbmh_step_def; pred_auto; blast)
-  have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"
-    by (simp add: pre_A_def PBMH_idem)
-  have feasible:
-      "taut (pre_A \<longrightarrow> p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
-    apply (rule tautI)
-    apply (simp only: impl_pred_def p2ac_exist_def ac2p_rel_subset)
-    apply (pred_auto)
-    subgoal for s ac
-      apply (frule pre_A_downward[OF empty_subsetI])
-      apply (drule witness_exists_A[THEN spec, THEN mp])
-      apply (elim exE)
-      subgoal for z
-        apply (rule exI[where x=z])
-        apply (rule allI)
-        subgoal for X
-          apply (cases "X \<subseteq> {z}")
-           apply (rule disjI1)
-           apply (rule pre_A_downward; assumption)
-          by (rule disjI2; assumption)
+  show ?thesis
+  proof
+    assume refinement: "P \<sqsubseteq> (d2ac \<circ> ac2p) P"
+    have feasible:
+        "taut (pre_A \<longrightarrow>
+          p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
+      using design_refine_thms(1)[OF refinement]
+      by (simp only: P_form comp_apply ac2p_rdesign d2ac_rdesign rdesign_pre;
+          pred_auto)
+    have "pre\<^sub>D P is SW"
+      using feasible
+      by (simp add: SW_healthy_alt P_form taut_def
+          p2ac_exist_def ac2p_rel_subset; pred_auto; blast)
+    then show "P is SW_D"
+      using SW_D_healthy[OF healthy] by blast
+  next
+    assume sw_healthy: "P is SW_D"
+    have witness_healthy: "pre\<^sub>D P is SW"
+      using sw_healthy SW_D_healthy[OF healthy] by blast
+    have witness_exists_A:
+        "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
+          (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
+      using witness_healthy by (simp add: SW_healthy_alt pre_A_eq)
+    have pre_A_downward:
+        "B \<subseteq> A \<Longrightarrow>
+         pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>
+         pre_A (s, \<lparr>ac\<^sub>v = B, \<dots> = ()\<rparr>)"
+      for s A B
+      by (simp add: pre_A_def PBMH_def pbmh_step_def; pred_auto; blast)
+    have feasible:
+        "taut (pre_A \<longrightarrow>
+          p2ac_exist (\<not> ac2p_rel (\<not> pre_A)))"
+      apply (rule tautI)
+      apply (simp only: impl_pred_def p2ac_exist_def ac2p_rel_subset)
+      apply (pred_auto)
+      subgoal for s ac
+        apply (frule pre_A_downward[OF empty_subsetI])
+        apply (drule witness_exists_A[THEN spec, THEN mp])
+        apply (elim exE)
+        subgoal for z
+          apply (rule exI[where x=z])
+          apply (rule allI)
+          subgoal for X
+            apply (cases "X \<subseteq> {z}")
+             apply (rule disjI1)
+             apply (rule pre_A_downward; assumption)
+            by (rule disjI2; assumption)
+          done
         done
       done
-    done
-  have post_A_healthy: "PBMH post_A = post_A"
-    by (simp add: post_A_def PBMH_conj_nonempty)
-  from d2ac_ac2p_rdesign_refine[OF failure_healthy post_A_healthy feasible]
-  show ?thesis
-    by (simp only: P_form)
+    have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"
+      by (simp add: pre_A_def PBMH_idem)
+    have post_A_healthy: "PBMH post_A = post_A"
+      by (simp add: post_A_def PBMH_conj_nonempty)
+    from d2ac_ac2p_rdesign_refine[
+      OF failure_healthy post_A_healthy feasible]
+    show "P \<sqsubseteq> (d2ac \<circ> ac2p) P"
+      by (simp only: P_form)
+  qed
 qed
+
+(* Paper Theorem 6. *)
+lemma d2ac_ac2p:
+  fixes P :: "'s angelic_design"
+  assumes healthy: "P is A"
+    and sw_healthy: "P is SW_D"
+  shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P"
+  using d2ac_ac2p_iff_SW_D[OF healthy] sw_healthy
+  by blast
 
 (* Paper Theorem 7. *)
 lemma d2ac_ac2p_A2:
@@ -436,15 +462,15 @@ proof -
     by (simp only: Healthy_def' P_form A2_rdesign)
 qed
 
-(* Paper Theorem 8, with the corrected premise from Theorem 6. *)
+(* Paper Theorem 8, with the SW_D premise required by Theorem 6. *)
 lemma d2ac_ac2p_A2_eq:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
     and a2_healthy: "P is A2"
-    and witness_exists: "pre_singleton_witness P"
+    and sw_healthy: "P is SW_D"
   shows "(d2ac \<circ> ac2p) P = P"
   apply (rule ref_antisym)
-   apply (rule d2ac_ac2p[OF healthy witness_exists])
+   apply (use d2ac_ac2p_iff_SW_D[OF healthy] sw_healthy in blast)
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
 
 end
