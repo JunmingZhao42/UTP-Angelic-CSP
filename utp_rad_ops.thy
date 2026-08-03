@@ -53,12 +53,8 @@ proof -
     "((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
       (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
        ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t))"
-  have D_design: "?D is \<^bold>H"
-    by (rule design_is_H1_H2; pred_auto)
-  have D_wait: "(?D \<^sub>wf) = ?D"
-    by (simp add: rad_wait_false_distrib)
   have "(RA \<circ> A) ?D is RAD"
-    by (rule RAD_design_closure[OF D_design D_wait])
+    by rad_closure
   then show ?thesis
     by (simp only: RAD_angelic_choice_design[OF assms])
 qed
@@ -141,12 +137,8 @@ proof -
   let ?D =
     "((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
       ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t)"
-  have D_design: "?D is \<^bold>H"
-    by (rule design_is_H1_H2; pred_auto)
-  have D_wait: "(?D \<^sub>wf) = ?D"
-    by (simp add: rad_wait_false_distrib)
   have "(RA \<circ> A) ?D is RAD"
-    by (rule RAD_design_closure[OF D_design D_wait])
+    by rad_closure
   then show ?thesis
     by (simp only: RAD_demonic_choice_design[OF assms])
 qed
@@ -195,20 +187,15 @@ lemma Chaos_RAD_alt:
   "Chaos\<^sub>R\<^sub>A\<^sub>D = (RA \<circ> A) (false \<turnstile> true)"
   by (simp only: Chaos_RAD_def design_false_pre)
 
-lemma Chaos_RAD_RA:
-  "Chaos\<^sub>R\<^sub>A\<^sub>D = RA true"
+lemma Chaos_RAD_RA: "Chaos\<^sub>R\<^sub>A\<^sub>D = RA true"
   apply (simp only: Chaos_RAD_alt design_false_pre comp_apply)
   apply (subst RA_A')
    apply (simp add: Healthy_def' H1_H2_comp comp_apply H1_def H2_true)
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
 
-lemma Chaos_RAD_is_RAD [closure]:
-  "Chaos\<^sub>R\<^sub>A\<^sub>D is RAD"
+lemma Chaos_RAD_is_RAD [closure]: "Chaos\<^sub>R\<^sub>A\<^sub>D is RAD"
   unfolding Chaos_RAD_def
-  apply (rule RAD_design_closure)
-   apply (rule design_is_H1_H2; pred_auto)
-  apply (simp add: rad_wait_false_distrib)
-  done
+  by rad_closure
 
 (* Paper Theorem 25. *)
 theorem Chaos_RAD_angelic_choice:
@@ -250,13 +237,9 @@ lemma Choice_RAD_alt:
   by (simp add: A_design_form ac_non_empty_def PBMH_def pbmh_step_def
       fun_eq_iff; pred_auto)
 
-lemma Choice_RAD_is_RAD [closure]:
-  "Choice\<^sub>R\<^sub>A\<^sub>D is RAD"
+lemma Choice_RAD_is_RAD [closure]: "Choice\<^sub>R\<^sub>A\<^sub>D is RAD"
   unfolding Choice_RAD_def
-  apply (rule RAD_design_closure)
-   apply (rule design_is_H1_H2; pred_auto)
-  apply (simp add: rad_wait_false_distrib)
-  done
+  by rad_closure
 
 (* Paper Theorem 26. *)
 theorem Choice_RAD_angelic_choice:
@@ -272,7 +255,7 @@ proof -
     by (rule RAD_design_form'[OF assms])
   have T_form: "?T = RA2 (RA1 (PBMH_ades ?Z))"
     using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form]
-    by (simp only: comp_apply RA_design_wait_false_ok_true')
+    by (simp only: comp_apply RA_design_wf_ok_true')
   have PBMH_true_design:
       "PBMH_ades (true \<turnstile> ?Z) = (true \<turnstile> PBMH_ades ?Z)"
       "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
@@ -294,7 +277,7 @@ proof -
       using arg_cong[where f="\<lambda>X. RA (true \<turnstile> X)",
           OF T_form[symmetric]] .
     also have "... = RA (true \<turnstile> PBMH_ades ?T)"
-      by (simp only: Healthy_if[OF RAD_wait_true_PBMH[OF assms]])
+      by (simp only: Healthy_if[OF RAD_wf_ok_true_PBMH[OF assms]])
     also have "... = RA (PBMH_ades (true \<turnstile> ?T))"
       by (simp only: PBMH_true_design(2))
     also have "... = RA (A (true \<turnstile> ?T))"

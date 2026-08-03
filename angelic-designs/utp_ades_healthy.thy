@@ -7,24 +7,20 @@ begin
 
 subsection \<open>PBMH\<close>
 
-lemma pbmh_step_idem:
-  "pbmh_step ;; pbmh_step = pbmh_step"
+lemma pbmh_step_idem: "pbmh_step ;; pbmh_step = pbmh_step"
   by (pred_auto)
 
-lemma PBMH_idem:
-  "PBMH (PBMH P) = PBMH P"
+lemma PBMH_idem: "PBMH (PBMH P) = PBMH P"
   by (simp add: PBMH_def seqr_assoc pbmh_step_idem)
 
-lemma PBMH_Idempotent [closure]:
-  "Idempotent PBMH"
+lemma PBMH_Idempotent [closure]: "Idempotent PBMH"
   by (simp add: Idempotent_def PBMH_idem)
 
 lemma PBMH_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> PBMH P \<sqsubseteq> PBMH Q"
   by (simp add: PBMH_def, rule seqr_mono, simp_all)
 
-lemma PBMH_Monotonic [closure]:
-  "Monotonic PBMH"
+lemma PBMH_Monotonic [closure]: "Monotonic PBMH"
   by (rule MonotonicI, rule PBMH_mono)
 
 lemma PBMH_neg_guard:
@@ -46,8 +42,7 @@ lemma PBMH_ac_non_empty [simp]:
    (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
   by (pred_auto)
 
-lemma PBMH_unrest_ac:
-  "$ac\<^sup>> \<sharp> P \<Longrightarrow> PBMH P = P"
+lemma PBMH_unrest_ac: "$ac\<^sup>> \<sharp> P \<Longrightarrow> PBMH P = P"
   by (simp add: PBMH_def pbmh_step_def, pred_auto)
 
 lemma PBMH_conj_nonempty:
@@ -55,12 +50,10 @@ lemma PBMH_conj_nonempty:
    (PBMH P \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
   by (simp add: PBMH_def pbmh_step_def, pred_auto)
 
-lemma PBMH_disj:
-  "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
+lemma PBMH_disj: "PBMH (P \<or> Q) = (PBMH P \<or> PBMH Q)"
   by (simp add: PBMH_def seqr_or_distl)
 
-lemma PBMH_healthy [closure]:
-  "PBMH P is PBMH"
+lemma PBMH_healthy [closure]: "PBMH P is PBMH"
   by (simp add: Healthy_def' PBMH_idem)
 
 lemma PBMH_conj_closure [closure]:
@@ -80,6 +73,90 @@ lemma neg_PBMH_eval:
   shows "(\<not> PBMH (\<not> P)) (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
     (\<forall>Y \<subseteq> X. P (s, \<lparr>ac\<^sub>v = Y, \<dots> = ()\<rparr>))"
   by (simp add: PBMH_def pbmh_step_def; pred_auto; blast)
+
+subsection \<open>PBMH and Angelic Sequential Composition\<close>
+
+lemma pbmh_step_eval:
+  "pbmh_step (b, c) \<longleftrightarrow>
+    (achoices.ac\<^sub>v b \<subseteq> achoices.ac\<^sub>v c \<and>
+     achoices.more b = achoices.more c)"
+  by (simp add: pbmh_step_def; pred_auto)
+
+lemma PBMH_eval:
+  "PBMH P (s\<^sub>0, ac') \<longleftrightarrow>
+    (\<exists>b. P (s\<^sub>0, b) \<and> pbmh_step (b, ac'))"
+  by (simp add: PBMH_def; pred_auto)
+
+(* PBMH-healthy predicates are upward closed in the angelic-choice set. *)
+lemma PBMH_weaken: "P x \<Longrightarrow> PBMH P x"
+  by (cases x; simp add: PBMH_def pbmh_step_def; pred_auto)
+
+lemma PBMH_upward:
+  assumes "P is PBMH" "P (s\<^sub>0, b)" "pbmh_step (b, c)"
+  shows "P (s\<^sub>0, c)"
+proof -
+  have "PBMH P (s\<^sub>0, c)"
+    using assms(2,3) by (auto simp add: PBMH_eval)
+  then show ?thesis
+    using assms(1) by (simp add: Healthy_def')
+qed
+
+lemma PBMH_ac_upward:
+  assumes "P is PBMH"
+    and "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. A) ac')" and "A \<subseteq> B"
+  shows "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. B) ac')"
+  apply (rule PBMH_upward[OF assms(1) assms(2)])
+  by (simp add: pbmh_step_eval assms(3))
+
+(* The angelic sequence is monotonic in its right argument on PBMH-healthy
+   left arguments; monotonicity on the left is aseq_mono_left. *)
+lemma aseq_mono_right:
+  assumes "P is PBMH" and "Q \<sqsubseteq> R"
+  shows "(P ;;\<^sub>A Q) \<sqsubseteq> (P ;;\<^sub>A R)"
+  unfolding aseq_def pred_refine_iff
+  apply (clarsimp split: prod.splits)
+  apply (rule PBMH_ac_upward[OF assms(1)])
+   apply assumption
+  using assms(2)
+  by (auto simp add: pred_refine_iff)
+
+(* Thesis Section 4.4: PBMH is closed under angelic sequential
+   composition. *)
+lemma PBMH_aseq_closure [closure]:
+  fixes P Q :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
+  assumes "P is PBMH" "Q is PBMH"
+  shows "(P ;;\<^sub>A Q) is PBMH"
+proof (rule Healthy_intro, rule ext)
+  fix w :: "('s, '\<alpha>) astate_ext \<times> ('s, '\<beta>) achoices_ext"
+  obtain s\<^sub>0 ac' where w_eq [simp]: "w = (s\<^sub>0, ac')"
+    by (cases w) auto
+  show "PBMH (P ;;\<^sub>A Q) w = (P ;;\<^sub>A Q) w"
+  proof
+    assume "PBMH (P ;;\<^sub>A Q) w"
+    then obtain b where comp: "(P ;;\<^sub>A Q) (s\<^sub>0, b)"
+        and step: "pbmh_step (b, ac')"
+      by (auto simp add: PBMH_eval)
+    define S\<^sub>b where "S\<^sub>b = {s\<^sub>1. Q (astate.s\<^sub>v_update (\<lambda>_. s\<^sub>1) s\<^sub>0, b)}"
+    define S where "S = {s\<^sub>1. Q (astate.s\<^sub>v_update (\<lambda>_. s\<^sub>1) s\<^sub>0, ac')}"
+    have P_at: "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. S\<^sub>b) b)"
+      using comp by (simp add: aseq_def S\<^sub>b_def)
+    have S_sub: "S\<^sub>b \<subseteq> S"
+      unfolding S\<^sub>b_def S_def
+      by (auto intro: PBMH_upward[OF assms(2) _ step])
+    have step': "pbmh_step
+        (achoices.ac\<^sub>v_update (\<lambda>_. S\<^sub>b) b,
+         achoices.ac\<^sub>v_update (\<lambda>_. S) ac')"
+      using S_sub step by (simp add: pbmh_step_eval)
+    have "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. S) ac')"
+      by (rule PBMH_upward[OF assms(1) P_at step'])
+    then show "(P ;;\<^sub>A Q) w"
+      by (simp add: aseq_def S_def)
+  next
+    assume "(P ;;\<^sub>A Q) w"
+    then show "PBMH (P ;;\<^sub>A Q) w"
+      by (rule PBMH_weaken)
+  qed
+qed
 
 lemma PBMH_state_subst:
   "arel_state_subst st_subst (PBMH P) = PBMH (arel_state_subst st_subst P)"
@@ -121,8 +198,7 @@ lemma PBMH_ades_mono:
 lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
   by (rule MonotonicI, rule PBMH_ades_mono)
 
-lemma PBMH_ades_idem:
-  "PBMH_ades (PBMH_ades P) = PBMH_ades P"
+lemma PBMH_ades_idem: "PBMH_ades (PBMH_ades P) = PBMH_ades P"
   by (simp add: PBMH_ades_def fun_eq_iff PBMH_idem)
 
 lemma PBMH_ades_Idempotent [closure]: "Idempotent PBMH_ades"
@@ -174,20 +250,16 @@ definition ac_non_empty :: "'s angelic_design" where
 definition A0 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A0 P = (P \<and> ((ok\<^sup>< \<and> \<not> P\<^sup>f) \<longrightarrow> (ok\<^sup>> \<longrightarrow> ac_non_empty)))"
 
-lemma A0_idem:
-  "A0 (A0 P) = A0 P"
+lemma A0_idem: "A0 (A0 P) = A0 P"
   by (pred_auto)
 
-lemma A0_Idempotent [closure]:
-  "Idempotent A0"
+lemma A0_Idempotent [closure]: "Idempotent A0"
   by (simp add: Idempotent_def A0_idem)
 
-lemma A0_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> A0 P \<sqsubseteq> A0 Q"
+lemma A0_mono: "P \<sqsubseteq> Q \<Longrightarrow> A0 P \<sqsubseteq> A0 Q"
   by (pred_auto)
 
-lemma A0_Monotonic [closure]:
-  "Monotonic A0"
+lemma A0_Monotonic [closure]: "Monotonic A0"
   by (rule MonotonicI, rule A0_mono) 
 
 lemma A0_state_subst:
@@ -249,16 +321,13 @@ proof -
     done
 qed
 
-lemma A1_idem:
-  "A1 (A1 P) = A1 P"
+lemma A1_idem: "A1 (A1 P) = A1 P"
   by (pred_auto)
 
-lemma A1_Idempotent [closure]:
-  "Idempotent A1"
+lemma A1_Idempotent [closure]: "Idempotent A1"
   by (simp add: Idempotent_def A1_idem)
 
-lemma A1_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> A1 P \<sqsubseteq> A1 Q"
+lemma A1_mono: "P \<sqsubseteq> Q \<Longrightarrow> A1 P \<sqsubseteq> A1 Q"
   apply (simp add: A1_def)
   apply (rule rdesign_refine_intro')
    apply (rule PBMH_neg_guard)
@@ -271,8 +340,7 @@ lemma A1_mono:
   apply (pred_auto)
   done
 
-lemma A1_Monotonic [closure]:
-  "Monotonic A1"
+lemma A1_Monotonic [closure]: "Monotonic A1"
   by (rule MonotonicI, rule A1_mono)
 
 subsection \<open>A\<close>
@@ -283,12 +351,10 @@ definition A :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 lemma A_comp: "A = A0 \<circ> A1"
   by (auto simp add: A_def)
 
-lemma A_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> A P \<sqsubseteq> A Q"
+lemma A_mono: "P \<sqsubseteq> Q \<Longrightarrow> A P \<sqsubseteq> A Q"
   by (simp add: A_def A0_mono A1_mono)
 
-lemma A_Monotonic [closure]:
-  "Monotonic A"
+lemma A_Monotonic [closure]: "Monotonic A"
   by (rule MonotonicI, rule A_mono)
 
 lemma A_design_form:
@@ -297,16 +363,13 @@ lemma A_design_form:
      (PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
   by (pred_auto)
 
-lemma preD_H1:
-  "pre\<^sub>D (H1 P) = pre\<^sub>D P"
+lemma preD_H1: "pre\<^sub>D (H1 P) = pre\<^sub>D P"
   by (simp add: H1_def pre_design_def, pred_simp)
 
-lemma postD_H1:
-  "post\<^sub>D (H1 P) = post\<^sub>D P"
+lemma postD_H1: "post\<^sub>D (H1 P) = post\<^sub>D P"
   by (simp add: H1_def post_design_def, pred_simp)
 
-lemma preD_H2:
-  "pre\<^sub>D (H2 P) = pre\<^sub>D P"
+lemma preD_H2: "pre\<^sub>D (H2 P) = pre\<^sub>D P"
   by (simp add: H2_split pre_design_def, pred_simp)
 
 lemma postD_H2:
@@ -327,8 +390,7 @@ lemma rdesign_disj:
   by (simp add: rdesign_def design_union, pred_simp)
 
 (* Thesis Theorem T.4.5.11 *)
-lemma A_disj:
-  "A (P \<or> Q) = (A P \<or> A Q)"
+lemma A_disj: "A (P \<or> Q) = (A P \<or> A Q)"
   by (simp add: A_design_form preD_disj postD_disj PBMH_disj rdesign_disj
       pred_ba.boolean_algebra.conj_disj_distrib
       pred_ba.boolean_algebra.conj_disj_distrib2)
@@ -407,8 +469,7 @@ lemma angelic_design_demonic_bottom:
   "P \<sqinter>\<^sub>D\<^sub>A \<bottom>\<^sub>D = \<bottom>\<^sub>D"
   by (simp add: angelic_design_demonic bot_d_true)
 
-lemma A_idem:
-  "A (A P) = A P"
+lemma A_idem: "A (A P) = A P"
   apply (simp add: A_design_form PBMH_idem)
   apply (rule pred_ba.order_antisym)
    apply (rule rdesign_refine_intro)
@@ -419,16 +480,13 @@ lemma A_idem:
   apply (pred_simp; blast)
   done
 
-lemma A_Idempotent [closure]:
-  "Idempotent A"
+lemma A_Idempotent [closure]: "Idempotent A"
   by (simp add: Idempotent_def A_idem)
 
-lemma A_H1_commute:
-  "(H1 \<circ> A) P = (A \<circ> H1) P"
+lemma A_H1_commute: "(H1 \<circ> A) P = (A \<circ> H1) P"
   by (simp add: A_design_form H1_rdesign preD_H1 postD_H1)
 
-lemma A_H2_commute:
-  "(H2 \<circ> A) P = (A \<circ> H2) P"
+lemma A_H2_commute: "(H2 \<circ> A) P = (A \<circ> H2) P"
 proof -
   have post_absorb:
     "\<And>P Q N.
@@ -447,16 +505,13 @@ lemma A_state_subst:
   "ades_state_subst st_subst (A P) = A (ades_state_subst st_subst P)"
   by (simp add: A_def A0_state_subst A1_state_subst)
 
-lemma A_is_H1:
-  "H1 (A P) = A P"
+lemma A_is_H1: "H1 (A P) = A P"
   by (simp add: A_design_form H1_rdesign)
 
-lemma A_is_H2:
-  "H2 (A P) = A P"
+lemma A_is_H2: "H2 (A P) = A P"
   by (simp add: A_design_form H2_rdesign)
 
-lemma A_is_H:
-  "\<^bold>H (A P) = A P"
+lemma A_is_H: "\<^bold>H (A P) = A P"
   by (simp add: A_design_form H1_rdesign H2_rdesign)
 
 lemma A_healthy_design_form:
@@ -515,8 +570,7 @@ lemma A2_rel_expanded_singleton_choice:
 definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
 
-lemma A2_rel_eq_expanded:
-  "A2_rel P = A2_rel_expanded P"
+lemma A2_rel_eq_expanded: "A2_rel P = A2_rel_expanded P"
   apply (pred_auto)
   subgoal for s more ac morea X
     by (cases "\<exists> y. X = {y}", auto)
@@ -542,24 +596,20 @@ lemma A2_rel_expanded_idem:
   "A2_rel_expanded (A2_rel_expanded P) = A2_rel_expanded P"
   by (pred_auto)
 
-lemma A2_rel_disj:
-  "A2_rel (P \<or> Q) = (A2_rel P \<or> A2_rel Q)"
+lemma A2_rel_disj: "A2_rel (P \<or> Q) = (A2_rel P \<or> A2_rel Q)"
   by (simp add: A2_rel_eq_expanded A2_rel_expanded_disj)
 
-lemma A2_rel_idem:
-  "A2_rel (A2_rel P) = A2_rel P"
+lemma A2_rel_idem: "A2_rel (A2_rel P) = A2_rel P"
   by (simp add: A2_rel_eq_expanded A2_rel_expanded_idem)
 
-lemma A2_rel_Idempotent [closure]:
-  "Idempotent A2_rel"
+lemma A2_rel_Idempotent [closure]: "Idempotent A2_rel"
   by (simp add: Idempotent_def A2_rel_idem)
 
 lemma A2_rel_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> A2_rel P \<sqsubseteq> A2_rel Q"
   by (simp add: A2_rel_eq_expanded, pred_auto; blast)
 
-lemma A2_rel_Monotonic [closure]:
-  "Monotonic A2_rel"
+lemma A2_rel_Monotonic [closure]: "Monotonic A2_rel"
   by (rule MonotonicI, rule A2_rel_mono)
 
 lemma A2_rel_neg_guard:
@@ -575,12 +625,10 @@ lemma A2_rdesign:
   "A2 (P \<turnstile>\<^sub>r Q) = ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
   by (simp add: A2_def A2_rel_disj rdesign_refinement, pred_auto)
 
-lemma A2_arel_to_ades:
-  "A2 (arel_to_ades P) = arel_to_ades (A2_rel P)"
+lemma A2_arel_to_ades: "A2 (arel_to_ades P) = arel_to_ades (A2_rel P)"
   by (simp add: arel_to_ades_def A2_rdesign, pred_auto)
 
-lemma A2_idem:
-  "A2 (A2 P) = A2 P"
+lemma A2_idem: "A2 (A2 P) = A2 P"
 proof -
   have elim:
     "\<And>P Q. taut [\<lambda>s. (\<not> A2_rel (\<not> P)) s \<and>
@@ -603,12 +651,10 @@ proof -
     done
 qed
 
-lemma A2_Idempotent [closure]:
-  "Idempotent A2"
+lemma A2_Idempotent [closure]: "Idempotent A2"
   by (simp add: Idempotent_def A2_idem)
 
-lemma A2_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> A2 P \<sqsubseteq> A2 Q"
+lemma A2_mono: "P \<sqsubseteq> Q \<Longrightarrow> A2 P \<sqsubseteq> A2 Q"
   apply (simp add: A2_def)
   apply (rule rdesign_refine_intro')
    apply (rule A2_rel_neg_guard)
@@ -621,8 +667,7 @@ lemma A2_mono:
   apply (pred_auto)
   done
 
-lemma A2_Monotonic [closure]:
-  "Monotonic A2"
+lemma A2_Monotonic [closure]: "Monotonic A2"
   by (rule MonotonicI, rule A2_mono)
 
 subsection \<open>Singleton-Witness (SW) Healthiness (for supporting theorem 6)\<close>
@@ -707,16 +752,13 @@ lemma SW_mono:
   using assms
   by (auto simp add: SW_def pred_refine_iff split: prod.splits)
 
-lemma SW_Monotonic [closure]:
-  "Monotonic SW"
+lemma SW_Monotonic [closure]: "Monotonic SW"
   by (rule MonotonicI, rule SW_mono)
 
-lemma SW_idem:
-  "SW (SW P) = SW P"
+lemma SW_idem: "SW (SW P) = SW P"
   by (simp add: SW_def fun_eq_iff; pred_auto)
 
-lemma SW_Idempotent [closure]:
-  "Idempotent SW"
+lemma SW_Idempotent [closure]: "Idempotent SW"
   by (simp add: Idempotent_def SW_idem)
 
 lemma SW_D_mono:
@@ -732,20 +774,16 @@ lemma SW_D_mono:
   apply (pred_auto)
   done
 
-lemma SW_D_Monotonic [closure]:
-  "Monotonic SW_D"
+lemma SW_D_Monotonic [closure]: "Monotonic SW_D"
   by (rule MonotonicI, rule SW_D_mono)
 
-lemma SW_D_idem:
-  "SW_D (SW_D P) = SW_D P"
+lemma SW_D_idem: "SW_D (SW_D P) = SW_D P"
   by (simp add: SW_D_def SW_idem; pred_auto)
 
-lemma SW_D_Idempotent [closure]:
-  "Idempotent SW_D"
+lemma SW_D_Idempotent [closure]: "Idempotent SW_D"
   by (simp add: Idempotent_def SW_D_idem)
 
-lemma SW_D_A_commute:
-  "SW_D (A P) = A (SW_D P)"
+lemma SW_D_A_commute: "SW_D (A P) = A (SW_D P)"
 proof -
   have post_absorb:
       "\<And>P Q N :: 's angelic_rel.
@@ -770,8 +808,7 @@ proof -
     done
 qed
 
-lemma SW_D_A2_commute:
-  "SW_D (A2 P) = A2 (SW_D P)"
+lemma SW_D_A2_commute: "SW_D (A2 P) = A2 (SW_D P)"
 proof -
   have pre_commute:
       "SW (\<not> A2_rel (\<not> pre\<^sub>D P)) =
@@ -815,23 +852,19 @@ proof -
 qed
 
 (* other lemmas to show the compatibility *)
-lemma A_preserves_SW_D:
-  "P is SW_D \<Longrightarrow> A P is SW_D"
+lemma A_preserves_SW_D: "P is SW_D \<Longrightarrow> A P is SW_D"
   apply (simp add: Healthy_def' SW_D_A_commute)
   done
 
-lemma A2_preserves_SW_D:
-  "P is SW_D \<Longrightarrow> A2 P is SW_D"
+lemma A2_preserves_SW_D: "P is SW_D \<Longrightarrow> A2 P is SW_D"
   apply (simp add: Healthy_def' SW_D_A2_commute)
   done
 
-lemma SW_D_preserves_A:
-  "P is A \<Longrightarrow> SW_D P is A"
+lemma SW_D_preserves_A: "P is A \<Longrightarrow> SW_D P is A"
   apply (simp add: Healthy_def' SW_D_A_commute[symmetric])
   done
 
-lemma SW_D_preserves_A2:
-  "P is A2 \<Longrightarrow> SW_D P is A2"
+lemma SW_D_preserves_A2: "P is A2 \<Longrightarrow> SW_D P is A2"
   apply (simp add: Healthy_def' SW_D_A2_commute[symmetric])
   done
 

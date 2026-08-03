@@ -15,5 +15,6 @@ session "UTP-Angelic-CSP" = "UTP-Angelic-Designs" +
     utp_rad_designs
     utp_rad_csp
     utp_rad_ops
+    utp_rad_nd
     utp_rad
     Angelic_CSP
