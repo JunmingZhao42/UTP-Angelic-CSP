@@ -267,4 +267,117 @@ proof -
     by (simp add: RA_disj[symmetric])
 qed
 
+subsection \<open>Choice\<close>
+
+(* Paper Definition 40. *)
+definition Choice_RAD :: "'e reactive_angelic_design" ("Choice\<^sub>R\<^sub>A\<^sub>D") where
+[pred]: "Choice_RAD = (RA \<circ> A) (true \<turnstile> ac_non_empty)"
+
+lemma Choice_RAD_alt:
+  "Choice\<^sub>R\<^sub>A\<^sub>D = (RA \<circ> A) (true \<turnstile> true)"
+  apply (simp only: Choice_RAD_def comp_apply)
+  apply (rule arg_cong[where f=RA])
+  by (simp add: A_design_form ac_non_empty_def PBMH_def pbmh_step_def
+      fun_eq_iff; pred_auto)
+
+lemma RAD_Choice [closure]:
+  "Choice\<^sub>R\<^sub>A\<^sub>D is RAD"
+  unfolding Choice_RAD_def
+  apply (rule RAD_design_closure)
+   apply (rule design_is_H1_H2; pred_auto)
+  apply (simp add: rad_wait_false_def ac_non_empty_def design_def fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+      pred_auto)
+  done
+
+(* Paper Theorem 26. *)
+theorem Choice_RAD_angelic_choice:
+  assumes "P is RAD"
+  shows "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = (RA \<circ> A) (true \<turnstile> (P \<^sub>wf)\<^sup>t)"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> ?F) \<turnstile> ?T"
+  let ?DC = "true \<turnstile> true"
+  let ?Z = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
+  have P_form: "P = (RA \<circ> A) ?DP"
+    using assms by (simp only: Healthy_def' RAD_design_form)
+  have T_form: "?T = RA2 (RA1 (PBMH_ades ?Z))"
+    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form]
+    by (simp only: comp_apply
+        RA_design_wait_false_ok_true[simplified comp_apply])
+  have PBMH_true_design:
+      "PBMH_ades (true \<turnstile> ?Z) = (true \<turnstile> PBMH_ades ?Z)"
+      "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
+    by (simp_all add: RA_design_as_disj PBMH_ades_disj
+        PBMH_ades_conj_ok)
+  have normalise:
+      "(RA \<circ> A) (true \<turnstile> ?Z) =
+       (RA \<circ> A) (true \<turnstile> ?T)"
+  proof -
+    have "RA (A (true \<turnstile> ?Z)) =
+        RA (PBMH_ades (true \<turnstile> ?Z))"
+      apply (rule RA_A[simplified comp_apply])
+      by (rule design_is_H1_H2; pred_auto)
+    also have "... = RA (true \<turnstile> PBMH_ades ?Z)"
+      by (simp only: PBMH_true_design(1))
+    also have "... = RA (true \<turnstile> RA2 (RA1 (PBMH_ades ?Z)))"
+      by (rule RA_design_post[simplified comp_apply])
+    also have "... = RA (true \<turnstile> ?T)"
+      using arg_cong[where f="\<lambda>X. RA (true \<turnstile> X)",
+          OF T_form[symmetric]] .
+    also have "... = RA (true \<turnstile> PBMH_ades ?T)"
+      by (simp only: Healthy_if[OF RAD_wait_true_PBMH[OF assms]])
+    also have "... = RA (PBMH_ades (true \<turnstile> ?T))"
+      by (simp only: PBMH_true_design(2))
+    also have "... = RA (A (true \<turnstile> ?T))"
+      apply (rule RA_A[simplified comp_apply, symmetric])
+      by (rule design_is_H1_H2; pred_auto)
+    finally show ?thesis
+      by (simp only: comp_apply)
+  qed
+  have "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
+      (RA \<circ> A) ?DC \<squnion> (RA \<circ> A) ?DP"
+    using arg_cong2[where f=inf, OF Choice_RAD_alt P_form] .
+  also have "... = (RA \<circ> A) (?DC \<squnion> ?DP)"
+    apply (rule RA_A_angelic_choice)
+       apply (simp add: Healthy_def' PBMH_ades_def fun_eq_iff; pred_auto)
+      apply (rule PBMH_ades_design_closure;
+          intro RAD_wait_false_PBMH[OF assms]
+            RAD_wait_true_PBMH[OF assms])
+     apply (rule design_is_H1_H2; pred_auto)
+    by (rule rad_wait_false_design_healthy)
+  also have "... = (RA \<circ> A) (true \<turnstile> ?Z)"
+    apply (rule arg_cong[where f="RA \<circ> A"])
+    apply (simp only: design_inf)
+    by pred_auto
+  also have "... = (RA \<circ> A) (true \<turnstile> ?T)"
+    by (rule normalise)
+  finally show ?thesis .
+qed
+
+(* Paper Theorem 27. *)
+theorem Choice_RAD_demonic_choice:
+  assumes "P is RAD"
+  shows "Choice\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P =
+    (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> ac_non_empty)"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> ?F) \<turnstile> ?T"
+  have P_form: "P = (RA \<circ> A) ?DP"
+    using assms by (simp only: Healthy_def' RAD_design_form)
+  have "Choice\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P =
+      (RA \<circ> A) (true \<turnstile> true) \<sqinter> (RA \<circ> A) ?DP"
+    using arg_cong2[where f=sup, OF Choice_RAD_alt P_form] .
+  also have "... = (RA \<circ> A) ((true \<turnstile> true) \<sqinter> ?DP)"
+    by (rule RA_A_demonic_choice)
+  also have "... = (RA \<circ> A) ((\<not> ?F) \<turnstile> ac_non_empty)"
+    apply (simp only: comp_apply)
+    apply (rule arg_cong[where f=RA])
+    by (simp add: angelic_design_demonic design_union A_design_form
+        ac_non_empty_def PBMH_def pbmh_step_def fun_eq_iff; pred_auto)
+  finally show ?thesis .
+qed
+
 end
