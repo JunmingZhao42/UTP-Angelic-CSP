@@ -513,22 +513,20 @@ proof -
   let ?T = "(P \<^sub>wf)\<^sup>t"
   let ?D = "(\<not> ?F) \<turnstile> ?T"
   let ?C = "(\<not> rad_ac2p ?F) \<turnstile> rad_ac2p ?T"
-  let ?S = "rad_p2ac ?C"
   let ?M = "((\<not> (rad_p2ac \<circ> rad_ac2p) ?F) \<turnstile>
     (rad_p2ac \<circ> rad_ac2p) ?T)"
-  have mapped_RA: "RA ?S = RA ?M"
+  have mapped: "RA (rad_p2ac ?C) = RA ?M"
     apply (rule RA_cong_ac_non_empty)
     using p2ac_design_nonempty[
         of "csp2rad_rel (rad_ac2p ?F)"
            "csp2rad_rel (rad_ac2p ?T)"]
     by (simp add: rad_p2ac_def csp2rad_rel_design_distrib)
-  have F_round:
+  have round:
       "(rad_p2ac \<circ> rad_ac2p) ?F = (ac_non_empty \<and> ?F)"
-    by (rule rad_p2ac_ac2p_A2[OF assms(1)])
-  have T_round:
       "(rad_p2ac \<circ> rad_ac2p) ?T = (ac_non_empty \<and> ?T)"
-    by (rule rad_p2ac_ac2p_A2[OF assms(2)])
-  have nonempty_design_absorb:
+    by (rule rad_p2ac_ac2p_A2[OF assms(1)])
+       (rule rad_p2ac_ac2p_A2[OF assms(2)])
+  have remove_nonempty:
       "RA ((\<not> (ac_non_empty \<and> ?F)) \<turnstile>
           (ac_non_empty \<and> ?T)) = RA ?D"
     by (simp only:
@@ -540,28 +538,23 @@ proof -
   have A2_PBMH: "PBMH_ades (A2 Q) = A2 Q"
       for Q :: "'e reactive_angelic_design"
     by (simp add: A2_def PBMH_ades_rdesign A2_rel_def PBMH_idem)
-  have design_pbmh: "PBMH_ades ?D = ?D"
+  have D_PBMH: "?D is PBMH_ades"
     using assms A2_PBMH[of ?F] A2_PBMH[of ?T]
     by (simp add: Healthy_def' design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok)
-  have A_absorb: "RA (A ?D) = RA ?D"
-    by (simp only: RA_A'[OF rad_wait_false_design_is_H]
-        design_pbmh)
   have "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ?D =
-      rad_p2ac (\<^bold>R ?C)"
-    by (simp only: comp_apply rad_ac2p_RA_design')
-  also have "... = RA ?S"
-    by (simp only: rad_p2ac_R')
+      RA (rad_p2ac ?C)"
+    by (simp only: comp_apply rad_ac2p_RA_design' rad_p2ac_R')
   also have "... = RA ?M"
-    by (rule mapped_RA)
+    by (rule mapped)
   also have "... = RA
       ((\<not> (ac_non_empty \<and> ?F)) \<turnstile>
         (ac_non_empty \<and> ?T))"
-    by (simp only: F_round T_round)
+    by (simp only: round)
   also have "... = RA ?D"
-    by (rule nonempty_design_absorb)
+    by (rule remove_nonempty)
   also have "... = (RA \<circ> A) ?D"
-    by (simp only: comp_apply A_absorb)
+    by (rule RA_A_absorb[OF D_PBMH rad_wait_false_design_is_H, symmetric])
   finally show ?thesis .
 qed
 
