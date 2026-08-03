@@ -27,28 +27,14 @@ theorem RAD_angelic_choice_design:
 proof -
   let ?DP = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
   let ?DQ = "(\<not> (Q \<^sub>wf)\<^sup>f) \<turnstile> (Q \<^sub>wf)\<^sup>t"
-  have P_form: "P = (RA \<circ> A) ?DP"
-    using assms(1) by (simp only: Healthy_def' RAD_design_form)
-  have Q_form: "Q = (RA \<circ> A) ?DQ"
-    using assms(2) by (simp only: Healthy_def' RAD_design_form)
-  have DP_PBMH: "?DP is PBMH_ades"
-    by (rule PBMH_ades_design_closure;
-        intro RAD_wait_false_PBMH[OF assms(1)]
-          RAD_wait_true_PBMH[OF assms(1)])
-  have DQ_PBMH: "?DQ is PBMH_ades"
-    by (rule PBMH_ades_design_closure;
-        intro RAD_wait_false_PBMH[OF assms(2)]
-          RAD_wait_true_PBMH[OF assms(2)])
-  have DP_design: "?DP is \<^bold>H"
-    by (rule rad_wait_false_design_healthy)
-  have DQ_design: "?DQ is \<^bold>H"
-    by (rule rad_wait_false_design_healthy)
   have "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q =
       (RA \<circ> A) ?DP \<squnion> (RA \<circ> A) ?DQ"
-    using arg_cong2[where f=inf, OF P_form Q_form] .
+    using arg_cong2[where f=inf,
+        OF RAD_design_form'[OF assms(1)] RAD_design_form'[OF assms(2)]] .
   also have "... = (RA \<circ> A) (?DP \<squnion> ?DQ)"
     by (rule RA_A_angelic_choice[OF
-          DP_PBMH DQ_PBMH DP_design DQ_design])
+          RAD_design_PBMH[OF assms(1)] RAD_design_PBMH[OF assms(2)]
+          rad_wait_false_design_is_H rad_wait_false_design_is_H])
   also have "... = (RA \<circ> A)
         (((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
          (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
@@ -70,9 +56,7 @@ proof -
   have D_design: "?D is \<^bold>H"
     by (rule design_is_H1_H2; pred_auto)
   have D_wait: "(?D \<^sub>wf) = ?D"
-    by (simp add: rad_wait_false_def design_def fun_eq_iff
-        subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
-        pred_auto)
+    by (simp add: rad_wait_false_distrib)
   have "(RA \<circ> A) ?D is RAD"
     by (rule RAD_design_closure[OF D_design D_wait])
   then show ?thesis
@@ -91,8 +75,7 @@ proof -
       apply (rule rad_p2ac_PBMH_ades)+
     by (simp add: rad2csp_rel_def fun_eq_iff conj_pred_def)
   show ?thesis
-    apply (simp only: RAD_angelic_choice distribute
-        rad_ac2p_p2ac[simplified comp_apply])
+    apply (simp only: RAD_angelic_choice distribute rad_ac2p_p2ac_inverse')
     by (simp only: conj_pred_def)
 qed
 
@@ -101,16 +84,10 @@ theorem RAD_angelic_choice_CSP_refine:
   assumes "P is RAD" "Q is RAD"
   shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q \<sqsubseteq> rad_p2ac (rad_ac2p P \<squnion> rad_ac2p Q)"
 proof -
-  have P_PBMH: "P is PBMH_ades"
-    using RAD_PBMH_ades_healthy[of P] assms(1)
-    by (simp only: Healthy_def')
-  have Q_PBMH: "Q is PBMH_ades"
-    using RAD_PBMH_ades_healthy[of Q] assms(2)
-    by (simp only: Healthy_def')
   have P_round: "P \<sqsubseteq> rad_p2ac (rad_ac2p P)"
-    by (rule rad_p2ac_ac2p_refine[OF P_PBMH, simplified comp_apply])
+    by (rule rad_p2ac_ac2p_refine'[OF RAD_is_PBMH_ades[OF assms(1)]])
   have Q_round: "Q \<sqsubseteq> rad_p2ac (rad_ac2p Q)"
-    by (rule rad_p2ac_ac2p_refine[OF Q_PBMH, simplified comp_apply])
+    by (rule rad_p2ac_ac2p_refine'[OF RAD_is_PBMH_ades[OF assms(2)]])
   have "(P \<and> Q) \<sqsubseteq>
       (rad_p2ac (rad_ac2p P) \<and> rad_p2ac (rad_ac2p Q))"
     by (rule pred_ba.inf_mono[OF P_round Q_round])
@@ -143,13 +120,10 @@ theorem RAD_demonic_choice_design:
 proof -
   let ?DP = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
   let ?DQ = "(\<not> (Q \<^sub>wf)\<^sup>f) \<turnstile> (Q \<^sub>wf)\<^sup>t"
-  have P_form: "P = (RA \<circ> A) ?DP"
-    using assms(1) by (simp only: Healthy_def' RAD_design_form)
-  have Q_form: "Q = (RA \<circ> A) ?DQ"
-    using assms(2) by (simp only: Healthy_def' RAD_design_form)
   have "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q =
       (RA \<circ> A) ?DP \<sqinter> (RA \<circ> A) ?DQ"
-    using arg_cong2[where f=sup, OF P_form Q_form] .
+    using arg_cong2[where f=sup,
+        OF RAD_design_form'[OF assms(1)] RAD_design_form'[OF assms(2)]] .
   also have "... = (RA \<circ> A) (?DP \<sqinter> ?DQ)"
     by (rule RA_A_demonic_choice)
   also have "... = (RA \<circ> A)
@@ -170,9 +144,7 @@ proof -
   have D_design: "?D is \<^bold>H"
     by (rule design_is_H1_H2; pred_auto)
   have D_wait: "(?D \<^sub>wf) = ?D"
-    by (simp add: rad_wait_false_def design_def fun_eq_iff
-        subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
-        pred_auto)
+    by (simp add: rad_wait_false_distrib)
   have "(RA \<circ> A) ?D is RAD"
     by (rule RAD_design_closure[OF D_design D_wait])
   then show ?thesis
@@ -191,14 +163,14 @@ lemma RAD_demonic_choice_CSP_A2:
     and "P is A2" "Q is A2"
   shows "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
   by (simp only: RAD_demonic_choice_CSP
-      rad_p2ac_ac2p_RAD_A2[OF assms(1,3), simplified comp_apply]
-      rad_p2ac_ac2p_RAD_A2[OF assms(2,4), simplified comp_apply])
+      rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
+      rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 (* Paper Theorem 24 / Thesis Theorem T.5.4.6. *)
 theorem RAD_demonic_choice_CSP_inverse:
   "rad_ac2p (rad_p2ac P \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<sqinter> Q"
   by (simp only: rad_ac2p_disj[simplified disj_pred_def]
-      rad_ac2p_p2ac[simplified comp_apply])
+      rad_ac2p_p2ac_inverse')
 
 (* Paper Section 6.4.2: angelic and demonic choice distribute over each other. *)
 (* P \<squnion> (Q \<Sqinter> R) = (P \<squnion> Q) \<sqinter> (P \<squnion> R) *)
@@ -226,18 +198,16 @@ lemma Chaos_RAD_alt:
 lemma Chaos_RAD_RA:
   "Chaos\<^sub>R\<^sub>A\<^sub>D = RA true"
   apply (simp only: Chaos_RAD_alt design_false_pre comp_apply)
-  apply (subst RA_A[simplified comp_apply])
+  apply (subst RA_A')
    apply (simp add: Healthy_def' H1_H2_comp comp_apply H1_def H2_true)
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
 
-lemma RAD_Chaos [closure]:
+lemma Chaos_RAD_is_RAD [closure]:
   "Chaos\<^sub>R\<^sub>A\<^sub>D is RAD"
   unfolding Chaos_RAD_def
   apply (rule RAD_design_closure)
    apply (rule design_is_H1_H2; pred_auto)
-  apply (simp add: rad_wait_false_def ac_non_empty_def design_def fun_eq_iff
-      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
-      pred_auto)
+  apply (simp add: rad_wait_false_distrib)
   done
 
 (* Paper Theorem 25. *)
@@ -246,7 +216,7 @@ theorem Chaos_RAD_angelic_choice:
   shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = P"
 proof -
   have P_RA: "RA P = P"
-    by (rule Healthy_if[OF RAD_RA_healthy[OF assms]])
+    by (rule Healthy_if[OF RAD_is_RA[OF assms]])
   show ?thesis
     apply (simp only: RAD_angelic_choice Chaos_RAD_RA)
     apply (subst P_RA[symmetric])
@@ -260,7 +230,7 @@ theorem Chaos_RAD_demonic_choice:
   shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P = Chaos\<^sub>R\<^sub>A\<^sub>D"
 proof -
   have P_RA: "RA P = P"
-    by (rule Healthy_if[OF RAD_RA_healthy[OF assms]])
+    by (rule Healthy_if[OF RAD_is_RA[OF assms]])
   show ?thesis
     apply (simp only: RAD_demonic_choice Chaos_RAD_RA)
     apply (subst P_RA[symmetric])
@@ -280,14 +250,12 @@ lemma Choice_RAD_alt:
   by (simp add: A_design_form ac_non_empty_def PBMH_def pbmh_step_def
       fun_eq_iff; pred_auto)
 
-lemma RAD_Choice [closure]:
+lemma Choice_RAD_is_RAD [closure]:
   "Choice\<^sub>R\<^sub>A\<^sub>D is RAD"
   unfolding Choice_RAD_def
   apply (rule RAD_design_closure)
    apply (rule design_is_H1_H2; pred_auto)
-  apply (simp add: rad_wait_false_def ac_non_empty_def design_def fun_eq_iff
-      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
-      pred_auto)
+  apply (simp add: rad_wait_false_distrib)
   done
 
 (* Paper Theorem 26. *)
@@ -301,15 +269,14 @@ proof -
   let ?DC = "true \<turnstile> true"
   let ?Z = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
   have P_form: "P = (RA \<circ> A) ?DP"
-    using assms by (simp only: Healthy_def' RAD_design_form)
+    by (rule RAD_design_form'[OF assms])
   have T_form: "?T = RA2 (RA1 (PBMH_ades ?Z))"
     using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form]
-    by (simp only: comp_apply
-        RA_design_wait_false_ok_true[simplified comp_apply])
+    by (simp only: comp_apply RA_design_wait_false_ok_true')
   have PBMH_true_design:
       "PBMH_ades (true \<turnstile> ?Z) = (true \<turnstile> PBMH_ades ?Z)"
       "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
-    by (simp_all add: RA_design_as_disj PBMH_ades_disj
+    by (simp_all add: design_as_disj PBMH_ades_disj
         PBMH_ades_conj_ok)
   have normalise:
       "(RA \<circ> A) (true \<turnstile> ?Z) =
@@ -317,7 +284,7 @@ proof -
   proof -
     have "RA (A (true \<turnstile> ?Z)) =
         RA (PBMH_ades (true \<turnstile> ?Z))"
-      apply (rule RA_A[simplified comp_apply])
+      apply (rule RA_A')
       by (rule design_is_H1_H2; pred_auto)
     also have "... = RA (true \<turnstile> PBMH_ades ?Z)"
       by (simp only: PBMH_true_design(1))
@@ -331,7 +298,7 @@ proof -
     also have "... = RA (PBMH_ades (true \<turnstile> ?T))"
       by (simp only: PBMH_true_design(2))
     also have "... = RA (A (true \<turnstile> ?T))"
-      apply (rule RA_A[simplified comp_apply, symmetric])
+      apply (rule RA_A'[symmetric])
       by (rule design_is_H1_H2; pred_auto)
     finally show ?thesis
       by (simp only: comp_apply)
@@ -342,11 +309,9 @@ proof -
   also have "... = (RA \<circ> A) (?DC \<squnion> ?DP)"
     apply (rule RA_A_angelic_choice)
        apply (simp add: Healthy_def' PBMH_ades_def fun_eq_iff; pred_auto)
-      apply (rule PBMH_ades_design_closure;
-          intro RAD_wait_false_PBMH[OF assms]
-            RAD_wait_true_PBMH[OF assms])
+      apply (rule RAD_design_PBMH[OF assms])
      apply (rule design_is_H1_H2; pred_auto)
-    by (rule rad_wait_false_design_healthy)
+    by (rule rad_wait_false_design_is_H)
   also have "... = (RA \<circ> A) (true \<turnstile> ?Z)"
     apply (rule arg_cong[where f="RA \<circ> A"])
     apply (simp only: design_inf)
@@ -365,11 +330,10 @@ proof -
   let ?F = "(P \<^sub>wf)\<^sup>f"
   let ?T = "(P \<^sub>wf)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
-  have P_form: "P = (RA \<circ> A) ?DP"
-    using assms by (simp only: Healthy_def' RAD_design_form)
   have "Choice\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P =
       (RA \<circ> A) (true \<turnstile> true) \<sqinter> (RA \<circ> A) ?DP"
-    using arg_cong2[where f=sup, OF Choice_RAD_alt P_form] .
+    using arg_cong2[where f=sup,
+        OF Choice_RAD_alt RAD_design_form'[OF assms]] .
   also have "... = (RA \<circ> A) ((true \<turnstile> true) \<sqinter> ?DP)"
     by (rule RA_A_demonic_choice)
   also have "... = (RA \<circ> A) ((\<not> ?F) \<turnstile> ac_non_empty)"

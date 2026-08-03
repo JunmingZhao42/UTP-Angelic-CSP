@@ -143,11 +143,6 @@ lemma PBMH_ades_conj_ok:
   "PBMH_ades (P \<and> ok\<^sup>>) = (PBMH_ades P \<and> ok\<^sup>>)"
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
 
-lemma PBMH_ades_not_ok [simp]:
-  "PBMH_ades (\<lambda> (x, y). \<not> ok\<^sub>v x) =
-   (\<lambda> (x, y). \<not> ok\<^sub>v x)"
-  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
-
 lemma PBMH_ades_not_ok_expr [simp]:
   "PBMH_ades (\<not> ok\<^sup><) = (\<not> ok\<^sup><)"
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
@@ -165,7 +160,7 @@ lemma PBMH_ades_rdesign:
    ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r PBMH Q)"
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
 
-lemma PBMH_ades_H1_H2:
+lemma PBMH_ades_H1_H2_commute:
   "(PBMH_ades \<circ> H1 \<circ> H2) P =
    (H1 \<circ> H2 \<circ> PBMH_ades) P"
   by (simp add: PBMH_ades_def H1_def H2_split fun_eq_iff;

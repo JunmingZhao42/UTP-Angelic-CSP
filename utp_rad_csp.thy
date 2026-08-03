@@ -57,13 +57,13 @@ lemma rad2csp_rel_inverse [simp]:
   by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
 (* Designs distribute through the observation repackaging. *)
-lemma csp2rad_rel_design:
+lemma csp2rad_rel_design_distrib:
   "csp2rad_rel ((\<not> F) \<turnstile> T) =
    ((\<not> csp2rad_rel F) \<turnstile> csp2rad_rel T)"
   by (simp add: csp2rad_rel_def design_def fun_eq_iff
       rad2csp_obs_def; pred_auto)
 
-lemma rad2csp_rel_design:
+lemma rad2csp_rel_design_distrib:
   "rad2csp_rel ((\<not> F) \<turnstile> T) =
    ((\<not> rad2csp_rel F) \<turnstile> rad2csp_rel T)"
   by (simp add: rad2csp_rel_def design_def fun_eq_iff
@@ -126,7 +126,7 @@ subsection \<open>From reactive angelic designs to CSP\<close>
 lemma rad_ac2p_RA1:
   assumes "P is PBMH_ades"
   shows "(rad_ac2p \<circ> RA1) P = (R1 \<circ> rad_ac2p) P"
-  using assms RA1_PBMH_ades_healthy[OF assms]
+  using assms RA1_PBMH_ades_closure[OF assms]
   apply (simp only: comp_apply rad_ac2p_def rad2csp_rel_def ac2p_def
       Healthy_def')
   apply (simp add: R1_def RA1_def csp2rad_obs_def
@@ -141,9 +141,9 @@ lemma rad_ac2p_RA1_RA2:
     (R1 \<circ> R2 \<circ> rad_ac2p) P"
 proof -
   have ra2_healthy: "RA2 P is PBMH_ades"
-    by (rule RA2_PBMH_ades_healthy[OF assms])
+    by (rule RA2_PBMH_ades_closure[OF assms])
   have ra1_ra2_healthy: "RA1 (RA2 P) is PBMH_ades"
-    by (rule RA1_PBMH_ades_healthy[OF ra2_healthy])
+    by (rule RA1_PBMH_ades_closure[OF ra2_healthy])
   show ?thesis
     using assms ra2_healthy ra1_ra2_healthy
     apply (simp only: comp_apply rad_ac2p_def rad2csp_rel_def ac2p_def
@@ -196,8 +196,7 @@ qed
 theorem rad_ac2p_RA:
   assumes "P is PBMH_ades"
   shows "(rad_ac2p \<circ> RA) P = (\<^bold>R \<circ> rad_ac2p) P"
-  by (simp add: RA_def RA1_RA3_commute[simplified comp_apply]
-      RA2_RA3_commute[simplified comp_apply]
+  by (simp add: RA_def RA1_RA3_commute' RA2_RA3_commute'
       rad_ac2p_RA3[simplified comp_apply]
       rad_ac2p_RA1_RA2[simplified comp_apply] assms R2_def RH_def R1_idem
       R1_R3c_commute R2c_R3c_commute R1_R2s_R2c)
@@ -209,7 +208,7 @@ theorem rad_ac2p_RA_design:
 proof -
   let ?D = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
   have design_healthy: "?D is \<^bold>H"
-    by (rule rad_wait_false_design_healthy)
+    by (rule rad_wait_false_design_is_H)
   have pbmh_healthy: "PBMH_ades ?D is PBMH_ades"
     by (rule Healthy_Idempotent[OF PBMH_ades_Idempotent])
   have mapped_ac2p:
@@ -221,10 +220,10 @@ proof -
   have mapped_design:
       "rad_ac2p ?D = ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
     unfolding rad_ac2p_def comp_apply
-    by (simp only: mapped_ac2p rad2csp_rel_design)
+    by (simp only: mapped_ac2p rad2csp_rel_design_distrib)
   have "rad_ac2p (RA (A ?D)) =
       rad_ac2p (RA (PBMH_ades ?D))"
-    by (simp only: RA_A[OF design_healthy, simplified comp_apply])
+    by (simp only: RA_A'[OF design_healthy])
   also have "... = \<^bold>R (rad_ac2p (PBMH_ades ?D))"
     by (rule rad_ac2p_RA[OF pbmh_healthy, simplified comp_apply])
   also have "... = \<^bold>R (rad_ac2p ?D)"
@@ -235,20 +234,20 @@ proof -
     by (simp only: comp_apply)
 qed
 
+lemmas rad_ac2p_RA_design' =
+  rad_ac2p_RA_design[simplified comp_apply]
+
 (* Theorems 11 and 13 give the CSP image of a RAD-healthy predicate.
    Theorem 13 uses Theorem 12 to transport RA healthiness to R healthiness. *)
 theorem rad_ac2p_RAD:
   assumes "P is RAD"
   shows "rad_ac2p P = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
 proof -
-  have "rad_ac2p P = rad_ac2p (RAD P)"
-    using assms
-    by (simp only: Healthy_def')
-  also have "... = rad_ac2p ((RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))"
-    by (simp only: RAD_design_form)
+  have "rad_ac2p P = rad_ac2p ((RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))"
+    by (rule arg_cong[where f=rad_ac2p, OF RAD_design_form'[OF assms]])
   also have "... = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
     unfolding comp_apply
-    by (rule rad_ac2p_RA_design[simplified comp_apply])
+    by (rule rad_ac2p_RA_design')
   finally show ?thesis .
 qed
 
@@ -367,12 +366,12 @@ proof -
   also have "... = RA3 (RA1 (RA2 (rad_p2ac P)))"
     by (simp only: rad_p2ac_R1_R2[simplified comp_apply])
   also have "... = RA (rad_p2ac P)"
-    by (simp add: RA_def
-        RA1_RA3_commute[simplified comp_apply]
-        RA2_RA3_commute[simplified comp_apply])
+    by (simp add: RA_def RA1_RA3_commute' RA2_RA3_commute')
   finally show ?thesis
     by simp
 qed
+
+lemmas rad_p2ac_R' = rad_p2ac_R[simplified comp_apply]
 
 (* After fixing ok' and wait in the source, the mapped predicate no
    longer depends on ok'. *)
@@ -399,7 +398,7 @@ proof -
     using p2ac_design_nonempty[
         of "csp2rad_rel (P\<^sup>f\<^sub>f)"
            "csp2rad_rel (P\<^sup>t\<^sub>f)"]
-    by (simp add: rad_p2ac_def csp2rad_rel_design)
+    by (simp add: rad_p2ac_def csp2rad_rel_design_distrib)
   let ?D = "((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
     rad_p2ac (P\<^sup>t\<^sub>f))"
   have design_healthy: "?D is \<^bold>H"
@@ -408,17 +407,16 @@ proof -
      apply (rule rad_p2ac_subst_unrest_ok)
     by (rule rad_p2ac_subst_unrest_ok)
   have design_pbmh: "PBMH_ades ?D = ?D"
-    by (simp add: RA_design_as_disj PBMH_ades_disj
+    by (simp add: design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok rad_p2ac_def)
   let ?S = "rad_p2ac ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
   have mapped_RA: "RA ?S = RA ?D"
     by (rule RA_cong_ac_non_empty[OF mapped_design])
   have A_absorb: "RA (A ?D) = RA ?D"
-    by (simp only: RA_A[OF design_healthy, simplified comp_apply]
-        design_pbmh)
+    by (simp only: RA_A'[OF design_healthy] design_pbmh)
   have "(rad_p2ac \<circ> \<^bold>R)
       ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = RA ?S"
-    by (simp only: comp_apply rad_p2ac_R[simplified comp_apply])
+    by (simp only: comp_apply rad_p2ac_R')
   also have "... = RA ?D"
     by (rule mapped_RA)
   also have "... = (RA \<circ> A) ?D"
@@ -427,7 +425,7 @@ proof -
 qed
 
 (* Paper Theorem 16 / Thesis Theorem T.5.3.5. *)
-theorem rad_ac2p_p2ac:
+theorem rad_ac2p_p2ac_inverse:
   "(rad_ac2p \<circ> rad_p2ac) P = P"
 proof -
   have base_round_trip:
@@ -439,6 +437,8 @@ proof -
     by (simp only: comp_apply rad_ac2p_def rad_p2ac_def
         base_round_trip[simplified comp_apply] rad2csp_rel_inverse)
 qed
+
+lemmas rad_ac2p_p2ac_inverse' = rad_ac2p_p2ac_inverse[simplified comp_apply]
 
 (* Paper Lemma 6. *)
 lemma rad_p2ac_ac2p:
@@ -477,6 +477,9 @@ theorem rad_p2ac_ac2p_refine:
   apply (simp only: Healthy_def' rad_p2ac_ac2p)
   apply (simp add: PBMH_ades_def pred_refine_iff)
   by (pred_auto; blast)
+
+lemmas rad_p2ac_ac2p_refine' =
+  rad_p2ac_ac2p_refine[simplified comp_apply]
 
 (* Thesis Lemma L.G.7.11. *)
 lemma rad_p2ac_ac2p_A2:
@@ -530,7 +533,7 @@ proof -
     using p2ac_design_nonempty[
         of "csp2rad_rel (rad_ac2p ?F)"
            "csp2rad_rel (rad_ac2p ?T)"]
-    by (simp add: rad_p2ac_def csp2rad_rel_design)
+    by (simp add: rad_p2ac_def csp2rad_rel_design_distrib)
   have F_round:
       "(rad_p2ac \<circ> rad_ac2p) ?F = (ac_non_empty \<and> ?F)"
     by (rule rad_p2ac_ac2p_A2[OF assms(1)])
@@ -551,18 +554,16 @@ proof -
     by (simp add: A2_def PBMH_ades_rdesign A2_rel_def PBMH_idem)
   have design_pbmh: "PBMH_ades ?D = ?D"
     using assms A2_PBMH[of ?F] A2_PBMH[of ?T]
-    by (simp add: Healthy_def' RA_design_as_disj PBMH_ades_disj
+    by (simp add: Healthy_def' design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok)
   have A_absorb: "RA (A ?D) = RA ?D"
-    by (simp only:
-        RA_A[OF rad_wait_false_design_healthy, simplified comp_apply]
+    by (simp only: RA_A'[OF rad_wait_false_design_is_H]
         design_pbmh)
   have "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ?D =
       rad_p2ac (\<^bold>R ?C)"
-    by (simp only: comp_apply
-        rad_ac2p_RA_design[simplified comp_apply])
+    by (simp only: comp_apply rad_ac2p_RA_design')
   also have "... = RA ?S"
-    by (simp only: rad_p2ac_R[simplified comp_apply])
+    by (simp only: rad_p2ac_R')
   also have "... = RA ?M"
     by (rule mapped_RA)
   also have "... = RA
@@ -588,10 +589,13 @@ proof -
     by (simp only: fixed)
   also have "... = RAD P"
     unfolding RAD_def comp_apply
-    by (rule RA_ac_non_empty)
+    by (rule RA_ac_non_empty_absorb)
   also have "... = P"
     by (rule fixed)
   finally show ?thesis .
 qed
+
+lemmas rad_p2ac_ac2p_RAD_A2' =
+  rad_p2ac_ac2p_RAD_A2[simplified comp_apply]
 
 end

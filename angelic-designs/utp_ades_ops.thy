@@ -51,8 +51,6 @@ lemma angelic_design_angelic:
   "P \<squnion>\<^sub>D\<^sub>A Q = (P \<and> Q)"
   by (simp add: conj_pred_def)
 
-(* TODO: Thesis T.4.5.16: A-healthy designs are closed under \<squnion>\<^sub>D\<^sub>A. *)
-
 (* Thesis Theorem T.4.5.18 *)
 lemma angelic_design_angelic_top:
   fixes P :: "'s angelic_design"
@@ -127,10 +125,6 @@ definition angelic_design_seq_simplified ::
 where [pred]: "angelic_design_seq_simplified P Q =
   ((\<not> ((\<not> pre\<^sub>D P) ;;\<^sub>A true) \<and> \<not> (post\<^sub>D P ;;\<^sub>A (\<not> pre\<^sub>D Q)))
    \<turnstile>\<^sub>r (post\<^sub>D P ;;\<^sub>A (pre\<^sub>D Q \<longrightarrow> post\<^sub>D Q)))"
-
-abbreviation dseq_ades ::
-  "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design"
-where "dseq_ades \<equiv> angelic_design_seq"
 
 (* Thesis Theorem T.4.5.15 *)
 lemma angelic_design_seq_demonic:

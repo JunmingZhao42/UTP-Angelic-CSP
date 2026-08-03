@@ -8,7 +8,7 @@ subsection \<open>CSPA1\<close>
 
 (* Paper definition 33. *)
 definition CSPA1 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
-[pred]: "CSPA1 P = (P \<or> RA1 (\<lambda> (x, y). \<not> ok\<^sub>v x))"
+[pred]: "CSPA1 P = (P \<or> RA1 (\<not> ok\<^sup><))"
 
 lemma CSPA1_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> CSPA1 P \<sqsubseteq> CSPA1 Q"
@@ -28,7 +28,7 @@ lemma CSPA1_Idempotent [closure]:
   by (simp add: Idempotent_def CSPA1_idem)
 
 (* Thesis Theorem T.5.2.19. *)
-lemma PBMH_ades_CSPA1:
+lemma CSPA1_PBMH_ades_closure:
   assumes "PBMH_ades P = P"
   shows "PBMH_ades (CSPA1 P) = CSPA1 P"
   by (simp add: CSPA1_def PBMH_ades_disj assms)
@@ -59,10 +59,7 @@ lemma RA1_CSPA1_commute:
 
 lemma RA_CSPA1:
   "(RA \<circ> CSPA1) P = (RA \<circ> H1) P"
-  by (simp add: RA_def RA1_RA2_commute[simplified comp_apply]
-      RA1_RA3_commute[simplified comp_apply]
-      RA2_RA3_commute[simplified comp_apply]
-      RA1_CSPA1[simplified comp_apply])
+  by (simp add: RA_def RA_comms RA1_CSPA1[simplified comp_apply])
 
 subsection \<open>CSPA2\<close>
 
@@ -70,15 +67,14 @@ subsection \<open>CSPA2\<close>
 definition CSPA2 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
 where [pred]: "CSPA2 P = H2 P"
 
-lemma CSPA2_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> CSPA2 P \<sqsubseteq> CSPA2 Q"
-  using Continuous_Monotonic[OF H2_Continuous]
-  by (simp add: CSPA2_def Monotonic_refine; blast)
-
 lemma CSPA2_Monotonic [closure]:
   "Monotonic CSPA2"
   unfolding CSPA2_def
   by (rule Continuous_Monotonic[OF H2_Continuous])
+
+lemma CSPA2_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> CSPA2 P \<sqsubseteq> CSPA2 Q"
+  by (metis CSPA2_Monotonic Monotonic_refine)
 
 lemma CSPA2_idem:
   "CSPA2 (CSPA2 P) = CSPA2 P"
@@ -88,7 +84,7 @@ lemma CSPA2_Idempotent [closure]:
   "Idempotent CSPA2"
   by (simp add: Idempotent_def CSPA2_idem)
 
-lemma PBMH_ades_CSPA2:
+lemma CSPA2_PBMH_ades_closure:
   assumes "PBMH_ades P = P"
   shows "PBMH_ades (CSPA2 P) = CSPA2 P"
 proof -
@@ -122,11 +118,17 @@ lemma RAD_Monotonic [closure]:
 lemma RAD_PBMH_ades_healthy [closure]:
   "RAD P is PBMH_ades"
   unfolding RAD_def comp_apply
-  apply (rule RA_PBMH_ades_healthy)
+  apply (rule RA_PBMH_ades_closure)
   apply (simp only: Healthy_def')
-  apply (rule PBMH_ades_CSPA1)
-  apply (rule PBMH_ades_CSPA2)
+  apply (rule CSPA1_PBMH_ades_closure)
+  apply (rule CSPA2_PBMH_ades_closure)
   by (simp only: PBMH_ades_idem)
+
+lemma RAD_is_PBMH_ades [closure]:
+  assumes "P is RAD"
+  shows "P is PBMH_ades"
+  using RAD_PBMH_ades_healthy[of P] assms
+  by (simp only: Healthy_def')
 
 lemma RAD_H1_H2_PBMH:
   "RAD P = (RA \<circ> H1 \<circ> H2 \<circ> PBMH_ades) P"
@@ -140,17 +142,23 @@ proof -
     by (simp only: Healthy_def' H1_H2_idempotent)
   have "RAD P = RA (A (H1 (H2 P)))"
     by (simp only: comp_apply RAD_H1_H2_PBMH
-        RA_A[OF design_healthy, simplified comp_apply]
-        PBMH_ades_H1_H2[simplified comp_apply])
+        RA_A'[OF design_healthy]
+        PBMH_ades_H1_H2_commute[simplified comp_apply])
   also have "... = RA (A (H1 (H2 (P \<^sub>wf))))"
     unfolding RA_def comp_apply
-    by (simp only: RA3_wait_false[simplified comp_apply,
+    by (simp only: RA3_wait_false_absorb[simplified comp_apply,
           of "A (H1 (H2 P))"]
-        rad_wait_false_A[simplified comp_apply]
-        rad_wait_false_H1_H2[simplified comp_apply])
+        rad_wait_false_A_commute[simplified comp_apply]
+        rad_wait_false_H1_H2_commute[simplified comp_apply])
   finally show ?thesis
     by (simp add: H1_H2_eq_design)
 qed
+
+(* Paper Theorem 11, as an elimination rule for RAD-healthy predicates. *)
+lemma RAD_design_form':
+  assumes "P is RAD"
+  shows "P = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  using assms by (simp only: Healthy_def' RAD_design_form)
 
 lemma RAD_wait_false_PBMH:
   assumes "P is RAD"
@@ -161,21 +169,20 @@ proof -
   let ?D = "(\<not> ?F) \<turnstile> ?T"
   let ?X = "(\<not> ok\<^sup><) \<or> ?F"
   let ?R = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ?X"
-  have P_form: "P = (RA \<circ> A) ?D"
-    using assms by (simp only: Healthy_def' RAD_design_form)
   have component: "?F = ?R"
   proof -
     have "?F = (rad_wait_false ((RA \<circ> A) ?D))\<^sup>f"
-      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>f", OF P_form])
+      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>f",
+            OF RAD_design_form'[OF assms]])
     also have "... = ?R"
       unfolding comp_apply
-      by (rule RA_design_wait_false[simplified comp_apply])
+      by (rule RA_design_wait_false')
     finally show ?thesis .
   qed
   show ?thesis
     unfolding Healthy_def'
     apply (subst component)
-    apply (simp only: comp_apply PBMH_ades_RA2_RA1_PBMH_ades)
+    apply (simp only: comp_apply PBMH_ades_RA2_RA1_absorb)
     by (rule component[symmetric, simplified comp_apply])
 qed
 
@@ -188,23 +195,30 @@ proof -
   let ?D = "(\<not> ?F) \<turnstile> ?T"
   let ?X = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
   let ?R = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ?X"
-  have P_form: "P = (RA \<circ> A) ?D"
-    using assms by (simp only: Healthy_def' RAD_design_form)
   have component: "?T = ?R"
   proof -
     have "?T = (rad_wait_false ((RA \<circ> A) ?D))\<^sup>t"
-      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form])
+      by (rule arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t",
+            OF RAD_design_form'[OF assms]])
     also have "... = ?R"
       unfolding comp_apply
-      by (rule RA_design_wait_false_ok_true[simplified comp_apply])
+      by (rule RA_design_wait_false_ok_true')
     finally show ?thesis .
   qed
   show ?thesis
     unfolding Healthy_def'
     apply (subst component)
-    apply (simp only: comp_apply PBMH_ades_RA2_RA1_PBMH_ades)
+    apply (simp only: comp_apply PBMH_ades_RA2_RA1_absorb)
     by (rule component[symmetric, simplified comp_apply])
 qed
+
+(* The normal-form design of a RAD-healthy predicate has PBMH-healthy
+   components. *)
+lemma RAD_design_PBMH:
+  assumes "P is RAD"
+  shows "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is PBMH_ades"
+  by (rule PBMH_ades_design_closure;
+      intro RAD_wait_false_PBMH[OF assms] RAD_wait_true_PBMH[OF assms])
 
 lemma RAD_idem:
   "RAD (RAD P) = RAD P"
@@ -218,7 +232,7 @@ lemma RAD_healthy [closure]:
   "RAD P is RAD"
   by (simp add: Healthy_def' RAD_idem)
 
-lemma RAD_RA_healthy [closure]:
+lemma RAD_is_RA [closure]:
   assumes "P is RAD"
   shows "P is RA"
 proof -
