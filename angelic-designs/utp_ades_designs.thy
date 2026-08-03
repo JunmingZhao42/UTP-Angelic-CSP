@@ -363,14 +363,7 @@ proof -
         apply (drule witness_exists_A[THEN spec, THEN mp])
         apply (elim exE)
         subgoal for z
-          apply (rule exI[where x=z])
-          apply (rule allI)
-          subgoal for X
-            apply (cases "X \<subseteq> {z}")
-             apply (rule disjI1)
-             apply (rule pre_A_downward; assumption)
-            by (rule disjI2; assumption)
-          done
+          by (rule exI[where x=z]) (auto intro: pre_A_downward)
         done
       done
     have failure_healthy: "PBMH (\<not> pre_A) = (\<not> pre_A)"

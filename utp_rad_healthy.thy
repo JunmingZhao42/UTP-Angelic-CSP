@@ -686,6 +686,25 @@ proof -
     by (simp only: RA_comms ra12_design)
 qed
 
+(* Under (RA \<circ> A) with a true precondition, a postcondition may be
+   replaced by its RA2 \<circ> RA1 \<circ> PBMH_ades normalisation. *)
+lemma RA_A_true_design_post:
+  assumes "(true \<turnstile> Z) is \<^bold>H" and "(true \<turnstile> T) is \<^bold>H"
+    and "RA2 (RA1 (PBMH_ades Z)) = T" and "PBMH_ades T = T"
+  shows "(RA \<circ> A) (true \<turnstile> Z) = (RA \<circ> A) (true \<turnstile> T)"
+proof -
+  have push: "PBMH_ades (true \<turnstile> X) = (true \<turnstile> PBMH_ades X)" for X
+    by (simp add: design_as_disj PBMH_ades_disj PBMH_ades_conj_ok)
+  have "RA (A (true \<turnstile> Z)) = RA (true \<turnstile> PBMH_ades Z)"
+    by (simp only: RA_A'[OF assms(1)] push)
+  also have "... = RA (true \<turnstile> RA2 (RA1 (PBMH_ades Z)))"
+    by (rule RA_design_post[simplified comp_apply])
+  also have "... = RA (A (true \<turnstile> T))"
+    by (simp only: assms(3) RA_A'[OF assms(2)] push assms(4))
+  finally show ?thesis
+    by (simp only: comp_apply)
+qed
+
 lemma RA_RA2_RA1_absorb: "RA (RA2 (RA1 P)) = RA P"
   by (simp add: RA_def RA_comms RA1_idem RA2_idem)
 

@@ -249,47 +249,16 @@ proof -
   let ?F = "(P \<^sub>wf)\<^sup>f"
   let ?T = "(P \<^sub>wf)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
-  let ?DC = "true \<turnstile> true"
   let ?Z = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
-  have P_form: "P = (RA \<circ> A) ?DP"
-    by (rule RAD_design_form'[OF assms])
   have T_form: "?T = RA2 (RA1 (PBMH_ades ?Z))"
-    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t", OF P_form]
+    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t",
+        OF RAD_design_form'[OF assms]]
     by (simp only: comp_apply RA_design_wf_ok_true')
-  have PBMH_true_design:
-      "PBMH_ades (true \<turnstile> ?Z) = (true \<turnstile> PBMH_ades ?Z)"
-      "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
-    by (simp_all add: design_as_disj PBMH_ades_disj
-        PBMH_ades_conj_ok)
-  have normalise:
-      "(RA \<circ> A) (true \<turnstile> ?Z) =
-       (RA \<circ> A) (true \<turnstile> ?T)"
-  proof -
-    have "RA (A (true \<turnstile> ?Z)) =
-        RA (PBMH_ades (true \<turnstile> ?Z))"
-      apply (rule RA_A')
-      by (rule design_is_H1_H2; pred_auto)
-    also have "... = RA (true \<turnstile> PBMH_ades ?Z)"
-      by (simp only: PBMH_true_design(1))
-    also have "... = RA (true \<turnstile> RA2 (RA1 (PBMH_ades ?Z)))"
-      by (rule RA_design_post[simplified comp_apply])
-    also have "... = RA (true \<turnstile> ?T)"
-      using arg_cong[where f="\<lambda>X. RA (true \<turnstile> X)",
-          OF T_form[symmetric]] .
-    also have "... = RA (true \<turnstile> PBMH_ades ?T)"
-      by (simp only: Healthy_if[OF RAD_wf_ok_true_PBMH[OF assms]])
-    also have "... = RA (PBMH_ades (true \<turnstile> ?T))"
-      by (simp only: PBMH_true_design(2))
-    also have "... = RA (A (true \<turnstile> ?T))"
-      apply (rule RA_A'[symmetric])
-      by (rule design_is_H1_H2; pred_auto)
-    finally show ?thesis
-      by (simp only: comp_apply)
-  qed
   have "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
-      (RA \<circ> A) ?DC \<squnion> (RA \<circ> A) ?DP"
-    using arg_cong2[where f=inf, OF Choice_RAD_alt P_form] .
-  also have "... = (RA \<circ> A) (?DC \<squnion> ?DP)"
+      (RA \<circ> A) (true \<turnstile> true) \<squnion> (RA \<circ> A) ?DP"
+    using arg_cong2[where f=inf,
+        OF Choice_RAD_alt RAD_design_form'[OF assms]] .
+  also have "... = (RA \<circ> A) ((true \<turnstile> true) \<squnion> ?DP)"
     apply (rule RA_A_angelic_choice)
        apply (simp add: Healthy_def' PBMH_ades_def fun_eq_iff; pred_auto)
       apply (rule RAD_design_PBMH[OF assms])
@@ -300,7 +269,11 @@ proof -
     apply (simp only: design_inf)
     by pred_auto
   also have "... = (RA \<circ> A) (true \<turnstile> ?T)"
-    by (rule normalise)
+    apply (rule RA_A_true_design_post)
+       apply (rule design_is_H1_H2; pred_auto)
+      apply (rule design_is_H1_H2; pred_auto)
+     apply (rule T_form[symmetric])
+    by (rule Healthy_if[OF RAD_wf_ok_true_PBMH[OF assms]])
   finally show ?thesis .
 qed
 
@@ -324,6 +297,150 @@ proof -
     apply (rule arg_cong[where f=RA])
     by (simp add: angelic_design_demonic design_union A_design_form
         ac_non_empty_def PBMH_def pbmh_step_def fun_eq_iff; pred_auto)
+  finally show ?thesis .
+qed
+
+subsection \<open>Stop\<close>
+
+(* \<exists> y \<in> ac' \<bullet> y.tr = s.tr \<and> y.wait *)
+definition stop_post :: "'e reactive_angelic_design" where
+[pred]: "stop_post = (\<lambda> (x, y).
+  \<exists> z \<in> achoices.ac\<^sub>v (des_vars.more y).
+    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x)) \<and>
+    rad_state.wait\<^sub>v z)"
+
+(* Paper Definition 41. *)
+definition Stop_RAD :: "'e reactive_angelic_design" ("Stop\<^sub>R\<^sub>A\<^sub>D") where
+[pred]: "Stop_RAD = (RA \<circ> A) (true \<turnstile> stop_post)"
+
+(* The paper's final-state quantifier is the predicate mapping p2ac. *)
+lemma stop_post_p2ac:
+  "stop_post = p2ac \<lceil>(\<lambda> (s, y).
+    rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and> rad_state.wait\<^sub>v y)\<rceil>\<^sub>D"
+  by (simp add: stop_post_def p2ac_def fun_eq_iff subst_app_def
+      subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
+      pred_auto; blast)
+
+lemma stop_post_PBMH [simp]: "PBMH_ades stop_post = stop_post"
+  by (simp only: stop_post_p2ac PBMH_ades_p2ac)
+
+lemma rad_wait_false_stop_post: "(stop_post \<^sub>wf) = stop_post"
+  by (simp add: stop_post_def rad_wait_false_def fun_eq_iff subst_app_def
+      subst_upd_def subst_id_def SEXP_def lens_defs
+      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+
+lemma stop_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> stop_post"
+  apply (simp add: unrest_lens stop_post_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs)
+  done
+
+lemma stop_design_is_H [closure]: "(true \<turnstile> stop_post) is \<^bold>H"
+  by (rule design_is_H1_H2; simp add: unrest)
+
+lemma Stop_RAD_is_RAD [closure]: "Stop\<^sub>R\<^sub>A\<^sub>D is RAD"
+  unfolding Stop_RAD_def
+  apply (rule RAD_design_closure)
+   apply (rule stop_design_is_H)
+  by (simp add: rad_wait_false_distrib rad_wait_false_stop_post)
+
+(* Paper Theorem 28. *)
+theorem Stop_RAD_angelic_choice:
+  assumes "P is RAD"
+  shows "Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
+    (RA \<circ> A) (true \<turnstile>
+      (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and> stop_post))"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> ?F) \<turnstile> ?T"
+  have "Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
+      (RA \<circ> A) (true \<turnstile> stop_post) \<squnion> (RA \<circ> A) ?DP"
+    by (simp only: Stop_RAD_def RAD_design_form'[OF assms, symmetric])
+  also have "... = (RA \<circ> A) ((true \<turnstile> stop_post) \<squnion> ?DP)"
+    apply (rule RA_A_angelic_choice)
+       apply (simp add: Healthy_def' design_as_disj PBMH_ades_disj
+          PBMH_ades_conj_ok)
+      apply (rule RAD_design_PBMH[OF assms])
+     apply (rule stop_design_is_H)
+    by (rule rad_wait_false_design_is_H)
+  also have "... = (RA \<circ> A)
+      (true \<turnstile> (((\<not> ?F) \<longrightarrow> ?T) \<and> stop_post))"
+    apply (rule arg_cong[where f="RA \<circ> A"])
+    apply (simp only: design_inf)
+    by pred_auto
+  finally show ?thesis .
+qed
+
+subsection \<open>Skip\<close>
+
+(* \<exists> y \<in> ac' \<bullet> \<not> y.wait \<and> y.tr = s.tr *)
+definition skip_post :: "'e reactive_angelic_design" where
+[pred]: "skip_post = (\<lambda> (x, y).
+  \<exists> z \<in> achoices.ac\<^sub>v (des_vars.more y).
+    \<not> rad_state.wait\<^sub>v z \<and>
+    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x)))"
+
+(* Paper Definition 42. *)
+definition Skip_RAD :: "'e reactive_angelic_design" ("Skip\<^sub>R\<^sub>A\<^sub>D") where
+[pred]: "Skip_RAD = (RA \<circ> A) (true \<turnstile> skip_post)"
+
+(* The paper's final-state quantifier is the predicate mapping p2ac. *)
+lemma skip_post_p2ac:
+  "skip_post = p2ac \<lceil>(\<lambda> (s, y).
+    \<not> rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s)\<rceil>\<^sub>D"
+  by (simp add: skip_post_def p2ac_def fun_eq_iff subst_app_def
+      subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
+      pred_auto; blast)
+
+lemma skip_post_PBMH [simp]: "PBMH_ades skip_post = skip_post"
+  by (simp only: skip_post_p2ac PBMH_ades_p2ac)
+
+lemma rad_wait_false_skip_post: "(skip_post \<^sub>wf) = skip_post"
+  by (simp add: skip_post_def rad_wait_false_def fun_eq_iff subst_app_def
+      subst_upd_def subst_id_def SEXP_def lens_defs
+      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+
+lemma skip_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> skip_post"
+  apply (simp add: unrest_lens skip_post_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs)
+  done
+
+lemma skip_design_is_H [closure]: "(true \<turnstile> skip_post) is \<^bold>H"
+  by (rule design_is_H1_H2; simp add: unrest)
+
+lemma Skip_RAD_is_RAD [closure]: "Skip\<^sub>R\<^sub>A\<^sub>D is RAD"
+  unfolding Skip_RAD_def
+  apply (rule RAD_design_closure)
+   apply (rule skip_design_is_H)
+  by (simp add: rad_wait_false_distrib rad_wait_false_skip_post)
+
+(* Paper Theorem 29. *)
+theorem Skip_RAD_angelic_choice:
+  assumes "P is RAD"
+  shows "Skip\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
+    (RA \<circ> A) (true \<turnstile>
+      (skip_post \<and> ((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t)))"
+proof -
+  let ?F = "(P \<^sub>wf)\<^sup>f"
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> ?F) \<turnstile> ?T"
+  have "Skip\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
+      (RA \<circ> A) (true \<turnstile> skip_post) \<squnion> (RA \<circ> A) ?DP"
+    by (simp only: Skip_RAD_def RAD_design_form'[OF assms, symmetric])
+  also have "... = (RA \<circ> A) ((true \<turnstile> skip_post) \<squnion> ?DP)"
+    apply (rule RA_A_angelic_choice)
+       apply (simp add: Healthy_def' design_as_disj PBMH_ades_disj
+          PBMH_ades_conj_ok)
+      apply (rule RAD_design_PBMH[OF assms])
+     apply (rule skip_design_is_H)
+    by (rule rad_wait_false_design_is_H)
+  also have "... = (RA \<circ> A)
+      (true \<turnstile> (skip_post \<and> ((\<not> ?F) \<longrightarrow> ?T)))"
+    apply (rule arg_cong[where f="RA \<circ> A"])
+    apply (simp only: design_inf)
+    by pred_auto
   finally show ?thesis .
 qed
 
