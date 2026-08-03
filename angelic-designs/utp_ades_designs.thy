@@ -34,39 +34,33 @@ definition p2ac_exist :: "('s, 's) urel \<Rightarrow> ('s, '\<alpha>, '\<beta>) 
   \<exists> z. P (astate.s\<^sub>v s0, z))"
 
 (* Thesis Appendix C.5.2, Lemma L.C.5.3. *)
-lemma p2ac_false [simp]:
-  "p2ac false = false"
+lemma p2ac_false [simp]: "p2ac false = false"
   by (pred_auto)
 
 (* Thesis Appendix C.5.2, Lemma L.C.5.2. *)
-lemma p2ac_true [simp]:
-  "p2ac true = ac_non_empty"
+lemma p2ac_true [simp]: "p2ac true = ac_non_empty"
   by (simp add: ac_non_empty_def, pred_auto)
 
 (* Thesis Theorem T.4.6.1. *)
-lemma p2ac_disj:
-  "p2ac (P \<or> Q) = (p2ac P \<or> p2ac Q)"
+lemma p2ac_disj: "p2ac (P \<or> Q) = (p2ac P \<or> p2ac Q)"
   by (pred_auto)
 
 (* Thesis Theorem T.4.6.2. *)
-lemma p2ac_conj:
-  "(p2ac P \<and> p2ac Q) \<sqsubseteq> p2ac (P \<and> Q)"
+lemma p2ac_conj: "(p2ac P \<and> p2ac Q) \<sqsubseteq> p2ac (P \<and> Q)"
   by (simp add: pred_refine_iff conj_pred_def; pred_auto)
 
 lemma p2ac_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> p2ac P \<sqsubseteq> p2ac Q"
   by (auto simp add: p2ac_def pred_refine_iff split: prod.splits)
 
-lemma p2ac_rel_false [simp]:
-  "p2ac_rel false = false"
+lemma p2ac_rel_false [simp]: "p2ac_rel false = false"
   by (pred_auto)
 
 lemma p2ac_rel_true [simp]:
   "p2ac_rel true = (($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
   by (pred_auto)
 
-lemma p2ac_rel_disj:
-  "p2ac_rel (P \<or> Q) = (p2ac_rel P \<or> p2ac_rel Q)"
+lemma p2ac_rel_disj: "p2ac_rel (P \<or> Q) = (p2ac_rel P \<or> p2ac_rel Q)"
   by (pred_auto)
 
 lemma p2ac_rel_conj:
@@ -87,18 +81,15 @@ lemma p2ac_design_nonempty:
   by (simp add: ac_non_empty_def p2ac_def design_def fun_eq_iff;
       pred_auto)
 
-lemma PBMH_p2ac_rel [simp]:
-  "PBMH (p2ac_rel P) = p2ac_rel P"
+lemma PBMH_p2ac_rel [simp]: "PBMH (p2ac_rel P) = p2ac_rel P"
   by (pred_auto)
 
 (* Paper Appendix A.3, Lemma 26 *)
-lemma PBMH_ades_p2ac [simp]:
-  "PBMH_ades (p2ac P) = p2ac P"
+lemma PBMH_ades_p2ac [simp]: "PBMH_ades (p2ac P) = p2ac P"
   by (simp add: PBMH_ades_def p2ac_def fun_eq_iff; pred_auto)
 
 (* Thesis Theorem T.4.6.3, in relational form. *)
-lemma A2_rel_p2ac_rel [simp]:
-  "A2_rel (p2ac_rel P) = p2ac_rel P"
+lemma A2_rel_p2ac_rel [simp]: "A2_rel (p2ac_rel P) = p2ac_rel P"
   by (simp add: A2_rel_eq_expanded, pred_auto)
 
 subsection \<open>Design to Angelic Design\<close>
@@ -115,28 +106,22 @@ lemma d2ac_rdesign:
    ((\<not> p2ac_rel (\<not> P) \<and> p2ac_exist P) \<turnstile>\<^sub>r p2ac_rel Q)"
   by (simp add: d2ac_def, pred_auto)
 
-lemma d2ac_A0 [simp]:
-  "A0 (d2ac P) = d2ac P"
+lemma d2ac_A0 [simp]: "A0 (d2ac P) = d2ac P"
   by (simp add: A0_def d2ac_def, pred_auto)
 
-lemma d2ac_A1 [simp]:
-  "A1 (d2ac P) = d2ac P"
+lemma d2ac_A1 [simp]: "A1 (d2ac P) = d2ac P"
   by (simp add: A1_def d2ac_def, pred_auto)
 
-lemma d2ac_A [simp]:
-  "A (d2ac P) = d2ac P"
+lemma d2ac_A [simp]: "A (d2ac P) = d2ac P"
   by (simp add: A_def)
 
-lemma d2ac_A2 [simp]:
-  "A2 (d2ac P) = d2ac P"
+lemma d2ac_A2 [simp]: "A2 (d2ac P) = d2ac P"
   by (simp add: A2_def d2ac_def rdesign_refinement, pred_auto)
 
-lemma d2ac_is_A [closure]:
-  "d2ac P is A"
+lemma d2ac_is_A [closure]: "d2ac P is A"
   by (simp add: Healthy_def')
 
-lemma d2ac_is_A2 [closure]:
-  "d2ac P is A2"
+lemma d2ac_is_A2 [closure]: "d2ac P is A2"
   by (simp add: Healthy_def')
 
 lemma d2ac_mono:
@@ -160,13 +145,11 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
   in PBMH_ades P (ades_in, ades_out))"
 
 (* Paper Lemma 25 *)
-lemma ac2p_PBMH_ades [simp]:
-  "ac2p (PBMH_ades P) = ac2p P"
+lemma ac2p_PBMH_ades [simp]: "ac2p (PBMH_ades P) = ac2p P"
   by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
 
 (* Thesis Theorem T.C.5.1. *)
-lemma ac2p_disj:
-  "ac2p (P \<or> Q) = (ac2p P \<or> ac2p Q)"
+lemma ac2p_disj: "ac2p (P \<or> Q) = (ac2p P \<or> ac2p Q)"
   apply (simp only: ac2p_def PBMH_ades_disj)
   by (simp add: fun_eq_iff disj_pred_def Let_def)
 
@@ -294,12 +277,10 @@ definition P_dummy :: "unit angelic_design" where
   (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e \<turnstile>\<^sub>r
    ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
 
-lemma P_dummy_is_A:
-  "P_dummy is A"
+lemma P_dummy_is_A: "P_dummy is A"
   by (simp add: Healthy_def' P_dummy_def A_design_form, pred_auto)
 
-lemma P_dummy_not_normal:
-  "\<not> (P_dummy is \<^bold>N)"
+lemma P_dummy_not_normal: "\<not> (P_dummy is \<^bold>N)"
 proof
   assume normal: "P_dummy is \<^bold>N"
   have "$ac\<^sup>> \<sharp> pre\<^sub>D P_dummy"
@@ -309,14 +290,12 @@ proof
     by (simp add: P_dummy_def unrest unrest_lens; pred_auto)
 qed
 
-lemma ac2p_P_dummy:
-  "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
+lemma ac2p_P_dummy: "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
   unfolding P_dummy_def
   apply (simp only: ac2p_rdesign ac2p_rel_subset)
   by (pred_auto)
 
-lemma d2ac_ac2p_P_dummy:
-  "(d2ac \<circ> ac2p) P_dummy = true"
+lemma d2ac_ac2p_P_dummy: "(d2ac \<circ> ac2p) P_dummy = true"
   apply (simp only: comp_apply ac2p_P_dummy d2ac_rdesign
       p2ac_rel_false p2ac_rel_true
       p2ac_exist_def)

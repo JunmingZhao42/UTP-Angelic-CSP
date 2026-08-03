@@ -33,8 +33,7 @@ lemma angelic_rel_demonic:
   shows "P \<sqinter> Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
-lemma angelic_design_demonic:
-  "P \<sqinter>\<^sub>D\<^sub>A Q = (P \<or> Q)"
+lemma angelic_design_demonic: "P \<sqinter>\<^sub>D\<^sub>A Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
 subsection \<open>Angelic Choice\<close>
@@ -79,12 +78,10 @@ where
   P (s0, achoices.ac\<^sub>v_update
     (\<lambda>_. {s1. Q (astate.s\<^sub>v_update (\<lambda>_. s1) s0, ac')}) ac'))"
 
-lemma aseq_true_left [simp]:
-  "true ;;\<^sub>A P = true"
+lemma aseq_true_left [simp]: "true ;;\<^sub>A P = true"
   by (pred_auto)
 
-lemma aseq_false_left [simp]:
-  "false ;;\<^sub>A P = false"
+lemma aseq_false_left [simp]: "false ;;\<^sub>A P = false"
   by (pred_auto)
 
 (* (s \<in> ac') ;; P = P *)
@@ -97,15 +94,19 @@ lemma aseq_true_right_unrest [simp]:
   shows "P ;;\<^sub>A true = P"
   using assms by (pred_auto assms: assms)
 
-subsection \<open>PBMH\<close>
+lemma aseq_mono_left:
+  "P \<sqsubseteq> Q \<Longrightarrow> (P ;;\<^sub>A R) \<sqsubseteq> (Q ;;\<^sub>A R)"
+  by (auto simp add: aseq_def pred_refine_iff split: prod.splits)
 
-(* ac \<subseteq> ac' \<and> v' = v. *)
-definition pbmh_step :: "(('s, '\<alpha>) achoices_scheme, ('s, '\<alpha>) achoices_scheme) urel" where
-[pred]: "pbmh_step = (($ac\<^sup>< \<subseteq> $ac\<^sup>>) \<and> $\<^bold>v\<^sub>A\<^sup>> = $\<^bold>v\<^sub>A\<^sup><)\<^sub>e"
+(* Left distribution over disjunction; the right argument occurs inside the
+   angelic-choice set, so the symmetric law does not hold in general. *)
+lemma aseq_disj_distrib:
+  "((P \<or> Q) ;;\<^sub>A R) = ((P ;;\<^sub>A R) \<or> (Q ;;\<^sub>A R))"
+  by (simp add: aseq_def fun_eq_iff; pred_auto)
 
-(* Paper Definition 15. *)
-definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarrow> ('\<beta>, ('s, '\<alpha>) achoices_scheme) urel" where
-[pred]: "PBMH P = (P ;; pbmh_step)"
+lemma aseq_assoc:
+  "((P ;;\<^sub>A Q) ;;\<^sub>A R) = (P ;;\<^sub>A (Q ;;\<^sub>A R))"
+  by (simp add: aseq_def fun_eq_iff)
 
 subsection \<open>Angelic Design Sequential Composition\<close>
 

@@ -38,11 +38,6 @@ lemma des_vars_more_put [simp]:
   "des_vars.more (put\<^bsub>\<^bold>v\<^sub>D\<^esub> d v) = v"
   by (simp add: des_vars.more\<^sub>L_def)
 
-(* A design as the disjunction of its observation cases. *)
-lemma design_as_disj:
-  "(P \<turnstile> Q) = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> (Q \<and> ok\<^sup>>))"
-  by (simp add: design_def fun_eq_iff; pred_auto)
-
 (* Paper Definition 25. *)
 (* Package the ordinary variables as the state observed by an angelic predicate. *)
 definition StateII :: "'s \<Rightarrow> 's astate" where
@@ -80,5 +75,22 @@ where
 text \<open>
   For example, @{term "arel_to_ades (($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e) :: 's angelic_design"}.
 \<close>
+
+subsection \<open>Design support laws\<close>
+
+(* A design as the disjunction of its observation cases. *)
+lemma design_as_disj:
+  "(P \<turnstile> Q) = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> (Q \<and> ok\<^sup>>))"
+  by (simp add: design_def fun_eq_iff; pred_auto)
+
+subsection \<open>PBMH\<close>
+
+(* ac \<subseteq> ac' \<and> v' = v. *)
+definition pbmh_step :: "(('s, '\<alpha>) achoices_scheme, ('s, '\<alpha>) achoices_scheme) urel" where
+[pred]: "pbmh_step = (($ac\<^sup>< \<subseteq> $ac\<^sup>>) \<and> $\<^bold>v\<^sub>A\<^sup>> = $\<^bold>v\<^sub>A\<^sup><)\<^sub>e"
+
+(* Paper Definition 15. *)
+definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarrow> ('\<beta>, ('s, '\<alpha>) achoices_scheme) urel" where
+[pred]: "PBMH P = (P ;; pbmh_step)"
 
 end

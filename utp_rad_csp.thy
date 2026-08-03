@@ -31,12 +31,10 @@ definition csp2rad_obs ::
           \<dots> = () \<rparr> \<rparr>"
 
 (* The observation conversions are bijective. *)
-lemma csp2rad_obs_inverse [simp]:
-  "csp2rad_obs (rad2csp_obs x) = x"
+lemma csp2rad_obs_inverse [simp]: "csp2rad_obs (rad2csp_obs x) = x"
   by (cases x; simp add: rad2csp_obs_def csp2rad_obs_def)
 
-lemma rad2csp_obs_inverse [simp]:
-  "rad2csp_obs (csp2rad_obs x) = x"
+lemma rad2csp_obs_inverse [simp]: "rad2csp_obs (csp2rad_obs x) = x"
   by (cases x; simp add: rad2csp_obs_def csp2rad_obs_def)
 
 subsection \<open>Relation and design mappings\<close>
@@ -48,12 +46,10 @@ where [pred]: "rad2csp_rel P = (\<lambda> (x, y). P (csp2rad_obs x, csp2rad_obs 
 definition csp2rad_rel :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e rad_state des_hrel"
 where [pred]: "csp2rad_rel P = (\<lambda> (x, y). P (rad2csp_obs x, rad2csp_obs y))"
 
-lemma csp2rad_rel_inverse [simp]:
-  "csp2rad_rel (rad2csp_rel P) = P"
+lemma csp2rad_rel_inverse [simp]: "csp2rad_rel (rad2csp_rel P) = P"
   by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
-lemma rad2csp_rel_inverse [simp]:
-  "rad2csp_rel (csp2rad_rel P) = P"
+lemma rad2csp_rel_inverse [simp]: "rad2csp_rel (csp2rad_rel P) = P"
   by (simp add: rad2csp_rel_def csp2rad_rel_def fun_eq_iff)
 
 (* Designs distribute through the observation repackaging. *)
@@ -81,17 +77,14 @@ where [pred]: "rad_p2ac = p2ac \<circ> csp2rad_rel"
 definition rad_d2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
 where [pred]: "rad_d2ac = d2ac \<circ> csp2rad_rel"
 
-lemma rad_p2ac_PBMH_ades [closure]:
-  "rad_p2ac P is PBMH_ades"
+lemma rad_p2ac_PBMH_ades [closure]: "rad_p2ac P is PBMH_ades"
   by (simp add: Healthy_def rad_p2ac_def)
 
-lemma rad_ac2p_disj:
-  "rad_ac2p (P \<or> Q) = (rad_ac2p P \<or> rad_ac2p Q)"
+lemma rad_ac2p_disj: "rad_ac2p (P \<or> Q) = (rad_ac2p P \<or> rad_ac2p Q)"
   unfolding rad_ac2p_def comp_apply ac2p_disj
   by (simp add: rad2csp_rel_def fun_eq_iff disj_pred_def)
 
-lemma rad_p2ac_disj:
-  "rad_p2ac (P \<or> Q) = (rad_p2ac P \<or> rad_p2ac Q)"
+lemma rad_p2ac_disj: "rad_p2ac (P \<or> Q) = (rad_p2ac P \<or> rad_p2ac Q)"
 proof -
   have map_disj:
       "csp2rad_rel (P \<or> Q) =
@@ -177,8 +170,7 @@ lemma rad_ac2p_II_Rac [simp]:
   done
 
 (* Thesis Theorem T.G.7.3. *)
-lemma rad_ac2p_RA3:
-  "(rad_ac2p \<circ> RA3) P = (R3c \<circ> rad_ac2p) P"
+lemma rad_ac2p_RA3: "(rad_ac2p \<circ> RA3) P = (R3c \<circ> rad_ac2p) P"
 proof -
   have ac2p_wait:
       "rad_ac2p (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
@@ -234,8 +226,7 @@ proof -
     by (simp only: comp_apply)
 qed
 
-lemmas rad_ac2p_RA_design' =
-  rad_ac2p_RA_design[simplified comp_apply]
+lemmas rad_ac2p_RA_design' = rad_ac2p_RA_design[simplified comp_apply]
 
 (* Theorems 11 and 13 give the CSP image of a RAD-healthy predicate.
    Theorem 13 uses Theorem 12 to transport RA healthiness to R healthiness. *)
@@ -260,8 +251,7 @@ lemma rad_ac2p_RAD_healthy:
 subsection \<open>From CSP to reactive angelic designs\<close>
 
 (* Thesis Theorem T.G.7.8. *)
-lemma rad_p2ac_R1:
-  "(rad_p2ac \<circ> R1) P = (RA1 \<circ> rad_p2ac) P"
+lemma rad_p2ac_R1: "(rad_p2ac \<circ> R1) P = (RA1 \<circ> rad_p2ac) P"
 proof -
   have "(RA1 \<circ> rad_p2ac) P = (rad_p2ac \<circ> R1) P"
     apply (simp add: RA1_def rad_p2ac_def p2ac_def
@@ -284,8 +274,7 @@ qed
 
 (* Thesis Theorem T.G.7.9. *)
 lemma rad_p2ac_R1_R2:
-  "(rad_p2ac \<circ> R1 \<circ> R2) P =
-   (RA2 \<circ> rad_p2ac) P"
+  "(rad_p2ac \<circ> R1 \<circ> R2) P = (RA2 \<circ> rad_p2ac) P"
   apply (simp add: RA2_def rad_p2ac_def p2ac_def
       csp2rad_rel_def R2_def R2s_def R1_def rad2csp_obs_def
       rad_normalise_choices_def rad_trace_difference_def
@@ -338,8 +327,7 @@ proof -
 qed
 
 (* Thesis Theorem T.G.7.10. *)
-lemma rad_p2ac_R3:
-  "(rad_p2ac \<circ> R3c) P = (RA3 \<circ> rad_p2ac) P"
+lemma rad_p2ac_R3: "(rad_p2ac \<circ> R3c) P = (RA3 \<circ> rad_p2ac) P"
 proof -
   have p2ac_wait:
       "rad_p2ac (P \<triangleleft> $wait\<^sup>< \<triangleright> Q) =
@@ -424,9 +412,10 @@ proof -
   finally show ?thesis .
 qed
 
+subsection \<open>Isomorphism and Galois Connection\<close>
+
 (* Paper Theorem 16 / Thesis Theorem T.5.3.5. *)
-theorem rad_ac2p_p2ac_inverse:
-  "(rad_ac2p \<circ> rad_p2ac) P = P"
+theorem rad_ac2p_p2ac_inverse: "(rad_ac2p \<circ> rad_p2ac) P = P"
 proof -
   have base_round_trip:
       "(ac2p \<circ> p2ac) Q = Q" for Q :: "'s des_hrel"
@@ -478,8 +467,7 @@ theorem rad_p2ac_ac2p_refine:
   apply (simp add: PBMH_ades_def pred_refine_iff)
   by (pred_auto; blast)
 
-lemmas rad_p2ac_ac2p_refine' =
-  rad_p2ac_ac2p_refine[simplified comp_apply]
+lemmas rad_p2ac_ac2p_refine' = rad_p2ac_ac2p_refine[simplified comp_apply]
 
 (* Thesis Lemma L.G.7.11. *)
 lemma rad_p2ac_ac2p_A2:
@@ -595,7 +583,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemmas rad_p2ac_ac2p_RAD_A2' =
-  rad_p2ac_ac2p_RAD_A2[simplified comp_apply]
+lemmas rad_p2ac_ac2p_RAD_A2' = rad_p2ac_ac2p_RAD_A2[simplified comp_apply]
 
 end
