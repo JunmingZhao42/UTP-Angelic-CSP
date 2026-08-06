@@ -83,8 +83,8 @@ lemma pbmh_step_eval:
   by (simp add: pbmh_step_def; pred_auto)
 
 lemma PBMH_eval:
-  "PBMH P (s\<^sub>0, ac') \<longleftrightarrow>
-    (\<exists>b. P (s\<^sub>0, b) \<and> pbmh_step (b, ac'))"
+  "PBMH P (s0, ac') \<longleftrightarrow>
+    (\<exists>b. P (s0, b) \<and> pbmh_step (b, ac'))"
   by (simp add: PBMH_def; pred_auto)
 
 (* PBMH-healthy predicates are upward closed in the angelic-choice set. *)
@@ -92,10 +92,10 @@ lemma PBMH_weaken: "P x \<Longrightarrow> PBMH P x"
   by (cases x; simp add: PBMH_def pbmh_step_def; pred_auto)
 
 lemma PBMH_upward:
-  assumes "P is PBMH" "P (s\<^sub>0, b)" "pbmh_step (b, c)"
-  shows "P (s\<^sub>0, c)"
+  assumes "P is PBMH" "P (s0, b)" "pbmh_step (b, c)"
+  shows "P (s0, c)"
 proof -
-  have "PBMH P (s\<^sub>0, c)"
+  have "PBMH P (s0, c)"
     using assms(2,3) by (auto simp add: PBMH_eval)
   then show ?thesis
     using assms(1) by (simp add: Healthy_def')
@@ -103,8 +103,8 @@ qed
 
 lemma PBMH_ac_upward:
   assumes "P is PBMH"
-    and "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. A) ac')" and "A \<subseteq> B"
-  shows "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. B) ac')"
+    and "P (s0, achoices.ac\<^sub>v_update (\<lambda>_. A) ac')" and "A \<subseteq> B"
+  shows "P (s0, achoices.ac\<^sub>v_update (\<lambda>_. B) ac')"
   apply (rule PBMH_upward[OF assms(1) assms(2)])
   by (simp add: pbmh_step_eval assms(3))
 
@@ -128,26 +128,26 @@ lemma PBMH_aseq_closure [closure]:
   shows "(P ;;\<^sub>A Q) is PBMH"
 proof (rule Healthy_intro, rule ext)
   fix w :: "('s, '\<alpha>) astate_ext \<times> ('s, '\<beta>) achoices_ext"
-  obtain s\<^sub>0 ac' where w_eq [simp]: "w = (s\<^sub>0, ac')"
+  obtain s0 ac' where w_eq [simp]: "w = (s0, ac')"
     by (cases w) auto
   show "PBMH (P ;;\<^sub>A Q) w = (P ;;\<^sub>A Q) w"
   proof
     assume "PBMH (P ;;\<^sub>A Q) w"
-    then obtain b where comp: "(P ;;\<^sub>A Q) (s\<^sub>0, b)"
+    then obtain b where comp: "(P ;;\<^sub>A Q) (s0, b)"
         and step: "pbmh_step (b, ac')"
       by (auto simp add: PBMH_eval)
-    define S\<^sub>b where "S\<^sub>b = {s\<^sub>1. Q (astate.s\<^sub>v_update (\<lambda>_. s\<^sub>1) s\<^sub>0, b)}"
-    define S where "S = {s\<^sub>1. Q (astate.s\<^sub>v_update (\<lambda>_. s\<^sub>1) s\<^sub>0, ac')}"
-    have P_at: "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. S\<^sub>b) b)"
-      using comp by (simp add: aseq_def S\<^sub>b_def)
-    have S_sub: "S\<^sub>b \<subseteq> S"
-      unfolding S\<^sub>b_def S_def
+    define Sb where "Sb = {s1. Q (astate.s\<^sub>v_update (\<lambda>_. s1) s0, b)}"
+    define S where "S = {s1. Q (astate.s\<^sub>v_update (\<lambda>_. s1) s0, ac')}"
+    have P_at: "P (s0, achoices.ac\<^sub>v_update (\<lambda>_. Sb) b)"
+      using comp by (simp add: aseq_def Sb_def)
+    have S_sub: "Sb \<subseteq> S"
+      unfolding Sb_def S_def
       by (auto intro: PBMH_upward[OF assms(2) _ step])
     have step': "pbmh_step
-        (achoices.ac\<^sub>v_update (\<lambda>_. S\<^sub>b) b,
+        (achoices.ac\<^sub>v_update (\<lambda>_. Sb) b,
          achoices.ac\<^sub>v_update (\<lambda>_. S) ac')"
       using S_sub step by (simp add: pbmh_step_eval)
-    have "P (s\<^sub>0, achoices.ac\<^sub>v_update (\<lambda>_. S) ac')"
+    have "P (s0, achoices.ac\<^sub>v_update (\<lambda>_. S) ac')"
       by (rule PBMH_upward[OF assms(1) P_at step'])
     then show "(P ;;\<^sub>A Q) w"
       by (simp add: aseq_def S_def)
@@ -168,7 +168,7 @@ lemma PBMH_state_subst:
   done
 
 (* Paper Theorem 64. PBMH commutes with the H1 guard. *)
-lemma PBMH_H1_commute:
+theorem PBMH_H1_commute:
   "PBMH (ok\<^sup>< \<longrightarrow> P) = (ok\<^sup>< \<longrightarrow> PBMH P)"
   by (pred_auto)
 
@@ -177,7 +177,7 @@ lemma H2_lift_desr:
   by (pred_auto)
 
 (* Paper Theorem 65. PBMH and H2 commute, lifted through the design shell. *)
-lemma PBMH_H2_commute:
+theorem PBMH_H2_commute:
   "H2 (\<lceil>PBMH P\<rceil>\<^sub>D) =
    \<lceil>PBMH (\<lfloor>H2 (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D)\<rceil>\<^sub>D"
   by (simp add: H2_lift_desr)
@@ -198,6 +198,136 @@ lemma PBMH_ades_mono:
 lemma PBMH_ades_Monotonic [closure]: "Monotonic PBMH_ades"
   by (rule MonotonicI, rule PBMH_ades_mono)
 
+lemma PBMH_ades_weaken: "P w \<Longrightarrow> PBMH_ades P w"
+  by (cases w; simp add: PBMH_ades_def PBMH_def pbmh_step_def;
+      pred_auto)
+
+lemma PBMH_ades_eval:
+  "PBMH_ades P (s0, ac') \<longleftrightarrow>
+    (\<exists>X. P (s0, des_vars.more_update
+        (achoices.ac\<^sub>v_update (\<lambda>_. X)) ac') \<and>
+      X \<subseteq> achoices.ac\<^sub>v (des_vars.more ac'))"
+  apply (simp add: PBMH_ades_def PBMH_def pbmh_step_def Let_def)
+  apply pred_auto
+  subgoal for X
+    by (rule exI[where x=X]; cases ac'; cases "des_vars.more ac'"; simp)
+  subgoal for X
+    by (rule exI[where x=X]; cases ac'; cases "des_vars.more ac'"; simp)
+  done
+
+(* PBMH_ades-healthy predicates are upward closed in the angelic-choice
+   component when the design observation otherwise agrees. *)
+lemma PBMH_ades_upward:
+  assumes "P is PBMH_ades" and "P (s0, y)"
+    and "achoices.ac\<^sub>v (des_vars.more y) \<subseteq>
+      achoices.ac\<^sub>v (des_vars.more y')"
+    and "ok\<^sub>v y' = ok\<^sub>v y"
+  shows "P (s0, y')"
+proof -
+  have "PBMH_ades P (s0, y')"
+    using assms(2,3,4)
+    apply (simp add: PBMH_ades_eval)
+    apply (rule exI[where x="achoices.ac\<^sub>v (des_vars.more y)"])
+    by (cases y; cases y'; cases "des_vars.more y";
+        cases "des_vars.more y'"; simp)
+  then show ?thesis
+    using assms(1) by (simp add: Healthy_def')
+qed
+
+lemma aseq_ades_mono_right:
+  assumes "P is PBMH_ades" and "Q \<sqsubseteq> R"
+  shows "(P ;;\<^sub>A\<^sub>D Q) \<sqsubseteq> (P ;;\<^sub>A\<^sub>D R)"
+  unfolding aseq_ades_def pred_refine_iff
+  apply (clarsimp split: prod.splits)
+  apply (erule PBMH_ades_upward[OF assms(1)])
+  using assms(2)
+  by (auto simp add: pred_refine_iff)
+
+lemma aseq_ades_PBMH_ades_closure [closure]:
+  assumes "P is PBMH_ades" "Q is PBMH_ades"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
+proof (rule Healthy_intro, rule ext)
+  fix w :: "'a astate des_vars_ext \<times> 'a achoices des_vars_ext"
+  obtain s0 ac' where w_eq [simp]: "w = (s0, ac')"
+    by (cases w) auto
+  show "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w = (P ;;\<^sub>A\<^sub>D Q) w"
+  proof
+    assume "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w"
+    then obtain X where
+        comp: "(P ;;\<^sub>A\<^sub>D Q) (s0, des_vars.more_update
+          (achoices.ac\<^sub>v_update (\<lambda>_. X)) ac')"
+        and sub: "X \<subseteq> achoices.ac\<^sub>v (des_vars.more ac')"
+      by (auto simp add: PBMH_ades_eval)
+    let ?mid = "des_vars.more_update
+      (achoices.ac\<^sub>v_update (\<lambda>_. X)) ac'"
+    let ?SX = "{s1. Q (des_vars.more_update
+      (astate.s\<^sub>v_update (\<lambda>_. s1)) s0, ?mid)}"
+    let ?S = "{s1. Q (des_vars.more_update
+      (astate.s\<^sub>v_update (\<lambda>_. s1)) s0, ac')}"
+    have P_at: "P (s0, des_vars.more_update
+        (achoices.ac\<^sub>v_update (\<lambda>_. ?SX)) ?mid)"
+      using comp by (simp add: aseq_ades_def)
+    have S_sub: "?SX \<subseteq> ?S"
+      apply (rule subsetI)
+      apply (simp only: mem_Collect_eq)
+      apply (erule PBMH_ades_upward[OF assms(2)])
+      using sub by auto
+    show "(P ;;\<^sub>A\<^sub>D Q) w"
+      unfolding w_eq aseq_ades_def
+      apply (simp only: prod.case)
+      apply (rule PBMH_ades_upward[OF assms(1) P_at])
+      using S_sub by auto
+  next
+    assume "(P ;;\<^sub>A\<^sub>D Q) w"
+    then show "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w"
+      by (rule PBMH_ades_weaken)
+  qed
+qed
+
+(* The final ok observation is constant across the angelic-choice
+   comprehension, so it can be pulled out of the right operand. *)
+lemma aseq_ades_ok_out_split:
+  assumes "P is PBMH_ades"
+  shows "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) =
+    ((P ;;\<^sub>A\<^sub>D X) \<or> ((P ;;\<^sub>A\<^sub>D (X \<or> Y)) \<and> ok\<^sup>>))"
+proof (rule ext)
+  fix w :: "'a astate des_vars_ext \<times> 'a achoices des_vars_ext"
+  obtain s0 ac' where w_eq [simp]: "w = (s0, ac')" by (cases w) auto
+  have evalp: "((X \<or> (Y \<and> ok\<^sup>>)) (a, ac')) \<longleftrightarrow>
+      (X (a, ac') \<or> (Y (a, ac') \<and> ok\<^sub>v ac'))" for a
+    by pred_auto
+  have evalo: "((Z \<and> ok\<^sup>>) (s0, ac')) \<longleftrightarrow> (Z (s0, ac') \<and> ok\<^sub>v ac')"
+    for Z :: "'a angelic_design"
+    by pred_auto
+  show "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) w =
+      ((P ;;\<^sub>A\<^sub>D X) \<or> ((P ;;\<^sub>A\<^sub>D (X \<or> Y)) \<and> ok\<^sup>>)) w"
+  proof (cases "ok\<^sub>v ac'")
+    case True
+    then have "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
+        (P ;;\<^sub>A\<^sub>D (X \<or> Y)) (s0, ac')"
+      by (simp add: aseq_ades_def evalp disj_pred_def; pred_auto)
+    moreover have "(P ;;\<^sub>A\<^sub>D X) (s0, ac') \<Longrightarrow>
+        (P ;;\<^sub>A\<^sub>D (X \<or> Y)) (s0, ac')"
+      unfolding aseq_ades_def
+      apply (simp only: prod.case)
+      apply (erule PBMH_ades_upward[OF assms])
+      by (auto simp add: disj_pred_def)
+    ultimately show ?thesis
+      using True
+      by (auto simp add: disj_pred_def conj_pred_def evalo
+          des_vars.ok_def)
+  next
+    case False
+    then have "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
+        (P ;;\<^sub>A\<^sub>D X) (s0, ac')"
+      by (simp add: aseq_ades_def evalp disj_pred_def; pred_auto)
+    then show ?thesis
+      using False
+      by (auto simp add: disj_pred_def conj_pred_def evalo
+          des_vars.ok_def)
+  qed
+qed
+
 lemma PBMH_ades_idem: "PBMH_ades (PBMH_ades P) = PBMH_ades P"
   by (simp add: PBMH_ades_def fun_eq_iff PBMH_idem)
 
@@ -215,6 +345,11 @@ lemma PBMH_ades_disj:
   "PBMH_ades (P \<or> Q) = (PBMH_ades P \<or> PBMH_ades Q)"
   by (simp add: PBMH_ades_def PBMH_disj fun_eq_iff; pred_auto)
 
+lemma PBMH_ades_disj_closure [closure]:
+  "\<lbrakk> P is PBMH_ades; Q is PBMH_ades \<rbrakk> \<Longrightarrow>
+   (P \<or> Q) is PBMH_ades"
+  by (simp add: Healthy_def' PBMH_ades_disj)
+
 lemma PBMH_ades_conj_ok:
   "PBMH_ades (P \<and> ok\<^sup>>) = (PBMH_ades P \<and> ok\<^sup>>)"
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
@@ -222,6 +357,25 @@ lemma PBMH_ades_conj_ok:
 lemma PBMH_ades_not_ok_expr [simp]:
   "PBMH_ades (\<not> ok\<^sup><) = (\<not> ok\<^sup><)"
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_false [simp]: "PBMH_ades false = false"
+  by (simp add: PBMH_ades_def PBMH_def pbmh_step_def fun_eq_iff;
+      pred_auto)
+
+lemma PBMH_ades_true [simp]: "PBMH_ades true = true"
+  by (simp add: PBMH_ades_def PBMH_def pbmh_step_def fun_eq_iff;
+      pred_auto)
+
+lemma false_PBMH_ades [closure]: "false is PBMH_ades"
+  by (simp add: Healthy_def')
+
+lemma true_PBMH_ades [closure]: "true is PBMH_ades"
+  by (simp add: Healthy_def')
+
+lemma ades_state_choice_is_PBMH_ades [closure]:
+  "ades_state_choice is PBMH_ades"
+  by (simp add: Healthy_def' PBMH_ades_def PBMH_def pbmh_step_def
+      ades_state_choice_def fun_eq_iff; pred_auto; blast)
 
 lemma PBMH_ades_design_closure:
   assumes "F is PBMH_ades" "T is PBMH_ades"
@@ -267,7 +421,7 @@ lemma A0_state_subst:
   by (simp add: A0_def, pred_auto)
 
 (* Paper Theorem 3. *)
-lemma "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
+theorem "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
 
 subsection \<open>A1\<close>
@@ -427,15 +581,12 @@ proof -
     using assms(1) by (simp add: Healthy_def' A_design_form)
   have Q_form: "Q = ?DQ"
     using assms(2) by (simp add: Healthy_def' A_design_form)
-  have choice_rewrite:
-      "P \<squnion>\<^sub>D\<^sub>A Q = ?DP \<squnion> ?DQ"
-    using arg_cong2[where f=inf, OF P_form Q_form] .
   have choice_form:
       "P \<squnion>\<^sub>D\<^sub>A Q = (?Pre \<turnstile>\<^sub>r ?Post)"
-    apply (subst choice_rewrite)
+    apply (subst P_form)
+    apply (subst Q_form)
     apply (simp only: rdesign_inf)
-    apply pred_auto
-    done
+    by pred_auto
 
   have pre_not: "(\<not> ?Pre) = (?PF \<and> ?QF)"
     by pred_auto
@@ -447,11 +598,9 @@ proof -
   have post_of_design:
       "post\<^sub>D (?Pre \<turnstile>\<^sub>r ?Post) = ?PostD"
     by pred_auto
-  have non_empty_healthy: "?N is PBMH"
-    by (simp add: Healthy_def')
   have post_healthy: "?PostD is PBMH"
-    by (intro PBMH_disj_closure PBMH_conj_closure PBMH_healthy
-        non_empty_healthy)
+    by (intro PBMH_disj_closure PBMH_conj_closure PBMH_healthy;
+        simp add: Healthy_def')
   have post_norm:
       "PBMH (post\<^sub>D (?Pre \<turnstile>\<^sub>r ?Post)) = ?PostD"
     using post_healthy by (simp only: post_of_design Healthy_def')
@@ -460,8 +609,7 @@ proof -
     apply (simp only: choice_form Healthy_def')
     apply (simp only: A_design_form rdesign_pre post_of_design
         pre_norm post_norm)
-    apply (rule ref_antisym; rule rdesign_refine_intro; pred_simp; blast)
-    done
+    by (rule ref_antisym; rule rdesign_refine_intro; pred_simp; blast)
 qed
 
 (* Thesis Theorem T.4.5.14 *)
@@ -566,11 +714,59 @@ lemma A2_rel_expanded_singleton_choice:
     ac_singleton_choice P)"
   by (pred_auto)
 
+(* Paper Definition 36: \<exists> y \<bullet> y \<in> ac' \<and> P[{y}/ac']. *)
+(* Binder form of the lifting: \<in>\<^sub>a\<^sub>c y. B binds the chosen
+   state y in the body, as in the paper's notation. *)
+definition ades_singleton_choice ::
+  "('s \<Rightarrow> 's angelic_design) \<Rightarrow> 's angelic_design"
+  (binder "\<in>\<^sub>a\<^sub>c " 10) where
+[pred]: "ades_singleton_choice B = (\<lambda> (s0, ac').
+  \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
+    B y (s0, des_vars.more_update
+        (achoices.ac\<^sub>v_update (\<lambda>_. {y})) ac'))"
+
+abbreviation ades_singleton_choice_app ::
+  "'s angelic_design \<Rightarrow> 's angelic_design" ("\<in>\<^sub>a\<^sub>c'(_')" [0] 999)
+  where "\<in>\<^sub>a\<^sub>c(P) \<equiv> \<in>\<^sub>a\<^sub>c y. P"
+
+lemma ades_singleton_choice_PBMH [simp]:
+  "PBMH_ades (\<in>\<^sub>a\<^sub>c(P)) = \<in>\<^sub>a\<^sub>c(P)"
+  by (simp add: PBMH_ades_def ades_singleton_choice_def fun_eq_iff;
+      pred_auto; blast)
+
+lemma ades_singleton_choice_ok_in_subst:
+  "(\<in>\<^sub>a\<^sub>c(P))\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
+   \<in>\<^sub>a\<^sub>c(P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
+  by (simp add: ades_singleton_choice_def fun_eq_iff subst_app_def
+      subst_upd_def subst_id_def SEXP_def lens_defs des_vars.ok_def
+      des_more_ok_update_commute; pred_auto)
+
+lemma ades_singleton_choice_unrest_ok [unrest]:
+  assumes "$ok\<^sup>> \<sharp> P"
+  shows "$ok\<^sup>> \<sharp> \<in>\<^sub>a\<^sub>c(P)"
+proof -
+  have put_P:
+      "\<forall> s0 ac1 v. P (s0, ac1\<lparr>des_vars.ok\<^sub>v := v\<rparr>) = P (s0, ac1)"
+    using assms
+    apply (subst (asm) unrest_lens)
+     apply simp
+    by (simp add: lens_defs des_vars.ok_def case_prod_beta
+        split_paired_All)
+  show ?thesis
+    apply (subst unrest_lens)
+     apply simp
+    apply (simp add: ades_singleton_choice_def lens_defs
+        des_vars.ok_def case_prod_beta)
+    using put_P
+    by (simp add: des_more_ok_update_commute)
+qed
+
 (* Lift the definition from angelic relation to angelic designs: lemma L.4.2.3 in thesis *)
 definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
 
-lemma A2_rel_eq_expanded: "A2_rel P = A2_rel_expanded P"
+(* Paper Theorem 4. *)
+theorem A2_rel_eq_expanded: "A2_rel P = A2_rel_expanded P"
   apply (pred_auto)
   subgoal for s more ac morea X
     by (cases "\<exists> y. X = {y}", auto)
@@ -673,6 +869,7 @@ lemma A2_Monotonic [closure]: "Monotonic A2"
 subsection \<open>Singleton-Witness (SW) Healthiness (for supporting theorem 6)\<close>
 
 (* SW R \<equiv> R \<and> (ac' \<noteq> \<emptyset> \<or> \<exists>z. R(s, {z})) *)
+(* todo: further simplification? *)
 definition SW :: "'s angelic_rel \<Rightarrow> 's angelic_rel" where
 [pred]: "SW R = (\<lambda>(s, ac').
   R (s, ac') \<and>
@@ -790,66 +987,15 @@ proof -
         ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r
           (PBMH [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e \<and> N)) =
         ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r (PBMH Q \<and> N))"
-  proof -
-    fix P Q N :: "'s angelic_rel"
-    have imp_eq:
-        "[\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e = ((\<not> P) \<or> Q)"
-      by pred_auto
-    show "((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r
-        (PBMH [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e \<and> N)) =
-      ((\<not> PBMH (\<not> P)) \<turnstile>\<^sub>r (PBMH Q \<and> N))"
-      apply (simp only: imp_eq PBMH_disj)
-      apply (rule ref_antisym; rule rdesign_refine_intro; pred_auto)
-      done
-  qed
+    by (simp add: PBMH_disj rdesign_refinement fun_eq_iff; pred_auto)
   show ?thesis
     apply (simp add: SW_D_def A_design_form SW_rdesign_post post_absorb)
-    apply (simp add: SW_PBMH)
-    done
+    by (simp add: SW_PBMH)
 qed
 
 lemma SW_D_A2_commute: "SW_D (A2 P) = A2 (SW_D P)"
-proof -
-  have pre_commute:
-      "SW (\<not> A2_rel (\<not> pre\<^sub>D P)) =
-        (\<not> A2_rel (\<not> SW (pre\<^sub>D P)))"
-    apply (rule ext)
-    subgoal for x
-      apply (cases x)
-      subgoal for s ac'
-        apply (cases ac')
-        subgoal for X
-          apply (cases "X = {}")
-          subgoal
-            by (simp_all add: SW_def neg_A2_rel_eval)
-          subgoal
-            by (simp_all add: SW_def neg_A2_rel_eval; blast)
-          done
-        done
-      done
-    done
-  have post_absorb:
-      "\<And>P Q :: 's angelic_rel.
-        ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
-          A2_rel [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e) =
-        ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
-  proof -
-    fix P Q :: "'s angelic_rel"
-    have imp_eq:
-        "[\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e = ((\<not> P) \<or> Q)"
-      by pred_auto
-    show "((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r
-        A2_rel [\<lambda>s. P s \<longrightarrow> Q s]\<^sub>e) =
-      ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
-      apply (simp only: imp_eq A2_rel_disj)
-      apply (rule ref_antisym; rule rdesign_refine_intro; pred_auto)
-      done
-  qed
-  show ?thesis
-    apply (simp add: SW_D_def A2_def SW_rdesign_post post_absorb)
-    apply (simp add: pre_commute)
-    done
-qed
+  by (simp add: SW_D_def A2_def SW_rdesign_post SW_def
+      A2_rel_eq_expanded; pred_auto; blast)
 
 (* other lemmas to show the compatibility *)
 lemma A_preserves_SW_D: "P is SW_D \<Longrightarrow> A P is SW_D"

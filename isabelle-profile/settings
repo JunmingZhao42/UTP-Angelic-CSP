@@ -9,4 +9,4 @@
 # budget.
 
 ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
-ML_OPTIONS="--minheap 2000"
+ML_OPTIONS="--minheap 1000"

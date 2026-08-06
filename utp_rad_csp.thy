@@ -230,7 +230,7 @@ lemmas rad_ac2p_RA_design' = rad_ac2p_RA_design[simplified comp_apply]
 
 (* Theorems 11 and 13 give the CSP image of a RAD-healthy predicate.
    Theorem 13 uses Theorem 12 to transport RA healthiness to R healthiness. *)
-theorem rad_ac2p_RAD:
+lemma rad_ac2p_RAD:
   assumes "P is RAD"
   shows "rad_ac2p P = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
 proof -
