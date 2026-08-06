@@ -1,7 +1,7 @@
 section \<open>Reactive Angelic Design Core\<close>
 
 theory utp_rad_core
-  imports "UTP-Angelic-Designs.utp_ades"
+  imports "UTP-Angelic-Designs.utp_ades" "UTP-Reactive.utp_rea_core"
 begin
 
 subsection \<open>Alphabet (Paper Definition 26)\<close>
@@ -14,13 +14,16 @@ text \<open>
   a replacement for the complete reactive-process alphabet.
 \<close>
 
-(* Paper Definition 26. *)
-alphabet 'e rad_state =
-  tr :: "'e list"
+(* Paper Definition 26, with the trace generalised from event lists to
+   the trace algebra of Circus_Toolkit, as in reactive designs. *)
+alphabet ('t::trace, 'e) rad_state =
+  tr :: "'t"
   ref :: "'e set"
   wait :: bool
 
-type_synonym 'e reactive_angelic_rel = "'e rad_state angelic_rel"
-type_synonym 'e reactive_angelic_design = "'e rad_state angelic_design"
+type_synonym ('t, 'e) reactive_angelic_rel =
+  "('t, 'e) rad_state angelic_rel"
+type_synonym ('t, 'e) reactive_angelic_design =
+  "('t, 'e) rad_state angelic_design"
 
 end

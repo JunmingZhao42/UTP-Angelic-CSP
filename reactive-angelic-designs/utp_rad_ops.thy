@@ -39,16 +39,20 @@ lemma RA1_singleton_absorb:
   assumes "T is PBMH_ades"
     and "\<in>\<^sub>a\<^sub>c(T) \<sqsubseteq> (T \<and> ac_non_empty)"
   shows "RA1 (\<in>\<^sub>a\<^sub>c(T)) = RA1 T"
-  using RA1_mono[OF assms(2)]
-    RA1_mono[OF ades_singleton_choice_weaken[OF assms(1)]]
-  by (simp add: pred_ba.inf_commute RA1_ac_non_empty_absorb
-      pred_refine_iff fun_eq_iff; pred_auto)
+proof (rule ref_antisym)
+  have absorb: "RA1 (T \<and> ac_non_empty) = RA1 T"
+    by (subst pred_ba.inf_commute) (rule RA1_ac_non_empty_absorb)
+  show "RA1 (\<in>\<^sub>a\<^sub>c(T)) \<sqsubseteq> RA1 T"
+    using RA1_mono[OF assms(2)] by (simp only: absorb)
+  show "RA1 T \<sqsubseteq> RA1 (\<in>\<^sub>a\<^sub>c(T))"
+    by (rule RA1_mono[OF ades_singleton_choice_weaken[OF assms(1)]])
+qed
 
 subsection \<open>Angelic Choice\<close>
 
 (* Paper Definition 37. *)
 abbreviation achoice_RAD ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
   (infixl "\<squnion>\<^sub>R\<^sub>A\<^sub>D" 70) 
 where "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P \<squnion> Q"
 
@@ -139,7 +143,7 @@ subsection \<open>Demonic Choice\<close>
 
 (* Paper Definition 38. *)
 abbreviation dchoice_RAD ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
   (infixl "\<sqinter>\<^sub>R\<^sub>A\<^sub>D" 65)
 where "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P \<sqinter> Q"
 
@@ -220,7 +224,7 @@ lemma RAD_demonic_angelic_distrib:
 subsection \<open>Chaos\<close>
 
 (* Paper Definition 39. *)
-definition Chaos_RAD :: "'e reactive_angelic_design" ("Chaos\<^sub>R\<^sub>A\<^sub>D") where
+definition Chaos_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Chaos\<^sub>R\<^sub>A\<^sub>D") where
 [pred]: "Chaos_RAD = (RA \<circ> A) (false \<turnstile> ac_non_empty)"
 
 lemma Chaos_RAD_alt:
@@ -267,7 +271,7 @@ qed
 subsection \<open>Choice\<close>
 
 (* Paper Definition 40. *)
-definition Choice_RAD :: "'e reactive_angelic_design" ("Choice\<^sub>R\<^sub>A\<^sub>D") where
+definition Choice_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Choice\<^sub>R\<^sub>A\<^sub>D") where
 [pred]: "Choice_RAD = (RA \<circ> A) (true \<turnstile> ac_non_empty)"
 
 lemma Choice_RAD_alt:
@@ -302,7 +306,7 @@ qed
 lemma Choice_RAD_wf_ok_false_subst:
   "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
 proof -
-  have not_true: "(\<not> (True)\<^sub>e :: 'e reactive_angelic_design) = false"
+  have not_true: "(\<not> (True)\<^sub>e :: ('t::trace, 'e) reactive_angelic_design) = false"
     by pred_auto
   show ?thesis
     apply (simp only: Choice_RAD_wf_ok_false RA2_ok_in_subst RA1_ok_in_subst)
@@ -372,14 +376,14 @@ qed
 subsection \<open>Stop\<close>
 
 (* \<exists> y \<in> ac' \<bullet> y.tr = s.tr \<and> y.wait *)
-definition stop_post :: "'e reactive_angelic_design" where
+definition stop_post :: "('t::trace, 'e) reactive_angelic_design" where
 [pred]: "stop_post = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
     rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
     rad_state.wait\<^sub>v y)"
 
 (* Paper Definition 41. *)
-definition Stop_RAD :: "'e reactive_angelic_design" ("Stop\<^sub>R\<^sub>A\<^sub>D") where
+definition Stop_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>R\<^sub>A\<^sub>D") where
 [pred]: "Stop_RAD = (RA \<circ> A) (true \<turnstile> stop_post)"
 
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
@@ -415,7 +419,7 @@ lemma stop_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> stop_post"
 lemma RA2_stop_post: "RA2 stop_post = stop_post"
   by (simp add: RA2_def stop_post_def rad_normalise_choices_def
       rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def;
-      pred_auto; force)
+      pred_auto; force dest: minus_zero_eq[rotated])
 
 lemma stop_post_ok_in_subst [usubst]:
   "stop_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = stop_post"
@@ -469,7 +473,7 @@ qed
 lemma Stop_RAD_wf_ok_false_subst:
   "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
 proof -
-  have not_true: "(\<not> (True)\<^sub>e :: 'e reactive_angelic_design) = false"
+  have not_true: "(\<not> (True)\<^sub>e :: ('t::trace, 'e) reactive_angelic_design) = false"
     by pred_auto
   show ?thesis
     apply (simp only: Stop_RAD_wf_ok_false RA2_ok_in_subst
@@ -561,12 +565,12 @@ qed
 subsection \<open>Skip\<close>
 
 (* Paper Definition 42: \<in>\<^sub>a\<^sub>c y \<bullet> \<not> y.wait \<and> y.tr = s.tr *)
-definition skip_post :: "'e reactive_angelic_design" where
+definition skip_post :: "('t::trace, 'e) reactive_angelic_design" where
 [pred]: "skip_post = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
   \<not> rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))))"
 
 (* Paper Definition 42. *)
-definition Skip_RAD :: "'e reactive_angelic_design" ("Skip\<^sub>R\<^sub>A\<^sub>D") where
+definition Skip_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Skip\<^sub>R\<^sub>A\<^sub>D") where
 [pred]: "Skip_RAD = (RA \<circ> A) (true \<turnstile> skip_post)"
 
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
@@ -588,7 +592,7 @@ lemma rad_wait_false_skip_post: "(skip_post \<^sub>wf) = skip_post"
 lemma RA2_skip_post: "RA2 skip_post = skip_post"
   by (simp add: RA2_def skip_post_def ades_singleton_choice_def rad_normalise_choices_def
       rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def;
-      pred_auto; force)
+      pred_auto; force dest: minus_zero_eq[rotated])
 
 lemma skip_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> skip_post"
   apply (simp add: unrest_lens skip_post_def ades_singleton_choice_def)
@@ -648,8 +652,8 @@ text \<open>
 \<close>
 
 abbreviation seq_RAD ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design \<Rightarrow>
-   'e reactive_angelic_design" (infixl ";;\<^sub>R\<^sub>A\<^sub>D" 75)
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
+   ('t, 'e) reactive_angelic_design" (infixl ";;\<^sub>R\<^sub>A\<^sub>D" 75)
 where "P ;;\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P ;;\<^sub>D\<^sub>A Q"
 
 (* Thesis Theorem T.4.5.15. *)
@@ -659,10 +663,10 @@ lemma RAD_seq_demonic_distrib:
 
 (* The observation repackaging distributes over sequential composition. *)
 lemma csp2rad_rel_seq_distrib:
-  fixes P Q :: "('e list, 'e set) rp_hrel"
+  fixes P Q :: "('t::trace, 'e set) rp_hrel"
   shows "csp2rad_rel (P ;; Q) = (csp2rad_rel P ;; csp2rad_rel Q)"
 proof (rule ext)
-  fix w :: "'e rad_state des_vars_scheme \<times> 'e rad_state des_vars_scheme"
+  fix w :: "('t::trace, 'e) rad_state des_vars_scheme \<times> ('t, 'e) rad_state des_vars_scheme"
   obtain x y where [simp]: "w = (x, y)" by (cases w) auto
   have L: "csp2rad_rel (P ;; Q) w \<longleftrightarrow>
       (\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y))"
@@ -701,7 +705,7 @@ lemma RAD_seq_CSP_inverse:
 subsection \<open>Prefixing\<close>
 
 (* \<exists> y \<in> ac' \<bullet> (y.tr = s.tr \<and> a \<notin> y.ref) \<triangleleft> y.wait \<triangleright> y.tr = s.tr @ [a] *)
-definition prefix_post :: "'e \<Rightarrow> 'e reactive_angelic_design" where
+definition prefix_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac'). (((\<lambda> z. rad_state.tr\<^sub>v z =
           rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
@@ -710,7 +714,7 @@ definition prefix_post :: "'e \<Rightarrow> 'e reactive_angelic_design" where
       (\<lambda> z. rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])) y))"
 
 (* Paper Definition 43 / Thesis Definition 124. *)
-definition PrefixSkip_RAD :: "'e \<Rightarrow> 'e reactive_angelic_design" where
+definition PrefixSkip_RAD :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "PrefixSkip_RAD a = (RA \<circ> A) (true \<turnstile> prefix_post a)"
 
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
@@ -792,7 +796,8 @@ qed
    Theorem T.5.4.29 normal form is future work; RAD closure is proved
    in \<open>utp_rad_seq\<close>. *)
 definition Prefix_RAD ::
-  "'e \<Rightarrow> 'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
+  "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
+   ('e list, 'e) reactive_angelic_design"
   (infixr "\<rightarrow>\<^sub>R\<^sub>A\<^sub>D" 80) where
 [pred]: "Prefix_RAD a P = (PrefixSkip_RAD a ;;\<^sub>R\<^sub>A\<^sub>D P)"
 
@@ -802,8 +807,8 @@ subsection \<open>External Choice\<close>
     (P \<and> Q)[{y}/ac'] \<triangleleft> y.tr = s.tr \<and> y.wait \<triangleright>
     (P \<or> Q)[{y}/ac'] *)
 definition extchoice_post ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design \<Rightarrow>
-   'e reactive_angelic_design" where
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
+   ('t, 'e) reactive_angelic_design" where
 [pred]: "extchoice_post P Q = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
   (((\<lambda> z. P (s0, ac1) \<and> Q (s0, ac1))
     \<triangleleft> $rad_state.tr = \<guillemotleft>rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<guillemotright> \<and>
@@ -829,8 +834,8 @@ lemma extchoice_post_ok_in_subst:
 
 (* Paper Definition 44 / Thesis Definition 125. *)
 definition extchoice_RAD ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design \<Rightarrow>
-   'e reactive_angelic_design" (infixl "\<box>\<^sub>R\<^sub>A\<^sub>D" 68) where
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
+   ('t, 'e) reactive_angelic_design" (infixl "\<box>\<^sub>R\<^sub>A\<^sub>D" 68) where
 [pred]: "P \<box>\<^sub>R\<^sub>A\<^sub>D Q = (RA \<circ> A)
   (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
    extchoice_post ((P \<^sub>wf)\<^sup>t) ((Q \<^sub>wf)\<^sup>t))"

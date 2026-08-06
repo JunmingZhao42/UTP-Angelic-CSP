@@ -7,11 +7,11 @@ begin
 subsection \<open>Observation isomorphism\<close>
 
 (* CSP's flat alphabet is {ok, tr, ref, wait}; rea_vars.more stores ref. *)
-type_synonym 'e csp_obs = "('e list, 'e set) rp"
+type_synonym ('t, 'e) csp_obs = "('t, 'e set) rp"
 
 (* Repackage one nested RAD observation as a flat CSP observation. *)
 definition rad2csp_obs ::
-  "'e rad_state des_vars_scheme \<Rightarrow> 'e csp_obs" where
+  "('t::trace, 'e) rad_state des_vars_scheme \<Rightarrow> ('t, 'e) csp_obs" where
 [pred]: "rad2csp_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     utp_rea_core.rea_vars.wait\<^sub>v =
@@ -22,7 +22,7 @@ definition rad2csp_obs ::
 
 (* Repackage one flat CSP observation as a nested RAD observation. *)
 definition csp2rad_obs ::
-  "'e csp_obs \<Rightarrow> 'e rad_state des_vars_scheme" where
+  "('t::trace, 'e) csp_obs \<Rightarrow> ('t, 'e) rad_state des_vars_scheme" where
 [pred]: "csp2rad_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     \<dots> = \<lparr> utp_rad_core.rad_state.tr\<^sub>v = rea_vars.tr\<^sub>v x,
@@ -40,10 +40,10 @@ lemma rad2csp_obs_inverse [simp]: "rad2csp_obs (csp2rad_obs x) = x"
 subsection \<open>Relation and design mappings\<close>
 
 (* Lift the observation conversions pointwise to both ends of a relation. *)
-definition rad2csp_rel :: "'e rad_state des_hrel \<Rightarrow> ('e list, 'e set) rp_hrel"
+definition rad2csp_rel :: "('t::trace, 'e) rad_state des_hrel \<Rightarrow> ('t, 'e set) rp_hrel"
 where [pred]: "rad2csp_rel P = (\<lambda> (x, y). P (csp2rad_obs x, csp2rad_obs y))"
 
-definition csp2rad_rel :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e rad_state des_hrel"
+definition csp2rad_rel :: "('t::trace, 'e set) rp_hrel \<Rightarrow> ('t, 'e) rad_state des_hrel"
 where [pred]: "csp2rad_rel P = (\<lambda> (x, y). P (rad2csp_obs x, rad2csp_obs y))"
 
 lemma csp2rad_rel_inverse [simp]: "csp2rad_rel (rad2csp_rel P) = P"
@@ -66,15 +66,15 @@ lemma rad2csp_rel_design_distrib:
       csp2rad_obs_def; pred_auto)
 
 (* Forget the angelic choices, then repackage the resulting observations as CSP. *)
-definition rad_ac2p :: "'e reactive_angelic_design \<Rightarrow> ('e list, 'e set) rp_hrel"
+definition rad_ac2p :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp_hrel"
 where [pred]: "rad_ac2p = rad2csp_rel \<circ> ac2p"
 
 (* Repackage CSP observations as RAD state, then introduce angelic choices. *)
-definition rad_p2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
+definition rad_p2ac :: "('t::trace, 'e set) rp_hrel \<Rightarrow> ('t, 'e) reactive_angelic_design"
 where [pred]: "rad_p2ac = p2ac \<circ> csp2rad_rel"
 
 (* The design-level adapter uses d2ac rather than the paper's predicate p2ac. *)
-definition rad_d2ac :: "('e list, 'e set) rp_hrel \<Rightarrow> 'e reactive_angelic_design"
+definition rad_d2ac :: "('t::trace, 'e set) rp_hrel \<Rightarrow> ('t, 'e) reactive_angelic_design"
 where [pred]: "rad_d2ac = d2ac \<circ> csp2rad_rel"
 
 lemma rad_p2ac_PBMH_ades [closure]: "rad_p2ac P is PBMH_ades"
@@ -150,7 +150,7 @@ proof -
 qed
 
 lemma rad_ac2p_II_Rac [simp]:
-  "rad_ac2p (II_Rac :: 'e reactive_angelic_design) = II\<^sub>C"
+  "rad_ac2p (II_Rac :: ('t::trace, 'e) reactive_angelic_design) = II\<^sub>C"
   apply (simp only: rad_ac2p_def comp_apply rad2csp_rel_def ac2p_def
       PBMH_ades_II_Rac)
   apply (simp add: II_Rac_def RA1_def csp2rad_obs_def
@@ -174,7 +174,7 @@ lemma rad_ac2p_RA3: "(rad_ac2p \<circ> RA3) P = (R3c \<circ> rad_ac2p) P"
 proof -
   have ac2p_wait:
       "rad_ac2p (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
-       (rad_ac2p P \<triangleleft> $wait\<^sup>< \<triangleright> rad_ac2p Q)"
+       (rad_ac2p P \<triangleleft> $rea_vars.wait\<^sup>< \<triangleright> rad_ac2p Q)"
       for P Q
     by (simp only: rad_ac2p_def comp_apply rad2csp_rel_def ac2p_def
           PBMH_ades_wait_cond;
@@ -304,22 +304,22 @@ lemma rad_p2ac_R1_R2:
 
 (* Thesis Lemma L.G.7.2: reactive identity. *)
 lemma rad_p2ac_II_C [simp]:
-  "rad_p2ac (II\<^sub>C :: ('e list, 'e set) rp_hrel) = II_Rac"
+  "rad_p2ac (II\<^sub>C :: ('t::trace, 'e set) rp_hrel) = II_Rac"
 proof -
   have round_trip:
-      "p2ac (ac2p (II_Rac :: 'e reactive_angelic_design)) = II_Rac"
+      "p2ac (ac2p (II_Rac :: ('t::trace, 'e) reactive_angelic_design)) = II_Rac"
     apply (simp add: p2ac_def ac2p_def StateII_def II_Rac_def RA1_def
         rad_trace_extensions_def fun_eq_iff Let_def)
     apply pred_auto
     done
   have mapped:
-      "rad2csp_rel (ac2p (II_Rac :: 'e reactive_angelic_design)) =
-       (II\<^sub>C :: ('e list, 'e set) rp_hrel)"
+      "rad2csp_rel (ac2p (II_Rac :: ('t::trace, 'e) reactive_angelic_design)) =
+       (II\<^sub>C :: ('t, 'e set) rp_hrel)"
     using rad_ac2p_II_Rac
     by (simp only: rad_ac2p_def comp_apply)
   have rel:
-      "csp2rad_rel (II\<^sub>C :: ('e list, 'e set) rp_hrel) =
-       ac2p (II_Rac :: 'e reactive_angelic_design)"
+      "csp2rad_rel (II\<^sub>C :: ('t::trace, 'e set) rp_hrel) =
+       ac2p (II_Rac :: ('t, 'e) reactive_angelic_design)"
     using arg_cong[where f=csp2rad_rel, OF mapped]
     by simp
   show ?thesis
@@ -330,7 +330,7 @@ qed
 lemma rad_p2ac_R3: "(rad_p2ac \<circ> R3c) P = (RA3 \<circ> rad_p2ac) P"
 proof -
   have p2ac_wait:
-      "rad_p2ac (P \<triangleleft> $wait\<^sup>< \<triangleright> Q) =
+      "rad_p2ac (P \<triangleleft> $rea_vars.wait\<^sup>< \<triangleright> Q) =
        (rad_p2ac P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> rad_p2ac Q)"
       for P Q
     by (simp add: rad_p2ac_def p2ac_def csp2rad_rel_def
@@ -431,7 +431,7 @@ lemmas rad_ac2p_p2ac_inverse' = rad_ac2p_p2ac_inverse[simplified comp_apply]
 
 (* Paper Lemma 6. *)
 lemma rad_p2ac_ac2p:
-  fixes P :: "'e reactive_angelic_design"
+  fixes P :: "('t::trace, 'e) reactive_angelic_design"
   shows "(rad_p2ac \<circ> rad_ac2p) P =
     (\<lambda> (s0, ac'). \<exists> ac0 y.
       P (s0, des_vars.more_update
@@ -471,13 +471,13 @@ lemmas rad_p2ac_ac2p_refine' = rad_p2ac_ac2p_refine[simplified comp_apply]
 
 (* Thesis Lemma L.G.7.11. *)
 lemma rad_p2ac_ac2p_A2:
-  fixes P :: "'e reactive_angelic_design"
+  fixes P :: "('t::trace, 'e) reactive_angelic_design"
   assumes "P is A2"
   shows "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> P)"
 proof -
   have bridge:
       "(rad_p2ac \<circ> rad_ac2p) Q = (p2ac \<circ> ac2p) Q"
-      for Q :: "'e reactive_angelic_design"
+      for Q :: "('t::trace, 'e) reactive_angelic_design"
     by (simp add: rad_p2ac_def rad_ac2p_def)
   have nonempty: "p2ac Q = (ac_non_empty \<and> p2ac Q)"
       for Q :: "'s des_hrel"
@@ -536,7 +536,7 @@ proof -
         pred_ba.boolean_algebra.double_compl
         RA1_ac_non_empty_absorb)
   have A2_PBMH: "PBMH_ades (A2 Q) = A2 Q"
-      for Q :: "'e reactive_angelic_design"
+      for Q :: "('t::trace, 'e) reactive_angelic_design"
     by (simp add: A2_def PBMH_ades_rdesign A2_rel_def PBMH_idem)
   have D_PBMH: "?D is PBMH_ades"
     using assms A2_PBMH[of ?F] A2_PBMH[of ?T]

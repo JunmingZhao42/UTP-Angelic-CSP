@@ -25,7 +25,7 @@ proof -
   have disj_collapse:
     "((X' \<or> Y' \<or> Z) \<or> (X \<or> Y)) = (X \<or> Y \<or> Z)"
     if "X \<sqsubseteq> X'" "Y \<sqsubseteq> Y'"
-    for X X' Y Y' Z :: "'e reactive_angelic_design"
+    for X X' Y Y' Z :: "('t::trace, 'e) reactive_angelic_design"
     using that
     by (simp add: pred_refine_iff fun_eq_iff; pred_auto)
   have B_refine: "RA1 true \<sqsubseteq> ?B"
@@ -109,9 +109,9 @@ proof -
   let ?Q' = "ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q"
   let ?R' = "true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 R"
   let ?S' = "ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 S"
-  have not_true: "(\<not> (true :: 'e reactive_angelic_design)) = false"
+  have not_true: "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) = false"
     by pred_auto
-  have not_false: "(\<not> (false :: 'e reactive_angelic_design)) = true"
+  have not_false: "(\<not> (false :: ('t::trace, 'e) reactive_angelic_design)) = true"
     by pred_auto
   have P_RA1_design_form: "RA (P \<turnstile> Q) = RA1 (?P' \<turnstile> ?Q')"
     by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib
@@ -137,11 +137,11 @@ proof -
     by (rule rad_wait_cond_PBMH_ades_closure[OF ades_state_choice_is_PBMH_ades
         RA2_PBMH_ades_closure[OF assms(6)]])
   have rad_wait_cond_conj: "\<And>A B C D b.
-    ((expr_if (A :: 'e reactive_angelic_design) b B) \<and>
+    ((expr_if (A :: ('t::trace, 'e) reactive_angelic_design) b B) \<and>
      (expr_if C b D)) = expr_if (A \<and> C) b (B \<and> D)"
     by (simp add: expr_if_def fun_eq_iff; pred_auto)
   have pred_conj_true:
-    "((true :: 'e reactive_angelic_design) \<and> true) = true"
+    "((true :: ('t::trace, 'e) reactive_angelic_design) \<and> true) = true"
     by pred_auto
   have P_failure_RA1_form: "RA1 (\<not> ?P') =
     (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA1 (RA2 (\<not> P)))"
@@ -378,7 +378,11 @@ qed
 lemma RAD_seq_closure [closure]:
   assumes "P is RAD" "Q is RAD"
   shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) is RAD"
-  by (simp only: RAD_seq_design[OF assms]; rad_closure)
+  apply (simp only: RAD_seq_design[OF assms])
+  apply (rule RAD_design_closure)
+   apply (rule design_is_H1_H2; simp add: unrest)
+  apply (simp add: rad_wait_false_distrib)
+  done
 
 lemma Prefix_RAD_closure [closure]:
   assumes "P is RAD"
@@ -429,13 +433,13 @@ lemma Prefix_Skip_RAD_RA:
   "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Skip\<^sub>R\<^sub>A\<^sub>D) = RA (true \<turnstile> prefix_post a)"
 proof -
   have component_unrests:
-      "$ok\<^sup>> \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>> \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>> \<sharp> prefix_post a"
-      "$ok\<^sup>< \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>< \<sharp> skip_post"
     by (simp_all add: unrest)
   have not_true_PBMH:
-      "(\<not> (true :: 'e reactive_angelic_design)) is PBMH_ades"
+      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) is PBMH_ades"
     by (simp only: pred_ba.compl_top_eq false_PBMH_ades)
   have prefix_PBMH: "prefix_post a is PBMH_ades"
     by (simp add: Healthy_def')
