@@ -76,15 +76,6 @@ ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" vscode_server \
   -o system_heaps=false
 ```
 
-Start the editable PIDE MCP server with:
-
-```bash
-ISABELLE_IDENTIFIER="$UTP_PROFILE" PROJECT_DIR="$PROJECT_DIR" \
-  "$ISABELLE" pide_mcp -v -u \
-  -d "$PROJECT_DIR/deps" -d "$PROJECT_DIR" \
-  -A UTP-Angelic-Designs -R UTP-Angelic-CSP
-```
-
 These commands load the finished `UTP-Angelic-Designs` heap and keep the
 reactive angelic design and angelic-process theories editable. To edit the
 `utp_ades_*` theories as well, replace `-A UTP-Angelic-Designs` with

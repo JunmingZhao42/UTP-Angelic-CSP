@@ -31,7 +31,7 @@ lemma CSPA1_PBMH_ades_closure:
   by (simp add: CSPA1_def PBMH_ades_disj assms)
 
 (* Paper Theorem 10. *)
-lemma RA1_CSPA1: "(RA1 \<circ> CSPA1) P = (RA1 \<circ> H1) P"
+theorem RA1_CSPA1: "(RA1 \<circ> CSPA1) P = (RA1 \<circ> H1) P"
   apply (simp add: CSPA1_def H1_def RA1_def Let_def)
   apply pred_auto
   done
@@ -187,6 +187,15 @@ lemma RAD_design_PBMH:
   shows "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is PBMH_ades"
   by (rule PBMH_ades_design_closure;
       intro RAD_wf_ok_false_PBMH[OF assms] RAD_wf_ok_true_PBMH[OF assms])
+
+(* The RAD normal form with the A stripped: RAD-healthy predicates are
+   RA images of their wait-false design. *)
+lemma RAD_RA_design_form:
+  assumes "P is RAD"
+  shows "P = RA ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  using RAD_design_form'[OF assms]
+  by (simp only: RA_A_absorb[OF RAD_design_PBMH[OF assms]
+        rad_wait_false_design_is_H])
 
 lemma RAD_idem: "RAD (RAD P) = RAD P"
   by (simp only: RAD_design_form RA_design_form_idem)

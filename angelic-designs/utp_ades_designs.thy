@@ -68,7 +68,7 @@ lemma p2ac_rel_conj:
   by (pred_auto)
 
 (* Paper Theorem 72 *)
-lemma p2ac_design:
+theorem p2ac_design:
   "(ac_non_empty \<and> p2ac ((\<not> P) \<turnstile>\<^sub>r Q)) =
    (ac_non_empty \<and> ((\<not> p2ac_rel P) \<turnstile>\<^sub>r p2ac_rel Q))"
   by (simp add: ac_non_empty_def p2ac_rel_alt
@@ -378,7 +378,7 @@ proof -
 qed
 
 (* Paper Theorem 6. *)
-lemma d2ac_ac2p:
+theorem d2ac_ac2p:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
     and sw_healthy: "P is SW_D"
@@ -387,7 +387,7 @@ lemma d2ac_ac2p:
   by blast
 
 (* Paper Theorem 7. *)
-lemma d2ac_ac2p_A2:
+theorem d2ac_ac2p_A2:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
     and a2_healthy: "P is A2"
@@ -407,7 +407,7 @@ proof -
 qed
 
 (* Paper Theorem 8, with the SW_D premise required by Theorem 6. *)
-lemma d2ac_ac2p_A2_eq:
+theorem d2ac_ac2p_A2_eq:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
     and a2_healthy: "P is A2"
@@ -416,5 +416,14 @@ lemma d2ac_ac2p_A2_eq:
   apply (rule ref_antisym)
    apply (use d2ac_ac2p_iff_SW_D[OF healthy] sw_healthy in blast)
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
+
+subsection \<open>Sequential Composition\<close>
+
+(* Thesis Theorem T.G.7.11: p2ac is a homomorphism from relational
+   sequential composition to the angelic design composition. *)
+lemma p2ac_seq:
+  "p2ac (P ;; Q) = (p2ac P ;;\<^sub>D\<^sub>A p2ac Q)"
+  by (simp add: p2ac_def angelic_design_seq_def fun_eq_iff;
+      pred_auto; blast)
 
 end

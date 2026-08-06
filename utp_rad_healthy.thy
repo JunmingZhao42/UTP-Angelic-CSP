@@ -25,6 +25,25 @@ definition RA1 ::
       y' = des_vars.more_update (\<lambda>_. y_choices') y
   in P (x, y') \<and> A' \<noteq> {})"
 
+lemma rad_trace_extensions_refl [simp]:
+  "z \<in> rad_trace_extensions z"
+  by (simp add: rad_trace_extensions_def)
+
+lemma rad_trace_extensions_trans:
+  "\<lbrakk> y \<in> rad_trace_extensions x; z \<in> rad_trace_extensions y \<rbrakk> \<Longrightarrow>
+   z \<in> rad_trace_extensions x"
+  by (auto simp add: rad_trace_extensions_def intro: order_trans)
+
+lemma rad_trace_extensions_inter_absorb:
+  "s1 \<in> rad_trace_extensions x \<Longrightarrow>
+   rad_trace_extensions s1 \<inter> (rad_trace_extensions x \<inter> Y) =
+   rad_trace_extensions s1 \<inter> Y"
+  by (auto dest: rad_trace_extensions_trans)
+
+lemma rad_trace_extensions_Int_Collect:
+  "X \<inter> {s1. P s1} = {s1. s1 \<in> X \<and> P s1}"
+  by auto
+
 lemma RA1_idem: "RA1 (RA1 P) = RA1 P"
   by (simp add: RA1_def rad_trace_extensions_def fun_eq_iff; blast)
 
@@ -42,6 +61,34 @@ lemma RA1_disj: "RA1 (P \<or> Q) = (RA1 P \<or> RA1 Q)"
 lemma RA1_conj_ok: "RA1 (P \<and> ok\<^sup>>) = (RA1 P \<and> ok\<^sup>>)"
   by (simp add: RA1_def fun_eq_iff Let_def; pred_auto)
 
+lemma RA1_false: "RA1 false = false"
+  by (simp add: RA1_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA1_state_choice: "RA1 ades_state_choice = ades_state_choice"
+  by (simp add: RA1_def ades_state_choice_def fun_eq_iff Let_def;
+      pred_auto; blast intro: rad_trace_extensions_refl)
+
+(* RA1 changes only state and choice components, so it commutes with the
+   design ok substitutions. *)
+lemma RA1_ok_in_subst:
+  "(RA1 P)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = RA1 (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
+  by (simp add: RA1_def fun_eq_iff Let_def subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def
+      des_more_ok_update_commute; pred_auto)
+
+lemma RA1_ok_out_subst:
+  "(RA1 P)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = RA1 (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>)"
+  by (simp add: RA1_def fun_eq_iff Let_def subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def
+      des_more_ok_update_commute; pred_auto)
+
+lemma RA1_unrest_ok_out [unrest]:
+  "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> RA1 P"
+  apply (simp add: unrest_lens RA1_def Let_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs des_more_ok_update_commute)
+  done
+
 (* Paper Lemma 23 *)
 lemma RA1_design_pre:
   "RA1 (P \<turnstile> Q) = RA1 ((\<not> RA1 (\<not> P)) \<turnstile> Q)"
@@ -58,7 +105,7 @@ lemma RA1_Monotonic [closure]: "Monotonic RA1"
   by (rule MonotonicI, rule RA1_mono)
 
 (* Paper Theorem 9. *)
-lemma RA1_A0_absorb: "RA1 (A0 P) = RA1 P"
+theorem RA1_A0_absorb: "RA1 (A0 P) = RA1 P"
   by (simp add: RA1_def A0_def ac_non_empty_def fun_eq_iff Let_def;
       pred_auto)
 
@@ -68,7 +115,7 @@ lemma RA1_ac_non_empty_absorb: "RA1 (ac_non_empty \<and> P) = RA1 P"
       pred_auto)
 
 (* Paper Theorem 70 *)
-lemma PBMH_ades_RA1_absorb:
+theorem PBMH_ades_RA1_absorb:
   "(PBMH_ades \<circ> RA1 \<circ> PBMH_ades) P = (RA1 \<circ> PBMH_ades) P"
   by (simp add: PBMH_ades_def RA1_def fun_eq_iff; pred_auto)
 
@@ -107,33 +154,75 @@ lemma RA1_PBMH_ades_not_commute:
   by (simp only: RA1_PBMH_ades_ac_empty PBMH_ades_RA1_ac_empty;
       simp add: RA1_def rad_trace_extensions_def fun_eq_iff; pred_auto)
 
+(* Thesis Lemma L.G.1.29: an aborted first process followed by anything
+   yields the aborted behaviour. *)
+lemma RA1_not_ok_aseq_absorb:
+  "(RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D RA1 true) = RA1 (\<not> ok\<^sup><)"
+  apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
+  apply pred_auto
+   apply (blast dest: rad_trace_extensions_trans)
+  apply (blast intro: rad_trace_extensions_refl)
+  done
+
+(* Thesis Lemma L.G.1.16: composition preserves RA1 healthiness. *)
+lemma RA1_aseq_absorb:
+  "RA1 (RA1 P ;;\<^sub>A\<^sub>D RA1 Q) = (RA1 P ;;\<^sub>A\<^sub>D RA1 Q)"
+  apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
+  apply (simp add: rad_trace_extensions_Int_Collect
+      rad_trace_extensions_inter_absorb cong: conj_cong)
+  apply (auto dest: rad_trace_extensions_trans)
+  done
+
 subsection \<open>RA2: Trace-history independence\<close>
 
 (* s \<oplus> {tr ↦ []} *)
 definition rad_zero_trace :: "'e rad_state \<Rightarrow> 'e rad_state" where
-"rad_zero_trace s\<^sub>0 =
-  rad_state.tr\<^sub>v_update (\<lambda>_. []) s\<^sub>0"
+"rad_zero_trace s0 =
+  rad_state.tr\<^sub>v_update (\<lambda>_. []) s0"
 
 (* z \<oplus> {tr ↦ z.tr - s.tr} *)
 definition rad_trace_difference ::
   "'e rad_state \<Rightarrow> 'e rad_state \<Rightarrow> 'e rad_state" where
-"rad_trace_difference s\<^sub>0 z =
+"rad_trace_difference s0 z =
   rad_state.tr\<^sub>v_update
-    (\<lambda>_. rad_state.tr\<^sub>v z - rad_state.tr\<^sub>v s\<^sub>0) z"
+    (\<lambda>_. rad_state.tr\<^sub>v z - rad_state.tr\<^sub>v s0) z"
 
 (* { z[(z.tr-s.tr) / tr] | z \<in> ac' ∧ s.tr \<le> z.tr } *)
 definition rad_normalise_choices ::
   "'e rad_state \<Rightarrow> 'e rad_state set \<Rightarrow> 'e rad_state set" where
-"rad_normalise_choices s\<^sub>0 ac' =
-  {rad_trace_difference s\<^sub>0 z | z.
+"rad_normalise_choices s0 ac' =
+  {rad_trace_difference s0 z | z.
     z \<in> ac' \<and>
-    rad_state.tr\<^sub>v s\<^sub>0 \<le> rad_state.tr\<^sub>v z}"
+    rad_state.tr\<^sub>v s0 \<le> rad_state.tr\<^sub>v z}"
 
 lemma rad_normalise_choices_mono:
   "choices \<subseteq> choices' \<Longrightarrow>
    rad_normalise_choices s0 choices \<subseteq>
    rad_normalise_choices s0 choices'"
   by (auto simp add: rad_normalise_choices_def)
+
+lemma rad_prefix_diff_cancel:
+  "t \<le> v \<Longrightarrow> t @ (v - t) = v" for t :: "'e list"
+  by (auto simp add: less_eq_list_def prefix_def minus_list_def)
+
+lemma rad_trace_update_self [simp]:
+  "rad_state.tr\<^sub>v_update (\<lambda>_. rad_state.tr\<^sub>v z) z = z"
+  by (cases z) simp
+
+(* Normalising is the inverse image of prepending the initial trace. *)
+lemma rad_normalise_choices_as_prepend:
+  "rad_normalise_choices s0 X =
+   {m. rad_state.tr\<^sub>v_update (\<lambda>tr. rad_state.tr\<^sub>v s0 @ tr) m \<in> X}"
+  apply (rule Set.set_eqI)
+  apply (auto simp add: rad_normalise_choices_def
+      rad_trace_difference_def comp_def rad_prefix_diff_cancel
+      intro!: exI[where x =
+        "rad_state.tr\<^sub>v_update (\<lambda>tr. rad_state.tr\<^sub>v s0 @ tr) x" for x])
+  done
+
+lemma rad_trace_append_assoc:
+  "(\<lambda>x. t @ u @ x) = ((@) (t @ u))"
+  by (auto simp add: fun_eq_iff)
 
 (* Paper Definition 29. *)
 (* RA2(P)(s,ac') = P(s[[]/tr], rad_normalise_choices(s, ac')) *)
@@ -142,11 +231,11 @@ definition RA2 ::
 where [pred]: "RA2 P = (\<lambda> (x, y).
   let x_state = des_vars.more x;
       y_choices = des_vars.more y;
-      s\<^sub>0 = astate.s\<^sub>v x_state;
+      s0 = astate.s\<^sub>v x_state;
       ac' = achoices.ac\<^sub>v y_choices;
-      ac'' = rad_normalise_choices s\<^sub>0 ac';
+      ac'' = rad_normalise_choices s0 ac';
       x_state' = astate.s\<^sub>v_update
-        (\<lambda>_. rad_zero_trace s\<^sub>0) x_state;
+        (\<lambda>_. rad_zero_trace s0) x_state;
       y_choices' = achoices.ac\<^sub>v_update (\<lambda>_. ac'') y_choices;
       x' = des_vars.more_update (\<lambda>_. x_state') x;
       y' = des_vars.more_update (\<lambda>_. y_choices') y
@@ -170,6 +259,42 @@ lemma RA2_disj: "RA2 (P \<or> Q) = (RA2 P \<or> RA2 Q)"
 
 lemma RA2_conj_ok: "RA2 (P \<and> ok\<^sup>>) = (RA2 P \<and> ok\<^sup>>)"
   by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA2_not: "RA2 (\<not> P) = (\<not> RA2 P)"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA2_true: "RA2 true = true"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA2_false: "RA2 false = false"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA2_impl: "RA2 (P \<longrightarrow> Q) = (RA2 P \<longrightarrow> RA2 Q)"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
+lemma RA2_state_choice: "RA2 ades_state_choice = ades_state_choice"
+  by (simp add: RA2_def ades_state_choice_def Let_def fun_eq_iff
+      comp_def rad_normalise_choices_as_prepend rad_zero_trace_def)
+
+lemma RA2_unrest_ok_out [unrest]:
+  "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> RA2 P"
+  apply (simp add: unrest_lens RA2_def Let_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs des_more_ok_update_commute)
+  done
+
+lemma RA2_unrest_ok_in [unrest]:
+  "$ok\<^sup>< \<sharp> P \<Longrightarrow> $ok\<^sup>< \<sharp> RA2 P"
+  apply (simp add: unrest_lens RA2_def Let_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs des_more_ok_update_commute)
+  done
+
+lemma RA2_ok_in_subst:
+  "(RA2 P)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = RA2 (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
+  by (simp add: RA2_def fun_eq_iff Let_def subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def
+      des_more_ok_update_commute; pred_auto)
 
 lemma RA2_Idempotent [closure]: "Idempotent RA2"
   by (simp add: Idempotent_def RA2_idem)
@@ -216,15 +341,38 @@ lemma rad_zero_trace_in_normalise:
   done
 
 (* Paper Theorem 71 *)
-lemma RA1_RA2_commute: "(RA1 \<circ> RA2) P = (RA2 \<circ> RA1) P"
+theorem RA1_RA2_commute: "(RA1 \<circ> RA2) P = (RA2 \<circ> RA1) P"
   by (simp add: RA1_def RA2_def fun_eq_iff
       rad_normalise_choices_extensions rad_normalise_choices_nonempty
       rad_zero_trace_extensions Let_def)
 
 lemmas RA1_RA2_commute' = RA1_RA2_commute[simplified comp_apply]
 
+(* Thesis Theorem T.G.2.4: RA2 distributes through full-alphabet angelic
+   composition when the right operand is already RA2-normalised. *)
+lemma RA2_aseq_distrib:
+  "RA2 (P ;;\<^sub>A\<^sub>D RA2 Q) = (RA2 P ;;\<^sub>A\<^sub>D RA2 Q)"
+  by (simp add: RA2_def aseq_ades_def Let_def fun_eq_iff comp_def
+      rad_normalise_choices_as_prepend rad_zero_trace_def
+      rad_trace_append_assoc)
+
+(* A reusable form of the RA2 transport used by reactive sequential
+   composition: commute RA1 and RA2 on both operands in one step. *)
+lemma RA2_RA1_aseq_distrib:
+  "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
+   (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+proof -
+  have "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
+      (RA2 (RA1 P) ;;\<^sub>A\<^sub>D RA2 (RA1 Q))"
+    by (rule RA2_aseq_distrib)
+  also have "... =
+      (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+    by (simp only: RA1_RA2_commute'[symmetric])
+  finally show ?thesis .
+qed
+
 (* Paper Theorem 66 *)
-lemma PBMH_ades_RA2_absorb:
+theorem PBMH_ades_RA2_absorb:
   "(PBMH_ades \<circ> RA2 \<circ> PBMH_ades) P = (RA2 \<circ> PBMH_ades) P"
   apply (simp add: PBMH_ades_def RA2_def fun_eq_iff)
   apply pred_auto
@@ -317,6 +465,59 @@ definition rad_wait_false ::
 
 notation rad_wait_false ("_\<^sub>wf" [1000] 1000)
 
+lemma rad_wait_cond_not:
+  "(\<not> (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+       (Q :: 'e reactive_angelic_design))) =
+   ((\<not> P) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> Q))"
+  by (simp add: expr_if_def fun_eq_iff; pred_auto)
+
+lemma rad_wait_cond_impl:
+  "((P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+     (Q :: 'e reactive_angelic_design)) \<longrightarrow>
+    (R \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> S)) =
+   ((P \<longrightarrow> R) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (Q \<longrightarrow> S))"
+  by (simp add: expr_if_def fun_eq_iff; pred_auto)
+
+lemma rad_wait_cond_false:
+  "(false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+    (Q :: 'e reactive_angelic_design)) =
+   ((\<not> rad_wait_lens\<^sup><) \<and> Q)"
+  by (simp add: expr_if_def fun_eq_iff; pred_auto)
+
+lemma rad_wait_cond_unrest_ok_out [unrest]:
+  "\<lbrakk> $ok\<^sup>> \<sharp> P; $ok\<^sup>> \<sharp> Q \<rbrakk> \<Longrightarrow>
+   $ok\<^sup>> \<sharp> (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q)"
+  by (simp add: unrest_lens expr_if_def)
+
+lemma rad_wait_cond_unrest_ok_in [unrest]:
+  "\<lbrakk> $ok\<^sup>< \<sharp> P; $ok\<^sup>< \<sharp> Q \<rbrakk> \<Longrightarrow>
+   $ok\<^sup>< \<sharp> (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q)"
+  apply (simp add: unrest_lens expr_if_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs)
+  done
+
+lemma rad_wait_atom_unrest_ok_out [unrest]:
+  "$ok\<^sup>> \<sharp> ((rad_wait_lens\<^sup><) :: 'e reactive_angelic_design)"
+  apply (simp add: unrest_lens)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      subst_ext_def SEXP_def lens_defs alpha_defs)
+  done
+
+lemma rad_wait_cond_ok_in_subst:
+  "((P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q))\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
+   (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+    Q\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
+  by (simp add: expr_if_def fun_eq_iff subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs; pred_auto)
+
+lemma rad_wait_atom_ok_in_subst [usubst]:
+  "((rad_wait_lens\<^sup><) ::
+    'e reactive_angelic_design)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
+   (rad_wait_lens\<^sup><)"
+  by (simp add: fun_eq_iff subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs; pred_auto)
+
 lemma rad_wait_false_as_state_subst:
   "rad_wait_false P =
    ades_state_subst
@@ -375,6 +576,11 @@ lemma rad_wait_false_ok_true:
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs)
 
+lemma rad_wait_false_ok_out:
+  "((ok\<^sup>> :: 'e reactive_angelic_design) \<^sub>wf) = ok\<^sup>>"
+  by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def; pred_auto)
+
 lemma rad_wait_false_design:
   "((P \<turnstile> Q) \<^sub>wf) = ((P \<^sub>wf) \<turnstile> (Q \<^sub>wf))"
   by (simp add: rad_wait_false_def design_def fun_eq_iff subst_app_def
@@ -392,11 +598,28 @@ lemma rad_wait_false_ac_non_empty: "(ac_non_empty \<^sub>wf) = ac_non_empty"
   by (simp add: rad_wait_false_def ac_non_empty_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs; pred_auto)
 
+lemma rad_wait_false_RA1_commute:
+  "((RA1 P) \<^sub>wf) = RA1 (P \<^sub>wf)"
+  by (simp add: rad_wait_false_def RA1_def fun_eq_iff Let_def
+      rad_trace_extensions_def subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs;
+      pred_auto)
+
+(* Wait-false substitution affects the initial observation of the left
+   operand.  The intermediate state supplied to the right operand is chosen
+   afresh by full-alphabet angelic composition. *)
+lemma rad_wait_false_aseq_ades:
+  "((P ;;\<^sub>A\<^sub>D Q) \<^sub>wf) = ((P \<^sub>wf) ;;\<^sub>A\<^sub>D Q)"
+  by (simp add: rad_wait_false_def aseq_ades_def fun_eq_iff
+      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
+      pred_auto)
+
 lemmas rad_wait_false_distrib =
   rad_wait_false_design rad_wait_false_not rad_wait_false_conj
   rad_wait_false_disj rad_wait_false_impl rad_wait_false_ok_false
   rad_wait_false_ok_true rad_wait_false_idem rad_wait_false_true
   rad_wait_false_false rad_wait_false_ac_non_empty
+  rad_wait_false_RA1_commute rad_wait_false_aseq_ades
 
 lemma rad_wait_false_design_is_H [closure]:
   "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is \<^bold>H"
@@ -408,6 +631,11 @@ lemma PBMH_ades_wait_cond:
     PBMH_ades Q)"
   by (simp add: PBMH_ades_def PBMH_def pbmh_step_def expr_if_def
       fun_eq_iff lens_defs; pred_auto; blast)
+
+lemma rad_wait_cond_PBMH_ades_closure [closure]:
+  "\<lbrakk> P is PBMH_ades; Q is PBMH_ades \<rbrakk> \<Longrightarrow>
+   (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) is PBMH_ades"
+  by (simp add: Healthy_def' PBMH_ades_wait_cond)
 
 subsection \<open>RA3: Waiting\<close>
 
@@ -428,6 +656,43 @@ lemma RA2_wait_cond:
   by (simp add: RA2_def expr_if_def fun_eq_iff Let_def lens_defs
       rad_zero_trace_def rad_state.wait_def astate.s_def
       des_vars.more\<^sub>L_def)
+
+lemma II_Rac_design:
+  "II_Rac = RA1 (true \<turnstile> ades_state_choice)"
+  by (simp add: II_Rac_def RA1_def design_def ades_state_choice_def
+      fun_eq_iff Let_def SEXP_def lens_defs des_vars.ok_def;
+      pred_auto; blast intro: rad_trace_extensions_refl)
+
+lemma design_wait_cond:
+  "((P \<turnstile> Q) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (R \<turnstile> S)) =
+   ((P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> R) \<turnstile>
+    (Q \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> S))"
+  by (simp add: design_def expr_if_def fun_eq_iff; pred_auto)
+
+(* Thesis Lemma L.G.4.1: under RA1, RA3 turns a design into wait
+   conditionals over its components. *)
+lemma RA1_RA3_design:
+  "RA1 (RA3 (P \<turnstile> Q)) =
+   RA1 ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P) \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q))"
+proof -
+  have "RA1 (RA3 (P \<turnstile> Q)) =
+    (RA1 II_Rac \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA1 (P \<turnstile> Q))"
+    by (simp only: RA3_def RA1_wait_cond)
+  also have "... =
+    (RA1 (true \<turnstile> ades_state_choice) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+     RA1 (P \<turnstile> Q))"
+    by (simp only: II_Rac_design RA1_idem)
+  also have "... =
+    RA1 ((true \<turnstile> ades_state_choice) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+         (P \<turnstile> Q))"
+    by (simp only: RA1_wait_cond)
+  also have "... =
+    RA1 ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P) \<turnstile>
+         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q))"
+    by (simp only: design_wait_cond)
+  finally show ?thesis .
+qed
 
 lemma RA3_idem: "RA3 (RA3 P) = RA3 P"
   by (simp add: RA3_def)
@@ -468,7 +733,7 @@ lemma RA1_RA3_commute: "(RA1 \<circ> RA3) P = (RA3 \<circ> RA1) P"
   by (simp add: RA3_def RA1_wait_cond RA1_II_Rac)
 
 (* Paper Theorem 69 *)
-lemma RA2_RA3_commute: "(RA2 \<circ> RA3) P = (RA3 \<circ> RA2) P"
+theorem RA2_RA3_commute: "(RA2 \<circ> RA3) P = (RA3 \<circ> RA2) P"
   by (simp add: RA3_def RA2_wait_cond RA2_II_Rac)
 
 lemmas RA1_RA3_commute' = RA1_RA3_commute[simplified comp_apply]
@@ -503,6 +768,9 @@ subsection \<open>RA\<close>
 definition RA ::
   "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
 [pred]: "RA = RA1 \<circ> RA2 \<circ> RA3"
+
+lemma RA_as_RA1_RA3_RA2: "RA P = RA1 (RA3 (RA2 P))"
+  by (simp add: RA_def RA2_RA3_commute'[symmetric])
 
 lemma RA_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades"
@@ -553,7 +821,7 @@ lemma RA_A1: "(RA \<circ> A) P = (RA \<circ> A1) P"
   by (simp add: RA_def A_def RA_comms RA1_A0_absorb)
 
 (* Paper Theorem 67 *)
-lemma RA_A:
+theorem RA_A:
   assumes "P is \<^bold>H"
   shows "(RA \<circ> A) P = (RA \<circ> PBMH_ades) P"
   by (simp add: RA_A1[simplified comp_apply]
@@ -571,6 +839,28 @@ proof -
     using assms(1) by (simp only: comp_apply Healthy_def')
   finally show ?thesis .
 qed
+
+(* RA_A_absorb specialised to designs: PBMH components and freshness of
+   the final ok suffice for the design to satisfy the absorption
+   premises. *)
+lemma RA_A_absorb_design:
+  assumes "(\<not> F) is PBMH_ades" "T is PBMH_ades"
+    and "$ok\<^sup>> \<sharp> F" "$ok\<^sup>> \<sharp> T"
+  shows "(RA \<circ> A) (F \<turnstile> T) = RA (F \<turnstile> T)"
+proof -
+  have "(F \<turnstile> T) is PBMH_ades"
+    using PBMH_ades_design_closure[OF assms(1,2)]
+    by (simp only: pred_ba.double_compl)
+  then show ?thesis
+    by (rule RA_A_absorb[OF _ design_is_H1_H2[OF assms(3,4)]])
+qed
+
+(* The common special case of a true precondition. *)
+lemma RA_A_absorb_design_true:
+  assumes "T is PBMH_ades" and "$ok\<^sup>> \<sharp> T"
+  shows "(RA \<circ> A) (true \<turnstile> T) = RA (true \<turnstile> T)"
+  by (rule RA_A_absorb_design[OF _ assms(1) _ assms(2)];
+      simp add: pred_ba.compl_top_eq false_PBMH_ades unrest)
 
 lemma RA_A_angelic_choice:
   fixes P Q :: "'e reactive_angelic_design"
