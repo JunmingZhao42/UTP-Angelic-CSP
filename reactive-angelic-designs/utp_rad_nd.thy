@@ -6,7 +6,7 @@ begin
 
 (* Paper Definition 45: the angelic choice with the most nondeterministic
    non-divergent process. *)
-definition NDRAD :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
+definition NDRAD :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "NDRAD P = P \<squnion>\<^sub>R\<^sub>A\<^sub>D Choice\<^sub>R\<^sub>A\<^sub>D"
 
 lemma NDRAD_idem: "NDRAD (NDRAD P) = NDRAD P"

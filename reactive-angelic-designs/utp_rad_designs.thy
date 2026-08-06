@@ -7,7 +7,7 @@ begin
 subsection \<open>CSPA1\<close>
 
 (* Paper definition 33. *)
-definition CSPA1 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
+definition CSPA1 :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "CSPA1 P = (P \<or> RA1 (\<not> ok\<^sup><))"
 
 lemma CSPA1_mono:
@@ -57,7 +57,7 @@ lemma RA_CSPA1: "(RA \<circ> CSPA1) P = (RA \<circ> H1) P"
 subsection \<open>CSPA2\<close>
 
 (* Paper Definition 34. *)
-definition CSPA2 :: "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design"
+definition CSPA2 :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
 where [pred]: "CSPA2 P = H2 P"
 
 lemma CSPA2_Monotonic [closure]: "Monotonic CSPA2"
@@ -92,7 +92,7 @@ subsection \<open>RAD\<close>
 
 (* Paper Definition 35. *)
 definition RAD ::
-  "'e reactive_angelic_design \<Rightarrow> 'e reactive_angelic_design" where
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "RAD = RA \<circ> CSPA1 \<circ> CSPA2 \<circ> PBMH_ades"
 
 lemma RAD_mono:

@@ -87,13 +87,13 @@ proof -
   have J_PBMH: "?J is PBMH_ades"
     by (rule PBMH_ades_conj_closure; simp add: Healthy_def')
   have not_true_PBMH:
-      "(\<not> (true :: 'e reactive_angelic_design)) is PBMH_ades"
+      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) is PBMH_ades"
     by (simp only: pred_ba.compl_top_eq false_PBMH_ades)
   have component_unrests:
-      "$ok\<^sup>> \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>> \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>> \<sharp> ?J"
-      "$ok\<^sup>< \<sharp> (false :: 'e reactive_angelic_design)"
-      "$ok\<^sup>< \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (false :: ('t::trace, 'e) reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
     by (simp_all add: unrest)
   have handover_false:
       "(RA1 ?J ;;\<^sub>A\<^sub>D
@@ -140,7 +140,7 @@ subsection \<open>Prefixed deadlock avoids divergence (Example 16)\<close>
 (* Postcondition of a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D: either the
    event has not yet happened and is offered, or it has happened and
    the process deadlocks. *)
-definition prefix_stop_post :: "'e \<Rightarrow> 'e reactive_angelic_design" where
+definition prefix_stop_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_stop_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
     rad_state.wait\<^sub>v y \<and>
@@ -202,13 +202,13 @@ lemma Prefix_Stop_RAD_RA:
   "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D) = RA (true \<turnstile> prefix_stop_post a)"
 proof -
   have component_unrests:
-      "$ok\<^sup>> \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>> \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>> \<sharp> prefix_post a"
-      "$ok\<^sup>< \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>< \<sharp> stop_post"
     by (simp_all add: unrest)
   have not_true_PBMH:
-      "(\<not> (true :: 'e reactive_angelic_design)) is PBMH_ades"
+      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) is PBMH_ades"
     by (simp only: pred_ba.compl_top_eq false_PBMH_ades)
   have prefix_PBMH: "prefix_post a is PBMH_ades"
     by (simp add: Healthy_def')
@@ -276,13 +276,13 @@ proof -
   have J_PBMH: "?J is PBMH_ades"
     by (rule PBMH_ades_conj_closure; simp add: Healthy_def')
   have not_true_PBMH:
-      "(\<not> (true :: 'e reactive_angelic_design)) is PBMH_ades"
+      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) is PBMH_ades"
     by (simp only: pred_ba.compl_top_eq false_PBMH_ades)
   have component_unrests:
-      "$ok\<^sup>> \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>> \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>> \<sharp> ?J"
-      "$ok\<^sup>< \<sharp> (false :: 'e reactive_angelic_design)"
-      "$ok\<^sup>< \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (false :: ('t::trace, 'e) reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
     by (simp_all add: unrest)
   have handover_false:
       "(RA1 ?J ;;\<^sub>A\<^sub>D
@@ -343,7 +343,7 @@ subsection \<open>Prefixed termination avoids divergence (Example 17)\<close>
 
 (* The failure observation of a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D
    Chaos\<^sub>R\<^sub>A\<^sub>D: the event has occurred. *)
-definition prefix_diverge_post :: "'e \<Rightarrow> 'e reactive_angelic_design"
+definition prefix_diverge_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design"
 where
 [pred]: "prefix_diverge_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
@@ -351,7 +351,7 @@ where
     rad_state.tr\<^sub>v y)"
 
 (* The event is offered and has not yet occurred. *)
-definition prefix_offer_post :: "'e \<Rightarrow> 'e reactive_angelic_design"
+definition prefix_offer_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design"
 where
 [pred]: "prefix_offer_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
@@ -473,13 +473,13 @@ lemma Prefix_Chaos_RAD_RA:
        (prefix_offer_post a \<or> prefix_diverge_post a))"
 proof -
   have component_unrests:
-      "$ok\<^sup>> \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>> \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
       "$ok\<^sup>> \<sharp> prefix_post a"
-      "$ok\<^sup>< \<sharp> (false :: 'e reactive_angelic_design)"
-      "$ok\<^sup>< \<sharp> (true :: 'e reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (false :: ('t::trace, 'e) reactive_angelic_design)"
+      "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
     by (simp_all add: unrest)
   have not_true_PBMH:
-      "(\<not> (true :: 'e reactive_angelic_design)) is PBMH_ades"
+      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) is PBMH_ades"
     by (simp only: pred_ba.compl_top_eq false_PBMH_ades)
   have prefix_PBMH: "prefix_post a is PBMH_ades"
     by (simp add: Healthy_def')
