@@ -83,6 +83,19 @@ lemma design_as_disj:
   "(P \<turnstile> Q) = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> (Q \<and> ok\<^sup>>))"
   by (simp add: design_def fun_eq_iff; pred_auto)
 
+(* Negation reverses refinement. *)
+lemma not_refine:
+  fixes P Q :: "'s pred"
+  assumes "P \<sqsubseteq> Q"
+  shows "(\<not> Q) \<sqsubseteq> (\<not> P)"
+  using assms by pred_auto
+
+(* Weakening the precondition of a design refines it. *)
+lemma design_pre_weaken:
+  assumes "Pre2 \<sqsubseteq> Pre1"
+  shows "(Pre1 \<turnstile> Q) \<sqsubseteq> (Pre2 \<turnstile> Q)"
+  by (rule design_refine_intro'[OF assms]; pred_auto)
+
 subsection \<open>PBMH\<close>
 
 (* ac \<subseteq> ac' \<and> v' = v. *)

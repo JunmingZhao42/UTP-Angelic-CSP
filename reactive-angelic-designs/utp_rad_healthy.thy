@@ -76,6 +76,36 @@ lemma RA1_ok_in_subst:
       subst_id_def SEXP_def lens_defs des_vars.ok_def
       des_more_ok_update_commute; pred_auto)
 
+(* A design ignores its postcondition when it has not started, so a
+   not-started disjunct under RA1 is redundant. *)
+lemma design_true_RA1_not_ok:
+  "(true \<turnstile> RA1 ((\<not> ok\<^sup><) \<or> X)) = (true \<turnstile> RA1 X)"
+proof -
+  have inner:
+      "((\<not> ok\<^sup><) \<or> X)\<lbrakk>True/ok\<^sup><\<rbrakk> = X\<lbrakk>True/ok\<^sup><\<rbrakk>"
+    by (simp add: usubst usubst_eval; pred_auto)
+  have "(true \<turnstile> RA1 ((\<not> ok\<^sup><) \<or> X)) =
+      (true\<lbrakk>True/ok\<^sup><\<rbrakk> \<turnstile>
+       (RA1 ((\<not> ok\<^sup><) \<or> X))\<lbrakk>True/ok\<^sup><\<rbrakk>)"
+    by (rule sym, rule design_subst_ok)
+  also have "... =
+      (true\<lbrakk>True/ok\<^sup><\<rbrakk> \<turnstile> (RA1 X)\<lbrakk>True/ok\<^sup><\<rbrakk>)"
+    by (simp only: RA1_ok_in_subst inner)
+  also have "... = (true \<turnstile> RA1 X)"
+    by (rule design_subst_ok)
+  finally show ?thesis .
+qed
+
+(* H1 discards the not-started behaviour that RA1 adds to a design,
+   leaving RA1 enforced on both components. *)
+lemma H1_RA1_design_gen:
+  "H1 (RA1 (P \<turnstile> Q)) = ((\<not> RA1 (\<not> P)) \<turnstile> RA1 Q)"
+  by (simp add: RA1_def fun_eq_iff Let_def; pred_auto)
+
+lemma H1_RA1_design: "H1 (RA1 (true \<turnstile> X)) = (true \<turnstile> RA1 X)"
+  by (simp only: H1_RA1_design_gen pred_ba.compl_top_eq RA1_false
+      pred_ba.compl_bot_eq)
+
 lemma RA1_ok_out_subst:
   "(RA1 P)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = RA1 (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>)"
   by (simp add: RA1_def fun_eq_iff Let_def subst_app_def subst_upd_def
@@ -93,6 +123,13 @@ lemma RA1_unrest_ok_out [unrest]:
 lemma RA1_design_pre:
   "RA1 (P \<turnstile> Q) = RA1 ((\<not> RA1 (\<not> P)) \<turnstile> Q)"
   by (simp add: RA1_def design_def fun_eq_iff Let_def; pred_auto; blast)
+
+(* The extra RA1 that H1 leaves on the components of an RA1-healthy
+   design is reabsorbed by RA1. *)
+lemma RA1_H1_RA1_design:
+  "RA1 (H1 (RA1 (P \<turnstile> Q))) = RA1 (P \<turnstile> Q)"
+  by (simp only: H1_RA1_design_gen RA1_design_post[symmetric]
+      RA1_design_pre[symmetric])
 
 lemma RA1_Idempotent [closure]: "Idempotent RA1"
   by (simp add: Idempotent_def RA1_idem)
@@ -114,6 +151,14 @@ lemma RA1_ac_non_empty_absorb: "RA1 (ac_non_empty \<and> P) = RA1 P"
   by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
       pred_auto)
 
+(* Arguments of RA1 may be rewritten under the non-emptiness
+   assumption. *)
+lemma RA1_cong_ac_non_empty:
+  assumes "(ac_non_empty \<and> P) = (ac_non_empty \<and> Q)"
+  shows "RA1 P = RA1 Q"
+  using arg_cong[where f=RA1, OF assms]
+  by (simp only: RA1_ac_non_empty_absorb)
+
 (* Paper Theorem 70 *)
 theorem PBMH_ades_RA1_absorb:
   "(PBMH_ades \<circ> RA1 \<circ> PBMH_ades) P = (RA1 \<circ> PBMH_ades) P"
@@ -124,6 +169,26 @@ lemma RA1_PBMH_ades_closure [closure]:
   shows "RA1 P is PBMH_ades"
   using assms PBMH_ades_RA1_absorb[of P]
   by (simp add: Healthy_def')
+
+(* Thesis Lemma L.G.1.21: RA1 only shrinks the choice set, so on a
+   PBMH-healthy predicate it is a strengthening. *)
+lemma RA1_refine:
+  assumes "P is PBMH_ades"
+  shows "P \<sqsubseteq> RA1 P"
+proof (unfold pred_refine_iff, safe)
+  fix s
+  assume ra1: "RA1 P s"
+  obtain x y where s: "s = (x, y)" by (cases s)
+  let ?A' = "rad_trace_extensions (astate.s\<^sub>v (des_vars.more x)) \<inter>
+             achoices.ac\<^sub>v (des_vars.more y)"
+  let ?y = "des_vars.more_update
+              (\<lambda>_. achoices.ac\<^sub>v_update (\<lambda>_. ?A') (des_vars.more y)) y"
+  have "P (x, ?y)"
+    using ra1 by (simp add: s RA1_def Let_def)
+  then have "P (x, y)"
+    by (rule PBMH_ades_upward[OF assms]; simp)
+  then show "P s" by (simp add: s)
+qed
 
 lemma PBMH_ades_RA1_not_ok [simp]:
   "PBMH_ades (RA1 (\<not> ok\<^sup><)) = RA1 (\<not> ok\<^sup><)"
@@ -265,6 +330,10 @@ lemma RA2_true: "RA2 true = true"
 lemma RA2_false: "RA2 false = false"
   by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
 
+lemma RA2_not_ok_expr:
+  "RA2 (\<not> ok\<^sup><) = (\<not> ok\<^sup><)"
+  by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
+
 lemma RA2_impl: "RA2 (P \<longrightarrow> Q) = (RA2 P \<longrightarrow> RA2 Q)"
   by (simp add: RA2_def fun_eq_iff Let_def; pred_auto)
 
@@ -330,6 +399,64 @@ theorem RA1_RA2_commute: "(RA1 \<circ> RA2) P = (RA2 \<circ> RA1) P"
       rad_zero_trace_extensions Let_def)
 
 lemmas RA1_RA2_commute' = RA1_RA2_commute[simplified comp_apply]
+
+(* Thesis Lemma L.G.2.9: under RA2, requiring a non-empty choice set is
+   the same as enforcing RA1. *)
+lemma RA2_ac_non_empty:
+  "RA2 (P \<and> ac_non_empty) = RA2 (RA1 P)"
+  by (simp add: RA1_def RA2_def ac_non_empty_def fun_eq_iff
+      rad_normalise_choices_extensions rad_normalise_choices_nonempty
+      rad_zero_trace_extensions Let_def; pred_auto;
+      auto simp add: rad_normalise_choices_def rad_trace_extensions_def)
+
+(* Under RA2, requiring a non-empty choice set is exactly RA1 of true. *)
+lemma RA2_ac_non_empty_eq: "RA2 ac_non_empty = RA1 true"
+proof -
+  have absorb: "(true \<and> ac_non_empty) = ac_non_empty"
+    by pred_auto
+  have "RA2 ac_non_empty = RA2 (RA1 true)"
+    using RA2_ac_non_empty[of true] by (simp only: absorb)
+  then show ?thesis
+    by (simp only: RA1_RA2_commute'[symmetric] RA2_true)
+qed
+
+(* Conjoining RA1 true with an RA2 image enforces RA1 inside it. *)
+lemma RA1_true_conj_RA2: "(RA1 true \<and> RA2 P) = RA2 (RA1 P)"
+proof -
+  have "RA2 (RA1 P) = (RA2 P \<and> RA2 ac_non_empty)"
+    by (simp only: RA2_ac_non_empty[symmetric] RA2_conj)
+  then show ?thesis
+    by (simp only: RA2_ac_non_empty_eq pred_ba.inf_commute)
+qed
+
+(* Under RA1 true, a disjunct absorbed by B on the inside is absorbed
+   by the RA2 \<circ> RA1 image of B. *)
+lemma RA2_RA1_disj_absorb:
+  assumes "(X \<or> Y) = Y"
+  shows "(RA1 true \<and> (RA2 X \<or> RA2 (RA1 Y))) = RA2 (RA1 Y)"
+proof -
+  have "(RA1 true \<and> (RA2 X \<or> RA2 (RA1 Y))) =
+      ((RA1 true \<and> RA2 X) \<or> (RA1 true \<and> RA2 (RA1 Y)))"
+    by (simp only: pred_ba.boolean_algebra.conj_disj_distrib)
+  also have "... = (RA2 (RA1 X) \<or> RA2 (RA1 Y))"
+    by (simp only: RA1_true_conj_RA2 RA1_idem)
+  also have "... = RA2 (RA1 (X \<or> Y))"
+    by (simp only: RA2_disj[symmetric] RA1_disj[symmetric])
+  finally show ?thesis
+    by (simp only: assms)
+qed
+
+lemma RA1_RA2_ac_non_empty: "RA1 (RA2 ac_non_empty) = RA1 true"
+proof -
+  have absorb: "RA1 ac_non_empty = RA1 true"
+    by (rule RA1_cong_ac_non_empty, pred_auto)
+  have "RA1 (RA2 ac_non_empty) = RA2 (RA1 true)"
+    by (simp only: RA1_RA2_commute' absorb)
+  also have "... = RA1 (RA2 true)"
+    by (rule RA1_RA2_commute'[symmetric])
+  finally show ?thesis
+    by (simp only: RA2_true)
+qed
 
 (* Thesis Theorem T.G.2.4: RA2 distributes through full-alphabet angelic
    composition when the right operand is already RA2-normalised. *)
@@ -788,6 +915,32 @@ proof -
     by (rule RA1_design_post)
   finally show ?thesis
     by (simp only: RA_alt_def)
+qed
+
+(* Mapping an RA-healthy design through H1 and back through RA1 is the
+   identity: RA is RA1-healthy, so RA1 reabsorbs what H1 adds. *)
+lemma RA1_H1_RA_design:
+  "RA1 (H1 (RA (P \<turnstile> Q))) = RA (P \<turnstile> Q)"
+proof -
+  have step: "RA (P \<turnstile> Q) =
+      RA1 ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 P) \<turnstile>
+           (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q))"
+    by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA1_RA3_design)
+  show ?thesis
+    by (simp only: step RA1_H1_RA1_design)
+qed
+
+(* The wait-conditional normal form of a reactive angelic design with a
+   true precondition. *)
+lemma RA_true_design:
+  "RA (true \<turnstile> Post) =
+   RA1 (true \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Post))"
+proof -
+  have "RA (true \<turnstile> Post) = RA1 (RA3 (true \<turnstile> RA2 Post))"
+    by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA2_true)
+  then show ?thesis
+    by (simp only: RA1_RA3_design expr_if_idem)
 qed
 
 lemma RA_cong_ac_non_empty:

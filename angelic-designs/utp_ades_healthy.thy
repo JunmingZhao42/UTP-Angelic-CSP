@@ -384,6 +384,12 @@ lemma PBMH_ades_design_closure:
   by (simp add: Healthy_def' PBMH_ades_def design_def fun_eq_iff;
       pred_auto; blast)
 
+(* PBMH_ades distributes over a design with a negated precondition. *)
+lemma PBMH_ades_neg_design:
+  "PBMH_ades ((\<not> F) \<turnstile> T) =
+   ((\<not> PBMH_ades F) \<turnstile> PBMH_ades T)"
+  by (simp add: design_as_disj PBMH_ades_disj PBMH_ades_conj_ok)
+
 (* Paper Appendix A.1, Lemma 16 *)
 lemma PBMH_ades_rdesign:
   "PBMH_ades (P \<turnstile>\<^sub>r Q) =
@@ -400,6 +406,16 @@ subsection \<open>A0\<close>
 
 definition ac_non_empty :: "'s angelic_design" where
 [pred]: "ac_non_empty = \<lceil>($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e\<rceil>\<^sub>D"
+
+lemma ac_non_empty_ok_out_subst [usubst]:
+  "ac_non_empty\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = ac_non_empty"
+  by pred_auto
+
+(* The design-level lifting of paper Lemma 15. *)
+lemma PBMH_ades_ac_non_empty [simp]:
+  "PBMH_ades ac_non_empty = ac_non_empty"
+  by (simp add: PBMH_ades_def PBMH_def pbmh_step_def ac_non_empty_def
+      fun_eq_iff; pred_auto)
 
 definition A0 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A0 P = (P \<and> ((ok\<^sup>< \<and> \<not> P\<^sup>f) \<longrightarrow> (ok\<^sup>> \<longrightarrow> ac_non_empty)))"
@@ -452,6 +468,11 @@ lemma des_vars_update_commute:
   "x\<lparr>ok\<^sub>v := ok_val, des_vars.more := more_val\<rparr> =
    x\<lparr>des_vars.more := more_val, ok\<^sub>v := ok_val\<rparr>"
   by (cases x, simp)
+
+(* Updating both fields of a des_vars record determines it. *)
+lemma des_vars_collapse:
+  "r\<lparr>des_vars.more := m, ok\<^sub>v := b\<rparr> = \<lparr>ok\<^sub>v = b, \<dots> = m\<rparr>"
+  by (cases r) simp
 
 lemma A1_state_subst:
   "ades_state_subst st_subst (A1 P) = A1 (ades_state_subst st_subst P)"
@@ -516,6 +537,12 @@ lemma A_design_form:
    ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r
      (PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
   by (pred_auto)
+
+(* A over the ok'-substituted design of a predicate, in \<turnstile> form. *)
+lemma A_design:
+  "A ((\<not> Q\<^sup>f) \<turnstile> Q\<^sup>t) =
+   ((\<not> PBMH_ades (Q\<^sup>f)) \<turnstile> (PBMH_ades (Q\<^sup>t) \<and> ac_non_empty))"
+  by (pred_auto; auto simp add: des_vars_collapse)
 
 lemma preD_H1: "pre\<^sub>D (H1 P) = pre\<^sub>D P"
   by (simp add: H1_def pre_design_def, pred_simp)

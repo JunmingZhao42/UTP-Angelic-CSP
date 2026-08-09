@@ -24,4 +24,7 @@ session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]
   theories
     utp_ap_healthy
+    utp_ap_rad
+    utp_ap_ops
+    utp_ap_nd
     Angelic_CSP
