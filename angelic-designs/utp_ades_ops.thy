@@ -146,7 +146,7 @@ lemma aseq_ades_mono_left:
   "P \<sqsubseteq> Q \<Longrightarrow> (P ;;\<^sub>A\<^sub>D R) \<sqsubseteq> (Q ;;\<^sub>A\<^sub>D R)"
   by (auto simp add: aseq_ades_def pred_refine_iff split: prod.splits)
 
-(* The paper's s \<in> ac' lifted to the full design alphabet. *)
+(* s \<in> ac' *)
 definition ades_state_choice :: "'s angelic_design" where
 [pred]: "ades_state_choice = (\<lambda> (s0, ac').
   astate.s\<^sub>v (des_vars.more s0) \<in> achoices.ac\<^sub>v (des_vars.more ac'))"

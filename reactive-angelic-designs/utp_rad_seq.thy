@@ -1,13 +1,63 @@
 section \<open>Reactive Angelic Design Sequential Composition\<close>
 
 text \<open>
-  Support for the paper Theorem 30 normal form of sequential
-  composition (thesis T.5.4.21, via T.G.8.5 and T.G.8.6).
+  Sequential composition laws, CSP correspondence, and the paper Theorem 30
+  normal form (thesis T.5.4.21, via T.G.8.5 and T.G.8.6).
 \<close>
 
 theory utp_rad_seq
   imports utp_rad_ops
 begin
+
+subsection \<open>Basic laws and CSP correspondence\<close>
+
+(* Thesis Theorem T.4.5.15. *)
+lemma RAD_seq_demonic_distrib:
+  "(P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) ;;\<^sub>R\<^sub>A\<^sub>D R = (P ;;\<^sub>R\<^sub>A\<^sub>D R) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q ;;\<^sub>R\<^sub>A\<^sub>D R)"
+  by (rule angelic_design_seq_demonic)
+
+(* The observation repackaging distributes over sequential composition. *)
+lemma csp2rad_rel_seq_distrib:
+  fixes P Q :: "('t::trace, 'e set) rp_hrel"
+  shows "csp2rad_rel (P ;; Q) = (csp2rad_rel P ;; csp2rad_rel Q)"
+proof (rule ext)
+  fix w :: "('t::trace, 'e) rad_state des_vars_scheme \<times>
+    ('t, 'e) rad_state des_vars_scheme"
+  obtain x y where [simp]: "w = (x, y)" by (cases w) auto
+  have L: "csp2rad_rel (P ;; Q) w \<longleftrightarrow>
+      (\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y))"
+    by (simp add: csp2rad_rel_def; pred_auto)
+  have R: "(csp2rad_rel P ;; csp2rad_rel Q) w \<longleftrightarrow>
+      (\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
+        Q (rad2csp_obs m, rad2csp_obs y))"
+    by (simp add: csp2rad_rel_def; pred_auto)
+  show "csp2rad_rel (P ;; Q) w = (csp2rad_rel P ;; csp2rad_rel Q) w"
+  proof (simp only: L R, rule iffI)
+    assume "\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y)"
+    then obtain m where "P (rad2csp_obs x, m)" and
+        "Q (m, rad2csp_obs y)"
+      by blast
+    then show "\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
+        Q (rad2csp_obs m, rad2csp_obs y)"
+      by (intro exI[where x="csp2rad_obs m"]) simp
+  next
+    assume "\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
+        Q (rad2csp_obs m, rad2csp_obs y)"
+    then show "\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y)"
+      by blast
+  qed
+qed
+
+(* Thesis Theorem T.G.7.11, lifted to the reactive angelic mapping. *)
+lemma rad_p2ac_seq:
+  "rad_p2ac (P ;; Q) = (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q)"
+  by (simp only: rad_p2ac_def comp_apply csp2rad_rel_seq_distrib
+      p2ac_seq)
+
+(* Thesis Theorem T.5.4.24: the correspondence of sequential composition with CSP. *)
+lemma RAD_seq_CSP_inverse:
+  "rad_ac2p (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P ;; Q"
+  by (simp only: rad_p2ac_seq[symmetric] rad_ac2p_p2ac_inverse')
 
 subsection \<open>Sequential composition of RA1 designs\<close>
 

@@ -4,50 +4,6 @@ theory utp_rad_ops
   imports utp_rad_csp
 begin
 
-subsection \<open>Singleton Angelic Choice\<close>
-
-(* An A2-healthy process admits a single agreed final state whenever
-   its postcondition projection holds of an inhabited choice set. *)
-lemma A2_wf_ok_true_singleton_reduce:
-  assumes "P is A2"
-  shows "\<in>\<^sub>a\<^sub>c((P \<^sub>wf)\<^sup>t) \<sqsubseteq>
-    (((P \<^sub>wf)\<^sup>t) \<and> ac_non_empty)"
-proof -
-  have fixed: "A2 P = P"
-    using assms by (simp add: Healthy_def')
-  have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>wf)\<^sup>t) \<sqsubseteq>
-      ((((A2 P) \<^sub>wf)\<^sup>t) \<and> ac_non_empty)"
-    apply (simp add: A2_def ades_singleton_choice_def ac_non_empty_def
-        rad_wait_false_def A2_rel_eq_expanded A2_rel_expanded_def
-        pred_refine_iff fun_eq_iff usubst usubst_eval Let_def)
-    by (pred_auto; blast)
-  then show ?thesis
-    by (simp only: fixed)
-qed
-
-(* PBMH upward closure: the singleton choice is weaker than the
-   full choice set. *)
-lemma ades_singleton_choice_weaken:
-  assumes "T is PBMH_ades"
-  shows "T \<sqsubseteq> \<in>\<^sub>a\<^sub>c(T)"
-  using assms
-  apply (simp add: Healthy_def' PBMH_ades_def PBMH_def pbmh_step_def
-      ades_singleton_choice_def pred_refine_iff fun_eq_iff Let_def)
-  by (pred_auto; blast)
-
-lemma RA1_singleton_absorb:
-  assumes "T is PBMH_ades"
-    and "\<in>\<^sub>a\<^sub>c(T) \<sqsubseteq> (T \<and> ac_non_empty)"
-  shows "RA1 (\<in>\<^sub>a\<^sub>c(T)) = RA1 T"
-proof (rule ref_antisym)
-  have absorb: "RA1 (T \<and> ac_non_empty) = RA1 T"
-    by (subst pred_ba.inf_commute) (rule RA1_ac_non_empty_absorb)
-  show "RA1 (\<in>\<^sub>a\<^sub>c(T)) \<sqsubseteq> RA1 T"
-    using RA1_mono[OF assms(2)] by (simp only: absorb)
-  show "RA1 T \<sqsubseteq> RA1 (\<in>\<^sub>a\<^sub>c(T))"
-    by (rule RA1_mono[OF ades_singleton_choice_weaken[OF assms(1)]])
-qed
-
 subsection \<open>Angelic Choice\<close>
 
 (* Paper Definition 37. *)
@@ -285,6 +241,19 @@ lemma Choice_RAD_is_RAD [closure]: "Choice\<^sub>R\<^sub>A\<^sub>D is RAD"
   unfolding Choice_RAD_def
   by rad_closure
 
+lemma Choice_RAD_RA: "Choice\<^sub>R\<^sub>A\<^sub>D = RA (true \<turnstile> true)"
+  apply (simp only: Choice_RAD_alt)
+  by (rule RA_A_absorb_design_true[OF true_PBMH_ades];
+      simp add: unrest)
+
+(* The wait-conditional design form of Choice_RAD under RA1. *)
+lemma Choice_RAD_design:
+  "Choice\<^sub>R\<^sub>A\<^sub>D =
+   RA1 (true \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+         true))"
+  by (simp only: Choice_RAD_RA RA_true_design RA2_true)
+
 (* Choice_RAD can only fail to stabilise when it has not started. *)
 lemma Choice_RAD_wf_ok_false:
   "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f = RA2 (RA1 (\<not> ok\<^sup><))"
@@ -335,7 +304,7 @@ proof -
     apply (rule RA_A_angelic_choice)
        apply (simp add: Healthy_def' PBMH_ades_def fun_eq_iff; pred_auto)
       apply (rule RAD_design_PBMH[OF assms])
-     apply (rule design_is_H1_H2; pred_auto)
+     apply (rule design_is_H1_H2; simp add: unrest)
     by (rule rad_wait_false_design_is_H)
   also have "... = (RA \<circ> A) (true \<turnstile> ?Z)"
     apply (rule arg_cong[where f="RA \<circ> A"])
@@ -343,8 +312,8 @@ proof -
     by pred_auto
   also have "... = (RA \<circ> A) (true \<turnstile> ?T)"
     apply (rule RA_A_true_design_post)
-       apply (rule design_is_H1_H2; pred_auto)
-      apply (rule design_is_H1_H2; pred_auto)
+       apply (rule design_is_H1_H2; simp add: unrest)
+      apply (rule design_is_H1_H2; simp add: unrest)
      apply (rule T_form[symmetric])
     by (rule Healthy_if[OF RAD_wf_ok_true_PBMH[OF assms]])
   finally show ?thesis .
@@ -375,12 +344,11 @@ qed
 
 subsection \<open>Stop\<close>
 
-(* \<exists> y \<in> ac' \<bullet> y.tr = s.tr \<and> y.wait *)
+(* Paper Definition 41: \<in>\<^sub>a\<^sub>c y \<bullet> y.tr = s.tr \<and> y.wait *)
 definition stop_post :: "('t::trace, 'e) reactive_angelic_design" where
-[pred]: "stop_post = (\<lambda> (s0, ac').
-  \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-    rad_state.wait\<^sub>v y)"
+[pred]: "stop_post = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
+  rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+  rad_state.wait\<^sub>v y))"
 
 (* Paper Definition 41. *)
 definition Stop_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>R\<^sub>A\<^sub>D") where
@@ -390,7 +358,7 @@ definition Stop_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>R\
 lemma stop_post_p2ac:
   "stop_post = p2ac \<lceil>(\<lambda> (s, y).
     rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and> rad_state.wait\<^sub>v y)\<rceil>\<^sub>D"
-  by (simp add: stop_post_def p2ac_def fun_eq_iff subst_app_def
+  by (simp add: stop_post_def ades_singleton_choice_def p2ac_def fun_eq_iff subst_app_def
       subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
       pred_auto; blast)
 
@@ -398,18 +366,18 @@ lemma stop_post_PBMH [simp]: "PBMH_ades stop_post = stop_post"
   by (simp only: stop_post_p2ac PBMH_ades_p2ac)
 
 lemma rad_wait_false_stop_post: "(stop_post \<^sub>wf) = stop_post"
-  by (simp add: stop_post_def rad_wait_false_def fun_eq_iff subst_app_def
+  by (simp add: stop_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
       rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma stop_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> stop_post"
-  apply (simp add: unrest_lens stop_post_def)
+  apply (simp add: unrest_lens stop_post_def ades_singleton_choice_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs)
   done
 
 lemma stop_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> stop_post"
-  apply (simp add: unrest_lens stop_post_def)
+  apply (simp add: unrest_lens stop_post_def ades_singleton_choice_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs)
   done
@@ -417,19 +385,19 @@ lemma stop_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> stop_post"
 (* The Stop postcondition only relates the traces of the initial and
    final states, so trace normalisation leaves it fixed. *)
 lemma RA2_stop_post: "RA2 stop_post = stop_post"
-  by (simp add: RA2_def stop_post_def rad_normalise_choices_def
+  by (simp add: RA2_def stop_post_def ades_singleton_choice_def rad_normalise_choices_def
       rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def;
       pred_auto; force dest: minus_zero_eq[rotated])
 
 lemma stop_post_ok_in_subst [usubst]:
   "stop_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = stop_post"
-  by (simp add: stop_post_def fun_eq_iff subst_app_def subst_upd_def
+  by (simp add: stop_post_def ades_singleton_choice_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs des_vars.ok_def
       astate.s_def des_vars.more\<^sub>L_def)
 
 lemma stop_post_ok_out_subst [usubst]:
   "stop_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = stop_post"
-  by (simp add: stop_post_def fun_eq_iff subst_app_def subst_upd_def
+  by (simp add: stop_post_def ades_singleton_choice_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs des_vars.ok_def
       astate.s_def des_vars.more\<^sub>L_def)
 
@@ -535,6 +503,14 @@ lemma Stop_RAD_RA: "Stop\<^sub>R\<^sub>A\<^sub>D = RA (true \<turnstile> stop_po
   unfolding Stop_RAD_def
   by (rule RA_A_absorb_design_true; simp add: Healthy_def' unrest)
 
+(* The wait-conditional design form of Stop_RAD under RA1. *)
+lemma Stop_RAD_design:
+  "Stop\<^sub>R\<^sub>A\<^sub>D =
+   RA1 (true \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+         stop_post))"
+  by (simp only: Stop_RAD_RA RA_true_design RA2_stop_post)
+
 (* Paper Theorem 28. *)
 theorem Stop_RAD_angelic_choice:
   assumes "P is RAD"
@@ -606,6 +582,18 @@ lemma skip_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> skip_post"
       SEXP_def lens_defs alpha_defs)
   done
 
+lemma skip_post_ok_in_subst [usubst]:
+  "skip_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = skip_post"
+  by (simp add: skip_post_def ades_singleton_choice_def fun_eq_iff subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def
+      astate.s_def des_vars.more\<^sub>L_def)
+
+lemma skip_post_ok_out_subst [usubst]:
+  "skip_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = skip_post"
+  by (simp add: skip_post_def ades_singleton_choice_def fun_eq_iff subst_app_def subst_upd_def
+      subst_id_def SEXP_def lens_defs des_vars.ok_def
+      astate.s_def des_vars.more\<^sub>L_def)
+
 lemma skip_design_is_H [closure]: "(true \<turnstile> skip_post) is \<^bold>H"
   by (rule design_is_H1_H2; simp add: unrest)
 
@@ -614,6 +602,19 @@ lemma Skip_RAD_is_RAD [closure]: "Skip\<^sub>R\<^sub>A\<^sub>D is RAD"
   apply (rule RAD_design_closure)
    apply (rule skip_design_is_H)
   by (simp add: rad_wait_false_distrib rad_wait_false_skip_post)
+
+(* Skip with the A absorbed into RA. *)
+lemma Skip_RAD_RA: "Skip\<^sub>R\<^sub>A\<^sub>D = RA (true \<turnstile> skip_post)"
+  unfolding Skip_RAD_def
+  by (rule RA_A_absorb_design_true; simp add: Healthy_def' unrest)
+
+(* The wait-conditional design form of Skip_RAD under RA1. *)
+lemma Skip_RAD_design:
+  "Skip\<^sub>R\<^sub>A\<^sub>D =
+   RA1 (true \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+         skip_post))"
+  by (simp only: Skip_RAD_RA RA_true_design RA2_skip_post)
 
 (* Paper Theorem 29. *)
 theorem Skip_RAD_angelic_choice:
@@ -646,61 +647,16 @@ subsection \<open>Sequential Composition\<close>
 
 text \<open>
   Paper Section 6.4.7: sequential composition of reactive angelic designs
-  is exactly \<open>;;\<^sub>D\<^sub>A\<close> from the theory of angelic designs.  Its
-  paper Theorem 30 normal form and RAD closure law are proved in
-  \<open>utp_rad_seq\<close>.
+  is exactly \<open>;;\<^sub>D\<^sub>A\<close> from the theory of angelic designs.  The notation
+  remains here because the compound prefix operator below uses it.  Its
+  laws, CSP correspondence, paper Theorem 30 normal form, and RAD closure
+  law are proved in \<open>utp_rad_seq\<close>.
 \<close>
 
 abbreviation seq_RAD ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
    ('t, 'e) reactive_angelic_design" (infixl ";;\<^sub>R\<^sub>A\<^sub>D" 75)
 where "P ;;\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P ;;\<^sub>D\<^sub>A Q"
-
-(* Thesis Theorem T.4.5.15. *)
-lemma RAD_seq_demonic_distrib:
-  "(P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) ;;\<^sub>R\<^sub>A\<^sub>D R = (P ;;\<^sub>R\<^sub>A\<^sub>D R) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q ;;\<^sub>R\<^sub>A\<^sub>D R)"
-  by (rule angelic_design_seq_demonic)
-
-(* The observation repackaging distributes over sequential composition. *)
-lemma csp2rad_rel_seq_distrib:
-  fixes P Q :: "('t::trace, 'e set) rp_hrel"
-  shows "csp2rad_rel (P ;; Q) = (csp2rad_rel P ;; csp2rad_rel Q)"
-proof (rule ext)
-  fix w :: "('t::trace, 'e) rad_state des_vars_scheme \<times> ('t, 'e) rad_state des_vars_scheme"
-  obtain x y where [simp]: "w = (x, y)" by (cases w) auto
-  have L: "csp2rad_rel (P ;; Q) w \<longleftrightarrow>
-      (\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y))"
-    by (simp add: csp2rad_rel_def; pred_auto)
-  have R: "(csp2rad_rel P ;; csp2rad_rel Q) w \<longleftrightarrow>
-      (\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
-        Q (rad2csp_obs m, rad2csp_obs y))"
-    by (simp add: csp2rad_rel_def; pred_auto)
-  show "csp2rad_rel (P ;; Q) w = (csp2rad_rel P ;; csp2rad_rel Q) w"
-  proof (simp only: L R, rule iffI)
-    assume "\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y)"
-    then obtain m where "P (rad2csp_obs x, m)" and "Q (m, rad2csp_obs y)"
-      by blast
-    then show "\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
-        Q (rad2csp_obs m, rad2csp_obs y)"
-      by (intro exI[where x="csp2rad_obs m"]) simp
-  next
-    assume "\<exists>m. P (rad2csp_obs x, rad2csp_obs m) \<and>
-        Q (rad2csp_obs m, rad2csp_obs y)"
-    then show "\<exists>m. P (rad2csp_obs x, m) \<and> Q (m, rad2csp_obs y)"
-      by blast
-  qed
-qed
-
-(* Thesis Theorem T.G.7.11, lifted to the reactive angelic mapping. *)
-lemma rad_p2ac_seq:
-  "rad_p2ac (P ;; Q) = (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q)"
-  by (simp only: rad_p2ac_def comp_apply csp2rad_rel_seq_distrib
-      p2ac_seq)
-
-(* Thesis Theorem T.5.4.24: the correspondence of sequential composition with CSP. *)
-lemma RAD_seq_CSP_inverse:
-  "rad_ac2p (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P ;; Q"
-  by (simp only: rad_p2ac_seq[symmetric] rad_ac2p_p2ac_inverse')
 
 subsection \<open>Prefixing\<close>
 
@@ -889,13 +845,16 @@ lemma extchoice_post_stop:
       des_vars.more\<^sub>L_def)
   by (pred_auto; blast)
 
-(* Paper Theorem 32 / Thesis Theorem T.5.4.30: external choice with
-   Stop collapses the angelic nondeterminism of P. *)
+(* Paper Theorem 32 / Thesis Theorem T.5.4.30:
+   Stop is not a unit of external choice in RAD (without A2). *)
+(* RA \<circ> A (\<not> P_f^f \<turnstile> \<exists> y \<in> ac'. P_f^t[{y}/ac'])*)
 theorem extchoice_RAD_Stop:
   assumes "P is RAD"
   shows "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D =
     (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile>
-      \<in>\<^sub>a\<^sub>c((P \<^sub>wf)\<^sup>t))"
+      (\<lambda> (s0, ac'). \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
+          ((P \<^sub>wf)\<^sup>t) (s0, des_vars.more_update
+              (achoices.ac\<^sub>v_update (\<lambda>_. {y})) ac')))"
 proof -
   let ?F = "(P \<^sub>wf)\<^sup>f" and ?T = "(P \<^sub>wf)\<^sup>t"
   let ?SF = "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f"
@@ -903,8 +862,8 @@ proof -
   have pre_push:
       "((\<not> ?F) \<and> (\<not> ?SF))\<lbrakk>True/ok\<^sup><\<rbrakk> =
        (\<not> ?F)\<lbrakk>True/ok\<^sup><\<rbrakk>"
-    by (simp add: usubst
-        Stop_RAD_wf_ok_false_subst[simplified usubst]; pred_auto)
+    by (simp only: subst_pred(3,4) Stop_RAD_wf_ok_false_subst
+        pred_ba.compl_bot_eq pred_ba.inf_top_right)
   have post_push:
       "(extchoice_post ?T ?ST)\<lbrakk>True/ok\<^sup><\<rbrakk> =
        (\<in>\<^sub>a\<^sub>c(?T))\<lbrakk>True/ok\<^sup><\<rbrakk>"
@@ -916,20 +875,8 @@ proof -
     using arg_cong2[where f=design, OF pre_push post_push]
     by (simp only: design_subst_ok)
   then show ?thesis
-    by (simp only: extchoice_RAD_def)
+    by (simp only: extchoice_RAD_def ades_singleton_choice_def)
 qed
-
-(* Theorem 32 in the paper's raw format:
-   \<exists> y \<bullet> (P\<^sup>t\<^sub>f)[{y}/ac'] \<and> y \<in> ac' *)
-lemma extchoice_RAD_Stop_expanded:
-  assumes "P is RAD"
-  shows "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D =
-    (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile>
-      (\<lambda> (s0, ac'). \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-          ((P \<^sub>wf)\<^sup>t) (s0, des_vars.more_update
-              (achoices.ac\<^sub>v_update (\<lambda>_. {y})) ac')))"
-  by (simp only: extchoice_RAD_Stop[OF assms]
-      ades_singleton_choice_def)
 
 (* Paper Theorem 33 / Thesis Theorem T.5.4.31 *)
 theorem extchoice_RAD_Stop_unit:
@@ -942,12 +889,38 @@ proof -
         RAD_wf_ok_false_PBMH[OF assms(1)])
   have unrests: "$ok\<^sup>> \<sharp> (\<not> ?F)" "$ok\<^sup>> \<sharp> ?T"
     by (simp_all add: unrest)
+  have singleton_reduce:
+      "\<in>\<^sub>a\<^sub>c(?T) \<sqsubseteq> (?T \<and> ac_non_empty)"
+  proof -
+    have fixed: "A2 P = P"
+      using assms(2) by (simp add: Healthy_def')
+    have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>wf)\<^sup>t) \<sqsubseteq>
+        ((((A2 P) \<^sub>wf)\<^sup>t) \<and> ac_non_empty)"
+      apply (simp add: A2_def ades_singleton_choice_def ac_non_empty_def
+          rad_wait_false_def A2_rel_eq_expanded A2_rel_expanded_def
+          pred_refine_iff fun_eq_iff usubst usubst_eval Let_def)
+      by (pred_auto; blast)
+    then show ?thesis
+      by (simp only: fixed)
+  qed
+  have singleton_weaken: "?T \<sqsubseteq> \<in>\<^sub>a\<^sub>c(?T)"
+    using RAD_wf_ok_true_PBMH[OF assms(1)]
+    apply (simp add: Healthy_def' PBMH_ades_def PBMH_def pbmh_step_def
+        ades_singleton_choice_def pred_refine_iff fun_eq_iff Let_def)
+    by (pred_auto; blast)
   have RA1_eq: "RA1 (\<in>\<^sub>a\<^sub>c(?T)) = RA1 ?T"
-    by (rule RA1_singleton_absorb[OF RAD_wf_ok_true_PBMH[OF assms(1)]
-        A2_wf_ok_true_singleton_reduce[OF assms(2)]])
+  proof (rule ref_antisym)
+    have absorb: "RA1 (?T \<and> ac_non_empty) = RA1 ?T"
+      by (subst pred_ba.inf_commute) (rule RA1_ac_non_empty_absorb)
+    show "RA1 (\<in>\<^sub>a\<^sub>c(?T)) \<sqsubseteq> RA1 ?T"
+      using RA1_mono[OF singleton_reduce] by (simp only: absorb)
+    show "RA1 ?T \<sqsubseteq> RA1 (\<in>\<^sub>a\<^sub>c(?T))"
+      by (rule RA1_mono[OF singleton_weaken])
+  qed
   have "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D =
       (RA \<circ> A) ((\<not> ?F) \<turnstile> \<in>\<^sub>a\<^sub>c(?T))"
-    by (rule extchoice_RAD_Stop[OF assms(1)])
+    using extchoice_RAD_Stop[OF assms(1)]
+    by (simp only: ades_singleton_choice_def)
   also have "... = RA ((\<not> ?F) \<turnstile> \<in>\<^sub>a\<^sub>c(?T))"
     by (rule RA_A_absorb_design[OF not_F_PBMH _ unrests(1)])
       (simp_all add: Healthy_def' unrest unrests)

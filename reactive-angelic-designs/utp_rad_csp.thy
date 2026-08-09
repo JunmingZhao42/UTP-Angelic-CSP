@@ -6,12 +6,9 @@ begin
 
 subsection \<open>Observation isomorphism\<close>
 
-(* CSP's flat alphabet is {ok, tr, ref, wait}; rea_vars.more stores ref. *)
-type_synonym ('t, 'e) csp_obs = "('t, 'e set) rp"
-
 (* Repackage one nested RAD observation as a flat CSP observation. *)
 definition rad2csp_obs ::
-  "('t::trace, 'e) rad_state des_vars_scheme \<Rightarrow> ('t, 'e) csp_obs" where
+  "('t::trace, 'e) rad_state des_vars_scheme \<Rightarrow> ('t, 'e set) rp" where
 [pred]: "rad2csp_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     utp_rea_core.rea_vars.wait\<^sub>v =
@@ -22,7 +19,7 @@ definition rad2csp_obs ::
 
 (* Repackage one flat CSP observation as a nested RAD observation. *)
 definition csp2rad_obs ::
-  "('t::trace, 'e) csp_obs \<Rightarrow> ('t, 'e) rad_state des_vars_scheme" where
+  "('t::trace, 'e set) rp \<Rightarrow> ('t, 'e) rad_state des_vars_scheme" where
 [pred]: "csp2rad_obs x =
   \<lparr> utp_des_core.des_vars.ok\<^sub>v = ok\<^sub>v x,
     \<dots> = \<lparr> utp_rad_core.rad_state.tr\<^sub>v = rea_vars.tr\<^sub>v x,
