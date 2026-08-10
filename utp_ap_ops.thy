@@ -17,61 +17,56 @@ lemma AP_angelic_choice:
   "P \<squnion>\<^sub>A\<^sub>P Q = (P \<and> Q)"
   by (simp add: conj_pred_def)
 
-(* Conjunction of two designs with negated preconditions. *)
 lemma design_neg_pre_conj:
   "(((\<not> F1) \<turnstile> T1) \<and> ((\<not> F2) \<turnstile> T2)) =
    ((\<not> (F1 \<and> F2)) \<turnstile>
     ((F1 \<or> T1) \<and> (F2 \<or> T2)))"
   by pred_auto
 
-(* The angelic choice of two angelic processes as the RA3AP image of
-   the conjoined normal-form design bodies. *)
 lemma AP_angelic_choice_form:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q =
-    RA3AP (((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-            RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) \<and>
-           ((\<not> RA2 (PBMH_ades ((Q \<^sub>wf)\<^sup>f))) \<turnstile>
-            RA2 (RA1 (PBMH_ades ((Q \<^sub>wf)\<^sup>t)))))"
+    RA3AP (((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
+           ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
+            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t)))"
 proof -
   have "P \<squnion>\<^sub>A\<^sub>P Q = (AP P \<and> AP Q)"
     by (simp only: AP_angelic_choice Healthy_if[OF assms(1)]
         Healthy_if[OF assms(2)])
   also have "... =
-      (RA3AP ((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-              RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) \<and>
-       RA3AP ((\<not> RA2 (PBMH_ades ((Q \<^sub>wf)\<^sup>f))) \<turnstile>
-              RA2 (RA1 (PBMH_ades ((Q \<^sub>wf)\<^sup>t)))))"
-    by (simp only: AP_RA3AP_design)
+      (RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
+       RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t)))"
+    by (simp only: AP_RA3AP_design comp_apply)
   finally show ?thesis
     by (simp only: RA3AP_conj[symmetric])
 qed
 
-(* The RA3AP design form of the angelic choice of two angelic
-   processes.  The postcondition disjuncts F \<or> T are the paper's
-   implications \<not> F \<longrightarrow> T. *)
+(* The postcondition disjuncts F \<or> T are the paper's implications
+   \<not> F \<longrightarrow> T. *)
 lemma AP_angelic_choice_design:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q =
-    RA3AP ((\<not> (RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f)) \<and>
-               RA2 (PBMH_ades ((Q \<^sub>wf)\<^sup>f)))) \<turnstile>
-           ((RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f)) \<or>
-             RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) \<and>
-            (RA2 (PBMH_ades ((Q \<^sub>wf)\<^sup>f)) \<or>
-             RA2 (RA1 (PBMH_ades ((Q \<^sub>wf)\<^sup>t))))))"
+    RA3AP ((\<not> ((RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f) \<and>
+               (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f))) \<turnstile>
+           (((RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f) \<or>
+             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
+            ((RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f) \<or>
+             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))))"
   by (simp only: AP_angelic_choice_form[OF assms]
       design_neg_pre_conj)
 
-(* Thesis Theorem T.6.4.1: angelic processes are closed under angelic
-   choice. *)
+(* Thesis Theorem T.6.4.1. *)
 lemma AP_angelic_closure [closure]:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q is AP"
 proof -
-  let ?NP = "((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-              RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t))))"
-  let ?NQ = "((\<not> RA2 (PBMH_ades ((Q \<^sub>wf)\<^sup>f))) \<turnstile>
-              RA2 (RA1 (PBMH_ades ((Q \<^sub>wf)\<^sup>t))))"
+  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))"
   have C_A: "(?NP \<and> ?NQ) is A"
     using A_angelic_closure[OF AP_body_is_A[of P] AP_body_is_A[of Q]]
     by (simp only: angelic_design_angelic)
@@ -81,6 +76,104 @@ proof -
   show ?thesis
     by (simp only: AP_angelic_choice_form[OF assms]
         RA3AP_AP_closure[OF C_A C_RA2])
+qed
+
+(* Theorem 41 for an already RAD-healthy process. *)
+lemma RA1_H1_RAD_healthy:
+  assumes "P is RAD"
+  shows "(RA1 \<circ> H1) P = P"
+  using RA1_H1_RAD[of P] by (simp only: comp_apply Healthy_if[OF assms])
+
+(* Paper Theorem 45 / Thesis Theorem T.6.4.3. *)
+theorem RA1_H1_angelic_choice:
+  assumes "P is RAD" "Q is RAD"
+  shows "RA1 (H1 P \<squnion>\<^sub>A\<^sub>P H1 Q) = P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q"
+  by (simp only: AP_angelic_choice RA1_conj
+      RA1_H1_RAD_healthy[OF assms(1), simplified comp_apply]
+      RA1_H1_RAD_healthy[OF assms(2), simplified comp_apply])
+
+(* Paper Theorem 46 / Thesis Theorem T.6.4.4.  Shorter than the thesis
+   route: RA1_conj pulls the conjunction inside RA1, so Theorem 42
+   applies once, at the choice itself. *)
+theorem H1_RA1_angelic_choice_refine:
+  assumes "P is AP" "Q is AP"
+  shows "P \<squnion>\<^sub>A\<^sub>P Q \<sqsubseteq> H1 (RA1 P \<squnion>\<^sub>R\<^sub>A\<^sub>D RA1 Q)"
+proof -
+  have closed: "(P \<squnion>\<^sub>A\<^sub>P Q) is AP"
+    by (rule AP_angelic_closure[OF assms])
+  have eq: "H1 (RA1 P \<squnion>\<^sub>R\<^sub>A\<^sub>D RA1 Q) =
+      H1 (RA1 (P \<squnion>\<^sub>A\<^sub>P Q))"
+    by (simp only: AP_angelic_choice RA1_conj)
+  have "(P \<squnion>\<^sub>A\<^sub>P Q) \<sqsubseteq> H1 (RA1 (P \<squnion>\<^sub>A\<^sub>P Q))"
+    using H1_RA1_AP_refine[of "P \<squnion>\<^sub>A\<^sub>P Q"]
+    by (simp only: comp_apply Healthy_if[OF closed])
+  then show ?thesis
+    by (simp only: eq)
+qed
+
+subsection \<open>Demonic Choice\<close>
+
+abbreviation dchoice_AP ::
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
+   ('t, 'e) reactive_angelic_design"
+  (infixl "\<sqinter>\<^sub>A\<^sub>P" 65)
+where "P \<sqinter>\<^sub>A\<^sub>P Q \<equiv> P \<sqinter> Q"
+
+(* Paper Definition 51. *)
+lemma AP_demonic_choice:
+  "P \<sqinter>\<^sub>A\<^sub>P Q = (P \<or> Q)"
+  by (simp add: disj_pred_def)
+
+(* Thesis Theorem T.6.4.5. *)
+lemma AP_demonic_closure [closure]:
+  assumes "P is AP" "Q is AP"
+  shows "P \<sqinter>\<^sub>A\<^sub>P Q is AP"
+proof -
+  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))"
+  have form: "P \<sqinter>\<^sub>A\<^sub>P Q = RA3AP (?NP \<or> ?NQ)"
+  proof -
+    have "P \<sqinter>\<^sub>A\<^sub>P Q = (AP P \<or> AP Q)"
+      by (simp only: AP_demonic_choice Healthy_if[OF assms(1)]
+          Healthy_if[OF assms(2)])
+    then show ?thesis
+      by (simp only: AP_RA3AP_design RA3AP_disj[symmetric])
+  qed
+  have C_A: "(?NP \<or> ?NQ) is A"
+    using A_demonic_closure[OF AP_body_is_A[of P] AP_body_is_A[of Q]]
+    by (simp only: angelic_design_demonic Healthy_def')
+  have C_RA2: "(?NP \<or> ?NQ) is RA2"
+    by (rule Healthy_intro,
+        simp only: RA2_disj Healthy_if[OF AP_body_is_RA2])
+  show ?thesis
+    by (simp only: form RA3AP_AP_closure[OF C_A C_RA2])
+qed
+
+(* Paper Theorem 48 / Thesis Theorem T.6.4.7. *)
+theorem RA1_H1_demonic_choice:
+  assumes "P is RAD" "Q is RAD"
+  shows "RA1 (H1 P \<sqinter>\<^sub>A\<^sub>P H1 Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
+  by (simp only: AP_demonic_choice RA1_disj
+      RA1_H1_RAD_healthy[OF assms(1), simplified comp_apply]
+      RA1_H1_RAD_healthy[OF assms(2), simplified comp_apply])
+
+(* Paper Theorem 49 / Thesis Theorem T.6.4.8, as Theorem 46. *)
+theorem H1_RA1_demonic_choice_refine:
+  assumes "P is AP" "Q is AP"
+  shows "P \<sqinter>\<^sub>A\<^sub>P Q \<sqsubseteq> H1 (RA1 P \<sqinter>\<^sub>R\<^sub>A\<^sub>D RA1 Q)"
+proof -
+  have closed: "(P \<sqinter>\<^sub>A\<^sub>P Q) is AP"
+    by (rule AP_demonic_closure[OF assms])
+  have eq: "H1 (RA1 P \<sqinter>\<^sub>R\<^sub>A\<^sub>D RA1 Q) =
+      H1 (RA1 (P \<sqinter>\<^sub>A\<^sub>P Q))"
+    by (simp only: AP_demonic_choice RA1_disj)
+  have "(P \<sqinter>\<^sub>A\<^sub>P Q) \<sqsubseteq> H1 (RA1 (P \<sqinter>\<^sub>A\<^sub>P Q))"
+    using H1_RA1_AP_refine[of "P \<sqinter>\<^sub>A\<^sub>P Q"]
+    by (simp only: comp_apply Healthy_if[OF closed])
+  then show ?thesis
+    by (simp only: eq)
 qed
 
 subsection \<open>Choice\<close>
@@ -100,7 +193,7 @@ lemmas Choice_AP_facts =
 lemmas true_post_facts =
   rad_wait_false_true PBMH_ades_true subst_pred(1)
 
-(* Thesis Lemma L.6.4.3: the design form of Choice_AP. *)
+(* Thesis Lemma L.6.4.3. *)
 lemma Choice_AP_design:
   "Choice\<^sub>A\<^sub>P =
    (true \<turnstile>
@@ -109,7 +202,6 @@ lemma Choice_AP_design:
   by (simp only: Choice_AP_def AP_true_design[OF Choice_AP_facts]
       RA1_RA2_ac_non_empty)
 
-(* Choice_AP with the wait conditional folded back into RA3AP. *)
 lemma Choice_AP_RA3AP: "Choice\<^sub>A\<^sub>P = RA3AP (true \<turnstile> RA1 true)"
   by (simp only: Choice_AP_design RA3AP_design expr_if_idem)
 
@@ -143,8 +235,6 @@ lemma Stop_AP_is_AP [closure]: "Stop\<^sub>A\<^sub>P is AP"
 lemmas Stop_AP_facts =
   rad_wait_false_stop_post stop_post_PBMH stop_post_ok_out_subst
 
-(* The design form of Stop_AP: while waiting the state is unchanged,
-   and otherwise the Stop postcondition holds under RA1. *)
 lemma Stop_AP_design:
   "Stop\<^sub>A\<^sub>P =
    (true \<turnstile>
@@ -178,8 +268,6 @@ lemma Skip_AP_is_AP [closure]: "Skip\<^sub>A\<^sub>P is AP"
 lemmas Skip_AP_facts =
   rad_wait_false_skip_post skip_post_PBMH skip_post_ok_out_subst
 
-(* The design form of Skip_AP: while waiting the state is unchanged,
-   and otherwise the Skip postcondition holds under RA1. *)
 lemma Skip_AP_design:
   "Skip\<^sub>A\<^sub>P =
    (true \<turnstile>
