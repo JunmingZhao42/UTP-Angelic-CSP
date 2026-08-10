@@ -4,8 +4,7 @@ theory utp_ap_nd
   imports utp_ap_ops
 begin
 
-(* Paper Definition 49 / Thesis Definition 130: the angelic choice with
-   the most nondeterministic non-divergent process. *)
+(* Paper Definition 49 / Thesis Definition 130. *)
 definition NDAP :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow>
    ('t, 'e) reactive_angelic_design" where
 [pred]: "NDAP P = Choice\<^sub>A\<^sub>P \<squnion>\<^sub>A\<^sub>P P"
@@ -27,7 +26,6 @@ lemma NDAP_mono:
 lemma NDAP_Monotonic [closure]: "Monotonic NDAP"
   by (rule MonotonicI, rule NDAP_mono)
 
-(* Thesis Theorem T.6.4.2: angelic processes are closed under NDAP. *)
 lemma NDAP_AP_closure [closure]:
   assumes "P is AP"
   shows "NDAP P is AP"
@@ -37,24 +35,41 @@ lemma NDAP_AP_closure [closure]:
 lemma NDAP_Choice: "NDAP Choice\<^sub>A\<^sub>P = Choice\<^sub>A\<^sub>P"
   by (simp add: NDAP_def)
 
-(* Conjoining a design with a true precondition weakens the other
-   precondition away. *)
+(* Paper Theorem 44 / Thesis Theorem T.6.4.2.  By associativity only
+   the first assumption is needed. *)
+theorem NDAP_angelic_choice:
+  assumes "P is NDAP" "Q is NDAP"
+  shows "NDAP (P \<squnion>\<^sub>A\<^sub>P Q) = P \<squnion>\<^sub>A\<^sub>P Q"
+proof -
+  have "NDAP (P \<squnion>\<^sub>A\<^sub>P Q) = (NDAP P \<squnion>\<^sub>A\<^sub>P Q)"
+    by (simp only: NDAP_def inf_assoc)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms(1)])
+qed
+
+(* Paper Theorem 47 / Thesis Theorem T.6.4.6. *)
+theorem NDAP_demonic_choice:
+  assumes "P is NDAP" "Q is NDAP"
+  shows "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = P \<sqinter>\<^sub>A\<^sub>P Q"
+proof -
+  have "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = (NDAP P \<sqinter>\<^sub>A\<^sub>P NDAP Q)"
+    by (simp only: NDAP_def inf_sup_distrib1)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
+qed
+
 lemma design_true_conj:
   "((true \<turnstile> Q) \<and> ((\<not> F) \<turnstile> T)) =
    (true \<turnstile> (Q \<and> (F \<or> T)))"
   by pred_auto
 
-(* The ok'-false projection of an angelic process is subsumed by its
-   ok'-true one: both are vacuous when it has not started, and the
-   failure guard G makes the difference vacuous otherwise. *)
 lemma impl_absorb:
   "((ok\<^sup>< \<longrightarrow> G) \<or>
     ((ok\<^sup>< \<and> \<not> G) \<longrightarrow> H)) =
    ((ok\<^sup>< \<and> \<not> G) \<longrightarrow> H)"
   by pred_auto
 
-(* Paper Theorem 38: the NDAP image has a true precondition and keeps
-   the postcondition of P. *)
+(* Paper Theorem 38. *)
 theorem NDAP_design_form:
   assumes "P is AP"
   shows "NDAP P =
@@ -78,69 +93,50 @@ proof -
     by (simp only: NDAP_conj Healthy_if[OF assms])
   also have "... =
       RA3AP ((true \<turnstile> RA1 true) \<and>
-             ((\<not> RA2 ?A) \<turnstile> RA2 (RA1 ?B)))"
-    by (simp only: Choice_AP_RA3AP AP_RA3AP_design RA3AP_conj[symmetric])
-  also have "... = RA3AP (true \<turnstile> RA2 (RA1 ?B))"
-    by (simp only: design_true_conj RA2_RA1_disj_absorb[OF absorb])
+             ((\<not> RA2 ?A) \<turnstile> (RA2 \<circ> RA1) ?B))"
+    by (simp only: Choice_AP_RA3AP AP_RA3AP_design RA3AP_conj[symmetric]
+        comp_apply)
+  also have "... = RA3AP (true \<turnstile> (RA2 \<circ> RA1) ?B)"
+    by (simp only: comp_apply design_true_conj
+        RA2_RA1_disj_absorb[OF absorb])
   finally show ?thesis
     by (simp only: RA3AP_true_design comp_apply)
 qed
 
-(* Thesis Theorem T.6.2.10: Theorem 38 with the RA3AP conditional on the
-   postcondition expanded. *)
+(* Thesis Theorem T.6.2.10: Theorem 38 with RA3AP expanded. *)
 lemma NDAP_wait_cond_form:
   assumes "P is AP"
   shows "NDAP P =
     (true \<turnstile>
      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-      RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))))"
+      (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)))"
   by (simp only: NDAP_design_form[OF assms] comp_apply
       RA3AP_true_design[symmetric] RA3AP_design expr_if_idem)
 
 subsection \<open>Isomorphism with Non-Divergent Reactive Angelic Designs\<close>
 
-(* A non-divergent angelic process is a fixed point of the round trip
-   through the theory of reactive angelic designs.  The NDAP normal
-   form has precondition true, so H1_RA1_design applies directly and
-   RA1 is reabsorbed by the postcondition; none of the precondition
-   weakening behind the paper's Theorem 42 refinement arises. *)
-lemma H1_RA1_NDAP:
-  assumes "P is AP"
-  shows "H1 (RA1 (NDAP P)) = NDAP P"
-proof -
-  let ?T = "RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))"
-  have "H1 (RA1 (NDAP P)) =
-      H1 (RA1 (true \<turnstile>
-        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?T)))"
-    by (simp only: NDAP_wait_cond_form[OF assms])
-  also have "... =
-      (true \<turnstile>
-       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?T))"
-    by (simp only: H1_RA1_design RA1_wait_cond RA1_state_choice
-        RA1_RA2_commute' RA1_idem)
-  finally show ?thesis
-    by (simp only: NDAP_wait_cond_form[OF assms])
-qed
-
-(* Paper Theorem 43 / Thesis Theorem T.6.3.5: on the non-divergent
-   subsets, the theories of angelic processes and of reactive angelic
-   designs are isomorphic. *)
+(* Paper Theorem 43 / Thesis Theorem T.6.3.5.  With a true
+   precondition the Theorem 42 weakening never arises. *)
 theorem H1_RA1_NDAP_AP:
   "(H1 \<circ> RA1 \<circ> NDAP \<circ> AP) P = (NDAP \<circ> AP) P"
-  by (simp only: comp_apply H1_RA1_NDAP[OF AP_healthy])
+  by (simp only: comp_apply NDAP_wait_cond_form[OF AP_healthy]
+      H1_RA1_design RA1_wait_cond RA1_state_choice RA1_RA2_commute'
+      RA1_idem)
 
-(* The other half of the correspondence: RA1 maps the non-divergent
-   angelic processes onto the non-divergent reactive angelic designs.
-   Both NDAP and NDRAD are conjunctions with the respective Choice, and
-   RA1 distributes over conjunction. *)
-lemma RA1_NDAP_NDRAD: "RA1 (NDAP (AP P)) = NDRAD (RAD P)"
+(* Not in the paper: RA1 maps the non-divergent AP image onto the
+   non-divergent RAD image.  The commutativity step is kept separate:
+   with the NDAP/NDRAD unfoldings in the same simp set, inf_commute
+   does not terminate. *)
+lemma RA1_NDAP_NDRAD:
+  "(RA1 \<circ> NDAP \<circ> AP) P = (NDRAD \<circ> RAD) P"
 proof -
-  have "RA1 (NDAP (AP P)) = (Choice\<^sub>R\<^sub>A\<^sub>D \<and> RAD P)"
-    by (simp only: NDAP_conj RA1_conj RA1_Choice_AP RA1_AP_RAD)
+  have "(RA1 \<circ> NDAP \<circ> AP) P = (Choice\<^sub>R\<^sub>A\<^sub>D \<and> RAD P)"
+    by (simp only: comp_apply NDAP_conj RA1_conj RA1_Choice_AP
+        RA1_AP_RAD[simplified comp_apply])
   also have "... = (RAD P \<and> Choice\<^sub>R\<^sub>A\<^sub>D)"
     by (simp only: conj_pred_def inf_commute)
   finally show ?thesis
-    by (simp only: NDRAD_def RAD_angelic_choice)
+    by (simp only: comp_apply NDRAD_def RAD_angelic_choice)
 qed
 
 end

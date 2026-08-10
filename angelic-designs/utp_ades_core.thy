@@ -83,7 +83,9 @@ lemma design_as_disj:
   "(P \<turnstile> Q) = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> (Q \<and> ok\<^sup>>))"
   by (simp add: design_def fun_eq_iff; pred_auto)
 
-(* Negation reverses refinement. *)
+(* Negation reverses refinement.  Stated on opaque predicates: at the
+   point of use the arguments are healthiness images, which pred_auto
+   would otherwise unfold. *)
 lemma not_refine:
   fixes P Q :: "'s pred"
   assumes "P \<sqsubseteq> Q"

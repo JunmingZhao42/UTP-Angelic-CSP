@@ -124,12 +124,6 @@ lemma RA1_design_pre:
   "RA1 (P \<turnstile> Q) = RA1 ((\<not> RA1 (\<not> P)) \<turnstile> Q)"
   by (simp add: RA1_def design_def fun_eq_iff Let_def; pred_auto; blast)
 
-(* The extra RA1 that H1 leaves on the components of an RA1-healthy
-   design is reabsorbed by RA1. *)
-lemma RA1_H1_RA1_design:
-  "RA1 (H1 (RA1 (P \<turnstile> Q))) = RA1 (P \<turnstile> Q)"
-  by (simp only: H1_RA1_design_gen RA1_design_post[symmetric]
-      RA1_design_pre[symmetric])
 
 lemma RA1_Idempotent [closure]: "Idempotent RA1"
   by (simp add: Idempotent_def RA1_idem)
@@ -915,19 +909,6 @@ proof -
     by (rule RA1_design_post)
   finally show ?thesis
     by (simp only: RA_alt_def)
-qed
-
-(* Mapping an RA-healthy design through H1 and back through RA1 is the
-   identity: RA is RA1-healthy, so RA1 reabsorbs what H1 adds. *)
-lemma RA1_H1_RA_design:
-  "RA1 (H1 (RA (P \<turnstile> Q))) = RA (P \<turnstile> Q)"
-proof -
-  have step: "RA (P \<turnstile> Q) =
-      RA1 ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 P) \<turnstile>
-           (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q))"
-    by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA1_RA3_design)
-  show ?thesis
-    by (simp only: step RA1_H1_RA1_design)
 qed
 
 (* The wait-conditional normal form of a reactive angelic design with a

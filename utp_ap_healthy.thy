@@ -15,7 +15,6 @@ definition II_AP :: "('t::trace, 'e) reactive_angelic_design" where
 lemma II_AP_is_H1 [closure]: "II_AP is H1"
   by (simp add: Healthy_def II_AP_def H1_idem)
 
-(* The identity of angelic processes is a design. *)
 lemma II_AP_design:
   "II_AP = (true \<turnstile> ades_state_choice)"
   by pred_auto
@@ -49,6 +48,9 @@ lemma RA3AP_Monotonic [closure]: "Monotonic RA3AP"
 lemma RA3AP_conj: "RA3AP (P \<and> Q) = (RA3AP P \<and> RA3AP Q)"
   by (simp add: RA3AP_def expr_if_def fun_eq_iff; pred_auto)
 
+lemma RA3AP_disj: "RA3AP (P \<or> Q) = (RA3AP P \<or> RA3AP Q)"
+  by (simp add: RA3AP_def expr_if_def fun_eq_iff; pred_auto)
+
 lemma RA3AP_II_AP: "RA3AP II_AP = II_AP"
   by (simp add: RA3AP_def)
 
@@ -59,8 +61,7 @@ lemma II_AP_is_RA3AP [closure]: "II_AP is RA3AP"
 lemma RA2_RA3AP_commute: "(RA2 \<circ> RA3AP) P = (RA3AP \<circ> RA2) P"
   by (simp only: comp_apply RA3AP_def RA2_wait_cond RA2_II_AP)
 
-(* RA3AP depends only on the wait-false part of its argument
-   (cf. paper Lemma 19 for RA3). *)
+(* Cf. paper Lemma 19 for RA3. *)
 lemma RA3AP_wait_false_absorb: "RA3AP P = (RA3AP \<circ> rad_wait_false) P"
   apply (simp add: RA3AP_def rad_wait_false_def expr_if_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def)
@@ -72,8 +73,6 @@ lemma RA3AP_wait_false_absorb: "RA3AP P = (RA3AP \<circ> rad_wait_false) P"
           des_vars.more\<^sub>L_def)
   done
 
-(* The wait-false substitution discards the wait-true branch of a
-   conditional. *)
 lemma rad_wait_false_wait_cond:
   "rad_wait_false
      (X \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Y) =
@@ -83,48 +82,43 @@ lemma rad_wait_false_wait_cond:
       pred_auto)
 
 lemma rad_wait_false_RA3AP_absorb:
-  "rad_wait_false (RA3AP P) = rad_wait_false P"
-  by (simp only: RA3AP_def rad_wait_false_wait_cond)
+  "(rad_wait_false \<circ> RA3AP) P = rad_wait_false P"
+  by (simp only: comp_apply RA3AP_def rad_wait_false_wait_cond)
 
-(* Under RA3AP \<circ> RA2 \<circ> A, the wait-false substitution of the
-   argument is redundant. *)
 lemma RA3AP_RA2_A_wait_false_absorb:
   "(RA3AP \<circ> RA2 \<circ> A \<circ> rad_wait_false) P =
    (RA3AP \<circ> RA2 \<circ> A) P"
 proof -
-  have "RA3AP (RA2 (A (rad_wait_false P))) =
-      RA2 (RA3AP (A (rad_wait_false P)))"
-    by (simp only: RA2_RA3AP_commute[simplified comp_apply,
+  have "(RA3AP \<circ> RA2 \<circ> A \<circ> rad_wait_false) P =
+      (RA2 \<circ> RA3AP \<circ> A \<circ> rad_wait_false) P"
+    by (simp only: comp_apply RA2_RA3AP_commute[simplified comp_apply,
           symmetric])
-  also have "... = RA2 (RA3AP (A P))"
+  also have "... = (RA2 \<circ> RA3AP \<circ> A) P"
     by (simp only: rad_wait_false_A_commute[simplified comp_apply,
           symmetric]
-        RA3AP_wait_false_absorb[simplified comp_apply, symmetric])
-  also have "... = RA3AP (RA2 (A P))"
-    by (simp only: RA2_RA3AP_commute[simplified comp_apply])
-  finally show ?thesis
-    by (simp only: comp_apply)
+        RA3AP_wait_false_absorb[simplified comp_apply, symmetric]
+        comp_apply)
+  also have "... = (RA3AP \<circ> RA2 \<circ> A) P"
+    by (simp only: comp_apply RA2_RA3AP_commute[simplified comp_apply])
+  finally show ?thesis .
 qed
 
 lemmas RA3AP_RA2_A_wait_false_absorb' =
   RA3AP_RA2_A_wait_false_absorb[simplified comp_apply]
 
-(* Thesis Lemma L.H.1.4: RA3AP turns a design into wait conditionals
-   over its components. *)
+(* Thesis Lemma L.H.1.4. *)
 lemma RA3AP_design:
   "RA3AP (P \<turnstile> Q) =
    ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P) \<turnstile>
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q))"
   by (simp only: RA3AP_def II_AP_design design_wait_cond)
 
-(* Under RA1, the two waiting conditions agree: RA1 turns the angelic
-   identity II_AP into the reactive angelic one, II_Rac. *)
-lemma RA1_RA3AP_RA3: "RA1 (RA3AP P) = RA1 (RA3 P)"
-  by (simp only: RA3AP_def RA3_def RA1_wait_cond II_AP_design
+(* Under RA1 the waiting conditions agree: RA1 II_AP = II_Rac. *)
+lemma RA1_RA3AP_RA3: "(RA1 \<circ> RA3AP) P = (RA1 \<circ> RA3) P"
+  by (simp only: comp_apply RA3AP_def RA3_def RA1_wait_cond II_AP_design
       II_Rac_design[symmetric] RA1_II_Rac)
 
-(* Inside a design, RA3AP on the postcondition is the state-choice wait
-   conditional: the identity II_AP collapses under the assumed ok. *)
+(* II_AP collapses to ades_state_choice under the design's ok. *)
 lemma RA3AP_design_post:
   "(Pre \<turnstile> RA3AP Q) =
    (Pre \<turnstile>
@@ -132,8 +126,6 @@ lemma RA3AP_design_post:
   by (simp add: RA3AP_def II_AP_def H1_def design_def expr_if_def
       fun_eq_iff; pred_auto)
 
-(* On a design with a true precondition, RA3AP may equivalently be
-   applied to the postcondition alone. *)
 lemma RA3AP_true_design:
   "RA3AP (true \<turnstile> Y) = (true \<turnstile> RA3AP Y)"
   by (simp only: RA3AP_design_post RA3AP_design expr_if_idem)
@@ -157,22 +149,21 @@ lemma AP_Monotonic [closure]: "Monotonic AP"
 theorem AP_design_form:
   "AP P = (RA3AP \<circ> RA2 \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
 proof -
-  have "AP P = RA2 (RA3AP (A (H1 (H2 P))))"
+  have "AP P = (RA2 \<circ> RA3AP \<circ> A \<circ> H1 \<circ> H2) P"
     by (simp only: AP_def CSPA2_def comp_apply
         RA2_RA3AP_commute[simplified comp_apply, symmetric])
-  also have "... = RA2 (RA3AP (A (H1 (H2 (P \<^sub>wf)))))"
-    by (simp only: RA3AP_wait_false_absorb[simplified comp_apply,
+  also have "... = (RA2 \<circ> RA3AP \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>wf)"
+    by (simp only: comp_apply RA3AP_wait_false_absorb[simplified comp_apply,
           of "A (H1 (H2 P))"]
         rad_wait_false_A_commute[simplified comp_apply]
         rad_wait_false_H1_H2_commute[simplified comp_apply])
-  also have "... = RA3AP (RA2 (A (H1 (H2 (P \<^sub>wf)))))"
-    by (simp only: RA2_RA3AP_commute[simplified comp_apply])
+  also have "... = (RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>wf)"
+    by (simp only: comp_apply RA2_RA3AP_commute[simplified comp_apply])
   finally show ?thesis
     by (simp add: H1_H2_eq_design)
 qed
 
-(* Paper Theorem 37 / Thesis Theorem T.6.2.9: angelic processes form a
-   theory of angelic designs. *)
+(* Paper Theorem 37 / Thesis Theorem T.6.2.9. *)
 theorem AP_design:
   "AP P =
    ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
@@ -181,33 +172,30 @@ theorem AP_design:
        (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)))"
 proof -
   let ?F = "(P \<^sub>wf)\<^sup>f" and ?T = "(P \<^sub>wf)\<^sup>t"
-  have "AP P = RA3AP (RA2 (A ((\<not> ?F) \<turnstile> ?T)))"
+  have "AP P = (RA3AP \<circ> RA2 \<circ> A) ((\<not> ?F) \<turnstile> ?T)"
     by (simp only: AP_design_form comp_apply)
   also have "... =
-      RA3AP ((\<not> RA2 (PBMH_ades ?F)) \<turnstile>
-             (RA2 (RA1 (PBMH_ades ?T))))"
-    by (simp only: A_design RA2_design_distrib RA2_not
+      RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ?F) \<turnstile>
+             ((RA2 \<circ> RA1 \<circ> PBMH_ades) ?T))"
+    by (simp only: comp_apply A_design RA2_design_distrib RA2_not
         RA2_ac_non_empty)
   also have "... =
       ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-          (\<not> RA2 (PBMH_ades ?F))) \<turnstile>
+          (\<not> (RA2 \<circ> PBMH_ades) ?F)) \<turnstile>
        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-          (RA2 (RA1 (PBMH_ades ?T)))))"
+          ((RA2 \<circ> RA1 \<circ> PBMH_ades) ?T)))"
     by (rule RA3AP_design)
-  finally show ?thesis
-    by (simp only: comp_apply)
+  finally show ?thesis .
 qed
 
-(* The Theorem 37 normal form with the wait conditionals folded back
-   into RA3AP. *)
+(* Theorem 37 with the wait conditionals folded into RA3AP. *)
 lemma AP_RA3AP_design:
   "AP P =
-   RA3AP ((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-          RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t))))"
+   RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+          (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
   by (simp only: AP_design RA3AP_design comp_apply)
 
-(* The wait-conditional normal form of an angelic process with a true
-   precondition: the counterpart of RA_true_design. *)
+(* Counterpart of RA_true_design. *)
 lemma AP_true_design:
   assumes "(Post \<^sub>wf) = Post" "PBMH_ades Post = Post"
     and "Post\<lbrakk>True/ok\<^sup>>\<rbrakk> = Post"
@@ -233,7 +221,7 @@ proof -
   have "AP ?P =
       RA3AP ((\<not> RA2 (PBMH_ades (\<not> ok\<^sup><))) \<turnstile>
              RA2 (RA1 (PBMH_ades ((\<not> ok\<^sup><) \<or> Post))))"
-    by (simp only: AP_RA3AP_design wf_id proj_f proj_t)
+    by (simp only: AP_RA3AP_design comp_apply wf_id proj_f proj_t)
   also have "... =
       RA3AP ((\<not> (\<not> ok\<^sup><)) \<turnstile>
              RA1 ((\<not> ok\<^sup><) \<or> RA2 Post))"
@@ -275,28 +263,24 @@ lemma AP_wait_false_ok_true:
        ((P \<^sub>wf)\<^sup>t)))"
   by (simp add: AP_wait_false design_def; pred_auto)
 
-(* PBMH_ades preserves freshness of the final ok, completing the [unrest]
-   kit of RA1_unrest_ok_out and RA2_unrest_ok_out.  Kept here instead of the
-   ades layer so the parent session heaps stay valid. *)
+(* Kept here instead of the ades layer so the parent session heaps
+   stay valid. *)
 lemma PBMH_ades_unrest_ok_out [unrest]:
   "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> PBMH_ades P"
   by (simp add: unrest_lens PBMH_ades_def PBMH_def pbmh_step_def
       fun_eq_iff Let_def; pred_auto; blast)
 
-(* An RA1 image under RA2 keeps the angelic choice set non-empty. *)
 lemma RA2_RA1_ac_non_empty_absorb:
-  "(ac_non_empty \<and> RA2 (RA1 P)) = RA2 (RA1 P)"
+  "(ac_non_empty \<and> (RA2 \<circ> RA1) P) = (RA2 \<circ> RA1) P"
 proof -
   have "(ac_non_empty \<and> RA1 Q) = RA1 Q"
       for Q :: "('t::trace, 'e) reactive_angelic_design"
     by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
         pred_auto)
   then show ?thesis
-    by (simp only: RA1_RA2_commute'[symmetric])
+    by (simp only: comp_apply RA1_RA2_commute'[symmetric])
 qed
 
-(* A0 is a fixed point on designs whose postcondition keeps the choice
-   set non-empty. *)
 lemma A0_design_absorb:
   "$ok\<^sup>> \<sharp> X \<Longrightarrow> (ac_non_empty \<and> Y) = Y \<Longrightarrow>
    A0 ((\<not> X) \<turnstile> Y) = ((\<not> X) \<turnstile> Y)"
@@ -305,46 +289,49 @@ lemma A0_design_absorb:
 subsubsection \<open>The design body of the AP normal form\<close>
 
 (* The design inside RA3AP in the Theorem 37 normal form is a fixed
-   point of the component healthiness conditions of AP. *)
+   point of each component healthiness condition of AP. *)
 lemma AP_body_is_H [closure]:
-  "((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-    RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) is \<^bold>H"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is \<^bold>H"
   by (rule design_is_H1_H2; unrest)
 
 lemma AP_body_is_A [closure]:
-  "((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-    RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) is A"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is A"
 proof -
-  let ?F = "RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))"
-  let ?T = "RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))"
+  let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)"
+  let ?T = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)"
   let ?N = "((\<not> ?F) \<turnstile> ?T)"
   have F_unrest: "$ok\<^sup>> \<sharp> ?F"
     by (unrest)
   have F_PBMH: "?F is PBMH_ades"
-    by (rule RA2_PBMH_ades_closure[OF
-        Healthy_Idempotent[OF PBMH_ades_Idempotent]])
+    by (simp only: comp_apply,
+        rule RA2_PBMH_ades_closure[OF
+          Healthy_Idempotent[OF PBMH_ades_Idempotent]])
   have T_PBMH: "?T is PBMH_ades"
-    by (rule RA2_PBMH_ades_closure[OF
-        RA1_PBMH_ades_closure[OF
-          Healthy_Idempotent[OF PBMH_ades_Idempotent]]])
+    by (simp only: comp_apply,
+        rule RA2_PBMH_ades_closure[OF
+          RA1_PBMH_ades_closure[OF
+            Healthy_Idempotent[OF PBMH_ades_Idempotent]]])
   have A1_fixed: "A1 ?N = ?N"
     using A1_eq_PBMH_ades[OF AP_body_is_H[of P]]
       PBMH_ades_design_closure[OF F_PBMH T_PBMH]
     by (simp add: Healthy_def')
+  have T_ac: "(ac_non_empty \<and> ?T) = ?T"
+    by (simp only: comp_apply
+        RA2_RA1_ac_non_empty_absorb[simplified comp_apply])
   show ?thesis
     by (rule Healthy_intro,
-        simp only: A_def A1_fixed
-          A0_design_absorb[OF F_unrest RA2_RA1_ac_non_empty_absorb])
+        simp only: A_def A1_fixed A0_design_absorb[OF F_unrest T_ac])
 qed
 
 lemma AP_body_is_RA2 [closure]:
-  "((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-    RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t)))) is RA2"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is RA2"
   by (rule Healthy_intro,
-      simp only: RA2_design_distrib RA2_not RA2_idem
+      simp only: comp_apply RA2_design_distrib RA2_not RA2_idem
         RA1_RA2_commute'[symmetric])
 
-(* RA3AP images of A- and RA2-healthy designs are angelic processes. *)
 lemma RA3AP_AP_closure [closure]:
   assumes "N is A" "N is RA2"
   shows "RA3AP N is AP"
@@ -367,23 +354,24 @@ proof -
   also have "... =
       (RA3AP \<circ> RA2 \<circ> A)
         (rad_wait_false ((\<not> (N\<^sup>f)) \<turnstile> (N\<^sup>t)))"
-    by (simp only: rad_wait_false_RA3AP_absorb
+    by (simp only: rad_wait_false_RA3AP_absorb[simplified comp_apply]
         rad_wait_false_design rad_wait_false_not
         rad_wait_false_ok_false rad_wait_false_ok_true)
   also have "... = (RA3AP \<circ> RA2 \<circ> A) (rad_wait_false N)"
     by (simp only: reform)
-  also have "... = RA3AP (RA2 (A N))"
+  also have "... = (RA3AP \<circ> RA2 \<circ> A) N"
     by (simp only: comp_apply RA3AP_RA2_A_wait_false_absorb')
   also have "... = RA3AP N"
-    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
+    by (simp only: comp_apply Healthy_if[OF assms(1)]
+        Healthy_if[OF assms(2)])
   finally show ?thesis
     by (rule Healthy_intro)
 qed
 
 lemma AP_idem: "AP (AP P) = AP P"
 proof -
-  let ?N = "((\<not> RA2 (PBMH_ades ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-             RA2 (RA1 (PBMH_ades ((P \<^sub>wf)\<^sup>t))))"
+  let ?N = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
+             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
   have "AP (AP P) = AP (RA3AP ?N)"
     by (simp only: AP_RA3AP_design)
   also have "... = RA3AP ?N"
