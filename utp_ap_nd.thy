@@ -4,6 +4,8 @@ theory utp_ap_nd
   imports utp_ap_ops
 begin
 
+subsection \<open>NDAP\<close>
+
 (* Paper Definition 49 / Thesis Definition 130. *)
 definition NDAP :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow>
    ('t, 'e) reactive_angelic_design" where
@@ -35,28 +37,7 @@ lemma NDAP_AP_closure [closure]:
 lemma NDAP_Choice: "NDAP Choice\<^sub>A\<^sub>P = Choice\<^sub>A\<^sub>P"
   by (simp add: NDAP_def)
 
-(* Paper Theorem 44 / Thesis Theorem T.6.4.2.  By associativity only
-   the first assumption is needed. *)
-theorem NDAP_angelic_choice:
-  assumes "P is NDAP" "Q is NDAP"
-  shows "NDAP (P \<squnion>\<^sub>A\<^sub>P Q) = P \<squnion>\<^sub>A\<^sub>P Q"
-proof -
-  have "NDAP (P \<squnion>\<^sub>A\<^sub>P Q) = (NDAP P \<squnion>\<^sub>A\<^sub>P Q)"
-    by (simp only: NDAP_def inf_assoc)
-  then show ?thesis
-    by (simp only: Healthy_if[OF assms(1)])
-qed
-
-(* Paper Theorem 47 / Thesis Theorem T.6.4.6. *)
-theorem NDAP_demonic_choice:
-  assumes "P is NDAP" "Q is NDAP"
-  shows "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = P \<sqinter>\<^sub>A\<^sub>P Q"
-proof -
-  have "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = (NDAP P \<sqinter>\<^sub>A\<^sub>P NDAP Q)"
-    by (simp only: NDAP_def inf_sup_distrib1)
-  then show ?thesis
-    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
-qed
+subsection \<open>Normal Form\<close>
 
 lemma design_true_conj:
   "((true \<turnstile> Q) \<and> ((\<not> F) \<turnstile> T)) =
@@ -73,8 +54,7 @@ lemma impl_absorb:
 theorem NDAP_design_form:
   assumes "P is AP"
   shows "NDAP P =
-    (true \<turnstile>
-     (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+    (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
 proof -
   let ?A = "PBMH_ades ((P \<^sub>wf)\<^sup>f)"
   let ?B = "PBMH_ades ((P \<^sub>wf)\<^sup>t)"
@@ -91,17 +71,20 @@ proof -
 
   have "NDAP P = (Choice\<^sub>A\<^sub>P \<and> AP P)"
     by (simp only: NDAP_conj Healthy_if[OF assms])
-  also have "... =
-      RA3AP ((true \<turnstile> RA1 true) \<and>
-             ((\<not> RA2 ?A) \<turnstile> (RA2 \<circ> RA1) ?B))"
-    by (simp only: Choice_AP_RA3AP AP_RA3AP_design RA3AP_conj[symmetric]
-        comp_apply)
-  also have "... = RA3AP (true \<turnstile> (RA2 \<circ> RA1) ?B)"
-    by (simp only: comp_apply design_true_conj
+  also have "... = RA3AP
+      (true \<turnstile> (RA2 \<circ> RA1) ?B)"
+    by (simp only: Choice_AP_RA3AP AP_RA3AP_design
+        RA3AP_conj[symmetric] comp_apply design_true_conj
         RA2_RA1_disj_absorb[OF absorb])
   finally show ?thesis
     by (simp only: RA3AP_true_design comp_apply)
 qed
+
+lemma NDAP_is_H3:
+  assumes "P is AP"
+  shows "NDAP P is H3"
+  by (simp only: NDAP_design_form[OF assms];
+      rule design_condition_is_H3; unrest)
 
 (* Thesis Theorem T.6.2.10: Theorem 38 with RA3AP expanded. *)
 lemma NDAP_wait_cond_form:
@@ -112,6 +95,31 @@ lemma NDAP_wait_cond_form:
       (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)))"
   by (simp only: NDAP_design_form[OF assms] comp_apply
       RA3AP_true_design[symmetric] RA3AP_design expr_if_idem)
+
+subsection \<open>Closure under Choice\<close>
+
+(* Paper Theorems 44 and 47 belong to the choice sections 7.3.1--7.3.2
+   of the paper; they live here because they need NDAP. *)
+
+(* Paper Theorem 44 / Thesis Theorem T.6.4.2.  By associativity only
+   the first assumption is needed. *)
+theorem NDAP_angelic_closure:
+  assumes "P is NDAP" "Q is NDAP"
+  shows "NDAP (P \<squnion>\<^sub>A\<^sub>P Q) = P \<squnion>\<^sub>A\<^sub>P Q"
+  apply (rule_tac s="NDAP P \<squnion>\<^sub>A\<^sub>P Q" in trans)
+  apply (simp only: NDAP_def inf_assoc)
+  by (simp only: Healthy_if[OF assms(1)])
+
+(* Paper Theorem 47 / Thesis Theorem T.6.4.6. *)
+theorem NDAP_demonic_closure:
+  assumes "P is NDAP" "Q is NDAP"
+  shows "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = P \<sqinter>\<^sub>A\<^sub>P Q"
+proof -
+  have "NDAP (P \<sqinter>\<^sub>A\<^sub>P Q) = (NDAP P \<sqinter>\<^sub>A\<^sub>P NDAP Q)"
+    by (simp only: NDAP_def inf_sup_distrib1)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
+qed
 
 subsection \<open>Isomorphism with Non-Divergent Reactive Angelic Designs\<close>
 

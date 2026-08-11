@@ -32,3 +32,5 @@ AGENTS.md
 *.bak
 *.orig
 *.log
+
+.claude/*

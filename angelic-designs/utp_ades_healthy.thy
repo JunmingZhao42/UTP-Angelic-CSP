@@ -366,6 +366,19 @@ lemma PBMH_ades_true [simp]: "PBMH_ades true = true"
   by (simp add: PBMH_ades_def PBMH_def pbmh_step_def fun_eq_iff;
       pred_auto)
 
+lemma PBMH_ades_ok_false:
+  "PBMH_ades (P\<^sup>f) = (PBMH_ades P)\<^sup>f"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_ok_true:
+  "PBMH_ades (P\<^sup>t) = (PBMH_ades P)\<^sup>t"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
+lemma PBMH_ades_ok_in_subst:
+  "PBMH_ades (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>) =
+   (PBMH_ades P)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>"
+  by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
+
 lemma false_PBMH_ades [closure]: "false is PBMH_ades"
   by (simp add: Healthy_def')
 
@@ -383,6 +396,52 @@ lemma PBMH_ades_design_closure:
   using assms
   by (simp add: Healthy_def' PBMH_ades_def design_def fun_eq_iff;
       pred_auto; blast)
+
+(* Normal form for sequential composition of angelic designs.  This is
+   the design-level calculation used by thesis Theorem T.H.3.2. *)
+lemma ades_design_seq:
+  assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
+    "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
+    and "(\<not> P) is PBMH_ades" "Q is PBMH_ades"
+  shows "((P \<turnstile> Q) ;;\<^sub>D\<^sub>A (R \<turnstile> S)) =
+    (((\<not> ((\<not> P) ;;\<^sub>A\<^sub>D true)) \<and>
+      (\<not> (Q ;;\<^sub>A\<^sub>D (\<not> R)))) \<turnstile>
+     (Q ;;\<^sub>A\<^sub>D (R \<longrightarrow> S)))"
+proof -
+  let ?B = "(\<not> R) \<or> (S \<and> ok\<^sup>>)"
+  have B_refine: "true \<sqsubseteq> ?B"
+    by pred_auto
+  have absorb_not_ok:
+      "(\<not> ok\<^sup><) \<sqsubseteq> ((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D ?B)"
+    using aseq_ades_mono_right
+      [where P="\<not> ok\<^sup><" and Q=true and R="?B",
+       OF _ B_refine]
+    by (simp add: Healthy_def' not_ok_aseq_ades_true)
+  have absorb_not_P:
+      "((\<not> P) ;;\<^sub>A\<^sub>D true) \<sqsubseteq>
+       ((\<not> P) ;;\<^sub>A\<^sub>D ?B)"
+    by (rule aseq_ades_mono_right[OF assms(5) B_refine])
+  have B_split: "(Q ;;\<^sub>A\<^sub>D ?B) =
+    ((Q ;;\<^sub>A\<^sub>D (\<not> R)) \<or>
+     ((Q ;;\<^sub>A\<^sub>D (R \<longrightarrow> S)) \<and> ok\<^sup>>))"
+    by (simp only: aseq_ades_ok_out_split[OF assms(6)]
+        impl_neg_disj[of R S, symmetric])
+  show ?thesis
+    apply (simp only: angelic_design_seq_ok_cases
+        design_ok_out_true_subst[OF assms(1) assms(2)]
+        design_ok_out_false_subst[OF assms(1)]
+        design_ok_in_true_subst[OF assms(3) assms(4)]
+        design_ok_in_false_subst)
+    apply (simp only: aseq_ades_disj_distrib)
+    apply (simp only: not_ok_aseq_ades_true B_split
+        pred_ba.sup.assoc pred_ba.sup.commute pred_ba.sup.left_commute)
+    apply (simp only: design_as_disj pred_ba.compl_inf
+        pred_ba.double_compl pred_ba.sup.assoc
+        pred_ba.sup.commute pred_ba.sup.left_commute)
+    using absorb_not_P absorb_not_ok
+    unfolding pred_refine_iff
+    by (simp add: fun_eq_iff disj_pred_def; blast)
+qed
 
 (* PBMH_ades distributes over a design with a negated precondition. *)
 lemma PBMH_ades_neg_design:
@@ -437,7 +496,7 @@ lemma A0_state_subst:
   by (simp add: A0_def, pred_auto)
 
 (* Paper Theorem 3. *)
-theorem "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
+theorem A0_design: "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
 
 subsection \<open>A1\<close>
@@ -706,6 +765,32 @@ proof -
         (blast intro: sup_exists inf_exists)+)
 qed
 
+abbreviation bottom_AD :: "'s angelic_design" ("\<^bold>\<bottom>\<^sub>A\<^sub>D") where
+"\<^bold>\<bottom>\<^sub>A\<^sub>D \<equiv> A true"
+
+abbreviation top_AD :: "'s angelic_design" ("\<^bold>\<top>\<^sub>A\<^sub>D") where
+"\<^bold>\<top>\<^sub>A\<^sub>D \<equiv> A false"
+
+lemma bottom_AD_lower:
+  assumes "P is A"
+  shows "\<^bold>\<bottom>\<^sub>A\<^sub>D \<sqsubseteq> P"
+proof -
+  have "A true \<sqsubseteq> A P"
+    by (rule A_mono; pred_auto)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms])
+qed
+
+lemma top_AD_upper:
+  assumes "P is A"
+  shows "P \<sqsubseteq> \<^bold>\<top>\<^sub>A\<^sub>D"
+proof -
+  have "A P \<sqsubseteq> A false"
+    by (rule A_mono; pred_auto)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms])
+qed
+
 subsection \<open>A2\<close>
 
 (* {s} = ac' *)
@@ -903,7 +988,7 @@ definition SW :: "'s angelic_rel \<Rightarrow> 's angelic_rel" where
   (achoices.ac\<^sub>v ac' \<noteq> {} \<or>
     (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))))"
 
-lemma SW_healthy_alt:
+lemma SW_healthy':
   "R is SW \<longleftrightarrow>
     (\<forall>s. R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow> (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
   by (simp add: Healthy_def' SW_def fun_eq_iff; pred_auto)
