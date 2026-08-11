@@ -144,7 +144,7 @@ proof -
 qed
 
 (* Paper Theorem 23 / Thesis Theorem T.5.4.5. *)
-theorem RAD_demonic_choice_CSP:
+theorem RAD_demonic_choice_CSP_distrib:
   "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) =
    rad_p2ac (rad_ac2p P) \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac (rad_ac2p Q)"
   by (rule rad_p2ac_disj[simplified disj_pred_def])
@@ -154,12 +154,12 @@ lemma RAD_demonic_choice_CSP_A2:
   assumes "P is RAD" "Q is RAD"
     and "P is A2" "Q is A2"
   shows "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
-  by (simp only: RAD_demonic_choice_CSP
+  by (simp only: RAD_demonic_choice_CSP_distrib
       rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 (* Paper Theorem 24 / Thesis Theorem T.5.4.6. *)
-theorem RAD_demonic_choice_CSP_inverse:
+theorem RAD_demonic_choice_CSP:
   "rad_ac2p (rad_p2ac P \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<sqinter> Q"
   by (simp only: rad_ac2p_disj[simplified disj_pred_def]
       rad_ac2p_p2ac_inverse')
@@ -183,12 +183,22 @@ subsection \<open>Chaos\<close>
 definition Chaos_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Chaos\<^sub>R\<^sub>A\<^sub>D") where
 [pred]: "Chaos_RAD = (RA \<circ> A) (false \<turnstile> ac_non_empty)"
 
-lemma Chaos_RAD_alt:
+lemma Chaos_RAD':
   "Chaos\<^sub>R\<^sub>A\<^sub>D = (RA \<circ> A) (false \<turnstile> true)"
   by (simp only: Chaos_RAD_def design_false_pre)
 
+(* Chaos_RAD is the RAD image of true. *)
+lemma Chaos_RAD_RAD: "Chaos\<^sub>R\<^sub>A\<^sub>D = RAD true"
+  by (simp only: Chaos_RAD' RAD_design_form comp_apply
+      rad_wait_false_true subst_pred(1) pred_ba.compl_top_eq)
+
+lemma bottom_RAD_is_Chaos:
+  "(\<^bold>\<bottom>\<^sub>R\<^sub>A\<^sub>D ::
+      ('t::trace, 'e) reactive_angelic_design) = Chaos\<^sub>R\<^sub>A\<^sub>D"
+  by (simp only: Chaos_RAD_RAD)
+
 lemma Chaos_RAD_RA: "Chaos\<^sub>R\<^sub>A\<^sub>D = RA true"
-  apply (simp only: Chaos_RAD_alt design_false_pre comp_apply)
+  apply (simp only: Chaos_RAD' design_false_pre comp_apply)
   apply (subst RA_A')
    apply (simp add: Healthy_def' H1_H2_comp comp_apply H1_def H2_true)
   by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
@@ -198,7 +208,7 @@ lemma Chaos_RAD_is_RAD [closure]: "Chaos\<^sub>R\<^sub>A\<^sub>D is RAD"
   by rad_closure
 
 (* Paper Theorem 25. *)
-theorem Chaos_RAD_angelic_choice:
+theorem Chaos_RAD_angelic_choice_unit:
   assumes "P is RAD"
   shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = P"
 proof -
@@ -212,7 +222,7 @@ proof -
 qed
 
 (* The dual law of Paper Theorem 25. *)
-theorem Chaos_RAD_demonic_choice:
+theorem Chaos_RAD_demonic_choice_zero:
   assumes "P is RAD"
   shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P = Chaos\<^sub>R\<^sub>A\<^sub>D"
 proof -
@@ -564,6 +574,15 @@ lemma rad_wait_false_skip_post: "(skip_post \<^sub>wf) = skip_post"
   by (simp add: skip_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
       rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+
+lemma RA1_skip_post: "RA1 skip_post = skip_post"
+  apply (simp add: RA1_def skip_post_def ades_singleton_choice_def
+      rad_trace_extensions_def fun_eq_iff Let_def)
+  apply (auto intro: order_refl)
+  subgoal for a b y
+    apply (drule arg_cong[where f="\<lambda>S. y \<in> S"])
+    by simp
+  done
 
 lemma RA2_skip_post: "RA2 skip_post = skip_post"
   by (simp add: RA2_def skip_post_def ades_singleton_choice_def rad_normalise_choices_def

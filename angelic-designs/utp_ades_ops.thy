@@ -138,6 +138,10 @@ lemma aseq_ades_true_left [simp]: "true ;;\<^sub>A\<^sub>D P = true"
 lemma aseq_ades_false_left [simp]: "false ;;\<^sub>A\<^sub>D P = false"
   by pred_auto
 
+lemma not_ok_aseq_ades_true:
+  "((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D true) = (\<not> ok\<^sup><)"
+  by (simp add: aseq_ades_def fun_eq_iff; pred_auto)
+
 lemma aseq_ades_disj_distrib:
   "((P \<or> Q) ;;\<^sub>A\<^sub>D R) = ((P ;;\<^sub>A\<^sub>D R) \<or> (Q ;;\<^sub>A\<^sub>D R))"
   by pred_auto
@@ -150,6 +154,16 @@ lemma aseq_ades_mono_left:
 definition ades_state_choice :: "'s angelic_design" where
 [pred]: "ades_state_choice = (\<lambda> (s0, ac').
   astate.s\<^sub>v (des_vars.more s0) \<in> achoices.ac\<^sub>v (des_vars.more ac'))"
+
+abbreviation ades_s_lens where
+"ades_s_lens \<equiv> astate.s ;\<^sub>L des_vars.more\<^sub>L"
+
+abbreviation ades_ac_lens where
+"ades_ac_lens \<equiv> achoices.ac ;\<^sub>L des_vars.more\<^sub>L"
+
+lemma ades_state_choice_expr:
+  "ades_state_choice = ($ades_s_lens\<^sup>< \<in> $ades_ac_lens\<^sup>>)\<^sub>e"
+  by pred_auto
 
 lemma aseq_ades_state_choice_left [simp]:
   "(ades_state_choice ;;\<^sub>A\<^sub>D P) = P"

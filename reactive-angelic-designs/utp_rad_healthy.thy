@@ -414,6 +414,9 @@ proof -
     by (simp only: RA1_RA2_commute'[symmetric] RA2_true)
 qed
 
+lemma RA2_RA1_true: "RA2 (RA1 true) = RA1 true"
+  by (simp only: RA1_RA2_commute'[symmetric] RA2_true)
+
 (* Conjoining RA1 true with an RA2 image enforces RA1 inside it. *)
 lemma RA1_true_conj_RA2: "(RA1 true \<and> RA2 P) = RA2 (RA1 P)"
 proof -
@@ -895,7 +898,7 @@ lemma RA_disj: "RA (P \<or> Q) = (RA P \<or> RA Q)"
   by (simp add: RA_def RA1_disj RA2_disj RA3_disj)
 
 (* The components of RA commute, so RA may be recomposed in any order. *)
-lemma RA_alt_def: "RA P = RA3 (RA2 (RA1 P))"
+lemma RA_def': "RA P = RA3 (RA2 (RA1 P))"
   by (simp add: RA_def RA_comms)
 
 lemma RA_design_components:
@@ -908,17 +911,17 @@ proof -
       RA1 ((\<not> RA1 (\<not> P)) \<turnstile> RA1 Q)"
     by (rule RA1_design_post)
   finally show ?thesis
-    by (simp only: RA_alt_def)
+    by (simp only: RA_def')
 qed
 
 (* The wait-conditional normal form of a reactive angelic design with a
    true precondition. *)
 lemma RA_true_design:
-  "RA (true \<turnstile> Post) =
+  "RA (true \<turnstile> Q) =
    RA1 (true \<turnstile>
-        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Post))"
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q))"
 proof -
-  have "RA (true \<turnstile> Post) = RA1 (RA3 (true \<turnstile> RA2 Post))"
+  have "RA (true \<turnstile> Q) = RA1 (RA3 (true \<turnstile> RA2 Q))"
     by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA2_true)
   then show ?thesis
     by (simp only: RA1_RA3_design expr_if_idem)
@@ -928,7 +931,7 @@ lemma RA_cong_ac_non_empty:
   assumes "(ac_non_empty \<and> P) = (ac_non_empty \<and> Q)"
   shows "RA P = RA Q"
   using arg_cong[where f=RA1, OF assms]
-  by (simp only: RA1_ac_non_empty_absorb RA_alt_def)
+  by (simp only: RA1_ac_non_empty_absorb RA_def')
 
 lemma RA_ac_non_empty_absorb: "(ac_non_empty \<and> RA P) = RA P"
   by (simp add: RA_def comp_apply RA1_def ac_non_empty_def

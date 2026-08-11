@@ -334,7 +334,7 @@ proof -
           pred_auto)
     have "pre\<^sub>D P is SW"
       using feasible
-      by (simp add: SW_healthy_alt P_form taut_def
+      by (simp add: SW_healthy' P_form taut_def
           p2ac_exist_def ac2p_rel_subset; pred_auto; blast)
     then show "P is SW_D"
       using SW_D_healthy[OF healthy] by blast
@@ -345,7 +345,7 @@ proof -
     have witness_exists_A:
         "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
           (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
-      using witness_healthy by (simp add: SW_healthy_alt pre_A_eq)
+      using witness_healthy by (simp add: SW_healthy' pre_A_eq)
     have pre_A_downward:
         "B \<subseteq> A \<Longrightarrow>
          pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>

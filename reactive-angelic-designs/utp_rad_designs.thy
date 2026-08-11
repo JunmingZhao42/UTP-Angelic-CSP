@@ -206,6 +206,34 @@ lemma RAD_Idempotent [closure]: "Idempotent RAD"
 lemma RAD_healthy [closure]: "RAD P is RAD"
   by (simp add: Healthy_def' RAD_idem)
 
+abbreviation bottom_RAD :: "('t::trace, 'e) reactive_angelic_design"
+    ("\<^bold>\<bottom>\<^sub>R\<^sub>A\<^sub>D") where
+"\<^bold>\<bottom>\<^sub>R\<^sub>A\<^sub>D \<equiv> RAD true"
+
+abbreviation top_RAD :: "('t::trace, 'e) reactive_angelic_design"
+    ("\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D") where
+"\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D \<equiv> RAD false"
+
+lemma bottom_RAD_lower:
+  assumes "P is RAD"
+  shows "\<^bold>\<bottom>\<^sub>R\<^sub>A\<^sub>D \<sqsubseteq> P"
+proof -
+  have "RAD true \<sqsubseteq> RAD P"
+    by (rule RAD_mono; pred_auto)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms])
+qed
+
+lemma top_RAD_upper:
+  assumes "P is RAD"
+  shows "P \<sqsubseteq> \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D"
+proof -
+  have "RAD P \<sqsubseteq> RAD false"
+    by (rule RAD_mono; pred_auto)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms])
+qed
+
 lemma RAD_is_RA [closure]:
   assumes "P is RAD"
   shows "P is RA"

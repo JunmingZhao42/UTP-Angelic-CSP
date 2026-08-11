@@ -42,6 +42,33 @@ proof -
     by (simp only: comp_apply RA3AP_design_post)
 qed
 
+subsection \<open>Non-Divergent Processes\<close>
+
+(* Paper Lemma 10 / Thesis Lemma L.6.3.1. *)
+lemma H1_RA_A_true_design:
+  "(H1 \<circ> RA \<circ> A) (true \<turnstile> (P \<^sub>wf)\<^sup>t) =
+   (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+proof -
+  let ?T = "(P \<^sub>wf)\<^sup>t"
+  have H: "(true \<turnstile> ?T) is \<^bold>H"
+    by (rule design_is_H1_H2; unrest)
+  have push: "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
+    by (simp add: design_as_disj PBMH_ades_disj PBMH_ades_conj_ok)
+  show ?thesis
+    by (simp only: comp_apply RA_A'[OF H] push RA_true_design
+        H1_RA1_design RA1_wait_cond RA1_state_choice
+        RA1_RA2_commute' RA3AP_design_post)
+qed
+
+(* Lemma 10 for an explicitly NDRAD-healthy process. *)
+lemma H1_NDRAD:
+  assumes "P is RAD"
+  shows "(H1 \<circ> NDRAD) P =
+    (true \<turnstile>
+     (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  by (simp only: comp_apply NDRAD_design_form[OF assms]
+      H1_RA_A_true_design[simplified comp_apply])
+
 subsection \<open>From Angelic Processes to Reactive Angelic Designs\<close>
 
 (* Paper Theorem 40 / Thesis Theorem T.6.3.2. *)
@@ -59,7 +86,7 @@ proof -
     by (simp only: comp_apply RA_as_RA1_RA3_RA2 RA2_design_distrib
         RA2_not)
   also have "... = RA ((\<not> ?F) \<turnstile> ?T)"
-    by (simp only: RA_alt_def RA1_design_post[symmetric])
+    by (simp only: RA_def' RA1_design_post[symmetric])
   finally show ?thesis
     by (simp only: comp_apply RA_A'[OF rad_wait_false_design_is_H]
         PBMH_ades_neg_design)
@@ -70,52 +97,21 @@ lemma RA1_AP_RAD: "(RA1 \<circ> AP) P = RAD P"
   by (simp only: RA1_AP_design[simplified comp_apply]
       RAD_design_form comp_apply)
 
-subsection \<open>Non-Divergent Processes\<close>
-
-(* Paper Lemma 10 / Thesis Lemma L.6.3.1. *)
-lemma H1_RA_A_true_design:
-  "(H1 \<circ> RA \<circ> A) (true \<turnstile> (P \<^sub>wf)\<^sup>t) =
-   (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
-proof -
-  let ?T = "(P \<^sub>wf)\<^sup>t"
-  have H: "(true \<turnstile> ?T) is \<^bold>H"
-    by (rule design_is_H1_H2; unrest)
-  have push: "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
-    by (simp add: design_as_disj PBMH_ades_disj PBMH_ades_conj_ok)
-  have "(H1 \<circ> RA \<circ> A) (true \<turnstile> ?T) =
-      (H1 \<circ> RA) (true \<turnstile> PBMH_ades ?T)"
-    by (simp only: comp_apply RA_A'[OF H] push)
-  also have "... =
-      (true \<turnstile>
-       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-        (RA2 \<circ> RA1 \<circ> PBMH_ades) ?T))"
-    by (simp only: comp_apply RA_true_design H1_RA1_design RA1_wait_cond
-        RA1_state_choice RA1_RA2_commute')
-  finally show ?thesis
-    by (simp only: comp_apply RA3AP_design_post)
-qed
-
-(* Lemma 10 for an explicitly NDRAD-healthy process. *)
-lemma H1_NDRAD:
-  assumes "P is RAD"
-  shows "(H1 \<circ> NDRAD) P =
-    (true \<turnstile>
-     (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
-  by (simp only: comp_apply NDRAD_design_form[OF assms]
-      H1_RA_A_true_design[simplified comp_apply])
-
 subsection \<open>Isomorphism and Galois Connection\<close>
 
-(* Paper Theorem 41 / Thesis Theorem T.6.3.3.  H1_RA1_design_gen puts
-   an extra RA1 on each component; RA1_design_post/_pre run backwards
-   reabsorb it. *)
+(* Paper Theorem 41 / Thesis Theorem T.6.3.3. *)
 theorem RA1_H1_RAD: "(RA1 \<circ> H1 \<circ> RAD) P = RAD P"
   by (simp only: comp_apply RAD_design_form A_design RA_as_RA1_RA3_RA2
       RA2_design_distrib RA1_RA3_design H1_RA1_design_gen
       RA1_design_post[symmetric] RA1_design_pre[symmetric])
 
-(* Paper Theorem 42 / Thesis Theorem T.6.3.4.  The round trip weakens
-   the precondition by an RA1; eq below is thesis Lemma L.H.2.4. *)
+(* Theorem 41 for an already RAD-healthy process. *)
+lemma RA1_H1_RAD_healthy:
+  assumes "P is RAD"
+  shows "(RA1 \<circ> H1) P = P"
+  using RA1_H1_RAD[of P] by (simp only: comp_apply Healthy_if[OF assms])
+
+(* Paper Theorem 42 / Thesis Theorem T.6.3.4. *)
 theorem H1_RA1_AP_refine: "AP P \<sqsubseteq> (H1 \<circ> RA1 \<circ> AP) P"
 proof -
   let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)"
@@ -137,22 +133,22 @@ subsection \<open>Correspondence for True-Precondition Designs\<close>
 
 (* Thesis Lemma L.H.2.2. *)
 lemma H1_RA_true_design:
-  assumes "(Post \<^sub>wf) = Post" "PBMH_ades Post = Post"
-    and "Post\<lbrakk>True/ok\<^sup>>\<rbrakk> = Post"
-  shows "H1 (RA (true \<turnstile> Post)) = AP (true \<turnstile> Post)"
+  assumes "(Q \<^sub>wf) = Q" "PBMH_ades Q = Q"
+    and "Q\<lbrakk>True/ok\<^sup>>\<rbrakk> = Q"
+  shows "H1 (RA (true \<turnstile> Q)) = AP (true \<turnstile> Q)"
   by (simp only: RA_true_design H1_RA1_design RA1_wait_cond
       RA1_state_choice AP_true_design[OF assms])
 
 (* Thesis Theorem T.6.3.2 for true-precondition designs. *)
 lemma RA1_AP_true_design:
-  assumes "(Post \<^sub>wf) = Post" "PBMH_ades Post = Post"
-    and "Post\<lbrakk>True/ok\<^sup>>\<rbrakk> = Post"
-  shows "RA1 (AP (true \<turnstile> Post)) = RA (true \<turnstile> Post)"
+  assumes "(Q \<^sub>wf) = Q" "PBMH_ades Q = Q"
+    and "Q\<lbrakk>True/ok\<^sup>>\<rbrakk> = Q"
+  shows "RA1 (AP (true \<turnstile> Q)) = RA (true \<turnstile> Q)"
 proof -
-  have "RA1 (AP (true \<turnstile> Post)) =
+  have "RA1 (AP (true \<turnstile> Q)) =
       RA1 (true \<turnstile>
            RA1 (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-                RA2 Post))"
+                RA2 Q))"
     by (simp only: AP_true_design[OF assms] RA1_wait_cond
         RA1_state_choice)
   then show ?thesis

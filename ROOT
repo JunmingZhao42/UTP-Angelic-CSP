@@ -27,4 +27,5 @@ session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
     utp_ap_rad
     utp_ap_ops
     utp_ap_nd
+    utp_ap_examples
     Angelic_CSP

@@ -94,8 +94,8 @@ lemma not_refine:
 
 (* Weakening the precondition of a design refines it. *)
 lemma design_pre_weaken:
-  assumes "Pre2 \<sqsubseteq> Pre1"
-  shows "(Pre1 \<turnstile> Q) \<sqsubseteq> (Pre2 \<turnstile> Q)"
+  assumes "P2 \<sqsubseteq> P1"
+  shows "(P1 \<turnstile> Q) \<sqsubseteq> (P2 \<turnstile> Q)"
   by (rule design_refine_intro'[OF assms]; pred_auto)
 
 subsection \<open>PBMH\<close>

@@ -81,7 +81,7 @@ qed
 lemma NDRAD_Chaos:
   "NDRAD Chaos\<^sub>R\<^sub>A\<^sub>D = Choice\<^sub>R\<^sub>A\<^sub>D"
   unfolding NDRAD_def
-  by (rule Chaos_RAD_angelic_choice[OF Choice_RAD_is_RAD])
+  by (rule Chaos_RAD_angelic_choice_unit[OF Choice_RAD_is_RAD])
 
 lemma NDRAD_Choice:
   "NDRAD Choice\<^sub>R\<^sub>A\<^sub>D = Choice\<^sub>R\<^sub>A\<^sub>D"
