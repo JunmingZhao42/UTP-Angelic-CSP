@@ -431,7 +431,7 @@ proof -
         design_ok_out_true_subst[OF assms(1) assms(2)]
         design_ok_out_false_subst[OF assms(1)]
         design_ok_in_true_subst[OF assms(3) assms(4)]
-        design_ok_in_false_subst)
+        design_ok_false)
     apply (simp only: aseq_ades_disj_distrib)
     apply (simp only: not_ok_aseq_ades_true B_split
         pred_ba.sup.assoc pred_ba.sup.commute pred_ba.sup.left_commute)
@@ -523,16 +523,6 @@ lemma A1_eq_PBMH_ades:
     H1_H2_eq_rdesign[of P] assms
   by (simp add: Healthy_def')
 
-lemma des_vars_update_commute:
-  "x\<lparr>ok\<^sub>v := ok_val, des_vars.more := more_val\<rparr> =
-   x\<lparr>des_vars.more := more_val, ok\<^sub>v := ok_val\<rparr>"
-  by (cases x, simp)
-
-(* Updating both fields of a des_vars record determines it. *)
-lemma des_vars_collapse:
-  "r\<lparr>des_vars.more := m, ok\<^sub>v := b\<rparr> = \<lparr>ok\<^sub>v = b, \<dots> = m\<rparr>"
-  by (cases r) simp
-
 lemma A1_state_subst:
   "ades_state_subst st_subst (A1 P) = A1 (ades_state_subst st_subst P)"
 proof -
@@ -603,35 +593,9 @@ lemma A_design:
    ((\<not> PBMH_ades (Q\<^sup>f)) \<turnstile> (PBMH_ades (Q\<^sup>t) \<and> ac_non_empty))"
   by (pred_auto; auto simp add: des_vars_collapse)
 
-lemma preD_H1: "pre\<^sub>D (H1 P) = pre\<^sub>D P"
-  by (simp add: H1_def pre_design_def, pred_simp)
-
-lemma postD_H1: "post\<^sub>D (H1 P) = post\<^sub>D P"
-  by (simp add: H1_def post_design_def, pred_simp)
-
-lemma preD_H2: "pre\<^sub>D (H2 P) = pre\<^sub>D P"
-  by (simp add: H2_split pre_design_def, pred_simp)
-
-lemma postD_H2:
-  "post\<^sub>D (H2 P) = ((\<not> pre\<^sub>D P) \<or> post\<^sub>D P)"
-  by (simp add: H2_split pre_design_def post_design_def, pred_simp)
-
-lemma preD_disj:
-  "pre\<^sub>D (P \<or> Q) = (pre\<^sub>D P \<and> pre\<^sub>D Q)"
-  by (simp add: pre_design_def, pred_simp)
-
-lemma postD_disj:
-  "post\<^sub>D (P \<or> Q) = (post\<^sub>D P \<or> post\<^sub>D Q)"
-  by (simp add: post_design_def, pred_simp)
-
-lemma rdesign_disj:
-  "((P1 \<turnstile>\<^sub>r Q1) \<or> (P2 \<turnstile>\<^sub>r Q2)) =
-   ((P1 \<and> P2) \<turnstile>\<^sub>r (Q1 \<or> Q2))"
-  by (simp add: rdesign_def design_union, pred_simp)
-
 (* Thesis Theorem T.4.5.11 *)
 lemma A_disj: "A (P \<or> Q) = (A P \<or> A Q)"
-  by (simp add: A_design_form preD_disj postD_disj PBMH_disj rdesign_disj
+  by (simp add: A_design_form preD_disj postD_disj PBMH_disj rdesign_choice'
       pred_ba.boolean_algebra.conj_disj_distrib
       pred_ba.boolean_algebra.conj_disj_distrib2)
 

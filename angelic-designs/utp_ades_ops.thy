@@ -169,12 +169,6 @@ lemma aseq_ades_state_choice_left [simp]:
   "(ades_state_choice ;;\<^sub>A\<^sub>D P) = P"
   by pred_auto
 
-(* The two fields of the design observation can be updated independently. *)
-lemma des_more_ok_update_commute:
-  "des_vars.more_update f (ok\<^sub>v_update g r) =
-   ok\<^sub>v_update g (des_vars.more_update f r)"
-  by (cases r) simp
-
 lemma aseq_ades_unrest_ok_out [unrest]:
   "\<lbrakk> $ok\<^sup>> \<sharp> P; $ok\<^sup>> \<sharp> Q \<rbrakk> \<Longrightarrow>
    $ok\<^sup>> \<sharp> (P ;;\<^sub>A\<^sub>D Q)"
@@ -237,30 +231,6 @@ lemma angelic_design_seq_ok_cases:
       lens_defs des_vars.ok_def; pred_auto)
 
 subsubsection \<open>Design-observation substitution laws\<close>
-
-lemma design_ok_out_true_subst:
-  assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
-  shows "(P \<turnstile> Q)\<lbrakk>True/ok\<^sup>>\<rbrakk> = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> Q)"
-  using assms
-  by (simp add: design_def usubst usubst_eval; pred_auto)
-
-lemma design_ok_out_false_subst:
-  assumes "$ok\<^sup>> \<sharp> P"
-  shows "(P \<turnstile> Q)\<lbrakk>False/ok\<^sup>>\<rbrakk> = ((\<not> ok\<^sup><) \<or> (\<not> P))"
-  using assms
-  by (simp add: design_def usubst usubst_eval; pred_auto)
-
-lemma design_ok_in_true_subst:
-  assumes "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
-  shows "(R \<turnstile> S)\<lbrakk>True/ok\<^sup><\<rbrakk> = ((\<not> R) \<or> (S \<and> ok\<^sup>>))"
-  using assms
-  by (simp add: design_def usubst usubst_eval; pred_auto)
-
-lemma design_ok_in_false_subst:
-  "(R \<turnstile> S)\<lbrakk>False/ok\<^sup><\<rbrakk> = true"
-  by (simp add: design_def fun_eq_iff subst_app_def
-      subst_upd_def subst_id_def SEXP_def lens_defs des_vars.ok_def;
-      pred_auto)
 
 lemma aseq_ades_ok_in_subst:
   "(P ;;\<^sub>A\<^sub>D Q)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =

@@ -34,10 +34,6 @@ lemma achoices_ac_v_put [simp]:
   "achoices.ac\<^sub>v (put\<^bsub>ac\<^esub> c cs) = cs"
   by (simp add: achoices.ac_def)
 
-lemma des_vars_more_put [simp]:
-  "des_vars.more (put\<^bsub>\<^bold>v\<^sub>D\<^esub> d v) = v"
-  by (simp add: des_vars.more\<^sub>L_def)
-
 (* Paper Definition 25. *)
 (* Package the ordinary variables as the state observed by an angelic predicate. *)
 definition StateII :: "'s \<Rightarrow> 's astate" where
@@ -78,11 +74,6 @@ text \<open>
 
 subsection \<open>Design support laws\<close>
 
-(* A design as the disjunction of its observation cases. *)
-lemma design_as_disj:
-  "(P \<turnstile> Q) = ((\<not> ok\<^sup><) \<or> (\<not> P) \<or> (Q \<and> ok\<^sup>>))"
-  by (simp add: design_def fun_eq_iff; pred_auto)
-
 (* Negation reverses refinement.  Stated on opaque predicates: at the
    point of use the arguments are healthiness images, which pred_auto
    would otherwise unfold. *)
@@ -91,12 +82,6 @@ lemma not_refine:
   assumes "P \<sqsubseteq> Q"
   shows "(\<not> Q) \<sqsubseteq> (\<not> P)"
   using assms by pred_auto
-
-(* Weakening the precondition of a design refines it. *)
-lemma design_pre_weaken:
-  assumes "P2 \<sqsubseteq> P1"
-  shows "(P1 \<turnstile> Q) \<sqsubseteq> (P2 \<turnstile> Q)"
-  by (rule design_refine_intro'[OF assms]; pred_auto)
 
 subsection \<open>PBMH\<close>
 
