@@ -6,7 +6,7 @@
 	url = https://github.com/isabelle-utp/UTP.git
 [submodule "deps/UTP-Designs"]
 	path = deps/UTP-Designs
-	url = https://github.com/isabelle-utp/UTP-Designs.git
+	url = https://github.com/JunmingZhao42/UTP-Designs.git
 [submodule "deps/UTP-Reactive"]
 	path = deps/UTP-Reactive
 	url = https://github.com/isabelle-utp/UTP-Reactive.git
