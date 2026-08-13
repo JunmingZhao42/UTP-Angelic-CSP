@@ -103,7 +103,7 @@ proof -
         design_ok_out_true_subst[OF assms(1) assms(2)]
         design_ok_out_false_subst[OF assms(1)]
         design_ok_in_true_subst[OF assms(3) assms(4)]
-        design_ok_in_false_subst)
+        design_ok_false)
     apply (simp only:
         RA1_disj[of "\<not> ok\<^sup><" "(\<not> P) \<or> Q"]
         RA1_disj[of "\<not> P" Q]
