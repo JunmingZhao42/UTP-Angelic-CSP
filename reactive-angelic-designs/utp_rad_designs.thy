@@ -124,7 +124,7 @@ lemma RAD_H1_H2_PBMH:
 
 (* Paper Theorem 11. *)
 theorem RAD_design_form:
-  "RAD P = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  "RAD P = (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
   have design_healthy: "H1 (H2 P) is \<^bold>H"
     by (simp only: Healthy_def' H1_H2_idempotent)
@@ -132,7 +132,7 @@ proof -
     by (simp only: comp_apply RAD_H1_H2_PBMH
         RA_A'[OF design_healthy]
         PBMH_ades_H1_H2_commute[simplified comp_apply])
-  also have "... = RA (A (H1 (H2 (P \<^sub>wf))))"
+  also have "... = RA (A (H1 (H2 (P \<^sub>f))))"
     unfolding RA_def comp_apply
     by (simp only: RA3_wait_false_absorb[simplified comp_apply,
           of "A (H1 (H2 P))"]
@@ -145,38 +145,34 @@ qed
 (* Paper Theorem 11, as an elimination rule for RAD-healthy predicates. *)
 lemma RAD_design_form':
   assumes "P is RAD"
-  shows "P = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  shows "P = (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
   using assms by (simp only: Healthy_def' RAD_design_form)
 
 lemma RAD_wf_ok_false_PBMH:
   assumes "P is RAD"
-  shows "(P \<^sub>wf)\<^sup>f is PBMH_ades"
+  shows "(P \<^sub>f)\<^sup>f is PBMH_ades"
 proof -
-  have component: "(P \<^sub>wf)\<^sup>f =
-      RA2 (RA1 (PBMH_ades ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f)))"
-    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>f",
-        OF RAD_design_form'[OF assms]]
+  have component: "(P \<^sub>f)\<^sup>f = RA2 (RA1 (PBMH_ades ((\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f)))"
+    using arg_cong[where f="\<lambda>R. (R \<^sub>f)\<^sup>f", OF RAD_design_form'[OF assms]]
     by (simp only: comp_apply RA_design_wf_ok_false')
   show ?thesis
     unfolding Healthy_def'
-    using PBMH_ades_RA2_RA1_absorb[of "(\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f"]
+    using PBMH_ades_RA2_RA1_absorb[of "(\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f"]
     by (simp only: component[symmetric])
 qed
 
 lemma RAD_wf_ok_true_PBMH:
   assumes "P is RAD"
-  shows "(P \<^sub>wf)\<^sup>t is PBMH_ades"
+  shows "(P \<^sub>f)\<^sup>t is PBMH_ades"
 proof -
-  have component: "(P \<^sub>wf)\<^sup>t =
+  have component: "(P \<^sub>f)\<^sup>t =
       RA2 (RA1 (PBMH_ades
-        ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f \<or> (P \<^sub>wf)\<^sup>t)))"
-    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t",
-        OF RAD_design_form'[OF assms]]
+        ((\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f \<or> (P \<^sub>f)\<^sup>t)))"
+    using arg_cong[where f="\<lambda>R. (R \<^sub>f)\<^sup>t", OF RAD_design_form'[OF assms]]
     by (simp only: comp_apply RA_design_wf_ok_true')
   show ?thesis
     unfolding Healthy_def'
-    using PBMH_ades_RA2_RA1_absorb[of
-        "(\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f \<or> (P \<^sub>wf)\<^sup>t"]
+    using PBMH_ades_RA2_RA1_absorb[of "(\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f \<or> (P \<^sub>f)\<^sup>t"]
     by (simp only: component[symmetric])
 qed
 
@@ -184,7 +180,7 @@ qed
    components. *)
 lemma RAD_design_PBMH:
   assumes "P is RAD"
-  shows "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is PBMH_ades"
+  shows "((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t) is PBMH_ades"
   by (rule PBMH_ades_design_closure;
       intro RAD_wf_ok_false_PBMH[OF assms] RAD_wf_ok_true_PBMH[OF assms])
 
@@ -192,7 +188,7 @@ lemma RAD_design_PBMH:
    RA images of their wait-false design. *)
 lemma RAD_RA_design_form:
   assumes "P is RAD"
-  shows "P = RA ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  shows "P = RA ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
   using RAD_design_form'[OF assms]
   by (simp only: RA_A_absorb[OF RAD_design_PBMH[OF assms]
         rad_wait_false_design_is_H])
@@ -246,11 +242,10 @@ proof -
 qed
 
 lemma RAD_design_closure:
-  assumes "P is \<^bold>H" "(P \<^sub>wf) = P"
+  assumes "P is \<^bold>H" "(P \<^sub>f) = P"
   shows "(RA \<circ> A) P is RAD"
 proof -
-  have normal_form:
-      "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t = P"
+  have normal_form: "(\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t = P"
     using assms
     by (simp only: Healthy_def' H1_H2_eq_design)
   show ?thesis

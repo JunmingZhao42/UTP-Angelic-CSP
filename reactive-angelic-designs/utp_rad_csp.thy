@@ -4,6 +4,8 @@ theory utp_rad_csp
   imports utp_rad_designs "UTP-Reactive-Designs.utp_rdes_healths"
 begin
 
+no_notation utp_rea_core.wait_f ("_\<^sub>f" [1000] 1000)
+
 subsection \<open>Observation isomorphism\<close>
 
 (* Repackage one nested RAD observation as a flat CSP observation. *)
@@ -192,22 +194,21 @@ theorem rad_ac2p_RA:
 
 (* Paper Theorem 13 / Thesis Theorem T.5.3.2. *)
 theorem rad_ac2p_RA_design:
-  "(rad_ac2p \<circ> RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) =
-   \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
+  "(rad_ac2p \<circ> RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t) =
+   \<^bold>R ((\<not> rad_ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>f)\<^sup>t))"
 proof -
-  let ?D = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
+  let ?D = "(\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t"
   have design_healthy: "?D is \<^bold>H"
     by (rule rad_wait_false_design_is_H)
   have pbmh_healthy: "PBMH_ades ?D is PBMH_ades"
     by (rule Healthy_Idempotent[OF PBMH_ades_Idempotent])
-  have mapped_ac2p:
-      "ac2p ?D = ((\<not> ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> ac2p ((P \<^sub>wf)\<^sup>t))"
+  have mapped_ac2p: "ac2p ?D = ((\<not> ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> ac2p ((P \<^sub>f)\<^sup>t))"
     by (subst ac2p_design[OF design_healthy];
         simp add: design_def fun_eq_iff
           subst_app_def subst_upd_def subst_id_def SEXP_def;
         pred_auto)
   have mapped_design:
-      "rad_ac2p ?D = ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
+    "rad_ac2p ?D = ((\<not> rad_ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>f)\<^sup>t))"
     unfolding rad_ac2p_def comp_apply
     by (simp only: mapped_ac2p rad2csp_rel_design_distrib)
   have "rad_ac2p (RA (A ?D)) =
@@ -217,7 +218,7 @@ proof -
     by (rule rad_ac2p_RA[OF pbmh_healthy, simplified comp_apply])
   also have "... = \<^bold>R (rad_ac2p ?D)"
     by (simp only: rad_ac2p_def comp_apply ac2p_PBMH_ades)
-  also have "... = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
+  also have "... = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>f)\<^sup>t))"
     by (simp only: mapped_design)
   finally show ?thesis
     by (simp only: comp_apply)
@@ -229,11 +230,11 @@ lemmas rad_ac2p_RA_design' = rad_ac2p_RA_design[simplified comp_apply]
    Theorem 13 uses Theorem 12 to transport RA healthiness to R healthiness. *)
 lemma rad_ac2p_RAD:
   assumes "P is RAD"
-  shows "rad_ac2p P = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
+  shows "rad_ac2p P = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>f)\<^sup>t))"
 proof -
-  have "rad_ac2p P = rad_ac2p ((RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))"
+  have "rad_ac2p P = rad_ac2p ((RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t))"
     by (rule arg_cong[where f=rad_ac2p, OF RAD_design_form'[OF assms]])
-  also have "... = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>wf)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>wf)\<^sup>t))"
+  also have "... = \<^bold>R ((\<not> rad_ac2p ((P \<^sub>f)\<^sup>f)) \<turnstile> rad_ac2p ((P \<^sub>f)\<^sup>t))"
     unfolding comp_apply
     by (rule rad_ac2p_RA_design')
   finally show ?thesis .
@@ -362,7 +363,7 @@ lemmas rad_p2ac_R' = rad_p2ac_R[simplified comp_apply]
    longer depends on ok'. *)
 lemma rad_p2ac_subst_unrest_ok:
   "$ok\<^sup>> \<sharp>
-    rad_p2ac ((P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>) \<^sub>f)"
+    rad_p2ac (wait_f (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>))"
   apply (simp add: unrest_lens rad_p2ac_def p2ac_def
       csp2rad_rel_def rad2csp_obs_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
@@ -371,21 +372,18 @@ lemma rad_p2ac_subst_unrest_ok:
 
 (* Paper Theorem 15 / Thesis Theorem T.5.3.4. *)
 theorem rad_p2ac_R_design:
-  "(rad_p2ac \<circ> \<^bold>R) ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) =
-   (RA \<circ> A) ((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile> rad_p2ac (P\<^sup>t\<^sub>f))"
+  "(rad_p2ac \<circ> \<^bold>R) ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t)) =
+   (RA \<circ> A) ((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile> rad_p2ac (wait_f (P\<^sup>t)))"
 proof -
   have mapped_design:
       "(ac_non_empty \<and>
-        rad_p2ac ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)) =
+        rad_p2ac ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t))) =
        (ac_non_empty \<and>
-        ((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
-          rad_p2ac (P\<^sup>t\<^sub>f)))"
-    using p2ac_design_nonempty[
-        of "csp2rad_rel (P\<^sup>f\<^sub>f)"
-           "csp2rad_rel (P\<^sup>t\<^sub>f)"]
+        ((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile>
+          rad_p2ac (wait_f (P\<^sup>t))))"
+    using p2ac_design_nonempty[of "csp2rad_rel (wait_f (P\<^sup>f))" "csp2rad_rel (wait_f (P\<^sup>t))"]
     by (simp add: rad_p2ac_def csp2rad_rel_design_distrib)
-  let ?D = "((\<not> rad_p2ac (P\<^sup>f\<^sub>f)) \<turnstile>
-    rad_p2ac (P\<^sup>t\<^sub>f))"
+  let ?D = "((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile> rad_p2ac (wait_f (P\<^sup>t)))"
   have design_healthy: "?D is \<^bold>H"
     apply (rule design_is_H1_H2)
      apply (rule unrest_pred(6))
@@ -394,13 +392,12 @@ proof -
   have design_pbmh: "PBMH_ades ?D = ?D"
     by (simp add: design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok rad_p2ac_def)
-  let ?S = "rad_p2ac ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+  let ?S = "rad_p2ac ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t))"
   have mapped_RA: "RA ?S = RA ?D"
     by (rule RA_cong_ac_non_empty[OF mapped_design])
   have A_absorb: "RA (A ?D) = RA ?D"
     by (simp only: RA_A'[OF design_healthy] design_pbmh)
-  have "(rad_p2ac \<circ> \<^bold>R)
-      ((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = RA ?S"
+  have "(rad_p2ac \<circ> \<^bold>R) ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t)) = RA ?S"
     by (simp only: comp_apply rad_p2ac_R')
   also have "... = RA ?D"
     by (rule mapped_RA)
@@ -502,12 +499,11 @@ qed
 
 (* Paper Theorem 18 / Thesis Theorem T.5.3.7. *)
 theorem rad_p2ac_ac2p_RA_design:
-  assumes "(P \<^sub>wf)\<^sup>f is A2"
-    and "(P \<^sub>wf)\<^sup>t is A2"
-  shows "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  assumes "(P \<^sub>f)\<^sup>f is A2"
+    and "(P \<^sub>f)\<^sup>t is A2"
+  shows "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t) = (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?D = "(\<not> ?F) \<turnstile> ?T"
   let ?C = "(\<not> rad_ac2p ?F) \<turnstile> rad_ac2p ?T"
   let ?M = "((\<not> (rad_p2ac \<circ> rad_ac2p) ?F) \<turnstile>

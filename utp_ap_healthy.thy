@@ -155,17 +155,17 @@ lemma AP_Monotonic [closure]: "Monotonic AP"
 
 (* Paper Theorem 36 / Thesis Theorem T.6.2.8. *)
 theorem AP_design_form:
-  "AP P = (RA3AP \<circ> RA2 \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  "AP P = (RA3AP \<circ> RA2 \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
   have "AP P = (RA2 \<circ> RA3AP \<circ> A \<circ> H1 \<circ> H2) P"
     by (simp only: AP_def CSPA2_def comp_apply
         RA2_RA3AP_commute[simplified comp_apply, symmetric])
-  also have "... = (RA2 \<circ> RA3AP \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>wf)"
+  also have "... = (RA2 \<circ> RA3AP \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>f)"
     by (simp only: comp_apply RA3AP_wait_false_absorb[simplified comp_apply,
           of "A (H1 (H2 P))"]
         rad_wait_false_A_commute[simplified comp_apply]
         rad_wait_false_H1_H2_commute[simplified comp_apply])
-  also have "... = (RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>wf)"
+  also have "... = (RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>f)"
     by (simp only: comp_apply RA2_RA3AP_commute[simplified comp_apply])
   finally show ?thesis
     by (simp add: H1_H2_eq_design)
@@ -173,10 +173,10 @@ qed
 
 (* Paper Theorem 37 / Thesis Theorem T.6.2.9 *)
 theorem AP_wait_cond_design:
-  "AP P = ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)))"
+  "AP P = ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<turnstile>
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f" and ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   have "AP P = (RA3AP \<circ> RA2 \<circ> A) ((\<not> ?F) \<turnstile> ?T)"
     by (simp only: AP_design_form comp_apply)
   also have "... =
@@ -195,13 +195,13 @@ qed
 
 (* Theorem 37 with the wait conditionals folded into RA3AP. *)
 lemma AP_RA3AP_design:
-  "AP P = RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-          (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  "AP P = RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+          (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
   by (simp only: AP_wait_cond_design RA3AP_design comp_apply)
 
 (* Counterpart of RA_true_design. *)
 lemma AP_true_design:
-  assumes "(Q \<^sub>wf) = Q" "PBMH_ades Q = Q"
+  assumes "(Q \<^sub>f) = Q" "PBMH_ades Q = Q"
     and "Q\<lbrakk>True/ok\<^sup>>\<rbrakk> = Q"
   shows "AP (true \<turnstile> Q) =
     (true \<turnstile>
@@ -226,10 +226,8 @@ qed
 (* Thesis Lemma L.H.1.5. *)
 lemma AP_wait_false:
   "rad_wait_false (AP P) =
-   ((\<not> rad_wait_false ((RA2 \<circ> PBMH_ades)
-       ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-     rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades)
-       ((P \<^sub>wf)\<^sup>t)))"
+   ((\<not> rad_wait_false ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<turnstile>
+     rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
   by (simp only: AP_wait_cond_design rad_wait_false_design
       rad_wait_false_wait_cond rad_wait_false_not
       rad_wait_false_idem rad_wait_false_ok_false
@@ -238,19 +236,14 @@ lemma AP_wait_false:
 (* Thesis Lemma L.H.1.6. *)
 lemma AP_wait_false_ok_false:
   "(rad_wait_false (AP P))\<^sup>f =
-   (ok\<^sup>< \<longrightarrow>
-     rad_wait_false ((RA2 \<circ> PBMH_ades)
-       ((P \<^sub>wf)\<^sup>f)))"
+   (ok\<^sup>< \<longrightarrow> rad_wait_false ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)))"
   by (simp add: AP_wait_false design_def; pred_auto)
 
 (* Thesis Lemma L.H.1.7. *)
 lemma AP_wait_false_ok_true:
   "(rad_wait_false (AP P))\<^sup>t =
-   ((ok\<^sup>< \<and>
-     \<not> rad_wait_false ((RA2 \<circ> PBMH_ades)
-       ((P \<^sub>wf)\<^sup>f))) \<longrightarrow>
-     rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades)
-       ((P \<^sub>wf)\<^sup>t)))"
+   ((ok\<^sup>< \<and> \<not> rad_wait_false ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<longrightarrow>
+     rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
   by (simp add: AP_wait_false design_def; pred_auto)
 
 (* Kept here instead of the ades layer so the parent session heaps
@@ -283,16 +276,16 @@ subsection \<open>Idempotence of AP\<close>
    of A- and RA2-healthy designs are angelic processes and AP is
    idempotent. *)
 lemma AP_body_is_H [closure]:
-  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is \<^bold>H"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) is \<^bold>H"
   by (rule design_is_H1_H2; unrest)
 
 lemma AP_body_is_A [closure]:
-  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is A"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) is A"
 proof -
-  let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)"
-  let ?T = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)"
+  let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)"
+    and ?T = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)"
   let ?N = "((\<not> ?F) \<turnstile> ?T)"
   have F_unrest: "$ok\<^sup>> \<sharp> ?F"
     by (unrest)
@@ -318,8 +311,8 @@ proof -
 qed
 
 lemma AP_body_is_RA2 [closure]:
-  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) is RA2"
+  "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) is RA2"
   by (rule Healthy_intro,
       simp only: comp_apply RA2_design_distrib RA2_not RA2_idem
         RA1_RA2_commute'[symmetric])
@@ -388,7 +381,7 @@ lemma AP_is_H:
 
 lemma AP_wait_false_PBMH_ades:
   assumes "P is AP"
-  shows "(P \<^sub>wf) is PBMH_ades"
+  shows "(P \<^sub>f) is PBMH_ades"
 proof -
   have P_H: "P is \<^bold>H"
     by (rule AP_is_H[OF assms])
@@ -397,10 +390,10 @@ proof -
     by (simp only: Healthy_def')
   have P_A1: "A1 P = P"
     by (simp only: A1_eq_PBMH_ades[OF P_H] P_PBMH)
-  have wf_H: "(P \<^sub>wf) is \<^bold>H"
+  have wf_H: "(P \<^sub>f) is \<^bold>H"
     unfolding rad_wait_false_as_state_subst
     by (rule state_subst_H1_H2_closed[OF P_H])
-  have wf_A1: "A1 (P \<^sub>wf) = (P \<^sub>wf)"
+  have wf_A1: "A1 (P \<^sub>f) = (P \<^sub>f)"
     using arg_cong[where f=rad_wait_false, OF P_A1]
     by (simp only: rad_wait_false_as_state_subst A1_state_subst)
   show ?thesis
@@ -410,14 +403,14 @@ qed
 
 lemma AP_wf_ok_false_PBMH_ades:
   assumes "P is AP"
-  shows "(P \<^sub>wf)\<^sup>f is PBMH_ades"
+  shows "(P \<^sub>f)\<^sup>f is PBMH_ades"
   by (rule Healthy_intro,
       simp only: PBMH_ades_ok_false
         Healthy_if[OF AP_wait_false_PBMH_ades[OF assms]])
 
 lemma AP_wf_ok_true_PBMH_ades:
   assumes "P is AP"
-  shows "(P \<^sub>wf)\<^sup>t is PBMH_ades"
+  shows "(P \<^sub>f)\<^sup>t is PBMH_ades"
   by (rule Healthy_intro,
       simp only: PBMH_ades_ok_true
         Healthy_if[OF AP_wait_false_PBMH_ades[OF assms]])

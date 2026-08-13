@@ -342,8 +342,8 @@ text \<open>
   \<open>;;\<^sub>A\<^sub>D\<close> is the full-design-alphabet lifting of the paper's
   angelic relation composition, \<open>ades_state_choice\<close> is the predicate
   \<open>s \<in> ac'\<close>, and \<open>$rad_wait_lens\<^sup><\<close> is the initial
-  \<open>s.wait\<close> observation.  The expressions \<open>(P \<^sub>wf)\<^sup>f\<close>
-  and \<open>(P \<^sub>wf)\<^sup>t\<close> are the wait-false predicate with final
+  \<open>s.wait\<close> observation.  The expressions \<open>(P \<^sub>f)\<^sup>f\<close>
+  and \<open>(P \<^sub>f)\<^sup>t\<close> are the wait-false predicate with final
   \<open>ok\<close> respectively fixed to false and true.
 \<close>
 
@@ -352,16 +352,16 @@ theorem RAD_seq_design:
   assumes "P is RAD" "Q is RAD"
   shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) =
     \<comment> \<open> \<not> (RA1 (P_f^f) ;; RA1(true)): P's precondition must hold \<close>
-    (RA \<circ> A) (((\<not> (RA1 ((P \<^sub>wf)\<^sup>f) ;;\<^sub>A\<^sub>D RA1 true)) \<and>
+    (RA \<circ> A) (((\<not> (RA1 ((P \<^sub>f)\<^sup>f) ;;\<^sub>A\<^sub>D RA1 true)) \<and>
     \<comment> \<open> \<not> (RA1(P_f^t) ;; \<not>wait \<and> RA2 \<circ> RA1 (Q_f^f)): If P terminates and post condition hold then Q's precondition must hold\<close>
-    (\<not> (RA1 ((P \<^sub>wf)\<^sup>t) ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ((Q \<^sub>wf)\<^sup>f)))))) \<turnstile>
+    (\<not> (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ((Q \<^sub>f)\<^sup>f)))))) \<turnstile>
     \<comment> \<open>If P waits then s\<in>ac', else RA2 \<circ> RA1 (Q_pre => Q_post)\<close>
-    (RA1 ((P \<^sub>wf)\<^sup>t) ;;\<^sub>A\<^sub>D (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 (RA1 ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t)))))"
+    (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 (RA1 ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t)))))"
 proof -
-  let ?Af = "(P \<^sub>wf)\<^sup>f" and ?At = "(P \<^sub>wf)\<^sup>t"
-  let ?Bf = "(Q \<^sub>wf)\<^sup>f" and ?Bt = "(Q \<^sub>wf)\<^sup>t"
-  let ?Bf' = "(Q \<^sub>wf)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk>"
-  let ?Bt' = "(Q \<^sub>wf)\<^sup>t\<lbrakk>True/ok\<^sup><\<rbrakk>"
+  let ?Af = "(P \<^sub>f)\<^sup>f" and ?At = "(P \<^sub>f)\<^sup>t"
+  let ?Bf = "(Q \<^sub>f)\<^sup>f" and ?Bt = "(Q \<^sub>f)\<^sup>t"
+  let ?Bf' = "(Q \<^sub>f)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk>"
+    and ?Bt' = "(Q \<^sub>f)\<^sup>t\<lbrakk>True/ok\<^sup><\<rbrakk>"
   let ?preT = "((\<not> (RA1 ?Af ;;\<^sub>A\<^sub>D RA1 true)) \<and>
     (\<not> (RA1 ?At ;;\<^sub>A\<^sub>D
         ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Bf)))))"

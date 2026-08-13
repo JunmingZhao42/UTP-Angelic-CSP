@@ -21,12 +21,12 @@ lemma RAD_angelic_choice:
 theorem RAD_angelic_choice_design:
   assumes "P is RAD" "Q is RAD"
   shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q =
-     (RA \<circ> A) (((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-              (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
-              ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t)))"
+     (RA \<circ> A) (((\<not> (P \<^sub>f)\<^sup>f) \<or> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+              (((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t) \<and>
+              ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t)))"
 proof -
-  let ?DP = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
-  let ?DQ = "(\<not> (Q \<^sub>wf)\<^sup>f) \<turnstile> (Q \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t"
+  let ?DQ = "(\<not> (Q \<^sub>f)\<^sup>f) \<turnstile> (Q \<^sub>f)\<^sup>t"
   have "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q =
       (RA \<circ> A) ?DP \<squnion> (RA \<circ> A) ?DQ"
     using arg_cong2[where f=inf,
@@ -36,9 +36,9 @@ proof -
           RAD_design_PBMH[OF assms(1)] RAD_design_PBMH[OF assms(2)]
           rad_wait_false_design_is_H rad_wait_false_design_is_H])
   also have "... = (RA \<circ> A)
-        (((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-         (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
-          ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t)))"
+        (((\<not> (P \<^sub>f)\<^sup>f) \<or> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+         (((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t) \<and>
+          ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t)))"
     apply (rule arg_cong[where f="RA \<circ> A"])
     apply (simp only: design_inf)
     by pred_auto
@@ -50,9 +50,9 @@ lemma RAD_angelic_closure [closure]:
   shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q is RAD"
 proof -
   let ?D =
-    "((\<not> (P \<^sub>wf)\<^sup>f) \<or> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-      (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and>
-       ((\<not> (Q \<^sub>wf)\<^sup>f) \<longrightarrow> (Q \<^sub>wf)\<^sup>t))"
+    "((\<not> (P \<^sub>f)\<^sup>f) \<or> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+      (((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t) \<and>
+       ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t))"
   have "(RA \<circ> A) ?D is RAD"
     by rad_closure
   then show ?thesis
@@ -111,11 +111,11 @@ lemma RAD_demonic_choice:
 theorem RAD_demonic_choice_design:
   assumes "P is RAD" "Q is RAD"
   shows "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q =
-    (RA \<circ> A) (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-      ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t))"
+    (RA \<circ> A) (((\<not> (P \<^sub>f)\<^sup>f) \<and> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+      ((P \<^sub>f)\<^sup>t \<or> (Q \<^sub>f)\<^sup>t))"
 proof -
-  let ?DP = "(\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t"
-  let ?DQ = "(\<not> (Q \<^sub>wf)\<^sup>f) \<turnstile> (Q \<^sub>wf)\<^sup>t"
+  let ?DP = "(\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t"
+  let ?DQ = "(\<not> (Q \<^sub>f)\<^sup>f) \<turnstile> (Q \<^sub>f)\<^sup>t"
   have "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q =
       (RA \<circ> A) ?DP \<sqinter> (RA \<circ> A) ?DQ"
     using arg_cong2[where f=sup,
@@ -123,8 +123,8 @@ proof -
   also have "... = (RA \<circ> A) (?DP \<sqinter> ?DQ)"
     by (rule RA_A_demonic_choice)
   also have "... = (RA \<circ> A)
-      (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-        ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t))"
+      (((\<not> (P \<^sub>f)\<^sup>f) \<and> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+        ((P \<^sub>f)\<^sup>t \<or> (Q \<^sub>f)\<^sup>t))"
     apply (rule arg_cong[where f="RA \<circ> A"])
     by (simp only: angelic_design_demonic design_union)
   finally show ?thesis .
@@ -135,8 +135,8 @@ lemma RAD_demonic_closure [closure]:
   shows "P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q is RAD"
 proof -
   let ?D =
-    "((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-      ((P \<^sub>wf)\<^sup>t \<or> (Q \<^sub>wf)\<^sup>t)"
+    "((\<not> (P \<^sub>f)\<^sup>f) \<and> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+      ((P \<^sub>f)\<^sup>t \<or> (Q \<^sub>f)\<^sup>t)"
   have "(RA \<circ> A) ?D is RAD"
     by rad_closure
   then show ?thesis
@@ -265,17 +265,15 @@ lemma Choice_RAD_design:
   by (simp only: Choice_RAD_RA RA_true_design RA2_true)
 
 (* Choice_RAD can only fail to stabilise when it has not started. *)
-lemma Choice_RAD_wf_ok_false:
-  "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f = RA2 (RA1 (\<not> ok\<^sup><))"
+lemma Choice_RAD_wf_ok_false: "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>f = RA2 (RA1 (\<not> ok\<^sup><))"
 proof -
   have design_norm:
-      "((\<not> (ok\<^sup>> \<^sub>wf)\<^sup>f) \<turnstile> (ok\<^sup>> \<^sub>wf)\<^sup>t) = (true \<turnstile> true)"
+      "((\<not> (ok\<^sup>> \<^sub>f)\<^sup>f) \<turnstile> (ok\<^sup>> \<^sub>f)\<^sup>t) = (true \<turnstile> true)"
     by (simp add: rad_wait_false_def usubst usubst_eval; pred_auto)
-  have disj_norm:
-      "((\<not> ok\<^sup><) \<or> (ok\<^sup>> \<^sub>wf)\<^sup>f) = (\<not> ok\<^sup><)"
+  have disj_norm: "((\<not> ok\<^sup><) \<or> (ok\<^sup>> \<^sub>f)\<^sup>f) = (\<not> ok\<^sup><)"
     by (simp add: rad_wait_false_def usubst usubst_eval; pred_auto)
   have "((rad_wait_false \<circ> RA \<circ> A) (true \<turnstile> true))\<^sup>f =
-      (RA2 \<circ> RA1 \<circ> PBMH_ades) ((\<not> ok\<^sup><) \<or> (ok\<^sup>> \<^sub>wf)\<^sup>f)"
+      (RA2 \<circ> RA1 \<circ> PBMH_ades) ((\<not> ok\<^sup><) \<or> (ok\<^sup>> \<^sub>f)\<^sup>f)"
     using RA_design_wf_ok_false[of "ok\<^sup>>"]
     by (simp only: design_norm)
   then show ?thesis
@@ -283,7 +281,7 @@ proof -
 qed
 
 lemma Choice_RAD_wf_ok_false_subst:
-  "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
+  "(Choice\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
 proof -
   have not_true: "(\<not> (True)\<^sub>e :: ('t::trace, 'e) reactive_angelic_design) = false"
     by pred_auto
@@ -296,14 +294,13 @@ qed
 (* Paper Theorem 26. *)
 theorem Choice_RAD_angelic_choice:
   assumes "P is RAD"
-  shows "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = (RA \<circ> A) (true \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  shows "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P = (RA \<circ> A) (true \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
   let ?Z = "(\<not> ok\<^sup><) \<or> ?F \<or> ?T"
   have T_form: "?T = RA2 (RA1 (PBMH_ades ?Z))"
-    using arg_cong[where f="\<lambda>R. (R \<^sub>wf)\<^sup>t",
+    using arg_cong[where f="\<lambda>R. (R \<^sub>f)\<^sup>t",
         OF RAD_design_form'[OF assms]]
     by (simp only: comp_apply RA_design_wf_ok_true')
   have "Choice\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
@@ -333,10 +330,9 @@ qed
 theorem Choice_RAD_demonic_choice:
   assumes "P is RAD"
   shows "Choice\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P =
-    (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> ac_non_empty)"
+    (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> ac_non_empty)"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
   have "Choice\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P =
       (RA \<circ> A) (true \<turnstile> true) \<sqinter> (RA \<circ> A) ?DP"
@@ -375,7 +371,7 @@ lemma stop_post_p2ac:
 lemma stop_post_PBMH [simp]: "PBMH_ades stop_post = stop_post"
   by (simp only: stop_post_p2ac PBMH_ades_p2ac)
 
-lemma rad_wait_false_stop_post: "(stop_post \<^sub>wf) = stop_post"
+lemma rad_wait_false_stop_post: "(stop_post \<^sub>f) = stop_post"
   by (simp add: stop_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
       rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
@@ -413,8 +409,7 @@ lemma stop_post_ok_out_subst [usubst]:
 
 (* Component normal forms of the design body \<open>stop_post \<and> ok\<^sup>>\<close>
    witnessing Stop's projections. *)
-lemma stop_design_wf_norm:
-  "((stop_post \<and> ok\<^sup>>) \<^sub>wf) = (stop_post \<and> ok\<^sup>>)"
+lemma stop_design_wf_norm: "((stop_post \<and> ok\<^sup>>) \<^sub>f) = (stop_post \<and> ok\<^sup>>)"
   by (simp only: rad_wait_false_conj rad_wait_false_stop_post
       rad_wait_false_ok_out)
 
@@ -425,22 +420,20 @@ lemma stop_design_ok_true: "(stop_post \<and> ok\<^sup>>)\<^sup>t = stop_post"
   by (simp add: usubst usubst_eval; pred_auto)
 
 (* Stop can only fail to stabilise when it has not started. *)
-lemma Stop_RAD_wf_ok_false:
-  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f = RA2 (RA1 (\<not> ok\<^sup><))"
+lemma Stop_RAD_wf_ok_false: "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>f = RA2 (RA1 (\<not> ok\<^sup><))"
 proof -
   have design_norm:
-      "((\<not> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f) \<turnstile>
-        ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>t) =
+      "((\<not> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f) \<turnstile>
+        ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>t) =
        (true \<turnstile> stop_post)"
     by (simp only: stop_design_wf_norm stop_design_ok_false
         stop_design_ok_true pred_ba.compl_bot_eq)
-  have disj_norm:
-      "((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f) = (\<not> ok\<^sup><)"
+  have disj_norm: "((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f) = (\<not> ok\<^sup><)"
     by (simp only: stop_design_wf_norm stop_design_ok_false
         pred_ba.sup_bot_right)
   have "((rad_wait_false \<circ> RA \<circ> A) (true \<turnstile> stop_post))\<^sup>f =
       (RA2 \<circ> RA1 \<circ> PBMH_ades)
-        ((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f)"
+        ((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f)"
     using RA_design_wf_ok_false[of "stop_post \<and> ok\<^sup>>"]
     by (simp only: design_norm)
   then show ?thesis
@@ -449,7 +442,7 @@ proof -
 qed
 
 lemma Stop_RAD_wf_ok_false_subst:
-  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
+  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
 proof -
   have not_true: "(\<not> (True)\<^sub>e :: ('t::trace, 'e) reactive_angelic_design) = false"
     by pred_auto
@@ -461,17 +454,17 @@ proof -
 qed
 
 lemma Stop_RAD_wf_ok_true:
-  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>t = RA2 (RA1 ((\<not> ok\<^sup><) \<or> stop_post))"
+  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>t = RA2 (RA1 ((\<not> ok\<^sup><) \<or> stop_post))"
 proof -
   have design_norm:
-      "((\<not> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f) \<turnstile>
-        ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>t) =
+      "((\<not> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f) \<turnstile>
+        ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>t) =
        (true \<turnstile> stop_post)"
     by (simp only: stop_design_wf_norm stop_design_ok_false
         stop_design_ok_true pred_ba.compl_bot_eq)
   have disj_norm:
-      "((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f \<or>
-        ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>t) =
+      "((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f \<or>
+        ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>t) =
        ((\<not> ok\<^sup><) \<or> stop_post)"
     by (simp only: stop_design_wf_norm stop_design_ok_false
         stop_design_ok_true pred_ba.sup_bot_left)
@@ -480,8 +473,8 @@ proof -
     by (simp add: PBMH_ades_disj)
   have "((rad_wait_false \<circ> RA \<circ> A) (true \<turnstile> stop_post))\<^sup>t =
       (RA2 \<circ> RA1 \<circ> PBMH_ades)
-        ((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>f \<or>
-         ((stop_post \<and> ok\<^sup>>) \<^sub>wf)\<^sup>t)"
+        ((\<not> ok\<^sup><) \<or> ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>f \<or>
+         ((stop_post \<and> ok\<^sup>>) \<^sub>f)\<^sup>t)"
     using RA_design_wf_ok_true[of "stop_post \<and> ok\<^sup>>"]
     by (simp only: design_norm)
   then show ?thesis
@@ -489,7 +482,7 @@ proof -
 qed
 
 lemma Stop_RAD_wf_ok_true_subst:
-  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>t\<lbrakk>True/ok\<^sup><\<rbrakk> = RA2 (RA1 stop_post)"
+  "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>t\<lbrakk>True/ok\<^sup><\<rbrakk> = RA2 (RA1 stop_post)"
 proof -
   have subst_norm:
       "((\<not> ok\<^sup><) \<or> stop_post)\<lbrakk>True/ok\<^sup><\<rbrakk> = stop_post"
@@ -525,10 +518,9 @@ lemma Stop_RAD_design:
 theorem Stop_RAD_angelic_choice:
   assumes "P is RAD"
   shows "Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
-    (RA \<circ> A) (true \<turnstile> (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and> stop_post))"
+    (RA \<circ> A) (true \<turnstile> (((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t) \<and> stop_post))"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
   have "Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
       (RA \<circ> A) (true \<turnstile> stop_post) \<squnion> (RA \<circ> A) ?DP"
@@ -570,7 +562,7 @@ lemma skip_post_p2ac:
 lemma skip_post_PBMH [simp]: "PBMH_ades skip_post = skip_post"
   by (simp only: skip_post_p2ac PBMH_ades_p2ac)
 
-lemma rad_wait_false_skip_post: "(skip_post \<^sub>wf) = skip_post"
+lemma rad_wait_false_skip_post: "(skip_post \<^sub>f) = skip_post"
   by (simp add: skip_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
       rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
@@ -639,10 +631,9 @@ lemma Skip_RAD_design:
 theorem Skip_RAD_angelic_choice:
   assumes "P is RAD"
   shows "Skip\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
-    (RA \<circ> A) (true \<turnstile> (skip_post \<and> ((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t)))"
+    (RA \<circ> A) (true \<turnstile> (skip_post \<and> ((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t)))"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
   have "Skip\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
       (RA \<circ> A) (true \<turnstile> skip_post) \<squnion> (RA \<circ> A) ?DP"
@@ -708,8 +699,7 @@ lemma prefix_post_PBMH [simp]:
   "PBMH_ades (prefix_post a) = prefix_post a"
   by (simp only: prefix_post_p2ac PBMH_ades_p2ac)
 
-lemma rad_wait_false_prefix_post:
-  "((prefix_post a) \<^sub>wf) = prefix_post a"
+lemma rad_wait_false_prefix_post: "((prefix_post a) \<^sub>f) = prefix_post a"
   by (simp add: prefix_post_def expr_if_def rad_state.wait_def
       rad_wait_false_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
@@ -742,10 +732,9 @@ lemma PrefixSkip_RAD_RA:
 theorem PrefixSkip_RAD_angelic_choice:
   assumes "P is RAD"
   shows "PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
-    (RA \<circ> A) (true \<turnstile> (((\<not> (P \<^sub>wf)\<^sup>f) \<longrightarrow> (P \<^sub>wf)\<^sup>t) \<and> prefix_post a))"
+    (RA \<circ> A) (true \<turnstile> (((\<not> (P \<^sub>f)\<^sup>f) \<longrightarrow> (P \<^sub>f)\<^sup>t) \<and> prefix_post a))"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f"
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   let ?DP = "(\<not> ?F) \<turnstile> ?T"
   have "PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D P =
       (RA \<circ> A) (true \<turnstile> prefix_post a) \<squnion> (RA \<circ> A) ?DP"
@@ -791,8 +780,7 @@ definition extchoice_post ::
     (\<lambda> z. P (s0, ac1) \<or> Q (s0, ac1))) y)))"
 
 lemma rad_wait_false_extchoice_post:
-  "((extchoice_post P Q) \<^sub>wf) =
-   extchoice_post (P \<^sub>wf) (Q \<^sub>wf)"
+  "((extchoice_post P Q) \<^sub>f) = extchoice_post (P \<^sub>f) (Q \<^sub>f)"
   by (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_state.wait_def
       rad_state.tr_def SEXP_def rad_wait_false_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
@@ -812,8 +800,8 @@ definition extchoice_RAD ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
    ('t, 'e) reactive_angelic_design" (infixl "\<box>\<^sub>R\<^sub>A\<^sub>D" 68) where
 [pred]: "P \<box>\<^sub>R\<^sub>A\<^sub>D Q = (RA \<circ> A)
-  (((\<not> (P \<^sub>wf)\<^sup>f) \<and> (\<not> (Q \<^sub>wf)\<^sup>f)) \<turnstile>
-   extchoice_post ((P \<^sub>wf)\<^sup>t) ((Q \<^sub>wf)\<^sup>t))"
+  (((\<not> (P \<^sub>f)\<^sup>f) \<and> (\<not> (Q \<^sub>f)\<^sup>f)) \<turnstile>
+   extchoice_post ((P \<^sub>f)\<^sup>t) ((Q \<^sub>f)\<^sup>t))"
 
 lemma extchoice_post_unrest_ok [unrest]:
   assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
@@ -870,14 +858,13 @@ lemma extchoice_post_stop:
 theorem extchoice_RAD_Stop:
   assumes "P is RAD"
   shows "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D =
-    (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile>
+    (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile>
       (\<lambda> (s0, ac'). \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-          ((P \<^sub>wf)\<^sup>t) (s0, des_vars.more_update
+          ((P \<^sub>f)\<^sup>t) (s0, des_vars.more_update
               (achoices.ac\<^sub>v_update (\<lambda>_. {y})) ac')))"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f" and ?T = "(P \<^sub>wf)\<^sup>t"
-  let ?SF = "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>f"
-  let ?ST = "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
+  let ?SF = "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>f" and ?ST = "(Stop\<^sub>R\<^sub>A\<^sub>D \<^sub>f)\<^sup>t"
   have pre_push:
       "((\<not> ?F) \<and> (\<not> ?SF))\<lbrakk>True/ok\<^sup><\<rbrakk> =
        (\<not> ?F)\<lbrakk>True/ok\<^sup><\<rbrakk>"
@@ -902,7 +889,7 @@ theorem extchoice_RAD_Stop_unit:
   assumes "P is RAD" "P is A2"
   shows "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D = P"
 proof -
-  let ?F = "(P \<^sub>wf)\<^sup>f" and ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   have not_F_PBMH: "(\<not> (\<not> ?F)) is PBMH_ades"
     by (simp only: pred_ba.double_compl
         RAD_wf_ok_false_PBMH[OF assms(1)])
@@ -913,8 +900,8 @@ proof -
   proof -
     have fixed: "A2 P = P"
       using assms(2) by (simp add: Healthy_def')
-    have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>wf)\<^sup>t) \<sqsubseteq>
-        ((((A2 P) \<^sub>wf)\<^sup>t) \<and> ac_non_empty)"
+    have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>f)\<^sup>t) \<sqsubseteq>
+        ((((A2 P) \<^sub>f)\<^sup>t) \<and> ac_non_empty)"
       apply (simp add: A2_def ades_singleton_choice_def ac_non_empty_def
           rad_wait_false_def A2_rel_eq_expanded A2_rel_expanded_def
           pred_refine_iff fun_eq_iff usubst usubst_eval Let_def)
