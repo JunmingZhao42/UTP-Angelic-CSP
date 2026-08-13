@@ -10,11 +10,10 @@ subsection \<open>From Reactive Angelic Designs to Angelic Processes\<close>
 theorem H1_RAD_design:
   "(H1 \<circ> RAD) P =
    ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-     (\<not> (RA1 \<circ> RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f))) \<turnstile>
-    (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+     (\<not> (RA1 \<circ> RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<turnstile>
+    (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
 proof -
-  let ?F = "PBMH_ades ((P \<^sub>wf)\<^sup>f)"
-  let ?T = "PBMH_ades ((P \<^sub>wf)\<^sup>t)"
+  let ?F = "PBMH_ades ((P \<^sub>f)\<^sup>f)" and ?T = "PBMH_ades ((P \<^sub>f)\<^sup>t)"
 
   have "(H1 \<circ> RAD) P =
       (H1 \<circ> RA1 \<circ> RA3 \<circ> RA2) ((\<not> ?F) \<turnstile> (?T \<and> ac_non_empty))"
@@ -46,10 +45,10 @@ subsection \<open>Non-Divergent Processes\<close>
 
 (* Paper Lemma 10 / Thesis Lemma L.6.3.1. *)
 lemma H1_RA_A_true_design:
-  "(H1 \<circ> RA \<circ> A) (true \<turnstile> (P \<^sub>wf)\<^sup>t) =
-   (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  "(H1 \<circ> RA \<circ> A) (true \<turnstile> (P \<^sub>f)\<^sup>t) =
+   (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
 proof -
-  let ?T = "(P \<^sub>wf)\<^sup>t"
+  let ?T = "(P \<^sub>f)\<^sup>t"
   have H: "(true \<turnstile> ?T) is \<^bold>H"
     by (rule design_is_H1_H2; unrest)
   have push: "PBMH_ades (true \<turnstile> ?T) = (true \<turnstile> PBMH_ades ?T)"
@@ -64,8 +63,7 @@ qed
 lemma H1_NDRAD:
   assumes "P is RAD"
   shows "(H1 \<circ> NDRAD) P =
-    (true \<turnstile>
-     (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+    (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
   by (simp only: comp_apply NDRAD_design_form[OF assms]
       H1_RA_A_true_design[simplified comp_apply])
 
@@ -73,10 +71,9 @@ subsection \<open>From Angelic Processes to Reactive Angelic Designs\<close>
 
 (* Paper Theorem 40 / Thesis Theorem T.6.3.2. *)
 theorem RA1_AP_design:
-  "(RA1 \<circ> AP) P = (RA \<circ> A) ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+  "(RA1 \<circ> AP) P = (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
-  let ?F = "PBMH_ades ((P \<^sub>wf)\<^sup>f)"
-  let ?T = "PBMH_ades ((P \<^sub>wf)\<^sup>t)"
+  let ?F = "PBMH_ades ((P \<^sub>f)\<^sup>f)" and ?T = "PBMH_ades ((P \<^sub>f)\<^sup>t)"
 
   have "(RA1 \<circ> AP) P =
       (RA1 \<circ> RA3) ((\<not> RA2 ?F) \<turnstile> (RA2 \<circ> RA1) ?T)"
@@ -114,8 +111,8 @@ lemma RA1_H1_RAD_healthy:
 (* Paper Theorem 42 / Thesis Theorem T.6.3.4. *)
 theorem H1_RA1_AP_refine: "AP P \<sqsubseteq> (H1 \<circ> RA1 \<circ> AP) P"
 proof -
-  let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)"
-  let ?T = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)"
+  let ?F = "(RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)"
+    and ?T = "(RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)"
   have F_PBMH: "?F is PBMH_ades"
     by (simp only: comp_apply, rule RA2_PBMH_ades_closure,
         simp add: Healthy_def PBMH_ades_idem)
@@ -133,7 +130,7 @@ subsection \<open>Correspondence for True-Precondition Designs\<close>
 
 (* Thesis Lemma L.H.2.2. *)
 lemma H1_RA_true_design:
-  assumes "(Q \<^sub>wf) = Q" "PBMH_ades Q = Q"
+  assumes "(Q \<^sub>f) = Q" "PBMH_ades Q = Q"
     and "Q\<lbrakk>True/ok\<^sup>>\<rbrakk> = Q"
   shows "H1 (RA (true \<turnstile> Q)) = AP (true \<turnstile> Q)"
   by (simp only: RA_true_design H1_RA1_design RA1_wait_cond
@@ -141,7 +138,7 @@ lemma H1_RA_true_design:
 
 (* Thesis Theorem T.6.3.2 for true-precondition designs. *)
 lemma RA1_AP_true_design:
-  assumes "(Q \<^sub>wf) = Q" "PBMH_ades Q = Q"
+  assumes "(Q \<^sub>f) = Q" "PBMH_ades Q = Q"
     and "Q\<lbrakk>True/ok\<^sup>>\<rbrakk> = Q"
   shows "RA1 (AP (true \<turnstile> Q)) = RA (true \<turnstile> Q)"
 proof -

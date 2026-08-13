@@ -53,17 +53,15 @@ lemma impl_absorb:
 (* Paper Theorem 38. *)
 theorem NDAP_design_form:
   assumes "P is AP"
-  shows "NDAP P =
-    (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
+  shows "NDAP P = (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
 proof -
-  let ?A = "PBMH_ades ((P \<^sub>wf)\<^sup>f)"
-  let ?B = "PBMH_ades ((P \<^sub>wf)\<^sup>t)"
+  let ?A = "PBMH_ades ((P \<^sub>f)\<^sup>f)" and ?B = "PBMH_ades ((P \<^sub>f)\<^sup>t)"
 
-  (* The two projections of P \<^sub>wf share the failure guard G, so the
+  (* The two projections of P \<^sub>f share the failure guard G, so the
      ok'-false one is absorbed by the ok'-true one. *)
   obtain G H
-    where proj: "(P \<^sub>wf)\<^sup>f = (ok\<^sup>< \<longrightarrow> G)"
-      "(P \<^sub>wf)\<^sup>t = ((ok\<^sup>< \<and> \<not> G) \<longrightarrow> H)"
+    where proj: "(P \<^sub>f)\<^sup>f = (ok\<^sup>< \<longrightarrow> G)"
+      "(P \<^sub>f)\<^sup>t = ((ok\<^sup>< \<and> \<not> G) \<longrightarrow> H)"
     using AP_wait_false_ok_false[of P] AP_wait_false_ok_true[of P]
     by (simp only: Healthy_if[OF assms])
   have absorb: "(?A \<or> ?B) = ?B"
@@ -92,7 +90,7 @@ lemma NDAP_wait_cond_form:
   shows "NDAP P =
     (true \<turnstile>
      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-      (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)))"
+      (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
   by (simp only: NDAP_design_form[OF assms] comp_apply
       RA3AP_true_design[symmetric] RA3AP_design expr_if_idem)
 

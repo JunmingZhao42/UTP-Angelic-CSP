@@ -20,19 +20,19 @@ lemma AP_angelic_choice:
 lemma AP_angelic_choice_form:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q =
-    RA3AP (((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
-           ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
-            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t)))"
+    RA3AP (((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) \<and>
+           ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f)) \<turnstile>
+            (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t)))"
 proof -
   have "P \<squnion>\<^sub>A\<^sub>P Q = (AP P \<and> AP Q)"
     by (simp only: AP_angelic_choice Healthy_if[OF assms(1)]
         Healthy_if[OF assms(2)])
   also have "... =
-      (RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
-       RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t)))"
+      (RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) \<and>
+       RA3AP ((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t)))"
     by (simp only: AP_RA3AP_design comp_apply)
   finally show ?thesis
     by (simp only: RA3AP_conj[symmetric])
@@ -41,12 +41,12 @@ qed
 lemma AP_angelic_choice_design:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q =
-    RA3AP ((\<not> ((RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f) \<and>
-               (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f))) \<turnstile>
-           (((RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f) \<or>
-             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t)) \<and>
-            ((RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f) \<or>
-             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))))"
+    RA3AP ((\<not> ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f) \<and>
+               (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f))) \<turnstile>
+           (((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f) \<or>
+             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) \<and>
+            ((RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f) \<or>
+             (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t))))"
   by (simp only: AP_angelic_choice_form[OF assms]; pred_auto)
 
 (* Thesis Theorem T.6.4.1. *)
@@ -54,10 +54,10 @@ lemma AP_angelic_closure [closure]:
   assumes "P is AP" "Q is AP"
   shows "P \<squnion>\<^sub>A\<^sub>P Q is AP"
 proof -
-  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
-  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))"
+  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
+  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t))"
   have C_A: "(?NP \<and> ?NQ) is A"
     using A_angelic_closure[OF AP_body_is_A[of P] AP_body_is_A[of Q]]
     by (simp only: angelic_design_angelic)
@@ -112,10 +112,10 @@ lemma AP_demonic_closure [closure]:
   assumes "P is AP" "Q is AP"
   shows "P \<sqinter>\<^sub>A\<^sub>P Q is AP"
 proof -
-  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>wf)\<^sup>t))"
-  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>f)) \<turnstile>
-              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>wf)\<^sup>t))"
+  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
+  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f)) \<turnstile>
+              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t))"
   have form: "P \<sqinter>\<^sub>A\<^sub>P Q = RA3AP (?NP \<or> ?NQ)"
     apply (rule_tac s="AP P \<or> AP Q" in trans)
     apply (simp only: AP_demonic_choice Healthy_if[OF assms(1)]
@@ -261,8 +261,7 @@ proof -
   have projt: "(((\<not> RA1 true) \<turnstile> true) ::
       ('t, 'e) reactive_angelic_design)\<^sup>t = true"
     by pred_auto
-  have wf: "((((\<not> RA1 true) \<turnstile> true) ::
-      ('t, 'e) reactive_angelic_design) \<^sub>wf) =
+  have wf: "((((\<not> RA1 true) \<turnstile> true) :: ('t, 'e) reactive_angelic_design) \<^sub>f) =
       ((\<not> RA1 true) \<turnstile> true)"
     by (simp only: rad_wait_false_design rad_wait_false_not
         rad_wait_false_RA1_commute rad_wait_false_true)

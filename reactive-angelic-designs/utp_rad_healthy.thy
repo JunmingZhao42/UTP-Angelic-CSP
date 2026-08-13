@@ -12,7 +12,7 @@ definition rad_trace_extensions :: "('t::trace, 'e) rad_state \<Rightarrow> ('t,
   {z. rad_state.tr\<^sub>v x \<le> rad_state.tr\<^sub>v z}"
 
 (* Paper Definition 28. *)
-(* RA1(P)(x, A) = P(x, rad_trace_extension(x) \<inter> A) ∧ A' \<noteq> \<emptyset> *)
+(* RA1(P)(x, A) = P(x, rad_trace_extension(x) \<inter> A) \<and> A' \<noteq> \<emptyset> *)
 definition RA1 ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "RA1 P = (\<lambda> (x, y).
@@ -234,19 +234,19 @@ lemma RA1_aseq_absorb:
 
 subsection \<open>RA2: Trace-history independence\<close>
 
-(* s \<oplus> {tr ↦ 0} *)
+(* s \<oplus> {tr \<mapsto> 0} *)
 definition rad_zero_trace :: "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state" where
 "rad_zero_trace s0 =
   rad_state.tr\<^sub>v_update (\<lambda>_. 0) s0"
 
-(* z \<oplus> {tr ↦ z.tr - s.tr} *)
+(* z \<oplus> {tr \<mapsto> z.tr - s.tr} *)
 definition rad_trace_difference ::
   "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state" where
 "rad_trace_difference s0 z =
   rad_state.tr\<^sub>v_update
     (\<lambda>_. rad_state.tr\<^sub>v z - rad_state.tr\<^sub>v s0) z"
 
-(* { z[(z.tr-s.tr) / tr] | z \<in> ac' ∧ s.tr \<le> z.tr } *)
+(* { z[(z.tr-s.tr) / tr] | z \<in> ac' \<and> s.tr \<le> z.tr } *)
 definition rad_normalise_choices ::
   "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state set \<Rightarrow> ('t, 'e) rad_state set" where
 "rad_normalise_choices s0 ac' =
@@ -565,12 +565,14 @@ abbreviation rad_wait_lens where
 "rad_wait_lens \<equiv>
   rad_state.wait ;\<^sub>L astate.s ;\<^sub>L des_vars.more\<^sub>L"
 
-(* P_f \<equiv> P[s\<oplus>(wait ↦ false)/s] *)
+(* P_f \<equiv> P[s\<oplus>(wait \<mapsto> false)/s] *)
 definition rad_wait_false ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "rad_wait_false P = P\<lbrakk>False/rad_wait_lens\<^sup><\<rbrakk>"
 
-notation rad_wait_false ("_\<^sub>wf" [1000] 1000)
+no_notation wait_f ("_\<^sub>f" [1000] 1000)
+
+notation rad_wait_false ("_\<^sub>f" [1000] 1000)
 
 lemma rad_wait_cond_not:
   "(\<not> (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
@@ -647,66 +649,58 @@ text \<open>
   Distribution kit for @{const rad_wait_false}: the substitution passes
   through the propositional connectives, the design turnstile, and the
   @{term "ok\<^sup>>"} substitutions, and is idempotent.  Together these discharge
-  the \<open>(?D \<^sub>wf) = ?D\<close> obligations of operator closure proofs by @{method simp}.
+  the \<open>(?D \<^sub>f) = ?D\<close> obligations of operator closure proofs by @{method simp}.
 \<close>
 
-lemma rad_wait_false_idem: "((P \<^sub>wf) \<^sub>wf) = P \<^sub>wf"
+lemma rad_wait_false_idem: "((P \<^sub>f) \<^sub>f) = P \<^sub>f"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs)
 
-lemma rad_wait_false_not: "((\<not> P) \<^sub>wf) = (\<not> P \<^sub>wf)"
+lemma rad_wait_false_not: "((\<not> P) \<^sub>f) = (\<not> P \<^sub>f)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_conj:
-  "((P \<and> Q) \<^sub>wf) = (P \<^sub>wf \<and> Q \<^sub>wf)"
+lemma rad_wait_false_conj: "((P \<and> Q) \<^sub>f) = (P \<^sub>f \<and> Q \<^sub>f)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_disj:
-  "((P \<or> Q) \<^sub>wf) = (P \<^sub>wf \<or> Q \<^sub>wf)"
+lemma rad_wait_false_disj: "((P \<or> Q) \<^sub>f) = (P \<^sub>f \<or> Q \<^sub>f)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_impl:
-  "((P \<longrightarrow> Q) \<^sub>wf) = (P \<^sub>wf \<longrightarrow> Q \<^sub>wf)"
+lemma rad_wait_false_impl: "((P \<longrightarrow> Q) \<^sub>f) = (P \<^sub>f \<longrightarrow> Q \<^sub>f)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_ok_false:
-  "((P\<^sup>f) \<^sub>wf) = ((P \<^sub>wf)\<^sup>f)"
+lemma rad_wait_false_ok_false: "((P\<^sup>f) \<^sub>f) = ((P \<^sub>f)\<^sup>f)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs)
 
-lemma rad_wait_false_ok_true:
-  "((P\<^sup>t) \<^sub>wf) = ((P \<^sub>wf)\<^sup>t)"
+lemma rad_wait_false_ok_true: "((P\<^sup>t) \<^sub>f) = ((P \<^sub>f)\<^sup>t)"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs)
 
-lemma rad_wait_false_ok_out:
-  "((ok\<^sup>> :: ('t::trace, 'e) reactive_angelic_design) \<^sub>wf) = ok\<^sup>>"
+lemma rad_wait_false_ok_out: "((ok\<^sup>> :: ('t::trace, 'e) reactive_angelic_design) \<^sub>f) = ok\<^sup>>"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs des_vars.ok_def; pred_auto)
 
-lemma rad_wait_false_design:
-  "((P \<turnstile> Q) \<^sub>wf) = ((P \<^sub>wf) \<turnstile> (Q \<^sub>wf))"
+lemma rad_wait_false_design: "((P \<turnstile> Q) \<^sub>f) = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
   by (simp add: rad_wait_false_def design_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs; pred_auto)
 
-lemma rad_wait_false_true: "(true \<^sub>wf) = true"
+lemma rad_wait_false_true: "(true \<^sub>f) = true"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_false: "(false \<^sub>wf) = false"
+lemma rad_wait_false_false: "(false \<^sub>f) = false"
   by (simp add: rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def; pred_auto)
 
-lemma rad_wait_false_ac_non_empty: "(ac_non_empty \<^sub>wf) = ac_non_empty"
+lemma rad_wait_false_ac_non_empty: "(ac_non_empty \<^sub>f) = ac_non_empty"
   by (simp add: rad_wait_false_def ac_non_empty_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs; pred_auto)
 
-lemma rad_wait_false_RA1_commute:
-  "((RA1 P) \<^sub>wf) = RA1 (P \<^sub>wf)"
+lemma rad_wait_false_RA1_commute: "((RA1 P) \<^sub>f) = RA1 (P \<^sub>f)"
   by (simp add: rad_wait_false_def RA1_def fun_eq_iff Let_def
       rad_trace_extensions_def subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs;
@@ -715,8 +709,7 @@ lemma rad_wait_false_RA1_commute:
 (* Wait-false substitution affects the initial observation of the left
    operand.  The intermediate state supplied to the right operand is chosen
    afresh by full-alphabet angelic composition. *)
-lemma rad_wait_false_aseq_ades:
-  "((P ;;\<^sub>A\<^sub>D Q) \<^sub>wf) = ((P \<^sub>wf) ;;\<^sub>A\<^sub>D Q)"
+lemma rad_wait_false_aseq_ades: "((P ;;\<^sub>A\<^sub>D Q) \<^sub>f) = ((P \<^sub>f) ;;\<^sub>A\<^sub>D Q)"
   by (simp add: rad_wait_false_def aseq_ades_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
       pred_auto)
@@ -729,7 +722,7 @@ lemmas rad_wait_false_distrib =
   rad_wait_false_RA1_commute rad_wait_false_aseq_ades
 
 lemma rad_wait_false_design_is_H [closure]:
-  "((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t) is \<^bold>H"
+  "((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t) is \<^bold>H"
   by (rule design_is_H1_H2; pred_auto)
 
 lemma PBMH_ades_wait_cond:
@@ -1009,8 +1002,7 @@ lemma RA_A_demonic_choice:
 
 lemma RA_wait_false_ok_subst:
   "((rad_wait_false \<circ> RA) P) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk> =
-   (RA2 \<circ> RA1)
-     ((P \<^sub>wf) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk>)"
+   (RA2 \<circ> RA1) ((P \<^sub>f) \<lbrakk>\<guillemotleft>ok_val\<guillemotright>/ok\<^sup>>\<rbrakk>)"
   apply (simp add: RA_def RA3_def rad_wait_false_def RA1_def RA2_def
       expr_if_def fun_eq_iff Let_def subst_app_def subst_upd_def
       subst_id_def SEXP_def)
@@ -1030,18 +1022,17 @@ lemmas RA_wait_false_ok_subst' =
 
 (* Paper Lemma 20 *)
 (* (rad_wait_false (RA (A
-     (\<not> (P \<^sub>wf)^f \<turnstile> (P \<^sub>wf)^t))))^f =
-   RA2 \<circ> RA1 \<circ> PBMH (\<not> ok ∨ (P \<^sub>wf)^f) *)
+     (\<not> (P \<^sub>f)^f \<turnstile> (P \<^sub>f)^t))))^f =
+   RA2 \<circ> RA1 \<circ> PBMH (\<not> ok \<or> (P \<^sub>f)^f) *)
 lemma RA_design_wf_ok_false:
   "((rad_wait_false \<circ> RA \<circ> A)
-      ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))\<^sup>f =
-   (RA2 \<circ> RA1 \<circ> PBMH_ades)
-     ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f)"
+      ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t))\<^sup>f =
+   (RA2 \<circ> RA1 \<circ> PBMH_ades) ((\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f)"
 proof -
   have pbmh_design:
     "(rad_wait_false
-        (PBMH_ades ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>f =
-     PBMH_ades ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f)"
+        (PBMH_ades ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)))\<^sup>f =
+     PBMH_ades ((\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f)"
     apply (simp add: rad_wait_false_def PBMH_ades_def design_def fun_eq_iff
         subst_app_def subst_upd_def subst_id_def SEXP_def Let_def)
     apply (simp add: PBMH_def pbmh_step_def)
@@ -1060,12 +1051,11 @@ qed
 lemmas RA_design_wf_ok_false' = RA_design_wf_ok_false[simplified comp_apply]
 
 (* Paper Lemma 21 *)
-(* (RA \<circ> A(\<not>P^f_f \<turnstile> P^t_f))^t_f = RA2 \<circ> RA1 \<circ> PBMH(\<not>ok ∨ P^f_f ∨ P^t_f) *)
+(* (RA \<circ> A(\<not>P^f_f \<turnstile> P^t_f))^t_f = RA2 \<circ> RA1 \<circ> PBMH(\<not>ok \<or> P^f_f \<or> P^t_f) *)
 lemma RA_design_wf_ok_true:
   "((rad_wait_false \<circ> RA \<circ> A)
-      ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t))\<^sup>t =
-   (RA2 \<circ> RA1 \<circ> PBMH_ades)
-     ((\<not> ok\<^sup><) \<or> (P \<^sub>wf)\<^sup>f \<or> (P \<^sub>wf)\<^sup>t)"
+      ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t))\<^sup>t =
+   (RA2 \<circ> RA1 \<circ> PBMH_ades) ((\<not> ok\<^sup><) \<or> (P \<^sub>f)\<^sup>f \<or> (P \<^sub>f)\<^sup>t)"
   unfolding comp_apply
   apply (subst RA_A')
    apply (rule design_is_H1_H2; pred_auto)
@@ -1191,12 +1181,11 @@ lemma RA_design_form_idem:
   "(RA \<circ> A)
       ((\<not> (rad_wait_false
           ((RA \<circ> A)
-            ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>f) \<turnstile>
+            ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)))\<^sup>f) \<turnstile>
         (rad_wait_false
           ((RA \<circ> A)
-            ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)))\<^sup>t) =
-   (RA \<circ> A)
-     ((\<not> (P \<^sub>wf)\<^sup>f) \<turnstile> (P \<^sub>wf)\<^sup>t)"
+            ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)))\<^sup>t) =
+   (RA \<circ> A) ((\<not> (P \<^sub>f)\<^sup>f) \<turnstile> (P \<^sub>f)\<^sup>t)"
 proof -
   show ?thesis
     unfolding comp_apply
