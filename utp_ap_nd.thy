@@ -39,11 +39,6 @@ lemma NDAP_Choice: "NDAP Choice\<^sub>A\<^sub>P = Choice\<^sub>A\<^sub>P"
 
 subsection \<open>Normal Form\<close>
 
-lemma design_true_conj:
-  "((true \<turnstile> Q) \<and> ((\<not> F) \<turnstile> T)) =
-   (true \<turnstile> (Q \<and> (F \<or> T)))"
-  by pred_auto
-
 lemma impl_absorb:
   "((ok\<^sup>< \<longrightarrow> G) \<or>
     ((ok\<^sup>< \<and> \<not> G) \<longrightarrow> H)) =
@@ -94,6 +89,43 @@ lemma NDAP_wait_cond_form:
   by (simp only: NDAP_design_form[OF assms] comp_apply
       RA3AP_true_design[symmetric] RA3AP_design expr_if_idem)
 
+(* Theorem 38 as an AP image: the NDAP counterpart of
+   H1_NDRAD_AP_true_design. *)
+lemma NDAP_AP_true_design:
+  assumes "P is AP"
+  shows "NDAP P = AP (true \<turnstile> (P \<^sub>f)\<^sup>t)"
+  by (simp only: NDAP_design_form[OF assms]
+      AP_true_design[OF AP_wf_ok_true_facts[OF assms]]
+      comp_apply AP_wf_ok_true_facts(2)[OF assms]
+      RA3AP_design_post RA1_RA2_commute')
+
+(* True-precondition angelic processes are non-divergent: the RA1-true
+   postcondition of Choice_AP is absorbed. *)
+lemma NDAP_AP_true_design_fixed:
+  assumes "(X \<^sub>f) = X" "X is PBMH_ades"
+    and "X\<lbrakk>True/ok\<^sup>>\<rbrakk> = X"
+  shows "NDAP (AP (true \<turnstile> X)) = AP (true \<turnstile> X)"
+proof -
+  have ap_form: "AP (true \<turnstile> X) =
+      RA3AP (true \<turnstile> RA1 (RA2 X))"
+    by (simp only: AP_true_design[OF assms(1)
+          Healthy_if[OF assms(2)] assms(3)]
+        RA3AP_design_post[symmetric] RA3AP_true_design[symmetric])
+  have "NDAP (AP (true \<turnstile> X)) =
+      RA3AP ((true \<turnstile> RA1 true) \<and>
+             (true \<turnstile> RA1 (RA2 X)))"
+    by (simp only: NDAP_conj Choice_AP_RA3AP ap_form
+        RA3AP_conj[symmetric])
+  also have "... =
+      RA3AP (true \<turnstile> (RA1 true \<and> RA1 (RA2 X)))"
+    by (simp only: design_true_conj')
+  also have "... = RA3AP (true \<turnstile> RA1 (RA2 X))"
+    by (simp only: RA1_conj[symmetric] pred_ba.inf_top_left)
+  also have "... = AP (true \<turnstile> X)"
+    by (rule ap_form[symmetric])
+  finally show ?thesis .
+qed
+
 subsection \<open>Closure under Choice\<close>
 
 (* Paper Theorems 44 and 47 belong to the choice sections 7.3.1--7.3.2
@@ -117,6 +149,46 @@ proof -
     by (simp only: NDAP_def inf_sup_distrib1)
   then show ?thesis
     by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
+qed
+
+subsection \<open>Closure under Sequential Composition\<close>
+
+(* Paper Theorem 63 / Thesis Theorem T.6.4.22. *)
+theorem NDAP_seq_closure:
+  assumes "P is AP" "Q is AP" "P is NDAP" "Q is NDAP"
+  shows "NDAP (P ;;\<^sub>D\<^sub>A Q) = (P ;;\<^sub>D\<^sub>A Q)"
+proof -
+  let ?Pt = "(P \<^sub>f)\<^sup>t" and ?Qt = "(Q \<^sub>f)\<^sup>t"
+  let ?post = "(RA1 ?Pt ;;\<^sub>A\<^sub>D
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+     RA2 (RA1 ?Qt)))"
+  note Pt_facts = AP_wf_ok_true_facts[OF assms(1)]
+  note Qt_facts = AP_wf_ok_true_facts[OF assms(2)]
+  have post_wf: "(?post \<^sub>f) = ?post"
+    by (simp only: rad_wait_false_aseq_ades
+        rad_wait_false_RA1_commute Pt_facts(1))
+  have post_PBMH: "?post is PBMH_ades"
+    by (intro aseq_ades_PBMH_ades_closure
+        RA1_PBMH_ades_closure rad_wait_cond_PBMH_ades_closure
+        ades_state_choice_is_PBMH_ades RA2_PBMH_ades_closure
+        AP_wf_ok_true_PBMH_ades[OF assms(1)]
+        AP_wf_ok_true_PBMH_ades[OF assms(2)])
+  have post_unrest: "$ok\<^sup>> \<sharp> ?post"
+    by (simp add: unrest)
+  have post_ok: "?post\<lbrakk>True/ok\<^sup>>\<rbrakk> = ?post"
+    using post_unrest by (simp add: unrest usubst)
+  have P_form: "P = AP (true \<turnstile> ?Pt)"
+    using NDAP_AP_true_design[OF assms(1)]
+    by (simp only: Healthy_if[OF assms(3)])
+  have Q_form: "Q = AP (true \<turnstile> ?Qt)"
+    using NDAP_AP_true_design[OF assms(2)]
+    by (simp only: Healthy_if[OF assms(4)])
+  have seq_form: "(P ;;\<^sub>D\<^sub>A Q) = AP (true \<turnstile> ?post)"
+    using AP_true_design_seq[OF Pt_facts Qt_facts]
+    by (simp only: P_form[symmetric] Q_form[symmetric])
+  show ?thesis
+    by (simp only: seq_form
+        NDAP_AP_true_design_fixed[OF post_wf post_PBMH post_ok])
 qed
 
 subsection \<open>Isomorphism with Non-Divergent Reactive Angelic Designs\<close>

@@ -243,6 +243,37 @@ lemma aseq_ades_mono_right:
   using assms(2)
   by (auto simp add: pred_refine_iff)
 
+(* Monotonicity of design-level angelic composition.  As for
+   \<open>aseq_ades_mono_right\<close>, the left operand must be upward closed. *)
+lemma angelic_design_seq_mono:
+  assumes "P is PBMH_ades" "P \<sqsubseteq> P'" "Q \<sqsubseteq> Q'"
+  shows "(P ;;\<^sub>D\<^sub>A Q) \<sqsubseteq> (P' ;;\<^sub>D\<^sub>A Q')"
+proof -
+  have PP: "\<And>s. P' s \<Longrightarrow> P s"
+  proof -
+    fix s assume "P' s"
+    obtain a b where [simp]: "s = (a, b)" by (cases s) auto
+    then show "P s"
+      using assms(2) `P' s` by (simp add: pred_refine_iff)
+  qed
+  have QQ: "\<And>s. Q' s \<Longrightarrow> Q s"
+  proof -
+    fix s assume "Q' s"
+    obtain a b where [simp]: "s = (a, b)" by (cases s) auto
+    then show "Q s"
+      using assms(3) `Q' s` by (simp add: pred_refine_iff)
+  qed
+  show ?thesis
+    unfolding angelic_design_seq_def pred_refine_iff
+    apply (clarsimp split: prod.splits)
+    subgoal premises prems for a b ok0
+      apply (rule exI[where x=ok0])
+      apply (rule PBMH_ades_upward[OF assms(1) PP[OF prems(1)]])
+        using QQ apply auto
+      done
+    done
+qed
+
 lemma aseq_ades_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades" "Q is PBMH_ades"
   shows "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
@@ -1089,5 +1120,45 @@ lemma SW_D_preserves_A: "P is A \<Longrightarrow> SW_D P is A"
 lemma SW_D_preserves_A2: "P is A2 \<Longrightarrow> SW_D P is A2"
   apply (simp add: Healthy_def' SW_D_A2_commute[symmetric])
   done
+
+
+subsection \<open>Support Laws\<close>
+
+lemma PBMH_ades_unrest_ok_out [unrest]:
+  "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> PBMH_ades P"
+  by (simp add: unrest_lens PBMH_ades_def PBMH_def pbmh_step_def
+      fun_eq_iff Let_def; pred_auto; blast)
+
+(* The angelic state choice requires a non-empty choice set. *)
+lemma ades_state_choice_ac_non_empty_absorb:
+  "(ac_non_empty \<and> ades_state_choice) = ades_state_choice"
+  by (simp add: ades_state_choice_def ac_non_empty_def fun_eq_iff;
+      pred_auto)
+
+(* On an empty choice set the continuation of an angelic composition
+   is immaterial: operands that agree there compose equally. *)
+lemma aseq_ades_ac_empty_cong:
+  assumes "((\<not> ac_non_empty) \<and> Y) = ((\<not> ac_non_empty) \<and> Z)"
+  shows "((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Y)) =
+    ((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Z))"
+  using assms
+  apply (simp add: aseq_ades_def ac_non_empty_def fun_eq_iff
+      lens_defs des_vars.more\<^sub>L_def)
+  apply pred_auto
+  subgoal premises prems for ok s okv'
+    using prems(2) prems(1)[rule_format, of "{}"] by simp
+  subgoal premises prems for ok s okv'
+    using prems(2) prems(1)[rule_format, of "{}"] by simp
+  done
+
+lemma A0_design_absorb:
+  "$ok\<^sup>> \<sharp> X \<Longrightarrow> (ac_non_empty \<and> Y) = Y \<Longrightarrow>
+   A0 ((\<not> X) \<turnstile> Y) = ((\<not> X) \<turnstile> Y)"
+  by (simp add: A0_def unrest; pred_auto; blast)
+
+lemma A0_design_gen:
+  "$ok\<^sup>> \<sharp> X \<Longrightarrow>
+   A0 (X \<turnstile> Y) = (X \<turnstile> (Y \<and> ac_non_empty))"
+  by (simp add: A0_def unrest; pred_auto; blast)
 
 end

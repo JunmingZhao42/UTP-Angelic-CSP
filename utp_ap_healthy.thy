@@ -246,28 +246,29 @@ lemma AP_wait_false_ok_true:
      rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
   by (simp add: AP_wait_false design_def; pred_auto)
 
-(* Kept here instead of the ades layer so the parent session heaps
-   stay valid. *)
-lemma PBMH_ades_unrest_ok_out [unrest]:
-  "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> PBMH_ades P"
-  by (simp add: unrest_lens PBMH_ades_def PBMH_def pbmh_step_def
-      fun_eq_iff Let_def; pred_auto; blast)
-
-lemma RA2_RA1_ac_non_empty_absorb:
-  "(ac_non_empty \<and> (RA2 \<circ> RA1) P) = (RA2 \<circ> RA1) P"
+(* AP acts as RA3AP \<circ> RA2 on a PBMH-healthy design whose
+   postcondition absorbs RA1 true under the precondition. *)
+lemma AP_design_RA3AP_RA2:
+  assumes "$ok\<^sup>> \<sharp> X" "$ok\<^sup>> \<sharp> Y"
+    and "(X \<turnstile> Y) is PBMH_ades"
+    and "(RA1 true \<and> (RA2 X \<and> RA2 Y)) = (RA2 X \<and> RA2 Y)"
+  shows "AP (X \<turnstile> Y) = RA3AP (RA2 (X \<turnstile> Y))"
 proof -
-  have "(ac_non_empty \<and> RA1 Q) = RA1 Q"
-      for Q :: "('t::trace, 'e) reactive_angelic_design"
-    by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
-        pred_auto)
-  then show ?thesis
-    by (simp only: comp_apply RA1_RA2_commute'[symmetric])
+  have N_H: "(X \<turnstile> Y) is \<^bold>H"
+    by (rule design_is_H1_H2; simp add: assms(1,2))
+  have A1_fixed: "A1 (X \<turnstile> Y) = (X \<turnstile> Y)"
+    using A1_eq_PBMH_ades[OF N_H] Healthy_if[OF assms(3)]
+    by (simp only: Healthy_def')
+  have post_ac: "RA2 (Y \<and> ac_non_empty) = (RA2 Y \<and> RA1 true)"
+    by (simp only: RA2_conj RA2_ac_non_empty_eq)
+  have A0_transport: "RA2 (A0 (X \<turnstile> Y)) = RA2 (X \<turnstile> Y)"
+    unfolding A0_design_gen[OF assms(1)]
+    apply (simp only: RA2_design_distrib post_ac)
+    by (rule design_post_absorb[OF assms(4)])
+  show ?thesis
+    by (simp only: AP_def CSPA2_def comp_apply Healthy_if[OF N_H]
+        A_def A1_fixed A0_transport)
 qed
-
-lemma A0_design_absorb:
-  "$ok\<^sup>> \<sharp> X \<Longrightarrow> (ac_non_empty \<and> Y) = Y \<Longrightarrow>
-   A0 ((\<not> X) \<turnstile> Y) = ((\<not> X) \<turnstile> Y)"
-  by (simp add: A0_def unrest; pred_auto; blast)
 
 subsection \<open>Idempotence of AP\<close>
 
@@ -317,7 +318,7 @@ lemma AP_body_is_RA2 [closure]:
       simp only: comp_apply RA2_design_distrib RA2_not RA2_idem
         RA1_RA2_commute'[symmetric])
 
-lemma RA3AP_AP_closure [closure]:
+lemma RA3AP_AP_intro [closure]:
   assumes "N is A" "N is RA2"
   shows "RA3AP N is AP"
 proof -
@@ -340,7 +341,7 @@ qed
 
 lemma AP_idem: "AP (AP P) = AP P"
   by (rule Healthy_if, subst AP_RA3AP_design[of P],
-      rule RA3AP_AP_closure, rule AP_body_is_A, rule AP_body_is_RA2)
+      rule RA3AP_AP_intro, rule AP_body_is_A, rule AP_body_is_RA2)
 
 lemma AP_Idempotent [closure]: "Idempotent AP"
   by (simp add: Idempotent_def AP_idem)
@@ -414,6 +415,17 @@ lemma AP_wf_ok_true_PBMH_ades:
   by (rule Healthy_intro,
       simp only: PBMH_ades_ok_true
         Healthy_if[OF AP_wait_false_PBMH_ades[OF assms]])
+
+(* The ok-true wait-false component of an angelic process satisfies the
+   side conditions of the true-precondition design laws. *)
+lemma AP_wf_ok_true_facts:
+  assumes "P is AP"
+  shows "(((P \<^sub>f)\<^sup>t) \<^sub>f) = (P \<^sub>f)\<^sup>t"
+    and "PBMH_ades ((P \<^sub>f)\<^sup>t) = (P \<^sub>f)\<^sup>t"
+    and "((P \<^sub>f)\<^sup>t)\<lbrakk>True/ok\<^sup>>\<rbrakk> = (P \<^sub>f)\<^sup>t"
+  by (simp only: rad_wait_false_ok_true rad_wait_false_idem,
+      rule Healthy_if[OF AP_wf_ok_true_PBMH_ades[OF assms]],
+      simp add: usubst)
 
 abbreviation bottom_AP :: "('t::trace, 'e) reactive_angelic_design"
     ("\<^bold>\<bottom>\<^sub>A\<^sub>P") where
