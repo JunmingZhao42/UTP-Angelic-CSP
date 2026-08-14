@@ -597,7 +597,7 @@ proof -
       by (simp only: rad_wait_cond_conj_distrib
           neg_conj_absorb_false[OF ades_state_choice_ac_non_empty_absorb]
           pred_ba.inf_sup_distrib1
-          neg_conj_absorb_false[OF RA1_ac_non_empty_absorb]
+          neg_conj_absorb_false[OF RA1_ac_non_empty_conj_absorb]
           pred_ba.sup_bot_right rad_wait_cond_false
           pred_ba.inf_left_commute)
     show ?thesis

@@ -93,4 +93,30 @@ definition pbmh_step :: "(('s, '\<alpha>) achoices_scheme, ('s, '\<alpha>) achoi
 definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarrow> ('\<beta>, ('s, '\<alpha>) achoices_scheme) urel" where
 [pred]: "PBMH P = (P ;; pbmh_step)"
 
+
+subsection \<open>Predicate Support Laws\<close>
+
+(* Conjunction absorption facts used to shape normal forms in the
+   angelic process theories. *)
+
+lemma conj_extra_absorb:
+  fixes R X Y Z :: "'s angelic_design"
+  assumes "(R \<and> (Y \<and> Z)) = (Y \<and> Z)"
+  shows "(R \<and> ((X \<and> Y) \<and> Z)) = ((X \<and> Y) \<and> Z)"
+  using assms by pred_auto
+
+lemma neg_conj_absorb_false:
+  fixes X Y :: "'s angelic_design"
+  assumes "(X \<and> Y) = Y"
+  shows "((\<not> X) \<and> Y) = false"
+  using assms by pred_auto
+
+(* A conjunct is absorbed when the remaining conjuncts contradict its
+   negation. *)
+lemma conj_absorb_by_agree:
+  fixes X A B :: "'s angelic_design"
+  assumes "((\<not> X) \<and> B) = ((\<not> X) \<and> A)"
+  shows "(X \<and> ((\<not> A) \<and> B)) = ((\<not> A) \<and> B)"
+  using assms by pred_auto
+
 end

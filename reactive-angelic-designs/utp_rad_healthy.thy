@@ -1212,4 +1212,60 @@ lemma RA_Monotonic [closure]: "Monotonic RA"
   unfolding RA_def
   by (intro Monotonic_comp RA1_Monotonic RA2_Monotonic RA3_Monotonic)
 
+
+subsection \<open>Support Laws\<close>
+
+(* Unlike RA1_ac_non_empty_absorb above, the conjunction here is
+   outside RA1. *)
+lemma RA1_ac_non_empty_conj_absorb:
+  "(ac_non_empty \<and> RA1 P) = RA1 P"
+  by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
+      pred_auto)
+
+lemma RA2_RA1_ac_non_empty_absorb:
+  "(ac_non_empty \<and> (RA2 \<circ> RA1) P) = (RA2 \<circ> RA1) P"
+  using RA1_ac_non_empty_conj_absorb
+  by (simp only: comp_apply RA1_RA2_commute'[symmetric])
+
+lemma RA1_true_absorb_lift:
+  assumes "(ac_non_empty \<and> (X \<and> Y)) = (X \<and> Y)"
+  shows "(RA1 true \<and> (RA2 X \<and> RA2 Y)) = (RA2 X \<and> RA2 Y)"
+  using arg_cong[where f=RA2, OF assms]
+  by (simp only: RA2_conj RA2_ac_non_empty_eq)
+
+lemma rad_wait_cond_conj_distrib:
+  fixes C A B :: "('t::trace, 'e) reactive_angelic_design"
+  shows "(C \<and> (A \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> B)) =
+    ((C \<and> A) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (C \<and> B))"
+  by (simp add: expr_if_def fun_eq_iff; pred_auto)
+
+lemma RA2_not_wait_conj:
+  "RA2 ((\<not> rad_wait_lens\<^sup><) \<and> X) =
+   ((\<not> rad_wait_lens\<^sup><) \<and> RA2 X)"
+proof -
+  have "RA2 ((\<not> rad_wait_lens\<^sup><) \<and> X) =
+      RA2 (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> X)"
+    by (simp only: rad_wait_cond_false)
+  also have "... = (RA2 false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 X)"
+    by (simp only: RA2_wait_cond)
+  also have "... = (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 X)"
+    by (simp only: RA2_false)
+  also have "... = ((\<not> rad_wait_lens\<^sup><) \<and> RA2 X)"
+    by (simp only: rad_wait_cond_false)
+  finally show ?thesis .
+qed
+
+lemma RA2_aseq_fixed:
+  assumes "RA2 Y = Y"
+  shows "RA2 (X ;;\<^sub>A\<^sub>D Y) = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+proof -
+  have "RA2 (X ;;\<^sub>A\<^sub>D Y) = RA2 (X ;;\<^sub>A\<^sub>D RA2 Y)"
+    by (simp only: assms)
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>D RA2 Y)"
+    by (rule RA2_aseq_distrib)
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+    by (simp only: assms)
+  finally show ?thesis .
+qed
+
 end

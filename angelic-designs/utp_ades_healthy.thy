@@ -1121,4 +1121,44 @@ lemma SW_D_preserves_A2: "P is A2 \<Longrightarrow> SW_D P is A2"
   apply (simp add: Healthy_def' SW_D_A2_commute[symmetric])
   done
 
+
+subsection \<open>Support Laws\<close>
+
+lemma PBMH_ades_unrest_ok_out [unrest]:
+  "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> PBMH_ades P"
+  by (simp add: unrest_lens PBMH_ades_def PBMH_def pbmh_step_def
+      fun_eq_iff Let_def; pred_auto; blast)
+
+(* The angelic state choice requires a non-empty choice set. *)
+lemma ades_state_choice_ac_non_empty_absorb:
+  "(ac_non_empty \<and> ades_state_choice) = ades_state_choice"
+  by (simp add: ades_state_choice_def ac_non_empty_def fun_eq_iff;
+      pred_auto)
+
+(* On an empty choice set the continuation of an angelic composition
+   is immaterial: operands that agree there compose equally. *)
+lemma aseq_ades_ac_empty_cong:
+  assumes "((\<not> ac_non_empty) \<and> Y) = ((\<not> ac_non_empty) \<and> Z)"
+  shows "((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Y)) =
+    ((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Z))"
+  using assms
+  apply (simp add: aseq_ades_def ac_non_empty_def fun_eq_iff
+      lens_defs des_vars.more\<^sub>L_def)
+  apply pred_auto
+  subgoal premises prems for ok s okv'
+    using prems(2) prems(1)[rule_format, of "{}"] by simp
+  subgoal premises prems for ok s okv'
+    using prems(2) prems(1)[rule_format, of "{}"] by simp
+  done
+
+lemma A0_design_absorb:
+  "$ok\<^sup>> \<sharp> X \<Longrightarrow> (ac_non_empty \<and> Y) = Y \<Longrightarrow>
+   A0 ((\<not> X) \<turnstile> Y) = ((\<not> X) \<turnstile> Y)"
+  by (simp add: A0_def unrest; pred_auto; blast)
+
+lemma A0_design_gen:
+  "$ok\<^sup>> \<sharp> X \<Longrightarrow>
+   A0 (X \<turnstile> Y) = (X \<turnstile> (Y \<and> ac_non_empty))"
+  by (simp add: A0_def unrest; pred_auto; blast)
+
 end
