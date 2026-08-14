@@ -740,6 +740,43 @@ proof -
   finally show ?thesis .
 qed
 
+(* Chaos instance of the sequential composition normal form, cf.
+   Thesis Lemma L.H.3.6: the divergent continuation collapses the
+   handover guard to the non-waiting condition and the continuation
+   to true. *)
+lemma AP_true_design_seq_Chaos:
+  fixes P :: "('t::trace, 'e) reactive_angelic_design"
+  assumes "(P \<^sub>f) = P" "PBMH_ades P = P"
+    and "P\<lbrakk>True/ok\<^sup>>\<rbrakk> = P"
+  shows "(AP (true \<turnstile> P) ;;\<^sub>D\<^sub>A Chaos\<^sub>A\<^sub>P) =
+    AP ((\<not> (RA1 P ;;\<^sub>A\<^sub>D (\<not> rad_wait_lens\<^sup><))) \<turnstile>
+        (RA1 P ;;\<^sub>A\<^sub>D
+         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> true)))"
+proof -
+  note P_push = true_design_components_ok_in_subst[OF assms]
+  have Q_comp:
+      "((true \<^sub>f)\<^sup>f)\<lbrakk>True/ok\<^sup><\<rbrakk> = true"
+      "((true \<^sub>f)\<^sup>t)\<lbrakk>True/ok\<^sup><\<rbrakk> = true"
+    by pred_auto+
+  have Q_push:
+      "(PBMH_ades ((true \<^sub>f)\<^sup>f))\<lbrakk>True/ok\<^sup><\<rbrakk> = true"
+      "(RA1 (PBMH_ades ((true \<^sub>f)\<^sup>t)))\<lbrakk>True/ok\<^sup><\<rbrakk> =
+        RA1 true"
+    by (simp_all only: RA1_ok_in_subst
+        PBMH_ades_ok_in_subst[symmetric] Q_comp PBMH_ades_true)
+  show ?thesis
+    apply (simp only: Chaos_AP_def design_false_pre
+        AP_seq_design_PBMH comp_apply)
+    apply (rule arg_cong[where f=AP])
+    apply (rule design_ok_in_cong)
+    apply (simp_all only: subst_pred aseq_ades_ok_in_subst
+        rad_wait_cond_ok_in_subst RA2_ok_in_subst P_push(1)
+        P_push(2)[simplified comp_apply] Q_push
+        aseq_ades_false_left RA2_true pred_ba.inf_top_right
+        pred_ba.compl_bot_eq pred_ba.inf_top_left pred_ba.compl_top_eq
+        pred_impl_laws comp_apply)
+    done
+qed
 (* Paper Theorem 59 / Thesis Theorem T.6.4.18. *)
 theorem AP_seq_design:
   assumes "P is AP" "Q is AP"
@@ -865,5 +902,56 @@ proof -
     by (rule NDRAD_seq_design[OF assms, symmetric])
   finally show ?thesis .
 qed
+
+subsection \<open>Prefixing\<close>
+
+(* TODO: Generalise prefixing to arbitrary trace algebras equipped with an
+   event-to-trace embedding; the current list instance maps a to [a]. *)
+
+(* Paper Definition 57 / Thesis Definition 138. *)
+definition PrefixSkip_AP :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
+[pred]: "PrefixSkip_AP a = AP (true \<turnstile> prefix_post a)"
+
+lemma PrefixSkip_AP_is_AP [closure]: "PrefixSkip_AP a is AP"
+  by (simp add: PrefixSkip_AP_def AP_healthy)
+
+lemmas PrefixSkip_AP_facts =
+  rad_wait_false_prefix_post prefix_post_PBMH prefix_post_ok_out_subst
+
+lemma PrefixSkip_AP_design:
+  "PrefixSkip_AP a =
+   (true \<turnstile>
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+     RA1 (prefix_post a)))"
+  by (simp only: PrefixSkip_AP_def
+      AP_true_design[OF PrefixSkip_AP_facts] RA2_prefix_post)
+
+(* Paper Lemma 12 / Thesis Lemma L.6.4.4. *)
+lemma H1_PrefixSkip_RAD:
+  "H1 (PrefixSkip_RAD a) = PrefixSkip_AP a"
+  by (simp only: PrefixSkip_RAD_RA PrefixSkip_AP_def
+      H1_RA_true_design[OF PrefixSkip_AP_facts])
+
+(* Paper Lemma 13 / Thesis Lemma L.6.4.5. *)
+lemma RA1_PrefixSkip_AP:
+  "RA1 (PrefixSkip_AP a) = PrefixSkip_RAD a"
+  by (simp only: PrefixSkip_AP_def PrefixSkip_RAD_RA
+      RA1_AP_true_design[OF PrefixSkip_AP_facts])
+
+(* Thesis Section 6.4.8: the compound process a \<rightarrow>\<^sub>A\<^sub>P P
+   abbreviates (a \<rightarrow>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) ;;\<^sub>D\<^sub>A P; its
+   Theorem T.6.4.23 normal form instances are in
+   \<open>utp_ap_examples\<close>. *)
+definition Prefix_AP ::
+  "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
+   ('e list, 'e) reactive_angelic_design"
+  (infixr "\<rightarrow>\<^sub>A\<^sub>P" 80) where
+[pred]: "Prefix_AP a P = (PrefixSkip_AP a ;;\<^sub>D\<^sub>A P)"
+
+lemma Prefix_AP_closure [closure]:
+  assumes "P is AP"
+  shows "(a \<rightarrow>\<^sub>A\<^sub>P P) is AP"
+  unfolding Prefix_AP_def
+  by (rule AP_seq_closure[OF PrefixSkip_AP_is_AP assms])
 
 end
