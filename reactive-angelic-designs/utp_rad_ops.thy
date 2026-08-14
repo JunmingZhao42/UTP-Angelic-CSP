@@ -672,12 +672,13 @@ subsection \<open>Prefixing\<close>
 
 (* \<exists> y \<in> ac' \<bullet> (y.tr = s.tr \<and> a \<notin> y.ref) \<triangleleft> y.wait \<triangleright> y.tr = s.tr @ [a] *)
 definition prefix_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
-[pred]: "prefix_post a = (\<lambda> (s0, ac').
-  \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac'). (((\<lambda> z. rad_state.tr\<^sub>v z =
+[pred]: "prefix_post a = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
+  ((\<lambda> z. rad_state.tr\<^sub>v z =
           rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
         a \<notin> rad_state.ref\<^sub>v z)
       \<triangleleft> $rad_state.wait \<triangleright>
-      (\<lambda> z. rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])) y))"
+      (\<lambda> z. rad_state.tr\<^sub>v z =
+        rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])) y))"
 
 (* Paper Definition 43 / Thesis Definition 124. *)
 definition PrefixSkip_RAD :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
@@ -700,17 +701,62 @@ lemma prefix_post_PBMH [simp]:
   by (simp only: prefix_post_p2ac PBMH_ades_p2ac)
 
 lemma rad_wait_false_prefix_post: "((prefix_post a) \<^sub>f) = prefix_post a"
-  by (simp add: prefix_post_def expr_if_def rad_state.wait_def
+  by (simp add: prefix_post_def ades_singleton_choice_def
+      expr_if_def rad_state.wait_def
       rad_wait_false_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
       rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
 
+(* The prefix postcondition only relates the traces of the initial
+   and final states, so trace normalisation leaves it fixed. *)
+lemma RA2_prefix_post: "RA2 (prefix_post a) = prefix_post a"
+proof -
+  have disj_form:
+    "prefix_post a = (\<lambda> (s0, ac').
+      \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
+        rad_state.wait\<^sub>v y \<and>
+        rad_state.tr\<^sub>v y =
+          rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+        a \<notin> rad_state.ref\<^sub>v y \<or>
+        \<not> rad_state.wait\<^sub>v y \<and>
+        rad_state.tr\<^sub>v y =
+          rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])"
+    by (simp add: prefix_post_def expr_if_def rad_state.wait_def
+        fun_eq_iff; pred_auto)
+  have nil: "xs \<le> ys \<Longrightarrow> ys - xs = [] \<Longrightarrow> ys = xs" for xs ys
+    using minus_zero_eq by (auto simp add: zero_list_def)
+  have snoc: "xs \<le> ys \<Longrightarrow> ys - xs = [a] \<Longrightarrow> ys = xs @ [a]"
+      for xs ys
+    using diff_add_cancel_left'[of xs ys] by (simp add: plus_list_def)
+  show ?thesis
+    apply (simp only: disj_form)
+    apply (simp add: RA2_def rad_normalise_choices_def
+        rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def)
+    apply pred_auto
+    subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+      by (frule (1) nil,
+          rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
+            wait\<^sub>v = True\<rparr>" in bexI; simp)
+    subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+      by (frule (1) snoc,
+          rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
+            wait\<^sub>v = False\<rparr>" in bexI; simp)
+    subgoal by (fastforce simp add: diff_cancel zero_list_def)
+    subgoal by (fastforce intro: prefixI
+        simp add: plus_list_def[symmetric] add_diff_cancel_left)
+    done
+qed
+
 lemma prefix_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> prefix_post a"
-  apply (simp add: unrest_lens prefix_post_def expr_if_def
-      rad_state.wait_def)
+  apply (simp add: unrest_lens prefix_post_def
+      ades_singleton_choice_def expr_if_def rad_state.wait_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs)
   done
+
+lemma prefix_post_ok_out_subst [usubst]:
+  "(prefix_post a)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk> = prefix_post a"
+  by (simp add: unrest usubst)
 
 lemma prefix_design_is_H [closure]:
   "(true \<turnstile> prefix_post a) is \<^bold>H"

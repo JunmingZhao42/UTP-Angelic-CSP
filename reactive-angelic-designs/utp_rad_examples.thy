@@ -412,7 +412,8 @@ lemma prefix_handover_diverge:
     ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 true))) =
    prefix_diverge_post a"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
-  apply (simp add: RA1_def aseq_ades_def prefix_post_def expr_if_def
+  apply (simp add: RA1_def aseq_ades_def prefix_post_def
+      ades_singleton_choice_def expr_if_def
       rad_state.wait_def
       prefix_diverge_post_def rad_trace_extensions_def fun_eq_iff
       Let_def lens_defs rad_state.wait_def astate.s_def
@@ -446,7 +447,7 @@ lemma prefix_continuation_chaos:
    (prefix_offer_post a \<or> prefix_diverge_post a)"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
   apply (simp add: RA1_def aseq_ades_def prefix_post_def
-      prefix_offer_post_def prefix_diverge_post_def
+      ades_singleton_choice_def prefix_offer_post_def prefix_diverge_post_def
       ades_state_choice_def expr_if_def rad_trace_extensions_def
       fun_eq_iff Let_def lens_defs rad_state.wait_def astate.s_def
       des_vars.more\<^sub>L_def true_pred_def disj_pred_def
@@ -814,14 +815,14 @@ lemma Prefix_Chaos_Chaos_extchoice_Stop:
         prefix_offer_pair_post a b)"
 proof -
   have prefix_diverge_wf:
-      "((prefix_diverge_post x :: ('e list, 'e) reactive_angelic_design)
-        \<^sub>wf) = prefix_diverge_post x" for x :: 'e
+      "((prefix_diverge_post x :: ('e list, 'e) reactive_angelic_design) \<^sub>f) =
+        prefix_diverge_post x" for x :: 'e
     by (simp add: prefix_diverge_post_def rad_wait_false_def fun_eq_iff
         subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
         alpha_defs)
   have prefix_offer_wf:
-      "((prefix_offer_post x :: ('e list, 'e) reactive_angelic_design)
-        \<^sub>wf) = prefix_offer_post x" for x :: 'e
+      "((prefix_offer_post x :: ('e list, 'e) reactive_angelic_design) \<^sub>f) =
+        prefix_offer_post x" for x :: 'e
     by (simp add: prefix_offer_post_def rad_wait_false_def fun_eq_iff
         subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
         alpha_defs)
@@ -848,19 +849,17 @@ proof -
       (simp_all add: Healthy_def' PBMH_ades_disj unrest)
   have branch_components:
       "(((RA ((\<not> prefix_diverge_post x) \<turnstile>
-          (prefix_offer_post x \<or> prefix_diverge_post x)))
-          \<^sub>wf)\<^sup>f) =
+          (prefix_offer_post x \<or> prefix_diverge_post x))) \<^sub>f)\<^sup>f) =
           RA2 (RA1 ((\<not> ok\<^sup><) \<or> prefix_diverge_post x)) \<and>
        (((RA ((\<not> prefix_diverge_post x) \<turnstile>
-          (prefix_offer_post x \<or> prefix_diverge_post x)))
-          \<^sub>wf)\<^sup>t) =
+          (prefix_offer_post x \<or> prefix_diverge_post x))) \<^sub>f)\<^sup>t) =
           RA2 (RA1 ((\<not> ok\<^sup><) \<or> prefix_diverge_post x \<or>
             (prefix_offer_post x \<or> prefix_diverge_post x)))" for x :: 'e
   proof -
     let ?D = "prefix_diverge_post x"
     let ?T = "prefix_offer_post x \<or> ?D"
     let ?B = "?D \<or> (?T \<and> ok\<^sup>>)"
-    have B_wf: "(?B \<^sub>wf) = ?B"
+    have B_wf: "(?B \<^sub>f) = ?B"
       by (simp only: rad_wait_false_disj rad_wait_false_conj
           prefix_diverge_wf prefix_offer_wf rad_wait_false_ok_out)
     have B_false: "?B\<^sup>f = ?D"
@@ -868,22 +867,19 @@ proof -
     have B_true: "?B\<^sup>t = ?T"
       by (simp add: usubst usubst_eval; pred_auto)
     have design_norm:
-        "((\<not> (?B \<^sub>wf)\<^sup>f) \<turnstile> (?B \<^sub>wf)\<^sup>t) =
-         ((\<not> ?D) \<turnstile> ?T)"
+      "((\<not> (?B \<^sub>f)\<^sup>f) \<turnstile> (?B \<^sub>f)\<^sup>t) = ((\<not> ?D) \<turnstile> ?T)"
       by (simp only: B_wf B_false B_true)
     have false_component:
         "((rad_wait_false \<circ> RA \<circ> A)
           ((\<not> ?D) \<turnstile> ?T))\<^sup>f =
-         (RA2 \<circ> RA1 \<circ> PBMH_ades)
-          ((\<not> ok\<^sup><) \<or> (?B \<^sub>wf)\<^sup>f)"
+         (RA2 \<circ> RA1 \<circ> PBMH_ades) ((\<not> ok\<^sup><) \<or> (?B \<^sub>f)\<^sup>f)"
       using RA_design_wf_ok_false[of ?B]
       by (simp only: design_norm)
     have true_component:
         "((rad_wait_false \<circ> RA \<circ> A)
           ((\<not> ?D) \<turnstile> ?T))\<^sup>t =
          (RA2 \<circ> RA1 \<circ> PBMH_ades)
-          ((\<not> ok\<^sup><) \<or> (?B \<^sub>wf)\<^sup>f \<or>
-            (?B \<^sub>wf)\<^sup>t)"
+          ((\<not> ok\<^sup><) \<or> (?B \<^sub>f)\<^sup>f \<or> (?B \<^sub>f)\<^sup>t)"
       using RA_design_wf_ok_true[of ?B]
       by (simp only: design_norm)
     have absorb:
@@ -898,14 +894,12 @@ proof -
   qed
   have branch_false:
       "(((RA ((\<not> prefix_diverge_post x) \<turnstile>
-          (prefix_offer_post x \<or> prefix_diverge_post x)))
-          \<^sub>wf)\<^sup>f) =
+          (prefix_offer_post x \<or> prefix_diverge_post x))) \<^sub>f)\<^sup>f) =
         RA2 (RA1 ((\<not> ok\<^sup><) \<or> prefix_diverge_post x))" for x :: 'e
     using branch_components[of x] by (rule conjunct1)
   have branch_true:
       "(((RA ((\<not> prefix_diverge_post x) \<turnstile>
-          (prefix_offer_post x \<or> prefix_diverge_post x)))
-          \<^sub>wf)\<^sup>t) =
+          (prefix_offer_post x \<or> prefix_diverge_post x))) \<^sub>f)\<^sup>t) =
         RA2 (RA1 ((\<not> ok\<^sup><) \<or> prefix_diverge_post x \<or>
           (prefix_offer_post x \<or> prefix_diverge_post x)))" for x :: 'e
     using branch_components[of x] by (rule conjunct2)
