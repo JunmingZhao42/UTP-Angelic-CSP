@@ -41,6 +41,43 @@ proof -
     by (simp only: comp_apply RA3AP_design_post)
 qed
 
+lemma H1_RAD_is_PBMH_ades:
+  assumes "P is RAD"
+  shows "H1 P is PBMH_ades"
+proof -
+  let ?F = "(RA1 \<circ> RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)"
+  let ?T = "(RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)"
+  have failure:
+    "(false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?F) is PBMH_ades"
+    unfolding comp_apply
+    by (intro rad_wait_cond_PBMH_ades_closure false_PBMH_ades
+        RA1_PBMH_ades_closure RA2_PBMH_ades_closure
+        Healthy_Idempotent[OF PBMH_ades_Idempotent])
+  have post: "?T is PBMH_ades"
+    unfolding comp_apply
+    by (intro RA3AP_PBMH_ades_closure RA2_PBMH_ades_closure
+        RA1_PBMH_ades_closure
+        Healthy_Idempotent[OF PBMH_ades_Idempotent])
+  have normal:
+    "H1 P = ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) \<turnstile> ?T)"
+  proof -
+    have "H1 P = (H1 \<circ> RAD) P"
+      by (simp only: comp_apply Healthy_if[OF assms])
+    also have "... =
+        ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) \<turnstile> ?T)"
+      by (rule H1_RAD_design)
+    finally show ?thesis .
+  qed
+  have pre_form:
+    "(true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) =
+     (\<not> (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?F))"
+    by (simp only: rad_wait_cond_not pred_ba.compl_bot_eq
+        pred_ba.double_compl)
+  show ?thesis
+    unfolding normal pre_form
+    by (rule PBMH_ades_design_closure[OF failure post])
+qed
+
 subsection \<open>Non-Divergent Processes\<close>
 
 (* Paper Lemma 10 / Thesis Lemma L.6.3.1. *)
@@ -66,6 +103,35 @@ lemma H1_NDRAD:
     (true \<turnstile> (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
   by (simp only: comp_apply NDRAD_design_form[OF assms]
       H1_RA_A_true_design[simplified comp_apply])
+
+(* The ok-true wait-false component of a RAD process satisfies the side
+   conditions of the true-precondition design laws. *)
+lemma RAD_wf_ok_true_facts:
+  assumes "P is RAD"
+  shows "(((P \<^sub>f)\<^sup>t) \<^sub>f) = (P \<^sub>f)\<^sup>t"
+    and "PBMH_ades ((P \<^sub>f)\<^sup>t) = (P \<^sub>f)\<^sup>t"
+    and "((P \<^sub>f)\<^sup>t)\<lbrakk>True/ok\<^sup>>\<rbrakk> = (P \<^sub>f)\<^sup>t"
+  by (simp only: rad_wait_false_ok_true rad_wait_false_idem,
+      rule Healthy_if[OF RAD_wf_ok_true_PBMH[OF assms]],
+      simp add: usubst)
+
+lemma H1_NDRAD_AP_true_design:
+  assumes "P is RAD" "P is NDRAD"
+  shows "H1 P = AP (true \<turnstile> (P \<^sub>f)\<^sup>t)"
+proof -
+  let ?T = "(P \<^sub>f)\<^sup>t"
+  have "H1 P = (H1 \<circ> NDRAD) P"
+    by (simp only: comp_apply Healthy_if[OF assms(2)])
+  also have "... =
+      (true \<turnstile>
+       (RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ?T)"
+    by (rule H1_NDRAD[OF assms(1)])
+  also have "... = AP (true \<turnstile> ?T)"
+    by (simp only: AP_true_design[OF RAD_wf_ok_true_facts[OF assms(1)]]
+        comp_apply RAD_wf_ok_true_facts(2)[OF assms(1)]
+        RA3AP_design_post RA1_RA2_commute')
+  finally show ?thesis .
+qed
 
 subsection \<open>From Angelic Processes to Reactive Angelic Designs\<close>
 

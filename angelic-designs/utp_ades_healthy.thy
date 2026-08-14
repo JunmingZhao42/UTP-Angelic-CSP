@@ -243,6 +243,37 @@ lemma aseq_ades_mono_right:
   using assms(2)
   by (auto simp add: pred_refine_iff)
 
+(* Monotonicity of design-level angelic composition.  As for
+   \<open>aseq_ades_mono_right\<close>, the left operand must be upward closed. *)
+lemma angelic_design_seq_mono:
+  assumes "P is PBMH_ades" "P \<sqsubseteq> P'" "Q \<sqsubseteq> Q'"
+  shows "(P ;;\<^sub>D\<^sub>A Q) \<sqsubseteq> (P' ;;\<^sub>D\<^sub>A Q')"
+proof -
+  have PP: "\<And>s. P' s \<Longrightarrow> P s"
+  proof -
+    fix s assume "P' s"
+    obtain a b where [simp]: "s = (a, b)" by (cases s) auto
+    then show "P s"
+      using assms(2) `P' s` by (simp add: pred_refine_iff)
+  qed
+  have QQ: "\<And>s. Q' s \<Longrightarrow> Q s"
+  proof -
+    fix s assume "Q' s"
+    obtain a b where [simp]: "s = (a, b)" by (cases s) auto
+    then show "Q s"
+      using assms(3) `Q' s` by (simp add: pred_refine_iff)
+  qed
+  show ?thesis
+    unfolding angelic_design_seq_def pred_refine_iff
+    apply (clarsimp split: prod.splits)
+    subgoal premises prems for a b ok0
+      apply (rule exI[where x=ok0])
+      apply (rule PBMH_ades_upward[OF assms(1) PP[OF prems(1)]])
+        using QQ apply auto
+      done
+    done
+qed
+
 lemma aseq_ades_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades" "Q is PBMH_ades"
   shows "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
