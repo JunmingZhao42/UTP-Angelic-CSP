@@ -306,12 +306,12 @@ lemma P_dummy_fails_theorem6:
   apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
   by (pred_auto)
 
-(* Showing that SW_D is the weakest additional healthiness condition 
+(* Showing that A3 is the weakest additional healthiness condition
     required by Paper Theorem 6 on A-healthy designs. *)
-lemma d2ac_ac2p_iff_SW_D:
+lemma d2ac_ac2p_iff_A3:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
-  shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P \<longleftrightarrow> P is SW_D"
+  shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P \<longleftrightarrow> P is A3"
 proof -
   define pre_A :: "'s angelic_rel" where
     "pre_A \<equiv> \<not> PBMH (\<not> pre\<^sub>D P)"
@@ -332,20 +332,20 @@ proof -
       using design_refine_thms(1)[OF refinement]
       by (simp only: P_form comp_apply ac2p_rdesign d2ac_rdesign rdesign_pre;
           pred_auto)
-    have "pre\<^sub>D P is SW"
+    have "pre\<^sub>D P is A3_rel"
       using feasible
-      by (simp add: SW_healthy' P_form taut_def
+      by (simp add: A3_rel_healthy' P_form taut_def
           p2ac_exist_def ac2p_rel_subset; pred_auto; blast)
-    then show "P is SW_D"
-      using SW_D_healthy[OF healthy] by blast
+    then show "P is A3"
+      using A3_healthy[OF healthy] by blast
   next
-    assume sw_healthy: "P is SW_D"
-    have witness_healthy: "pre\<^sub>D P is SW"
-      using sw_healthy SW_D_healthy[OF healthy] by blast
+    assume a3_healthy: "P is A3"
+    have witness_healthy: "pre\<^sub>D P is A3_rel"
+      using a3_healthy A3_healthy[OF healthy] by blast
     have witness_exists_A:
         "\<forall>s. pre_A (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow>
           (\<exists>z. pre_A (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>))"
-      using witness_healthy by (simp add: SW_healthy' pre_A_eq)
+      using witness_healthy by (simp add: A3_rel_healthy' pre_A_eq)
     have pre_A_downward:
         "B \<subseteq> A \<Longrightarrow>
          pre_A (s, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<Longrightarrow>
@@ -381,9 +381,9 @@ qed
 theorem d2ac_ac2p:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
-    and sw_healthy: "P is SW_D"
+    and a3_healthy: "P is A3"
   shows "P \<sqsubseteq> (d2ac \<circ> ac2p) P"
-  using d2ac_ac2p_iff_SW_D[OF healthy] sw_healthy
+  using d2ac_ac2p_iff_A3[OF healthy] a3_healthy
   by blast
 
 (* Paper Theorem 7. *)
@@ -406,15 +406,15 @@ proof -
     by (simp only: Healthy_def' P_form A2_rdesign)
 qed
 
-(* Paper Theorem 8, with the SW_D premise required by Theorem 6. *)
+(* Paper Theorem 8, with the A3 premise required by Theorem 6. *)
 theorem d2ac_ac2p_A2_eq:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
     and a2_healthy: "P is A2"
-    and sw_healthy: "P is SW_D"
+    and a3_healthy: "P is A3"
   shows "(d2ac \<circ> ac2p) P = P"
   apply (rule ref_antisym)
-   apply (use d2ac_ac2p_iff_SW_D[OF healthy] sw_healthy in blast)
+   apply (use d2ac_ac2p_iff_A3[OF healthy] a3_healthy in blast)
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
 
 subsection \<open>Sequential Composition\<close>
