@@ -814,7 +814,7 @@ definition ac_singleton_choice ::
   \<exists> y \<in> achoices.ac\<^sub>v ac'.
     P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {y}) ac'))"
 
-(* A2 keeps exactly the empty choice set plus the singleton choices. *)
+(* A2 is determined by P on the empty and singleton choice sets. *)
 lemma A2_rel_expanded_singleton_choice:
   "A2_rel_expanded P =
    ((\<lambda> (s0, ac'). P (s0, achoices.ac\<^sub>v_update (\<lambda>_. {}) ac')) \<or>
@@ -868,9 +868,18 @@ proof -
     by (simp add: des_more_ok_update_commute)
 qed
 
-(* Lift the definition from angelic relation to angelic designs: lemma L.4.2.3 in thesis *)
+text \<open>
+  Paper Definition 20 in the expanded form of Theorem 4. A2 changes only
+  the final choice set; the initial observation and both outer control
+  observations are preserved.
+\<close>
 definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "A2 P = ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
+[pred]: "A2 P = (\<lambda>(s0, out).
+  P (s0, des_vars.more_update
+    (achoices.ac\<^sub>v_update (\<lambda>_. {})) out) \<or>
+  (\<exists>y \<in> achoices.ac\<^sub>v (des_vars.more out).
+    P (s0, des_vars.more_update
+      (achoices.ac\<^sub>v_update (\<lambda>_. {y})) out)))"
 
 (* Paper Theorem 4. *)
 theorem A2_rel_eq_expanded: "A2_rel P = A2_rel_expanded P"
@@ -882,14 +891,6 @@ theorem A2_rel_eq_expanded: "A2_rel P = A2_rel_expanded P"
   subgoal for s more ac morea y
     by (rule_tac x="{y}" in exI, auto)
   done
-
-lemma neg_A2_rel_eval:
-  fixes P :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
-  shows "(\<not> A2_rel (\<not> P))
-      (s, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
-    (P (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<and>
-      (\<forall>y \<in> X. P (s, \<lparr>ac\<^sub>v = {y}, \<dots> = ()\<rparr>)))"
-  by (simp add: A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
 
 lemma A2_rel_expanded_disj:
   "A2_rel_expanded (P \<or> Q) = (A2_rel_expanded P \<or> A2_rel_expanded Q)"
@@ -915,63 +916,122 @@ lemma A2_rel_mono:
 lemma A2_rel_Monotonic [closure]: "Monotonic A2_rel"
   by (rule MonotonicI, rule A2_rel_mono)
 
-lemma A2_rel_neg_guard:
-  "Q \<sqsubseteq> P \<Longrightarrow> (\<not> A2_rel (\<not> Q)) \<sqsubseteq> (\<not> A2_rel (\<not> P))"
-  by (simp add: A2_rel_eq_expanded, pred_auto; blast)
-
-lemma A2_rel_guarded_post:
-  "A2_rel (P \<and> Q) \<sqsubseteq> ((\<not> A2_rel (\<not> P)) \<and> A2_rel Q)"
-  by (simp add: A2_rel_eq_expanded, pred_auto)
-
 (* Paper Appendix Lemma 17. *)
 lemma A2_rdesign:
-  "A2 (P \<turnstile>\<^sub>r Q) = ((\<not> A2_rel (\<not> P)) \<turnstile>\<^sub>r A2_rel Q)"
-  by (simp add: A2_def A2_rel_disj rdesign_refinement, pred_auto)
+  "A2 (B \<turnstile>\<^sub>r C) =
+   ((\<not> A2_rel (\<not> B)) \<turnstile>\<^sub>r A2_rel C)"
+  by (simp add: A2_def A2_rel_eq_expanded A2_rel_expanded_def
+      rdesign_def design_def fun_eq_iff; pred_auto; blast)
 
-lemma A2_arel_to_ades: "A2 (arel_to_ades P) = arel_to_ades (A2_rel P)"
-  by (simp add: arel_to_ades_def A2_rdesign, pred_auto)
+lemma A2_arel_to_ades:
+  "A2 (arel_to_ades P) = arel_to_ades (A2_rel P)"
+  by (simp add: arel_to_ades_def A2_rdesign
+      A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
 
 lemma A2_idem: "A2 (A2 P) = A2 P"
-proof -
-  have elim:
-    "\<And>P Q. taut [\<lambda>s. (\<not> A2_rel (\<not> P)) s \<and>
-        (A2_rel [\<lambda>t. (\<not> A2_rel (\<not> P)) t \<longrightarrow> A2_rel Q t]\<^sub>e) s \<longrightarrow>
-        A2_rel Q s]\<^sub>e"
-    apply (simp add: A2_rel_eq_expanded impl_pred_def)
-    apply (pred_auto; blast)
-    done
-  have intro:
-    "\<And>P Q. taut [\<lambda>s. (\<not> A2_rel (\<not> P)) s \<and> A2_rel Q s \<longrightarrow>
-        (A2_rel [\<lambda>t. (\<not> A2_rel (\<not> P)) t \<longrightarrow> A2_rel Q t]\<^sub>e) s]\<^sub>e"
-    apply (simp add: A2_rel_eq_expanded impl_pred_def)
-    apply (pred_auto; blast)
-    done
-  show ?thesis
-    apply (simp add: A2_def A2_rdesign A2_rel_idem)
-    apply (rule ref_antisym)
-     apply (simp add: rdesign_refinement elim)
-    apply (simp add: rdesign_refinement intro)
-    done
-qed
+  by (simp add: A2_def fun_eq_iff comp_def; blast)
 
 lemma A2_Idempotent [closure]: "Idempotent A2"
   by (simp add: Idempotent_def A2_idem)
 
-lemma A2_mono: "P \<sqsubseteq> Q \<Longrightarrow> A2 P \<sqsubseteq> A2 Q"
-  apply (simp add: A2_def)
-  apply (rule rdesign_refine_intro')
-   apply (rule A2_rel_neg_guard)
-   apply (insert design_refine_thms(1)[of P Q])
-   apply (pred_auto)
-  apply (rule_tac y="A2_rel (pre\<^sub>D P \<and> post\<^sub>D Q)" in pred_ba.order_trans)
-   apply (rule A2_rel_guarded_post)
-  apply (rule A2_rel_mono)
-  apply (insert design_refine_thms(2)[of P Q])
-  apply (pred_auto)
-  done
+lemma A2_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> A2 P \<sqsubseteq> A2 Q"
+  by (auto simp add: A2_def pred_refine_iff split: prod.splits)
 
 lemma A2_Monotonic [closure]: "Monotonic A2"
   by (rule MonotonicI, rule A2_mono)
+
+lemma A2_empty_choice:
+  "A2 P (x, \<lparr>ok\<^sub>v = b,
+    \<dots> = \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>\<rparr>) =
+   P (x, \<lparr>ok\<^sub>v = b,
+    \<dots> = \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>\<rparr>)"
+  by (simp add: A2_def)
+
+lemma A2_healthy [closure]: "A2 P is A2"
+  by (simp add: Healthy_def' A2_idem)
+
+lemma A2_lift:
+  "A2 \<lceil>P\<rceil>\<^sub>D = \<lceil>A2_rel P\<rceil>\<^sub>D"
+  by (simp add: A2_def A2_rel_eq_expanded A2_rel_expanded_def
+      fun_eq_iff; pred_auto)
+
+lemma A2_def':
+  "A2 P = PBMH_ades (P ;;\<^sub>A\<^sub>D \<lceil>singleton_ac\<rceil>\<^sub>D)"
+  apply (simp add: A2_def PBMH_ades_def aseq_ades_def
+      singleton_ac_def fun_eq_iff)
+  apply pred_auto
+  subgoal for ok s oka X
+    by (rule_tac x="{}" in exI; auto)
+  subgoal for ok s oka X y
+    by (rule_tac x="{y}" in exI; auto)
+  subgoal for ok s oka X ac
+    by (cases "\<exists>y. ac = {y}"; auto)
+  done
+
+lemma PBMH_ades_A2 [simp]: "PBMH_ades (A2 P) = A2 P"
+  by (simp only: A2_def' PBMH_ades_idem)
+
+lemma A2_false [simp]: "A2 false = false"
+  by (simp add: A2_def fun_eq_iff; pred_auto)
+
+lemma A2_state_choice [simp]:
+  "A2 ades_state_choice = ades_state_choice"
+  by (simp add: A2_def ades_state_choice_def fun_eq_iff)
+
+lemma A2_true_design:
+  "A2 (true \<turnstile> P) = (true \<turnstile> A2 P)"
+  by (simp add: A2_def design_def fun_eq_iff; pred_auto; blast)
+
+lemma A2_disj: "A2 (P \<or> Q) = (A2 P \<or> A2 Q)"
+  by (simp add: A2_def fun_eq_iff; pred_auto; blast)
+
+(* Thesis Theorem T.C.4.1. *)
+lemma angelic_design_seq_A2_closure [closure]:
+  assumes "P is A2" "Q is A2"
+  shows "(P ;;\<^sub>D\<^sub>A Q) is A2"
+proof -
+  have "A2 (A2 P ;;\<^sub>D\<^sub>A A2 Q) = (A2 P ;;\<^sub>D\<^sub>A A2 Q)"
+    by (simp add: A2_def angelic_design_seq_def fun_eq_iff comp_def; blast)
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)] Healthy_def')
+qed
+
+(* Component characterisation for H-healthy designs. *)
+lemma A2_components_iff:
+  assumes "P is \<^bold>H"
+  shows "P is A2 \<longleftrightarrow>
+    (((\<not> pre\<^sub>D P) is A2_rel) \<and> (post\<^sub>D P is A2_rel))"
+proof -
+  have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
+    using H1_H2_eq_rdesign[of P] by (simp only: Healthy_if[OF assms])
+  have form: "A2 P =
+      ((\<not> A2_rel (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r A2_rel (post\<^sub>D P))"
+    using arg_cong[where f=A2, OF P_form]
+    by (simp only: A2_rdesign)
+  have post_eq: "post\<^sub>D (A2 P) =
+      (A2_rel (\<not> pre\<^sub>D P) \<or> A2_rel (post\<^sub>D P))"
+    by (simp only: form rdesign_post; pred_auto)
+  have pre: "(\<not> pre\<^sub>D (A2 P)) is A2_rel"
+    by (simp add: form arel_not_not Healthy_def' A2_rel_idem)
+  have post: "post\<^sub>D (A2 P) is A2_rel"
+    by (simp add: post_eq Healthy_def' A2_rel_disj A2_rel_idem)
+  show ?thesis
+  proof
+    assume healthy: "P is A2"
+    show "((\<not> pre\<^sub>D P) is A2_rel) \<and> (post\<^sub>D P is A2_rel)"
+      using pre post by (simp only: Healthy_if[OF healthy]; simp)
+  next
+    assume "((\<not> pre\<^sub>D P) is A2_rel) \<and> (post\<^sub>D P is A2_rel)"
+    then show "P is A2"
+      using form P_form by (simp add: Healthy_def' arel_not_not)
+  qed
+qed
+
+lemma A2_implies_neg_preD_A2_rel:
+  assumes "P is \<^bold>H" "P is A2"
+  shows "(\<not> pre\<^sub>D P) is A2_rel"
+  using A2_components_iff[OF assms(1)] assms(2) by blast
 
 subsection \<open>A3 Relation Healthiness (for supporting theorem 6)\<close>
 
@@ -1100,9 +1160,14 @@ proof -
     by (simp add: A3_rel_PBMH)
 qed
 
-lemma A3_A2_commute: "A3 (A2 P) = A2 (A3 P)"
-  by (simp add: A3_def A2_def A3_rel_rdesign_post A3_rel_def
-      A2_rel_eq_expanded; pred_auto; blast)
+lemma A3_A2_commute:
+  "A3 (A2 P) = A2 (A3 P)"
+  apply (simp add: A3_def A2_def A3_rel_def rdesign_def design_def
+      fun_eq_iff)
+  apply pred_auto
+  apply (simp_all only: comp_def)
+  apply (simp_all add: des_more_ok_update_commute des_vars_collapse)
+  by blast+
 
 (* other lemmas to show the compatibility *)
 lemma A_preserves_A3: "P is A3 \<Longrightarrow> A P is A3"

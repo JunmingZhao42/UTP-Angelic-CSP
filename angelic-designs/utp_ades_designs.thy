@@ -14,6 +14,9 @@ definition p2ac :: "'s des_hrel \<Rightarrow> 's angelic_design" where
          \<dots> = astate.s\<^sub>v (des_vars.more s0)\<rparr>,
        \<lparr>ok\<^sub>v = ok\<^sub>v ac', \<dots> = z\<rparr>))"
 
+lemma A2_p2ac [simp]: "A2 (p2ac P) = p2ac P"
+  by (simp add: A2_def p2ac_def fun_eq_iff; pred_auto)
+
 (* Relation-level specialisation via design lifting. *)
 definition p2ac_rel :: "('s, 's) urel \<Rightarrow> 's angelic_rel" where
 "p2ac_rel P = \<lfloor>p2ac (\<lceil>P\<rceil>\<^sub>D)\<rfloor>\<^sub>D"
@@ -116,7 +119,8 @@ lemma d2ac_A [simp]: "A (d2ac P) = d2ac P"
   by (simp add: A_def)
 
 lemma d2ac_A2 [simp]: "A2 (d2ac P) = d2ac P"
-  by (simp add: A2_def d2ac_def rdesign_refinement, pred_auto)
+  by (simp add: d2ac_def A2_rdesign A2_rel_eq_expanded
+      rdesign_refinement; pred_auto)
 
 lemma d2ac_is_A [closure]: "d2ac P is A"
   by (simp add: Healthy_def')

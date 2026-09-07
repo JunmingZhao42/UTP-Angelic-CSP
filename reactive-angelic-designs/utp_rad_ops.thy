@@ -514,6 +514,18 @@ lemma Stop_RAD_design:
          stop_post))"
   by (simp only: Stop_RAD_RA RA_true_design RA2_stop_post)
 
+lemma Stop_RAD_is_A2 [closure]: "Stop\<^sub>R\<^sub>A\<^sub>D is A2"
+proof -
+  have body:
+    "(true \<turnstile>
+      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> stop_post))
+     is A2"
+    by (simp only: Healthy_def' A2_true_design A2_wait_cond
+        A2_state_choice stop_post_p2ac A2_p2ac)
+  show ?thesis
+    by (simp only: Stop_RAD_design; rule RA1_A2_closure[OF body])
+qed
+
 (* Paper Theorem 28. *)
 theorem Stop_RAD_angelic_choice:
   assumes "P is RAD"
@@ -626,6 +638,18 @@ lemma Skip_RAD_design:
         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
          skip_post))"
   by (simp only: Skip_RAD_RA RA_true_design RA2_skip_post)
+
+lemma Skip_RAD_is_A2 [closure]: "Skip\<^sub>R\<^sub>A\<^sub>D is A2"
+proof -
+  have body:
+    "(true \<turnstile>
+      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> skip_post))
+     is A2"
+    by (simp only: Healthy_def' A2_true_design A2_wait_cond
+        A2_state_choice skip_post_p2ac A2_p2ac)
+  show ?thesis
+    by (simp only: Skip_RAD_design; rule RA1_A2_closure[OF body])
+qed
 
 (* Paper Theorem 29. *)
 theorem Skip_RAD_angelic_choice:
@@ -937,37 +961,17 @@ theorem extchoice_RAD_Stop_unit:
 proof -
   let ?F = "(P \<^sub>f)\<^sup>f" and ?T = "(P \<^sub>f)\<^sup>t"
   have not_F_PBMH: "(\<not> (\<not> ?F)) is PBMH_ades"
-    by (simp only: pred_ba.double_compl
-        RAD_wf_ok_false_PBMH[OF assms(1)])
+    by (simp only: pred_ba.double_compl RAD_wf_ok_false_PBMH[OF assms(1)])
   have unrests: "$ok\<^sup>> \<sharp> (\<not> ?F)" "$ok\<^sup>> \<sharp> ?T"
     by (simp_all add: unrest)
-  have singleton_reduce:
-      "\<in>\<^sub>a\<^sub>c(?T) \<sqsubseteq> (?T \<and> ac_non_empty)"
+  have singleton: "\<in>\<^sub>a\<^sub>c(?T) = (?T \<and> ac_non_empty)"
   proof -
-    have fixed: "A2 P = P"
-      using assms(2) by (simp add: Healthy_def')
-    have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>f)\<^sup>t) \<sqsubseteq>
+    have "\<in>\<^sub>a\<^sub>c(((A2 P) \<^sub>f)\<^sup>t) =
         ((((A2 P) \<^sub>f)\<^sup>t) \<and> ac_non_empty)"
-      apply (simp add: A2_def ades_singleton_choice_def ac_non_empty_def
-          rad_wait_false_def A2_rel_eq_expanded A2_rel_expanded_def
-          pred_refine_iff fun_eq_iff usubst usubst_eval Let_def)
-      by (pred_auto; blast)
-    then show ?thesis
-      by (simp only: fixed)
-  qed
-  have singleton_weaken: "?T \<sqsubseteq> \<in>\<^sub>a\<^sub>c(?T)"
-    using RAD_wf_ok_true_PBMH[OF assms(1)]
-    apply (simp add: Healthy_def' PBMH_ades_def PBMH_def pbmh_step_def
-        ades_singleton_choice_def pred_refine_iff fun_eq_iff Let_def)
-    by (pred_auto; blast)
-  have RA1_eq: "RA1 (\<in>\<^sub>a\<^sub>c(?T)) = RA1 ?T"
-  proof (rule ref_antisym)
-    have absorb: "RA1 (?T \<and> ac_non_empty) = RA1 ?T"
-      by (subst pred_ba.inf_commute) (rule RA1_ac_non_empty_absorb)
-    show "RA1 (\<in>\<^sub>a\<^sub>c(?T)) \<sqsubseteq> RA1 ?T"
-      using RA1_mono[OF singleton_reduce] by (simp only: absorb)
-    show "RA1 ?T \<sqsubseteq> RA1 (\<in>\<^sub>a\<^sub>c(?T))"
-      by (rule RA1_mono[OF singleton_weaken])
+      by (simp add: A2_def ades_singleton_choice_def ac_non_empty_def
+          rad_wait_false_def fun_eq_iff usubst usubst_eval Let_def;
+          pred_auto; blast)
+    then show ?thesis by (simp only: Healthy_if[OF assms(2)])
   qed
   have "P \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D =
       (RA \<circ> A) ((\<not> ?F) \<turnstile> \<in>\<^sub>a\<^sub>c(?T))"
@@ -976,13 +980,9 @@ proof -
   also have "... = RA ((\<not> ?F) \<turnstile> \<in>\<^sub>a\<^sub>c(?T))"
     by (rule RA_A_absorb_design[OF not_F_PBMH _ unrests(1)])
       (simp_all add: Healthy_def' unrest unrests)
-  also have "... =
-      RA ((\<not> ?F) \<turnstile> (RA2 \<circ> RA1) (\<in>\<^sub>a\<^sub>c(?T)))"
-    by (rule RA_design_post)
-  also have "... = RA ((\<not> ?F) \<turnstile> (RA2 \<circ> RA1) ?T)"
-    by (simp only: comp_apply RA1_eq)
   also have "... = RA ((\<not> ?F) \<turnstile> ?T)"
-    by (rule RA_design_post[symmetric])
+    apply (rule RA_cong_ac_non_empty)
+    by (simp only: singleton; pred_auto)
   also have "... = P"
     by (rule RAD_RA_design_form[OF assms(1), symmetric])
   finally show ?thesis .

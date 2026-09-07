@@ -96,6 +96,10 @@ definition PBMH :: "('\<beta>, ('s, '\<alpha>) achoices_scheme) urel \<Rightarro
 
 subsection \<open>Predicate Support Laws\<close>
 
+lemma arel_not_not:
+  "(\<not> (\<not> R)) = (R :: 's angelic_rel)"
+  by pred_auto
+
 (* Conjunction absorption facts used to shape normal forms in the
    angelic process theories. *)
 

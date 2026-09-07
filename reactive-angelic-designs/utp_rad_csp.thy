@@ -452,6 +452,12 @@ proof -
     by auto
 qed
 
+lemma rad_p2ac_ac2p_A2_form:
+  "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> A2 P)"
+  apply (simp only: rad_p2ac_ac2p)
+  by (simp add: A2_def ac_non_empty_def fun_eq_iff
+      subset_singleton_iff; pred_auto; blast)
+
 (* Paper Theorem 17. *)
 theorem rad_p2ac_ac2p_refine:
   assumes "P is PBMH_ades"
@@ -465,37 +471,9 @@ lemmas rad_p2ac_ac2p_refine' = rad_p2ac_ac2p_refine[simplified comp_apply]
 
 (* Thesis Lemma L.G.7.11. *)
 lemma rad_p2ac_ac2p_A2:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
   assumes "P is A2"
   shows "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> P)"
-proof -
-  have bridge:
-      "(rad_p2ac \<circ> rad_ac2p) Q = (p2ac \<circ> ac2p) Q"
-      for Q :: "('t::trace, 'e) reactive_angelic_design"
-    by (simp add: rad_p2ac_def rad_ac2p_def)
-  have nonempty: "p2ac Q = (ac_non_empty \<and> p2ac Q)"
-      for Q :: "'s des_hrel"
-    by (simp add: p2ac_def ac_non_empty_def fun_eq_iff; pred_auto)
-  have fixed: "A2 P = P"
-    using assms by (simp add: Healthy_def')
-  have "(rad_p2ac \<circ> rad_ac2p) P = p2ac (ac2p (A2 P))"
-    by (subst bridge; simp only: comp_apply fixed)
-  also have "... = (ac_non_empty \<and> p2ac (ac2p (A2 P)))"
-    by (rule nonempty)
-  also have "... = (ac_non_empty \<and>
-      ((\<not> (A2_rel (\<not> pre\<^sub>D P) \<and>
-          ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)) \<turnstile>\<^sub>r
-       (A2_rel (post\<^sub>D P) \<and>
-          ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)))"
-    by (simp add: A2_def ac2p_rdesign p2ac_design
-        p2ac_ac2p_rel_A2[simplified comp_apply] A2_rel_idem)
-  also have "... = (ac_non_empty \<and> A2 P)"
-    by (simp add: A2_def ac_non_empty_def rdesign_refinement fun_eq_iff;
-        pred_simp; auto)
-  also have "... = (ac_non_empty \<and> P)"
-    by (simp only: fixed)
-  finally show ?thesis .
-qed
+  by (simp only: rad_p2ac_ac2p_A2_form Healthy_if[OF assms])
 
 (* Paper Theorem 18 / Thesis Theorem T.5.3.7. *)
 theorem rad_p2ac_ac2p_RA_design:
@@ -528,11 +506,8 @@ proof -
         RA_design_components[of "\<not> ?F" ?T]
         pred_ba.boolean_algebra.double_compl
         RA1_ac_non_empty_absorb)
-  have A2_PBMH: "PBMH_ades (A2 Q) = A2 Q"
-      for Q :: "('t::trace, 'e) reactive_angelic_design"
-    by (simp add: A2_def PBMH_ades_rdesign A2_rel_def PBMH_idem)
   have D_PBMH: "?D is PBMH_ades"
-    using assms A2_PBMH[of ?F] A2_PBMH[of ?T]
+    using assms PBMH_ades_A2[of ?F] PBMH_ades_A2[of ?T]
     by (simp add: Healthy_def' design_as_disj PBMH_ades_disj
         PBMH_ades_not_ok_expr PBMH_ades_conj_ok)
   have "(rad_p2ac \<circ> rad_ac2p \<circ> RA \<circ> A) ?D =

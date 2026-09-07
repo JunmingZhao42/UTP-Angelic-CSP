@@ -145,6 +145,16 @@ lemma RA1_ac_non_empty_absorb: "RA1 (ac_non_empty \<and> P) = RA1 P"
   by (simp add: RA1_def ac_non_empty_def fun_eq_iff Let_def;
       pred_auto)
 
+lemma A2_RA1_absorb:
+  "A2 (RA1 (A2 P)) = RA1 (A2 P)"
+  by (simp add: A2_def RA1_def fun_eq_iff Let_def comp_def; blast)
+
+lemma RA1_A2_closure [closure]:
+  assumes "P is A2"
+  shows "RA1 P is A2"
+  using A2_RA1_absorb[of P]
+  by (simp only: Healthy_if[OF assms] Healthy_def')
+
 (* Arguments of RA1 may be rewritten under the non-emptiness
    assumption. *)
 lemma RA1_cong_ac_non_empty:
@@ -573,6 +583,11 @@ definition rad_wait_false ::
 no_notation wait_f ("_\<^sub>f" [1000] 1000)
 
 notation rad_wait_false ("_\<^sub>f" [1000] 1000)
+
+lemma A2_wait_cond:
+  "A2 (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
+   (A2 P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> A2 Q)"
+  by (simp add: A2_def expr_if_def fun_eq_iff)
 
 lemma rad_wait_cond_not:
   "(\<not> (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
