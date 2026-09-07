@@ -24,8 +24,10 @@ This repository uses:
 - the profile `utp-2025-2`; and
 - dependency commits pinned under `deps/`.
 
-Most dependencies are pinned from `github.com/isabelle-utp`. `Optics` and
-`Z_Toolkit` use the `optics-2025-2` and `z-2025-2` compatibility forks.
+Most dependencies use upstream `isabelle-utp` repositories. `Optics` and
+`Z_Toolkit` use the `main` branches of the `JunmingZhao42` forks for
+Isabelle2025-2 compatibility. `.gitmodules` records the repositories;
+the submodule entries pin the exact commits.
 
 ## Quick Start
 

@@ -51,5 +51,7 @@ session "Shallow_Expressions_Z" in "Shallow-Expressions/Z" = "Shallow_Expression
 
 session "Circus_Toolkit" in "Circus_Toolkit" = "Z_Toolkit" +
   options [document = false]
+  sessions
+    "Abstract_Prog_Syntax"
   theories
     Circus_Toolkit

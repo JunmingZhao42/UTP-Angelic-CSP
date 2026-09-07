@@ -67,7 +67,7 @@ proof -
   also have "... = RA3AP
       (true \<turnstile> (RA2 \<circ> RA1) ?B)"
     by (simp only: Choice_AP_RA3AP AP_RA3AP_design
-        RA3AP_conj[symmetric] comp_apply design_true_conj
+        RA3AP_conj[symmetric] comp_apply design_true_conj_gen
         RA2_RA1_disj_absorb[OF absorb])
   finally show ?thesis
     by (simp only: RA3AP_true_design comp_apply)
@@ -118,7 +118,7 @@ proof -
         RA3AP_conj[symmetric])
   also have "... =
       RA3AP (true \<turnstile> (RA1 true \<and> RA1 (RA2 X)))"
-    by (simp only: design_true_conj')
+    by (simp only: design_true_conj)
   also have "... = RA3AP (true \<turnstile> RA1 (RA2 X))"
     by (simp only: RA1_conj[symmetric] pred_ba.inf_top_left)
   also have "... = AP (true \<turnstile> X)"
