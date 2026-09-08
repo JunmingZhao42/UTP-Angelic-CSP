@@ -23,6 +23,12 @@ translations
   "_assignment_ades x e" == "CONST assigns_ades x (e)\<^sub>e"
   "_assignment_ades (_svid_tuple (_of_svid_list (x +\<^sub>L y))) e" <= "_assignment_ades (x +\<^sub>L y) e"
 
+subsection \<open>Identity\<close>
+
+(* Thesis Definition 97. *)
+definition Skip_AD :: "'s angelic_design" where
+[pred]: "Skip_AD = arel_to_ades (($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e)"
+
 subsection \<open>Demonic Choice\<close>
 
 abbreviation dchoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<sqinter>\<^sub>D\<^sub>A" 65)
@@ -89,10 +95,35 @@ lemma aseq_state_choice_left [simp]:
   "(($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e ;;\<^sub>A P) = P"
   by (pred_auto)
 
+lemma aseq_state_choice_right [simp]:
+  "(P ;;\<^sub>A ($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e) = P"
+  by (simp add: aseq_def fun_eq_iff; pred_auto)
+
 lemma aseq_true_right_unrest [simp]:
   assumes "$ac\<^sup>> \<sharp> P"
   shows "P ;;\<^sub>A true = P"
   using assms by (pred_auto assms: assms)
+
+lemma aseq_univ_pre_iff:
+  fixes R :: "'s angelic_rel"
+  shows "(\<not> ((\<not> R) ;;\<^sub>A true)) = R \<longleftrightarrow> (out\<alpha> \<sharp> R)"
+proof
+  assume fixed: "(\<not> ((\<not> R) ;;\<^sub>A true)) = R"
+  show "out\<alpha> \<sharp> R"
+  proof (rule arel_indep_out_unrest)
+    fix s0 a b
+    note at_a = fun_cong[OF fixed, of "(s0, a)"]
+    note at_b = fun_cong[OF fixed, of "(s0, b)"]
+    show "R (s0, a) = R (s0, b)"
+      using at_a at_b by (cases a; cases b; simp add: aseq_def; pred_auto)
+  qed
+next
+  assume independent: "out\<alpha> \<sharp> R"
+  have ac_independent: "$ac\<^sup>> \<sharp> R"
+    by (rule unrest_out_var; simp add: independent)
+  show "(\<not> ((\<not> R) ;;\<^sub>A true)) = R"
+    by (simp add: aseq_true_right_unrest unrest ac_independent)
+qed
 
 lemma aseq_mono_left:
   "P \<sqsubseteq> Q \<Longrightarrow> (P ;;\<^sub>A R) \<sqsubseteq> (Q ;;\<^sub>A R)"
@@ -124,6 +155,21 @@ where [pred]: "P ;;\<^sub>A\<^sub>D Q = (\<lambda> (s0, ac').
     (achoices.ac\<^sub>v_update (\<lambda>_.
       {s1. Q (des_vars.more_update
         (astate.s\<^sub>v_update (\<lambda>_. s1)) s0, ac')})) ac'))"
+
+(* Plain alphabet lifting preserves the relation-level composition. *)
+lemma aseq_ades_lift:
+  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>D \<lceil>Q\<rceil>\<^sub>D) = \<lceil>P ;;\<^sub>A Q\<rceil>\<^sub>D"
+  by (simp add: aseq_ades_def aseq_def fun_eq_iff; pred_auto)
+
+lemma ades_lift_logic:
+  "(\<not> \<lceil>P\<rceil>\<^sub>D) = \<lceil>\<not> P\<rceil>\<^sub>D"
+  "(\<lceil>P\<rceil>\<^sub>D \<and> \<lceil>Q\<rceil>\<^sub>D) = \<lceil>P \<and> Q\<rceil>\<^sub>D"
+  "(\<lceil>P\<rceil>\<^sub>D \<longrightarrow> \<lceil>Q\<rceil>\<^sub>D) = \<lceil>P \<longrightarrow> Q\<rceil>\<^sub>D"
+  by pred_auto+
+
+lemma aseq_ades_lift_true:
+  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>D true) = \<lceil>P ;;\<^sub>A true\<rceil>\<^sub>D"
+  by (simp add: aseq_ades_def aseq_def fun_eq_iff; pred_auto)
 
 (* Embedding angelic relations as designs preserves sequential composition. *)
 lemma arel_to_ades_aseq:

@@ -100,6 +100,16 @@ lemma arel_not_not:
   "(\<not> (\<not> R)) = (R :: 's angelic_rel)"
   by pred_auto
 
+lemma arel_indep_out_unrest:
+  fixes R :: "'s angelic_rel"
+  assumes ind: "\<And>s0 a b. R (s0, a) = R (s0, b)"
+  shows "out\<alpha> \<sharp> R"
+  apply (simp add: out\<alpha>_def unrest_lens)
+  apply (intro allI)
+  subgoal for w v
+    by (cases w; simp add: lens_defs ind)
+  done
+
 (* Conjunction absorption facts used to shape normal forms in the
    angelic process theories. *)
 

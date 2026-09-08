@@ -128,6 +128,13 @@ lemma d2ac_is_A [closure]: "d2ac P is A"
 lemma d2ac_is_A2 [closure]: "d2ac P is A2"
   by (simp add: Healthy_def')
 
+lemma d2ac_is_A3 [closure]: "d2ac P is A3"
+  by (simp add: A3_healthy[OF d2ac_is_A] d2ac_def
+      A3_rel_healthy' p2ac_rel_alt p2ac_exist_def; pred_auto; blast)
+
+lemma d2ac_A3 [simp]: "A3 (d2ac P) = d2ac P"
+  using d2ac_is_A3[of P] by (simp only: Healthy_def')
+
 lemma d2ac_mono:
   assumes "P \<sqsubseteq> Q"
   shows "d2ac P \<sqsubseteq> d2ac Q"
@@ -191,7 +198,8 @@ lemma ac2p_rel_subset:
   by (pred_auto)
 
 (* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
-(* My understanding: ac2p(P)(s,z) = P(s, {z}) *)
+(* Direct singleton evaluation of P is valid when P is PBMH_ades-healthy;
+   the general mapping first applies PBMH_ades. *)
 lemma ac2p_alt:
   "ac2p P = (\<lambda> (s0, s1). \<exists> ac.
     let ades_in = \<lparr>ok\<^sub>v = ok\<^sub>v s0,
@@ -213,6 +221,17 @@ lemma ac2p_design:
   by (subst (1) Healthy_if[OF assms, symmetric];
       simp only: H1_H2_eq_design design_def ac2p_subset;
       pred_auto)
+
+lemma ac2p_H_closure:
+  assumes "P is \<^bold>H"
+  shows "ac2p P is \<^bold>H"
+proof -
+  have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
+    using H1_H2_eq_rdesign[of P] by (simp only: Healthy_if[OF assms])
+  have "ac2p (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P) is \<^bold>H"
+    by (simp add: ac2p_rdesign Healthy_def' H1_rdesign H2_rdesign)
+  then show ?thesis by (simp only: P_form[symmetric])
+qed
   
 subsection \<open>Isomorphism and Galois Connection\<close>
 
@@ -293,6 +312,10 @@ proof
   then show False
     by (simp add: P_dummy_def unrest unrest_lens; pred_auto)
 qed
+
+lemma Skip_AD_not_unconditional_right_unit:
+  "(P_dummy ;;\<^sub>D\<^sub>A Skip_AD) \<noteq> P_dummy"
+  using Skip_AD_seq_right_unit_iff_normal[OF P_dummy_is_A] P_dummy_not_normal by blast
 
 lemma ac2p_P_dummy: "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
   unfolding P_dummy_def
@@ -381,7 +404,7 @@ proof -
   qed
 qed
 
-(* Paper Theorem 6. *)
+(* Paper Theorem 6, with the necessary A3 premise characterised above. *)
 theorem d2ac_ac2p:
   fixes P :: "'s angelic_design"
   assumes healthy: "P is A"
@@ -420,6 +443,25 @@ theorem d2ac_ac2p_A2_eq:
   apply (rule ref_antisym)
    apply (use d2ac_ac2p_iff_A3[OF healthy] a3_healthy in blast)
   by (rule d2ac_ac2p_A2[OF healthy a2_healthy])
+
+(* The qualified adjunction on A- and A3-healthy angelic designs. *)
+lemma ac2p_d2ac_galois:
+  assumes "P is A" "P is A3" "Q is \<^bold>H"
+  shows "ac2p P \<sqsubseteq> Q \<longleftrightarrow> P \<sqsubseteq> d2ac Q"
+proof
+  assume refinement: "ac2p P \<sqsubseteq> Q"
+  have unit: "P \<sqsubseteq> d2ac (ac2p P)"
+    using d2ac_ac2p[OF assms(1,2)] by (simp only: comp_apply)
+  have mapped: "d2ac (ac2p P) \<sqsubseteq> d2ac Q"
+    by (rule d2ac_mono[OF refinement])
+  show "P \<sqsubseteq> d2ac Q"
+    using unit mapped by (auto simp add: pred_refine_iff)
+next
+  assume refinement: "P \<sqsubseteq> d2ac Q"
+  show "ac2p P \<sqsubseteq> Q"
+    using ac2p_mono[OF refinement] ac2p_d2ac[OF assms(3)]
+    by (simp only: comp_apply)
+qed
 
 subsection \<open>Sequential Composition\<close>
 
