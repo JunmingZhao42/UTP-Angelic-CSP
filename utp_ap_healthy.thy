@@ -199,6 +199,24 @@ lemma AP_RA3AP_design:
           (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
   by (simp only: AP_wait_cond_design RA3AP_design comp_apply)
 
+(* AP image of a design whose components do not observe final ok. *)
+lemma AP_neg_design:
+  assumes "$ok\<^sup>> \<sharp> F" "$ok\<^sup>> \<sharp> T"
+  shows "AP ((\<not> F) \<turnstile> T) =
+    RA3AP ((\<not> (RA2 \<circ> PBMH_ades) F) \<turnstile>
+      (RA2 \<circ> RA1 \<circ> PBMH_ades) T)"
+proof -
+  have H: "((\<not> F) \<turnstile> T) is \<^bold>H"
+    by (rule design_is_H1_H2; simp add: unrest assms)
+  have F_unrest: "$ok\<^sup>> \<sharp> (\<not> PBMH_ades F)"
+    by (simp add: unrest assms)
+  show ?thesis
+    by (simp only: AP_def CSPA2_def comp_apply Healthy_if[OF H]
+        A_def A1_eq_PBMH_ades[OF H] PBMH_ades_neg_design
+        A0_design_gen[OF F_unrest] RA2_design_distrib RA2_not
+        RA2_ac_non_empty)
+qed
+
 (* Counterpart of RA_true_design. *)
 lemma AP_true_design:
   assumes "(Q \<^sub>f) = Q" "PBMH_ades Q = Q"

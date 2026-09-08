@@ -17,6 +17,7 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
     utp_rad_csp
     utp_rad_ops
     utp_rad_seq
+    utp_rad_ops_csp
     utp_rad_examples
     utp_rad_nd
     utp_rad

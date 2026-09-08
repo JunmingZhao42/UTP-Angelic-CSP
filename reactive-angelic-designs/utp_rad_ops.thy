@@ -222,7 +222,7 @@ proof -
 qed
 
 (* The dual law of Paper Theorem 25. *)
-theorem Chaos_RAD_demonic_choice_zero:
+lemma Chaos_RAD_demonic_choice_zero:
   assumes "P is RAD"
   shows "Chaos\<^sub>R\<^sub>A\<^sub>D \<sqinter>\<^sub>R\<^sub>A\<^sub>D P = Chaos\<^sub>R\<^sub>A\<^sub>D"
 proof -
@@ -798,6 +798,25 @@ lemma PrefixSkip_RAD_RA:
   unfolding PrefixSkip_RAD_def
   by (rule RA_A_absorb_design_true; simp add: Healthy_def' unrest)
 
+lemma PrefixSkip_RAD_design:
+  "PrefixSkip_RAD a =
+   RA1 (true \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+         prefix_post a))"
+  by (simp only: PrefixSkip_RAD_RA RA_true_design RA2_prefix_post)
+
+lemma PrefixSkip_RAD_is_A2 [closure]: "PrefixSkip_RAD a is A2"
+proof -
+  have body:
+    "(true \<turnstile>
+      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> prefix_post a))
+     is A2"
+    by (simp only: Healthy_def' A2_true_design A2_wait_cond
+        A2_state_choice prefix_post_p2ac A2_p2ac)
+  show ?thesis
+    by (simp only: PrefixSkip_RAD_design; rule RA1_A2_closure[OF body])
+qed
+
 (* Paper Theorem 31 / Thesis Theorem T.5.4.26. *)
 theorem PrefixSkip_RAD_angelic_choice:
   assumes "P is RAD"
@@ -908,6 +927,21 @@ lemma extchoice_RAD_closure [closure]:
   apply (rule RAD_design_closure)
    apply (rule design_is_H1_H2; simp add: unrest)
   by (simp add: rad_wait_false_distrib rad_wait_false_extchoice_post)
+
+lemma extchoice_RAD_mono:
+  assumes "P \<sqsubseteq> P'" "Q \<sqsubseteq> Q'"
+  shows "P \<box>\<^sub>R\<^sub>A\<^sub>D Q \<sqsubseteq>
+         P' \<box>\<^sub>R\<^sub>A\<^sub>D Q'"
+  unfolding extchoice_RAD_def comp_apply
+  apply (rule RA_mono, rule A_mono)
+  using assms
+  apply (auto simp add: pred_refine_iff extchoice_post_def ades_singleton_choice_def
+      expr_if_def rad_state.wait_def rad_state.tr_def rad_wait_false_def design_def
+      subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs comp_def
+      astate.s_def des_vars.more\<^sub>L_def des_vars.ok_def
+      conj_pred_def disj_pred_def not_pred_def impl_pred_def
+      split: prod.splits)
+  by (erule bexI[rotated]; auto)+
 
 (* Composition with the Stop postcondition reduces both branches to
    the bare singleton choice: the waiting branch of Stop holds exactly

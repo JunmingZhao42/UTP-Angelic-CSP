@@ -70,17 +70,10 @@ proof -
     unfolding Healthy_def'
     by (simp add: design_as_disj PBMH_ades_disj PBMH_ades_conj_ok
         SS_PBMH[unfolded Healthy_def'])
-  have D_H: "(true \<turnstile> (stop_post \<and> skip_post)) is \<^bold>H"
-    by (rule design_is_H1_H2; simp add: unrest)
-  have "rad_ac2p (Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D Skip\<^sub>R\<^sub>A\<^sub>D) =
-      rad_ac2p (RA (true \<turnstile> (stop_post \<and> skip_post)))"
-    by (simp only: Stop_Skip_angelic_choice
-        RA_A_absorb[OF D_PBMH D_H])
-  also have "... = \<^bold>R (rad_ac2p (true \<turnstile> (stop_post \<and> skip_post)))"
-    by (rule rad_ac2p_RA[OF D_PBMH, simplified comp_apply])
-  also have "... = \<^bold>R (true \<turnstile> false)"
-    by (simp only: rad_ac2p_stop_skip_design)
-  finally show ?thesis .
+  show ?thesis
+    by (simp only: Stop_Skip_angelic_choice_RA
+        rad_ac2p_RA[OF D_PBMH, simplified comp_apply]
+        rad_ac2p_stop_skip_design)
 qed
 
 subsection \<open>Avoiding divergence after termination (Lemma 9)\<close>
@@ -348,132 +341,6 @@ proof -
 qed
 
 subsection \<open>Prefixed termination avoids divergence (Example 17)\<close>
-
-(* The failure observation of a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D
-   Chaos\<^sub>R\<^sub>A\<^sub>D: the event has occurred. *)
-definition prefix_diverge_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design"
-where
-[pred]: "prefix_diverge_post a = (\<lambda> (s0, ac').
-  \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<le>
-    rad_state.tr\<^sub>v y)"
-
-(* The event is offered and has not yet occurred. *)
-definition prefix_offer_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design"
-where
-[pred]: "prefix_offer_post a = (\<lambda> (s0, ac').
-  \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.wait\<^sub>v y \<and>
-    rad_state.tr\<^sub>v y =
-      rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-    a \<notin> rad_state.ref\<^sub>v y)"
-
-lemma prefix_diverge_post_p2ac:
-  "prefix_diverge_post a = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.tr\<^sub>v s @ [a] \<le> rad_state.tr\<^sub>v y)\<rceil>\<^sub>D"
-  by (simp add: prefix_diverge_post_def p2ac_def fun_eq_iff
-      subst_app_def subst_ext_def SEXP_def lens_defs
-      des_vars.more\<^sub>L_def; pred_auto; blast)
-
-lemma prefix_offer_post_p2ac:
-  "prefix_offer_post a = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and>
-    a \<notin> rad_state.ref\<^sub>v y)\<rceil>\<^sub>D"
-  by (simp add: prefix_offer_post_def p2ac_def fun_eq_iff
-      subst_app_def subst_ext_def SEXP_def lens_defs
-      des_vars.more\<^sub>L_def; pred_auto; blast)
-
-lemma prefix_diverge_post_PBMH [simp]:
-  "PBMH_ades (prefix_diverge_post a) = prefix_diverge_post a"
-  by (simp only: prefix_diverge_post_p2ac PBMH_ades_p2ac)
-
-lemma prefix_offer_post_PBMH [simp]:
-  "PBMH_ades (prefix_offer_post a) = prefix_offer_post a"
-  by (simp only: prefix_offer_post_p2ac PBMH_ades_p2ac)
-
-lemma prefix_diverge_post_unrest_ok [unrest]:
-  "$ok\<^sup>> \<sharp> prefix_diverge_post a"
-  apply (simp add: unrest_lens prefix_diverge_post_def)
-  apply (simp add: subst_app_def subst_upd_def subst_id_def
-      SEXP_def lens_defs alpha_defs)
-  done
-
-lemma prefix_offer_post_unrest_ok [unrest]:
-  "$ok\<^sup>> \<sharp> prefix_offer_post a"
-  apply (simp add: unrest_lens prefix_offer_post_def)
-  apply (simp add: subst_app_def subst_upd_def subst_id_def
-      SEXP_def lens_defs alpha_defs)
-  done
-
-(* Handing the prefix over to an arbitrary continuation records
-   exactly that the event has occurred. *)
-lemma prefix_handover_diverge:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
-    ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 true))) =
-   prefix_diverge_post a"
-  apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
-  apply (simp add: RA1_def aseq_ades_def prefix_post_def
-      ades_singleton_choice_def expr_if_def
-      rad_state.wait_def
-      prefix_diverge_post_def rad_trace_extensions_def fun_eq_iff
-      Let_def lens_defs rad_state.wait_def astate.s_def
-      des_vars.more\<^sub>L_def true_pred_def conj_pred_def
-      not_pred_def SEXP_def subst_ext_def
-      subst_app_def ex_in_conv[symmetric])
-  apply clarify
-  subgoal for x0 y0
-    apply (rule iffI)
-     apply (fastforce intro: order_trans)
-    apply (elim bexE)
-    subgoal for y
-      apply (rule conjI)
-       apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-           (rad_state.tr\<^sub>v_update
-             (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-             y)" in bexI; fastforce)
-      by (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-          (rad_state.tr\<^sub>v_update
-            (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-            y)" in exI; fastforce)
-    done
-  done
-
-(* The continuation of the prefix into Chaos: either the event is
-   still offered, or it has occurred and anything may follow. *)
-lemma prefix_continuation_chaos:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
-    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-      RA2 (RA1 true))) =
-   (prefix_offer_post a \<or> prefix_diverge_post a)"
-  apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
-  apply (simp add: RA1_def aseq_ades_def prefix_post_def
-      ades_singleton_choice_def prefix_offer_post_def prefix_diverge_post_def
-      ades_state_choice_def expr_if_def rad_trace_extensions_def
-      fun_eq_iff Let_def lens_defs rad_state.wait_def astate.s_def
-      des_vars.more\<^sub>L_def true_pred_def disj_pred_def
-      conj_pred_def not_pred_def SEXP_def
-      subst_ext_def subst_app_def ex_in_conv[symmetric])
-  apply clarify
-  subgoal for x0 y0
-    apply (rule iffI)
-     apply (fastforce intro: order_trans)
-    apply (elim disjE bexE)
-     subgoal for y
-       apply (rule conjI)
-        apply (rule_tac x=y in bexI; fastforce)
-       by (rule_tac x=y in exI; fastforce)
-    subgoal for y
-      apply (rule conjI)
-       apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-           (rad_state.tr\<^sub>v_update
-             (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-             y)" in bexI; fastforce)
-      by (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-          (rad_state.tr\<^sub>v_update
-            (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-            y)" in exI; fastforce)
-    done
-  done
 
 (* Thesis Theorem T.5.4.29 instantiated to Chaos. *)
 lemma Prefix_Chaos_RAD_RA:
@@ -1053,5 +920,23 @@ proof -
     apply (subst ades_singleton_choice_def[symmetric])
     by (rule outer_normalise)
 qed
+
+subsection \<open>A2 correspondence and external choice\<close>
+
+lemma rad_p2ac_ac2p_Stop_RAD:
+  "(rad_p2ac \<circ> rad_ac2p) Stop\<^sub>R\<^sub>A\<^sub>D = Stop\<^sub>R\<^sub>A\<^sub>D"
+  by (rule rad_p2ac_ac2p_RAD_A2[OF Stop_RAD_is_RAD Stop_RAD_is_A2])
+
+lemma rad_p2ac_ac2p_Skip_RAD:
+  "(rad_p2ac \<circ> rad_ac2p) Skip\<^sub>R\<^sub>A\<^sub>D = Skip\<^sub>R\<^sub>A\<^sub>D"
+  by (rule rad_p2ac_ac2p_RAD_A2[OF Skip_RAD_is_RAD Skip_RAD_is_A2])
+
+lemma extchoice_Stop_RAD_Stop_RAD:
+  "Stop\<^sub>R\<^sub>A\<^sub>D \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D = Stop\<^sub>R\<^sub>A\<^sub>D"
+  by (rule extchoice_RAD_Stop_unit[OF Stop_RAD_is_RAD Stop_RAD_is_A2])
+
+lemma extchoice_Skip_RAD_Stop_RAD:
+  "Skip\<^sub>R\<^sub>A\<^sub>D \<box>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D = Skip\<^sub>R\<^sub>A\<^sub>D"
+  by (rule extchoice_RAD_Stop_unit[OF Skip_RAD_is_RAD Skip_RAD_is_A2])
 
 end

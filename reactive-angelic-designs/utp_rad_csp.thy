@@ -79,6 +79,12 @@ where [pred]: "rad_d2ac = d2ac \<circ> csp2rad_rel"
 lemma rad_p2ac_PBMH_ades [closure]: "rad_p2ac P is PBMH_ades"
   by (simp add: Healthy_def rad_p2ac_def)
 
+lemma rad_p2ac_design_nonempty:
+  "(ac_non_empty \<and> rad_p2ac ((\<not> F) \<turnstile> T)) =
+   (ac_non_empty \<and> ((\<not> rad_p2ac F) \<turnstile> rad_p2ac T))"
+  by (simp only: rad_p2ac_def comp_apply csp2rad_rel_design_distrib
+      p2ac_design_nonempty)
+
 lemma rad_ac2p_disj: "rad_ac2p (P \<or> Q) = (rad_ac2p P \<or> rad_ac2p Q)"
   unfolding rad_ac2p_def comp_apply ac2p_disj
   by (simp add: rad2csp_rel_def fun_eq_iff disj_pred_def)
@@ -370,41 +376,40 @@ lemma rad_p2ac_subst_unrest_ok:
       SEXP_def lens_defs alpha_defs)
   done
 
+lemma rad_p2ac_wait_false_ok:
+  "(((rad_p2ac P) \<^sub>f)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>) =
+   rad_p2ac (wait_f (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup>>\<rbrakk>))"
+  by (auto simp add: rad_p2ac_def p2ac_def csp2rad_rel_def rad2csp_obs_def
+      rad_wait_false_def fun_eq_iff subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs rad_state.wait_def rea_vars.wait_def astate.s_def
+      des_vars.more\<^sub>L_def des_vars.ok_def comp_def split: prod.splits)
+
+(* A reactive design maps componentwise when the mapped failure and
+   success predicates are independent of final ok. *)
+lemma rad_p2ac_R_design_components:
+  assumes "$ok\<^sup>> \<sharp> rad_p2ac F" "$ok\<^sup>> \<sharp> rad_p2ac T"
+  shows "rad_p2ac (\<^bold>R ((\<not> F) \<turnstile> T)) =
+    (RA \<circ> A) ((\<not> rad_p2ac F) \<turnstile> rad_p2ac T)"
+proof -
+  have "rad_p2ac (\<^bold>R ((\<not> F) \<turnstile> T)) =
+      RA ((\<not> rad_p2ac F) \<turnstile> rad_p2ac T)"
+    by (simp only: rad_p2ac_R' RA_cong_ac_non_empty[OF rad_p2ac_design_nonempty])
+  also have "... = (RA \<circ> A) ((\<not> rad_p2ac F) \<turnstile> rad_p2ac T)"
+    apply (rule RA_A_absorb_design[symmetric])
+       apply (simp only: pred_ba.double_compl; rule rad_p2ac_PBMH_ades)
+      apply (rule rad_p2ac_PBMH_ades)
+     apply (simp add: unrest assms)
+    by (rule assms(2))
+  finally show ?thesis .
+qed
+
 (* Paper Theorem 15 / Thesis Theorem T.5.3.4. *)
 theorem rad_p2ac_R_design:
   "(rad_p2ac \<circ> \<^bold>R) ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t)) =
    (RA \<circ> A) ((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile> rad_p2ac (wait_f (P\<^sup>t)))"
-proof -
-  have mapped_design:
-      "(ac_non_empty \<and>
-        rad_p2ac ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t))) =
-       (ac_non_empty \<and>
-        ((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile>
-          rad_p2ac (wait_f (P\<^sup>t))))"
-    using p2ac_design_nonempty[of "csp2rad_rel (wait_f (P\<^sup>f))" "csp2rad_rel (wait_f (P\<^sup>t))"]
-    by (simp add: rad_p2ac_def csp2rad_rel_design_distrib)
-  let ?D = "((\<not> rad_p2ac (wait_f (P\<^sup>f))) \<turnstile> rad_p2ac (wait_f (P\<^sup>t)))"
-  have design_healthy: "?D is \<^bold>H"
-    apply (rule design_is_H1_H2)
-     apply (rule unrest_pred(6))
-     apply (rule rad_p2ac_subst_unrest_ok)
-    by (rule rad_p2ac_subst_unrest_ok)
-  have design_pbmh: "PBMH_ades ?D = ?D"
-    by (simp add: design_as_disj PBMH_ades_disj
-        PBMH_ades_not_ok_expr PBMH_ades_conj_ok rad_p2ac_def)
-  let ?S = "rad_p2ac ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t))"
-  have mapped_RA: "RA ?S = RA ?D"
-    by (rule RA_cong_ac_non_empty[OF mapped_design])
-  have A_absorb: "RA (A ?D) = RA ?D"
-    by (simp only: RA_A'[OF design_healthy] design_pbmh)
-  have "(rad_p2ac \<circ> \<^bold>R) ((\<not> wait_f (P\<^sup>f)) \<turnstile> wait_f (P\<^sup>t)) = RA ?S"
-    by (simp only: comp_apply rad_p2ac_R')
-  also have "... = RA ?D"
-    by (rule mapped_RA)
-  also have "... = (RA \<circ> A) ?D"
-    by (simp only: comp_apply A_absorb)
-  finally show ?thesis .
-qed
+  unfolding comp_apply
+  by (rule rad_p2ac_R_design_components[simplified comp_apply];
+      rule rad_p2ac_subst_unrest_ok)
 
 subsection \<open>Isomorphism and Galois Connection\<close>
 
@@ -530,18 +535,12 @@ lemma rad_p2ac_ac2p_RAD_A2:
   assumes "P is RAD" "P is A2"
   shows "(rad_p2ac \<circ> rad_ac2p) P = P"
 proof -
-  have fixed: "RAD P = P"
-    using assms(1) by (simp only: Healthy_def')
-  have "(rad_p2ac \<circ> rad_ac2p) P = (ac_non_empty \<and> P)"
-    by (rule rad_p2ac_ac2p_A2[OF assms(2)])
-  also have "... = (ac_non_empty \<and> RAD P)"
-    by (simp only: fixed)
-  also have "... = RAD P"
+  have nonempty: "(ac_non_empty \<and> P) = P"
+    apply (subst (1 2) Healthy_if[OF assms(1), symmetric])
     unfolding RAD_def comp_apply
     by (rule RA_ac_non_empty_absorb)
-  also have "... = P"
-    by (rule fixed)
-  finally show ?thesis .
+  show ?thesis
+    by (simp only: rad_p2ac_ac2p_A2_form Healthy_if[OF assms(2)] nonempty)
 qed
 
 lemmas rad_p2ac_ac2p_RAD_A2' = rad_p2ac_ac2p_RAD_A2[simplified comp_apply]

@@ -112,6 +112,13 @@ lemma RA1_ok_out_subst:
       subst_id_def SEXP_def lens_defs des_vars.ok_def
       des_more_ok_update_commute; pred_auto)
 
+lemma RA1_unrest_ok_in [unrest]:
+  "$ok\<^sup>< \<sharp> P \<Longrightarrow> $ok\<^sup>< \<sharp> RA1 P"
+  apply (simp add: unrest_lens RA1_def Let_def)
+  apply (simp add: subst_app_def subst_upd_def subst_id_def
+      SEXP_def lens_defs alpha_defs)
+  done
+
 lemma RA1_unrest_ok_out [unrest]:
   "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> RA1 P"
   apply (simp add: unrest_lens RA1_def Let_def)
@@ -441,29 +448,12 @@ qed
 lemma RA2_RA1_disj_absorb:
   assumes "(X \<or> Y) = Y"
   shows "(RA1 true \<and> (RA2 X \<or> RA2 (RA1 Y))) = RA2 (RA1 Y)"
-proof -
-  have "(RA1 true \<and> (RA2 X \<or> RA2 (RA1 Y))) =
-      ((RA1 true \<and> RA2 X) \<or> (RA1 true \<and> RA2 (RA1 Y)))"
-    by (simp only: pred_ba.boolean_algebra.conj_disj_distrib)
-  also have "... = (RA2 (RA1 X) \<or> RA2 (RA1 Y))"
-    by (simp only: RA1_true_conj_RA2 RA1_idem)
-  also have "... = RA2 (RA1 (X \<or> Y))"
-    by (simp only: RA2_disj[symmetric] RA1_disj[symmetric])
-  finally show ?thesis
-    by (simp only: assms)
-qed
+  apply (simp only: pred_ba.boolean_algebra.conj_disj_distrib
+      RA1_true_conj_RA2 RA1_idem)
+  by (simp only: RA2_disj[symmetric] RA1_disj[symmetric] assms)
 
 lemma RA1_RA2_ac_non_empty: "RA1 (RA2 ac_non_empty) = RA1 true"
-proof -
-  have absorb: "RA1 ac_non_empty = RA1 true"
-    by (rule RA1_cong_ac_non_empty, pred_auto)
-  have "RA1 (RA2 ac_non_empty) = RA2 (RA1 true)"
-    by (simp only: RA1_RA2_commute' absorb)
-  also have "... = RA1 (RA2 true)"
-    by (rule RA1_RA2_commute'[symmetric])
-  finally show ?thesis
-    by (simp only: RA2_true)
-qed
+  by (simp only: RA2_ac_non_empty_eq RA1_idem)
 
 (* Thesis Theorem T.G.2.4: RA2 distributes through full-alphabet angelic
    composition when the right operand is already RA2-normalised. *)
@@ -547,23 +537,11 @@ lemma II_Rac_is_RA2 [closure]: "II_Rac is RA2"
 lemma PBMH_ades_II_Rac [simp]: "PBMH_ades II_Rac = II_Rac"
 proof -
   have split:
-      "II_Rac =
-       (RA1 (\<not> ok\<^sup><) \<or>
-        (\<lambda> (x, y). ok\<^sub>v y \<and>
-          astate.s\<^sub>v (des_vars.more x) \<in>
-          achoices.ac\<^sub>v (des_vars.more y)))"
-    by (simp add: II_Rac_def fun_eq_iff Let_def; pred_auto)
-  have state_healthy:
-      "PBMH_ades (\<lambda> (x, y). ok\<^sub>v y \<and>
-          astate.s\<^sub>v (des_vars.more x) \<in>
-          achoices.ac\<^sub>v (des_vars.more y)) =
-       (\<lambda> (x, y). ok\<^sub>v y \<and>
-          astate.s\<^sub>v (des_vars.more x) \<in>
-          achoices.ac\<^sub>v (des_vars.more y))"
-    by (simp add: PBMH_ades_def PBMH_def pbmh_step_def fun_eq_iff;
-        pred_auto; blast)
+    "II_Rac = (RA1 (\<not> ok\<^sup><) \<or> (ades_state_choice \<and> ok\<^sup>>))"
+    by (simp add: II_Rac_def ades_state_choice_def fun_eq_iff Let_def; pred_auto)
   show ?thesis
-    by (simp add: split PBMH_ades_disj state_healthy)
+    by (simp only: split PBMH_ades_disj PBMH_ades_RA1_not_ok
+        PBMH_ades_conj_ok Healthy_if[OF ades_state_choice_is_PBMH_ades])
 qed
 
 lemma II_Rac_is_PBMH_ades [closure]: "II_Rac is PBMH_ades"
@@ -844,7 +822,7 @@ lemma RA3_Idempotent [closure]: "Idempotent RA3"
 
 (* Paper Theorem 68.  The paper's theorem statement repeats
    RA3 \<circ> RA1 on both sides, but its proof establishes this commutation law. *)
-lemma RA1_RA3_commute: "(RA1 \<circ> RA3) P = (RA3 \<circ> RA1) P"
+theorem RA1_RA3_commute: "(RA1 \<circ> RA3) P = (RA3 \<circ> RA1) P"
   by (simp add: RA3_def RA1_wait_cond RA1_II_Rac)
 
 (* Paper Theorem 69 *)
@@ -928,12 +906,8 @@ lemma RA_true_design:
   "RA (true \<turnstile> Q) =
    RA1 (true \<turnstile>
         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q))"
-proof -
-  have "RA (true \<turnstile> Q) = RA1 (RA3 (true \<turnstile> RA2 Q))"
-    by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA2_true)
-  then show ?thesis
-    by (simp only: RA1_RA3_design expr_if_idem)
-qed
+  by (simp only: RA_as_RA1_RA3_RA2 RA2_design_distrib RA2_true
+      RA1_RA3_design expr_if_idem)
 
 lemma RA_cong_ac_non_empty:
   assumes "(ac_non_empty \<and> P) = (ac_non_empty \<and> Q)"
@@ -960,13 +934,7 @@ lemmas RA_A' = RA_A[simplified comp_apply]
 lemma RA_A_absorb:
   assumes "P is PBMH_ades" "P is \<^bold>H"
   shows "(RA \<circ> A) P = RA P"
-proof -
-  have "(RA \<circ> A) P = (RA \<circ> PBMH_ades) P"
-    by (rule RA_A[OF assms(2)])
-  also have "... = RA P"
-    using assms(1) by (simp only: comp_apply Healthy_def')
-  finally show ?thesis .
-qed
+  by (simp only: comp_apply RA_A'[OF assms(2)] Healthy_if[OF assms(1)])
 
 (* RA_A_absorb specialised to designs: PBMH components and freshness of
    the final ok suffice for the design to satisfy the absorption
@@ -1086,20 +1054,9 @@ lemmas RA_design_wf_ok_true' = RA_design_wf_ok_true[simplified comp_apply]
 (* Paper Lemma 22 *)
 lemma RA_design_post:
   "RA (P \<turnstile> Q) = RA (P \<turnstile> (RA2 \<circ> RA1) Q)"
-proof -
-  have ra12_design:
-      "RA2 (RA1 (P \<turnstile> Q)) =
-       RA2 (RA1 (P \<turnstile> RA2 (RA1 Q)))"
-    by (simp only: RA1_RA2_commute'[symmetric, of "P \<turnstile> Q"]
-        RA2_design_distrib[of P Q]
-        RA1_design_post[of "RA2 P" "RA2 Q"]
-        RA1_RA2_commute'[of Q]
-        RA1_RA2_commute'[symmetric, of "P \<turnstile> RA2 (RA1 Q)"]
-        RA2_design_distrib[of P "RA2 (RA1 Q)"] RA2_idem[of "RA1 Q"])
-  show ?thesis
-    unfolding RA_def comp_apply
-    by (simp only: RA_comms ra12_design)
-qed
+  unfolding RA_def' comp_apply
+  apply (simp only: RA1_RA2_commute'[symmetric] RA2_design_distrib RA2_idem)
+  by (rule arg_cong[where f=RA3], rule RA1_design_post)
 
 (* Under (RA \<circ> A) with a true precondition, a postcondition may be
    replaced by its RA2 \<circ> RA1 \<circ> PBMH_ades normalisation. *)
@@ -1132,16 +1089,8 @@ lemma PBMH_ades_RA2_RA1_absorb:
 lemma RA_RA2_RA1_PBMH_ades_conj_ok:
   "RA (RA2 (RA1 (PBMH_ades P)) \<and> ok\<^sup>>) =
    RA (PBMH_ades (P \<and> ok\<^sup>>))"
-proof -
-  have "RA (RA2 (RA1 (PBMH_ades P)) \<and> ok\<^sup>>) =
-        RA (RA2 (RA1 (PBMH_ades P \<and> ok\<^sup>>)))"
-    by (simp only: RA1_conj_ok RA2_conj_ok)
-  also have "... = RA (RA2 (RA1 (PBMH_ades (P \<and> ok\<^sup>>))))"
-    by (simp only: PBMH_ades_conj_ok)
-  also have "... = RA (PBMH_ades (P \<and> ok\<^sup>>))"
-    by (simp only: RA_RA2_RA1_absorb)
-  finally show ?thesis .
-qed
+  by (simp only: RA1_conj_ok[symmetric] RA2_conj_ok[symmetric]
+      RA_RA2_RA1_absorb PBMH_ades_conj_ok)
 
 lemma RA_design_PBMH_normalise:
   "RA (PBMH_ades

@@ -41,42 +41,38 @@ proof -
     by (simp only: comp_apply RA3AP_design_post)
 qed
 
+(* Thesis Lemmas L.H.2.4 and L.H.2.5. *)
+lemma H1_RAD_AP_design:
+  "(H1 \<circ> RAD) P =
+    AP ((\<not> (RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))
+      \<turnstile> (P \<^sub>f)\<^sup>t)"
+proof -
+  have F: "$ok\<^sup>> \<sharp> (RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)"
+    and T: "$ok\<^sup>> \<sharp> (P \<^sub>f)\<^sup>t"
+    by unrest+
+  show ?thesis
+    by (simp only: comp_apply AP_neg_design[OF F T, simplified comp_apply]
+        H1_RAD_design[simplified comp_apply] PBMH_ades_RA1_absorb[simplified comp_apply]
+        RA1_RA2_commute' RA3AP_design RA3AP_design_post)
+qed
+
+lemma H1_RAD_AP_design_healthy:
+  assumes "P is RAD"
+  shows "H1 P = AP ((\<not> RA1 ((P \<^sub>f)\<^sup>f))
+    \<turnstile> (P \<^sub>f)\<^sup>t)"
+  using H1_RAD_AP_design[of P]
+  by (simp only: comp_apply Healthy_if[OF assms]
+      Healthy_if[OF RAD_wf_ok_false_PBMH[OF assms]])
+
+lemma H1_RAD_AP_closure [closure]:
+  assumes "P is RAD"
+  shows "H1 P is AP"
+  by (simp only: H1_RAD_AP_design_healthy[OF assms] AP_healthy)
+
 lemma H1_RAD_is_PBMH_ades:
   assumes "P is RAD"
   shows "H1 P is PBMH_ades"
-proof -
-  let ?F = "(RA1 \<circ> RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)"
-  let ?T = "(RA3AP \<circ> RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)"
-  have failure:
-    "(false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?F) is PBMH_ades"
-    unfolding comp_apply
-    by (intro rad_wait_cond_PBMH_ades_closure false_PBMH_ades
-        RA1_PBMH_ades_closure RA2_PBMH_ades_closure
-        Healthy_Idempotent[OF PBMH_ades_Idempotent])
-  have post: "?T is PBMH_ades"
-    unfolding comp_apply
-    by (intro RA3AP_PBMH_ades_closure RA2_PBMH_ades_closure
-        RA1_PBMH_ades_closure
-        Healthy_Idempotent[OF PBMH_ades_Idempotent])
-  have normal:
-    "H1 P = ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) \<turnstile> ?T)"
-  proof -
-    have "H1 P = (H1 \<circ> RAD) P"
-      by (simp only: comp_apply Healthy_if[OF assms])
-    also have "... =
-        ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) \<turnstile> ?T)"
-      by (rule H1_RAD_design)
-    finally show ?thesis .
-  qed
-  have pre_form:
-    "(true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?F)) =
-     (\<not> (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?F))"
-    by (simp only: rad_wait_cond_not pred_ba.compl_bot_eq
-        pred_ba.double_compl)
-  show ?thesis
-    unfolding normal pre_form
-    by (rule PBMH_ades_design_closure[OF failure post])
-qed
+  by (rule H1_PBMH_ades_closure[OF RAD_is_PBMH_ades[OF assms]])
 
 subsection \<open>Non-Divergent Processes\<close>
 
@@ -160,6 +156,16 @@ lemma RA1_AP_RAD: "(RA1 \<circ> AP) P = RAD P"
   by (simp only: RA1_AP_design[simplified comp_apply]
       RAD_design_form comp_apply)
 
+lemma RA1_AP_RAD_closure [closure]:
+  assumes "P is AP"
+  shows "RA1 P is RAD"
+proof -
+  have eq: "RA1 P = RAD P"
+    using RA1_AP_RAD[of P]
+    by (simp only: comp_apply Healthy_if[OF assms])
+  show ?thesis by (simp only: eq RAD_healthy)
+qed
+
 subsection \<open>Isomorphism and Galois Connection\<close>
 
 (* Paper Theorem 41 / Thesis Theorem T.6.3.3. *)
@@ -190,6 +196,23 @@ proof -
     unfolding eq AP_RA3AP_design
     by (rule RA3AP_mono[OF design_pre_weaken[OF
         not_refine[OF RA1_refine[OF F_PBMH]]]])
+qed
+
+lemma AP_RAD_galois:
+  assumes "P is AP" "Q is RAD"
+  shows "(RA1 P \<sqsubseteq> Q) \<longleftrightarrow> (P \<sqsubseteq> H1 Q)"
+proof
+  assume linked: "RA1 P \<sqsubseteq> Q"
+  have unit: "P \<sqsubseteq> H1 (RA1 P)"
+    using H1_RA1_AP_refine[of P]
+    by (simp only: comp_apply Healthy_if[OF assms(1)])
+  show "P \<sqsubseteq> H1 Q"
+    by (rule ref_by_trans[OF unit H1_monotone[OF linked]])
+next
+  assume linked: "P \<sqsubseteq> H1 Q"
+  show "RA1 P \<sqsubseteq> Q"
+    using RA1_mono[OF linked]
+    by (simp only: RA1_H1_RAD_healthy[OF assms(2), simplified comp_apply])
 qed
 
 subsection \<open>Correspondence for True-Precondition Designs\<close>

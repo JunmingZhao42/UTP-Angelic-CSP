@@ -220,17 +220,22 @@ definition ChaosCSP_AP ::
 lemma ChaosCSP_AP_is_AP [closure]: "ChaosCSP\<^sub>A\<^sub>P is AP"
   by (simp add: ChaosCSP_AP_def AP_healthy)
 
-(* The wait-conditional design with failure condition RA1 true, written
-   as the thesis L.6.4.2 explicit design.  Not generic in the failure
-   condition: the collapse needs it to be independent of s.wait, as
-   RA1 true is. *)
+(* Collapse the failure branch under the design's precondition. *)
+lemma design_wait_failure_collapse:
+  "((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> F)) \<turnstile>
+    (S \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> F)) =
+   ((($rad_wait_lens\<^sup><)\<^sub>e \<or> (\<not> F)) \<turnstile>
+    (($rad_wait_lens\<^sup><)\<^sub>e \<and> S))"
+  by (simp add: design_def expr_if_def fun_eq_iff; pred_auto)
+
+(* The thesis L.6.4.2 instance. *)
 lemma chaos_wait_cond_collapse:
   "((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA1 true)) \<turnstile>
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA1 true)) =
    ((($rad_wait_lens\<^sup><)\<^sub>e \<or> (\<not> RA1 true)) \<turnstile>
     (($rad_wait_lens\<^sup><)\<^sub>e \<and>
      ($ades_s_lens\<^sup>< \<in> $ades_ac_lens\<^sup>>)\<^sub>e))"
-  by (pred_auto add: rad_trace_extensions_def)
+  by (simp only: design_wait_failure_collapse ades_state_choice_expr)
 
 (* Thesis Lemma L.6.4.2: ChaosCSP_AP as an explicit design,
    s.wait \<or> \<not> RA1 true \<turnstile> s.wait \<and> s \<in> ac'. *)
@@ -462,6 +467,49 @@ proof -
     done
 qed
 
+(* Normalise the right operand's initial ok observation once. *)
+lemma AP_wait_design_seq_gen:
+  assumes "$ok\<^sup>> \<sharp> F" "$ok\<^sup>> \<sharp> T"
+    and "F is PBMH_ades" "T is PBMH_ades"
+  shows
+    "(((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> F)) \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> T)) ;;\<^sub>D\<^sub>A
+      ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> G)) \<turnstile>
+        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> U))) =
+     RA3AP (((\<not> (F ;;\<^sub>A\<^sub>D true)) \<and>
+              (\<not> (T ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> G)))) \<turnstile>
+             (T ;;\<^sub>A\<^sub>D
+               (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+                ((\<not> G) \<longrightarrow> U))))"
+proof -
+  let ?G = "G\<lbrakk>True/ok\<^sup><\<rbrakk>"
+  let ?U = "U\<lbrakk>True/ok\<^sup><\<rbrakk>"
+  have right_normal:
+    "((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> G)) \<turnstile>
+       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> U)) =
+     ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> ?G)) \<turnstile>
+       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> ?U))"
+    by (rule design_ok_in_cong)
+      (simp_all add: usubst rad_wait_cond_ok_in_subst)
+  have result_normal:
+    "(((\<not> (F ;;\<^sub>A\<^sub>D true)) \<and>
+        (\<not> (T ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> ?G)))) \<turnstile>
+       (T ;;\<^sub>A\<^sub>D
+         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+          ((\<not> ?G) \<longrightarrow> ?U)))) =
+     (((\<not> (F ;;\<^sub>A\<^sub>D true)) \<and>
+        (\<not> (T ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> G)))) \<turnstile>
+       (T ;;\<^sub>A\<^sub>D
+         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+          ((\<not> G) \<longrightarrow> U))))"
+    by (rule design_ok_in_cong)
+      (simp_all add: usubst ok_in_subst_laws)
+  show ?thesis
+    unfolding right_normal
+    by (subst AP_wait_design_seq[OF assms(1,2) _ _ assms(3,4)];
+        simp add: unrest result_normal)
+qed
+
 (* Thesis Theorem T.H.3.3. *)
 lemma AP_seq_design_PBMH:
   "(AP P ;;\<^sub>D\<^sub>A AP Q) =
@@ -478,99 +526,65 @@ proof -
   let ?Pt = "RA1 (PBMH_ades ((P \<^sub>f)\<^sup>t))"
   let ?Qf = "PBMH_ades ((Q \<^sub>f)\<^sup>f)"
   let ?Qt = "RA1 (PBMH_ades ((Q \<^sub>f)\<^sup>t))"
-  let ?Qf' = "?Qf\<lbrakk>True/ok\<^sup><\<rbrakk>"
-  let ?Qt' = "?Qt\<lbrakk>True/ok\<^sup><\<rbrakk>"
   let ?pre = "((\<not> (?Pf ;;\<^sub>A\<^sub>D true)) \<and>
     (\<not> (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf))))"
   let ?post = "(?Pt ;;\<^sub>A\<^sub>D
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 ((\<not> ?Qf) \<longrightarrow> ?Qt)))"
-  let ?pre' = "((\<not> (?Pf ;;\<^sub>A\<^sub>D true)) \<and>
-    (\<not> (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf'))))"
-  let ?post' = "(?Pt ;;\<^sub>A\<^sub>D
-    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-     RA2 ((\<not> ?Qf') \<longrightarrow> ?Qt')))"
-  let ?N' = "(?pre' \<turnstile> ?post')"
-  have Q_push:
-    "(true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA2 ?Qf'))\<lbrakk>True/ok\<^sup><\<rbrakk> =
-     (true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA2 ?Qf))\<lbrakk>True/ok\<^sup><\<rbrakk>"
-    "(ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 ?Qt')\<lbrakk>True/ok\<^sup><\<rbrakk> =
-     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 ?Qt)\<lbrakk>True/ok\<^sup><\<rbrakk>"
-    by (simp_all add: usubst ok_in_subst_laws)
-  have Q_form:
-    "AP Q =
-     ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA2 ?Qf')) \<turnstile>
-      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 ?Qt'))"
-    by (simp only: AP_wait_cond_design comp_apply
-        design_ok_in_cong[OF Q_push])
+  let ?N = "(?pre \<turnstile> ?post)"
   have seq_raw:
     "(AP P ;;\<^sub>D\<^sub>A AP Q) =
      RA3AP (((\<not> (RA2 ?Pf ;;\<^sub>A\<^sub>D true)) \<and>
               (\<not> (RA2 ?Pt ;;\<^sub>A\<^sub>D
-                ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf')))) \<turnstile>
+                ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf)))) \<turnstile>
              (RA2 ?Pt ;;\<^sub>A\<^sub>D
                (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-                ((\<not> RA2 ?Qf') \<longrightarrow> RA2 ?Qt'))))"
-  proof -
-    have "(AP P ;;\<^sub>D\<^sub>A AP Q) =
-      (((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA2 ?Pf)) \<turnstile>
-         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 ?Pt)) ;;\<^sub>D\<^sub>A
-       ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA2 ?Qf')) \<turnstile>
-         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 ?Qt')))"
-      by (simp only: Q_form AP_wait_cond_design[of P] comp_apply)
-    also have "... = RA3AP
-      (((\<not> (RA2 ?Pf ;;\<^sub>A\<^sub>D true)) \<and>
-         (\<not> (RA2 ?Pt ;;\<^sub>A\<^sub>D
-          ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf')))) \<turnstile>
-       (RA2 ?Pt ;;\<^sub>A\<^sub>D
-        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-         ((\<not> RA2 ?Qf') \<longrightarrow> RA2 ?Qt'))))"
-      apply (rule AP_wait_design_seq)
-           apply (simp_all add: unrest)
-       apply (intro RA2_PBMH_ades_closure
-          Healthy_Idempotent[OF PBMH_ades_Idempotent])
-      apply (intro RA2_PBMH_ades_closure RA1_PBMH_ades_closure
-          Healthy_Idempotent[OF PBMH_ades_Idempotent])
-      done
-    finally show ?thesis .
-  qed
+                ((\<not> RA2 ?Qf) \<longrightarrow> RA2 ?Qt))))"
+    unfolding AP_wait_cond_design comp_apply
+    apply (rule AP_wait_design_seq_gen)
+       apply (simp_all add: unrest)
+     apply (intro RA2_PBMH_ades_closure
+        Healthy_Idempotent[OF PBMH_ades_Idempotent])
+    apply (intro RA2_PBMH_ades_closure RA1_PBMH_ades_closure
+        Healthy_Idempotent[OF PBMH_ades_Idempotent])
+    done
   have wait_fixed:
-    "RA2 ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf') =
-     ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf')"
+    "RA2 ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf) =
+     ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf)"
     by (simp only: RA2_not_wait_conj RA2_idem)
   have seq_RA3AP_RA2:
-    "(AP P ;;\<^sub>D\<^sub>A AP Q) = RA3AP (RA2 ?N')"
+    "(AP P ;;\<^sub>D\<^sub>A AP Q) = RA3AP (RA2 ?N)"
     unfolding seq_raw
     by (simp only: RA2_design_distrib RA2_conj RA2_not
         RA2_aseq_fixed RA2_aseq_fixed[OF wait_fixed]
         RA2_true RA2_idem RA2_wait_cond RA2_state_choice RA2_impl)
   have Pf_PBMH: "?Pf is PBMH_ades"
     and Pt_PBMH: "?Pt is PBMH_ades"
-    and Qf_PBMH: "?Qf' is PBMH_ades"
-    and Qt_PBMH: "?Qt' is PBMH_ades"
+    and Qf_PBMH: "?Qf is PBMH_ades"
+    and Qt_PBMH: "?Qt is PBMH_ades"
     by (simp_all add: Healthy_def' PBMH_ades_ok_in_subst
         PBMH_ades_idem
         PBMH_ades_RA1_absorb[simplified comp_apply])
-  have N_PBMH: "?N' is PBMH_ades"
+  have N_PBMH: "?N is PBMH_ades"
   proof -
     have bad_PBMH:
       "((?Pf ;;\<^sub>A\<^sub>D true) \<or>
-        (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf')))
+        (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf)))
        is PBMH_ades"
       unfolding rad_wait_cond_false[symmetric]
       by (intro PBMH_ades_disj_closure aseq_ades_PBMH_ades_closure
           rad_wait_cond_PBMH_ades_closure RA2_PBMH_ades_closure
           false_PBMH_ades true_PBMH_ades Pf_PBMH Pt_PBMH Qf_PBMH)
-    have post_PBMH: "?post' is PBMH_ades"
+    have post_PBMH: "?post is PBMH_ades"
       unfolding impl_neg_disj
       apply (simp only: pred_ba.double_compl)
       by (intro aseq_ades_PBMH_ades_closure
           rad_wait_cond_PBMH_ades_closure PBMH_ades_disj_closure
           RA2_PBMH_ades_closure ades_state_choice_is_PBMH_ades
           Pt_PBMH Qf_PBMH Qt_PBMH)
-    have pre_as_neg: "?pre' =
+    have pre_as_neg: "?pre =
         (\<not> ((?Pf ;;\<^sub>A\<^sub>D true) \<or>
-          (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf'))))"
+          (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf))))"
       by pred_auto
     show ?thesis
       unfolding pre_as_neg
@@ -605,27 +619,20 @@ proof -
             aseq_ades_ac_empty_cong[OF cont_agree]])
   qed
   have Qt_RA1_form:
-    "RA2 ?Qt' = RA1 (RA2
-      ((PBMH_ades ((Q \<^sub>f)\<^sup>t))\<lbrakk>True/ok\<^sup><\<rbrakk>))"
-    by (simp only: RA1_ok_in_subst
-        RA1_RA2_commute'[symmetric])
+    "RA2 ?Qt = RA1 (RA2 (PBMH_ades ((Q \<^sub>f)\<^sup>t)))"
+    by (simp only: RA1_RA2_commute'[symmetric])
   have absorb0:
-    "(ac_non_empty \<and> (?pre' \<and> ?post')) = (?pre' \<and> ?post')"
+    "(ac_non_empty \<and> (?pre \<and> ?post)) = (?pre \<and> ?post)"
     apply (simp only: impl_neg_disj pred_ba.double_compl RA2_disj
         Qt_RA1_form)
     by (rule conj_extra_absorb[OF seq_nonempty])
-  have AP_N: "AP ?N' = RA3AP (RA2 ?N')"
+  have AP_N: "AP ?N = RA3AP (RA2 ?N)"
     by (rule AP_design_RA3AP_RA2[OF _ _ N_PBMH
         RA1_true_absorb_lift[OF absorb0]]; simp add: unrest)
-  have desubst: "?N' = (?pre \<turnstile> ?post)"
-    by (rule design_ok_in_cong)
-      (simp_all add: usubst ok_in_subst_laws)
-  have "(AP P ;;\<^sub>D\<^sub>A AP Q) = RA3AP (RA2 ?N')"
+  have "(AP P ;;\<^sub>D\<^sub>A AP Q) = RA3AP (RA2 ?N)"
     by (rule seq_RA3AP_RA2)
-  also have "... = AP ?N'"
+  also have "... = AP ?N"
     by (rule AP_N[symmetric])
-  also have "... = AP (?pre \<turnstile> ?post)"
-    by (simp only: desubst)
   finally show ?thesis
     by (simp only: comp_apply)
 qed
@@ -863,6 +870,32 @@ proof -
           OF seq_refine H1_monotone[OF seq_RA1_refine]])
 qed
 
+(* Shared successful-continuation facts for the RAD and AP sequence laws. *)
+lemma AP_true_seq_post_facts:
+  assumes "(P \<^sub>f)\<^sup>t is PBMH_ades"
+    "(Q \<^sub>f)\<^sup>t is PBMH_ades"
+  defines "C \<equiv> (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+      RA2 (RA1 ((Q \<^sub>f)\<^sup>t))))"
+  shows "(C \<^sub>f) = C"
+    and "C is PBMH_ades"
+    and "$ok\<^sup>> \<sharp> C"
+    and "C\<lbrakk>True/ok\<^sup>>\<rbrakk> = C"
+proof -
+  show "(C \<^sub>f) = C"
+    by (simp only: C_def rad_wait_false_aseq_ades
+        rad_wait_false_RA1_commute rad_wait_false_ok_true rad_wait_false_idem)
+  show "C is PBMH_ades"
+    unfolding C_def
+    by (intro aseq_ades_PBMH_ades_closure
+        RA1_PBMH_ades_closure rad_wait_cond_PBMH_ades_closure
+        ades_state_choice_is_PBMH_ades RA2_PBMH_ades_closure assms)
+  show "$ok\<^sup>> \<sharp> C"
+    unfolding C_def by unrest
+  then show "C\<lbrakk>True/ok\<^sup>>\<rbrakk> = C"
+    by (simp add: unrest usubst)
+qed
+
 (* Paper Theorem 62 / Thesis Theorem T.6.4.21. *)
 theorem RA1_H1_seq:
   assumes "P is RAD" "Q is RAD" "P is NDRAD" "Q is NDRAD"
@@ -874,19 +907,9 @@ proof -
      RA2 (RA1 ?Qt)))"
   note Pt_facts = RAD_wf_ok_true_facts[OF assms(1)]
   note Qt_facts = RAD_wf_ok_true_facts[OF assms(2)]
-  have post_wf: "(?post \<^sub>f) = ?post"
-    by (simp only: rad_wait_false_aseq_ades
-        rad_wait_false_RA1_commute Pt_facts(1))
-  have post_PBMH: "?post is PBMH_ades"
-    by (intro aseq_ades_PBMH_ades_closure
-        RA1_PBMH_ades_closure rad_wait_cond_PBMH_ades_closure
-        ades_state_choice_is_PBMH_ades RA2_PBMH_ades_closure
-        RAD_wf_ok_true_PBMH[OF assms(1)]
-        RAD_wf_ok_true_PBMH[OF assms(2)])
-  have post_unrest: "$ok\<^sup>> \<sharp> ?post"
-    by (simp add: unrest)
-  have post_ok: "?post\<lbrakk>True/ok\<^sup>>\<rbrakk> = ?post"
-    using post_unrest by (simp add: unrest usubst)
+  note post_facts = AP_true_seq_post_facts[OF
+    RAD_wf_ok_true_PBMH[OF assms(1)]
+    RAD_wf_ok_true_PBMH[OF assms(2)]]
   have linked_seq:
     "(H1 P ;;\<^sub>D\<^sub>A H1 Q) = AP (true \<turnstile> ?post)"
     by (simp only: H1_NDRAD_AP_true_design[OF assms(1,3)]
@@ -894,9 +917,9 @@ proof -
         AP_true_design_seq[OF Pt_facts Qt_facts])
   have "RA1 (H1 P ;;\<^sub>D\<^sub>A H1 Q) = RA (true \<turnstile> ?post)"
     by (simp only: linked_seq
-        RA1_AP_true_design[OF post_wf Healthy_if[OF post_PBMH] post_ok])
+        RA1_AP_true_design[OF post_facts(1) Healthy_if[OF post_facts(2)] post_facts(4)])
   also have "... = (RA \<circ> A) (true \<turnstile> ?post)"
-    by (rule RA_A_absorb_design_true[OF post_PBMH post_unrest,
+    by (rule RA_A_absorb_design_true[OF post_facts(2,3),
           symmetric])
   also have "... = (P ;;\<^sub>R\<^sub>A\<^sub>D Q)"
     by (rule NDRAD_seq_design[OF assms, symmetric])
@@ -940,8 +963,7 @@ lemma RA1_PrefixSkip_AP:
 
 (* Thesis Section 6.4.8: the compound process a \<rightarrow>\<^sub>A\<^sub>P P
    abbreviates (a \<rightarrow>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) ;;\<^sub>D\<^sub>A P; its
-   Theorem T.6.4.23 normal form instances are in
-   \<open>utp_ap_examples\<close>. *)
+   general normal form is stated below. *)
 definition Prefix_AP ::
   "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
    ('e list, 'e) reactive_angelic_design"
@@ -953,5 +975,55 @@ lemma Prefix_AP_closure [closure]:
   shows "(a \<rightarrow>\<^sub>A\<^sub>P P) is AP"
   unfolding Prefix_AP_def
   by (rule AP_seq_closure[OF PrefixSkip_AP_is_AP assms])
+
+(* Compound prefixing of Skip is the primitive prefix. *)
+lemma Prefix_Skip_AP:
+  "(a \<rightarrow>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) = PrefixSkip_AP a"
+  unfolding Prefix_AP_def PrefixSkip_AP_def Skip_AP_def
+  apply (subst AP_true_design_seq[OF PrefixSkip_AP_facts Skip_AP_facts])
+  by (simp only: prefix_continuation_skip)
+
+(* Thesis Theorem T.6.4.23. *)
+lemma Prefix_AP_design:
+  assumes "P is AP"
+  shows "(a \<rightarrow>\<^sub>A\<^sub>P P) =
+    AP ((\<not> prefix_handover a ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<turnstile>
+      prefix_continuation a ((RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
+proof -
+  let ?D = "true \<turnstile> prefix_post a"
+  let ?DF = "PBMH_ades ((?D \<^sub>f)\<^sup>f)"
+  let ?DT = "(RA1 \<circ> PBMH_ades) ((?D \<^sub>f)\<^sup>t)"
+  let ?F = "PBMH_ades ((P \<^sub>f)\<^sup>f)"
+  let ?T = "RA1 (PBMH_ades ((P \<^sub>f)\<^sup>t))"
+  let ?pre = "((\<not> (?DF ;;\<^sub>A\<^sub>D true)) \<and>
+    (\<not> (?DT ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?F))))"
+  let ?post = "?DT ;;\<^sub>A\<^sub>D
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+      RA2 ((\<not> ?F) \<longrightarrow> ?T))"
+  let ?pre' = "\<not> (RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+    ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?F))"
+  let ?post' = "RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+      RA2 ((\<not> ?F) \<longrightarrow> ?T))"
+  note D_push = true_design_components_ok_in_subst[OF PrefixSkip_AP_facts]
+  have design_eq: "(?pre \<turnstile> ?post) = (?pre' \<turnstile> ?post')"
+    by (rule design_ok_in_cong)
+      (simp_all only: subst_pred aseq_ades_ok_in_subst
+        rad_wait_cond_ok_in_subst D_push
+        aseq_ades_false_left pred_ba.compl_bot_eq pred_ba.inf_top_left)
+  have "(a \<rightarrow>\<^sub>A\<^sub>P P) = (AP ?D ;;\<^sub>D\<^sub>A AP P)"
+    by (simp only: Prefix_AP_def PrefixSkip_AP_def Healthy_if[OF assms])
+  also have "... = AP (?pre \<turnstile> ?post)"
+    by (simp only: AP_seq_design_PBMH comp_apply)
+  also have "... = AP (?pre' \<turnstile> ?post')"
+    by (simp only: design_eq)
+  also have "... = AP
+      ((\<not> prefix_handover a (RA2 ?F)) \<turnstile>
+       prefix_continuation a (RA2 ?T))"
+    by (simp only: impl_neg_disj pred_ba.double_compl RA2_disj
+        prefix_handover_aseq prefix_continuation_aseq prefix_design_failure_absorb)
+  finally show ?thesis
+    by (simp only: comp_apply)
+qed
 
 end

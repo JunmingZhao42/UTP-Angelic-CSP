@@ -164,19 +164,9 @@ proof -
      RA2 (RA1 ?Qt)))"
   note Pt_facts = AP_wf_ok_true_facts[OF assms(1)]
   note Qt_facts = AP_wf_ok_true_facts[OF assms(2)]
-  have post_wf: "(?post \<^sub>f) = ?post"
-    by (simp only: rad_wait_false_aseq_ades
-        rad_wait_false_RA1_commute Pt_facts(1))
-  have post_PBMH: "?post is PBMH_ades"
-    by (intro aseq_ades_PBMH_ades_closure
-        RA1_PBMH_ades_closure rad_wait_cond_PBMH_ades_closure
-        ades_state_choice_is_PBMH_ades RA2_PBMH_ades_closure
-        AP_wf_ok_true_PBMH_ades[OF assms(1)]
-        AP_wf_ok_true_PBMH_ades[OF assms(2)])
-  have post_unrest: "$ok\<^sup>> \<sharp> ?post"
-    by (simp add: unrest)
-  have post_ok: "?post\<lbrakk>True/ok\<^sup>>\<rbrakk> = ?post"
-    using post_unrest by (simp add: unrest usubst)
+  note post_facts = AP_true_seq_post_facts[OF
+    AP_wf_ok_true_PBMH_ades[OF assms(1)]
+    AP_wf_ok_true_PBMH_ades[OF assms(2)]]
   have P_form: "P = AP (true \<turnstile> ?Pt)"
     using NDAP_AP_true_design[OF assms(1)]
     by (simp only: Healthy_if[OF assms(3)])
@@ -188,7 +178,7 @@ proof -
     by (simp only: P_form[symmetric] Q_form[symmetric])
   show ?thesis
     by (simp only: seq_form
-        NDAP_AP_true_design_fixed[OF post_wf post_PBMH post_ok])
+        NDAP_AP_true_design_fixed[OF post_facts(1,2,4)])
 qed
 
 subsection \<open>Isomorphism with Non-Divergent Reactive Angelic Designs\<close>

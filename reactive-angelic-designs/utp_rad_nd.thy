@@ -109,54 +109,41 @@ proof -
     and Qf_false: "?Qf\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
     by (rule NDRAD_wf_ok_false_subst[OF assms(1,3)],
         rule NDRAD_wf_ok_false_subst[OF assms(2,4)])
-  have Pf_RA1_false:
-    "(RA1 ?Pf)\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: RA1_ok_in_subst Pf_false RA1_false)
-  have Qf_RA1_false:
-    "(RA1 ?Qf)\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: RA1_ok_in_subst Qf_false RA1_false)
-  have Qf_RA2_RA1_false:
-    "(RA2 (RA1 ?Qf))\<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: RA2_ok_in_subst Qf_RA1_false RA2_false)
-  have Qguard_false:
-    "(((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Qf)))
-      \<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: subst_pred Qf_RA2_RA1_false pred_ba.inf_bot_right)
-  have Pt_RA1_push:
-    "(RA1 ?Pt)\<lbrakk>True/ok\<^sup><\<rbrakk> =
-      RA1 (?Pt\<lbrakk>True/ok\<^sup><\<rbrakk>)"
-    by (rule RA1_ok_in_subst)
-  have initial_failure_false:
-    "(RA1 ?Pf ;;\<^sub>A\<^sub>D RA1 true)
-      \<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: aseq_ades_ok_in_subst Pf_RA1_false
-        aseq_ades_false_left)
-  have handover_failure_false:
-    "(RA1 ?Pt ;;\<^sub>A\<^sub>D
-      ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Qf)))
-      \<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: aseq_ades_ok_in_subst Pt_RA1_push
-        Qguard_false RA1_aseq_false)
+  (* Neither operand can fail once initial ok is true. *)
   have pre_push: "?pre\<lbrakk>True/ok\<^sup><\<rbrakk> =
       true\<lbrakk>True/ok\<^sup><\<rbrakk>"
-    by (simp only: subst_pred initial_failure_false
-        handover_failure_false pred_ba.compl_bot_eq
+    by (simp only: subst_pred aseq_ades_ok_in_subst
+        RA2_ok_in_subst RA1_ok_in_subst Pf_false Qf_false
+        RA1_false RA2_false pred_ba.inf_bot_right
+        aseq_ades_false_left RA1_aseq_false pred_ba.compl_bot_eq
         pred_ba.inf_top_left)
-  have continuation_push:
-    "(RA2 (RA1 ((\<not> ?Qf) \<longrightarrow> ?Qt)))
-      \<lbrakk>True/ok\<^sup><\<rbrakk> =
-     (RA2 (RA1 ?Qt))\<lbrakk>True/ok\<^sup><\<rbrakk>"
-    by (simp only: RA2_ok_in_subst RA1_ok_in_subst subst_pred
-        Qf_false pred_ba.compl_bot_eq pred_impl_laws(1))
+  (* The continuation then contributes only its postcondition. *)
   have post_push: "?post\<lbrakk>True/ok\<^sup><\<rbrakk> =
       ?postND\<lbrakk>True/ok\<^sup><\<rbrakk>"
     by (simp only: aseq_ades_ok_in_subst rad_wait_cond_ok_in_subst
-        continuation_push)
+        RA2_ok_in_subst RA1_ok_in_subst subst_pred Qf_false
+        pred_ba.compl_bot_eq pred_impl_laws(1))
   have design_eq: "(?pre \<turnstile> ?post) = (true \<turnstile> ?postND)"
     by (rule design_ok_in_cong[OF pre_push post_push])
   show ?thesis
     by (simp only: RAD_seq_design[OF assms(1,2)] design_eq)
 qed
+
+lemma RA_A_true_design_is_NDRAD [closure]:
+  "(RA \<circ> A) (true \<turnstile> T) is NDRAD"
+proof -
+  have "Choice\<^sub>R\<^sub>A\<^sub>D \<sqsubseteq> (RA \<circ> A) (true \<turnstile> T)"
+    unfolding Choice_RAD_alt comp_apply
+    by (rule RA_mono, rule A_mono; pred_auto)
+  then show ?thesis
+    by (simp add: Healthy_def' NDRAD_def ref_by_pred_is_leq inf.absorb1)
+qed
+
+lemma NDRAD_seq_closure [closure]:
+  assumes "P is RAD" "Q is RAD" "P is NDRAD" "Q is NDRAD"
+  shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) is NDRAD"
+  by (simp only: NDRAD_seq_design[OF assms];
+      rule RA_A_true_design_is_NDRAD)
 
 (* Paper Example 20: divergence is avoided at the bottom of the lattice. *)
 lemma NDRAD_Chaos:

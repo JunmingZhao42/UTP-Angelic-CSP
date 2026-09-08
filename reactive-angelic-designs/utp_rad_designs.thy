@@ -77,16 +77,8 @@ lemma CSPA2_Idempotent [closure]: "Idempotent CSPA2"
 lemma CSPA2_PBMH_ades_closure:
   assumes "PBMH_ades P = P"
   shows "PBMH_ades (CSPA2 P) = CSPA2 P"
-proof -
-  have ok_substs:
-    "PBMH_ades (P\<^sup>f) = (PBMH_ades P)\<^sup>f \<and>
-     PBMH_ades (P\<^sup>t) = (PBMH_ades P)\<^sup>t"
-    by (simp add: PBMH_ades_def fun_eq_iff; pred_auto)
-  show ?thesis
-    using assms ok_substs
-    by (simp add: CSPA2_def H2_split PBMH_ades_disj
-        PBMH_ades_conj_ok)
-qed
+  by (simp only: CSPA2_def H2_split PBMH_ades_disj PBMH_ades_conj_ok
+      PBMH_ades_ok_false PBMH_ades_ok_true assms)
 
 subsection \<open>RAD\<close>
 
