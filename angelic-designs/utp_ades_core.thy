@@ -100,6 +100,10 @@ lemma arel_not_not:
   "(\<not> (\<not> R)) = (R :: 's angelic_rel)"
   by pred_auto
 
+lemma arel_not_applied:
+  "(\<not> (R :: 's angelic_rel)) (s0, acr) \<longleftrightarrow> \<not> R (s0, acr)"
+  by pred_auto
+
 lemma arel_indep_out_unrest:
   fixes R :: "'s angelic_rel"
   assumes ind: "\<And>s0 a b. R (s0, a) = R (s0, b)"

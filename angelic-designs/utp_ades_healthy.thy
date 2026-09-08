@@ -570,6 +570,22 @@ lemma A0_state_subst:
 theorem A0_design: "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
 
+lemma A0_healthy_non_empty:
+  assumes "P is A0" "P (s0, out)"
+    "des_vars.ok\<^sub>v s0"
+    "\<not> P (s0, ok\<^sub>v_update (\<lambda>_. False) out)"
+    "des_vars.ok\<^sub>v out"
+  shows "achoices.ac\<^sub>v (des_vars.more out) \<noteq> {}"
+proof -
+  have fixed: "A0 P = P"
+    using assms(1) by (simp add: Healthy_def')
+  have fixed_at: "A0 P (s0, out) = P (s0, out)"
+    by (simp only: fixed)
+  show ?thesis
+    using fixed_at assms(2-)
+    by (cases s0; cases out; simp add: A0_def; pred_auto)
+qed
+
 subsection \<open>A1\<close>
 
 definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
@@ -1296,6 +1312,12 @@ lemma A3_rel_healthy':
     (\<forall>s. R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow> (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
   by (simp add: Healthy_def' A3_rel_def fun_eq_iff; pred_auto)
 
+lemma arel_indep_A3_rel:
+  fixes R :: "'s angelic_rel"
+  assumes "\<And>s0 a b. R (s0, a) = R (s0, b)"
+  shows "R is A3_rel"
+  using assms by (simp add: A3_rel_healthy'; blast)
+
 lemma A3_rel_nonempty [simp]:
   fixes R :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
   assumes "X \<noteq> {}"
@@ -1331,6 +1353,13 @@ next
     using design_form pre_healthy
     by (simp add: Healthy_def' A3_def)
 qed
+
+lemma H_A3_intro:
+  fixes P :: "'s angelic_design"
+  assumes "P is \<^bold>H" "pre\<^sub>D P is A3_rel"
+  shows "P is A3"
+  using assms H1_H2_eq_rdesign[of P]
+  by (simp add: Healthy_def' A3_def)
 
 lemma A3_rel_PBMH:
   fixes P :: "'s angelic_rel"
@@ -1433,6 +1462,30 @@ lemma A3_preserves_A: "P is A \<Longrightarrow> A3 P is A"
 lemma A3_preserves_A2: "P is A2 \<Longrightarrow> A3 P is A2"
   apply (simp add: Healthy_def' A3_A2_commute[symmetric])
   done
+
+subsection \<open>Normal Angelic Designs\<close>
+
+lemma N_preD_indep:
+  fixes P :: "'s angelic_design" and s0 :: "'s astate" and a b :: "'s achoices"
+  assumes "P is \<^bold>N"
+  shows "pre\<^sub>D P (s0, a) = pre\<^sub>D P (s0, b)"
+proof -
+  have u: "$ac\<^sup>> \<sharp> pre\<^sub>D P"
+    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF assms])
+  have put_P: "\<forall>s0 acr v.
+      pre\<^sub>D P (s0, achoices.ac\<^sub>v_update (\<lambda>_. v) acr) = pre\<^sub>D P (s0, acr)"
+    using u
+    apply (subst (asm) unrest_lens)
+     apply simp
+    by (simp add: lens_defs achoices.ac_def case_prod_beta split_paired_All)
+  have "pre\<^sub>D P (s0, b) =
+      pre\<^sub>D P (s0, achoices.ac\<^sub>v_update (\<lambda>_. achoices.ac\<^sub>v b) a)"
+    by (cases a; cases b; simp)
+  also have "... = pre\<^sub>D P (s0, a)"
+    using put_P by blast
+  finally show ?thesis by (rule sym)
+qed
+
 
 subsection \<open>Support Laws\<close>
 
