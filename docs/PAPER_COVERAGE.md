@@ -1,23 +1,22 @@
 # Paper coverage
 
-This index covers the angelic-design, RAD and AP development corresponding to
-Sections 5–7 and Appendix A of Ribeiro and Cavalcanti, *Angelic processes for
-CSP via the UTP*, TCS 756 (2019), pp. 19–63,
-[doi:10.1016/j.tcs.2018.10.008](https://doi.org/10.1016/j.tcs.2018.10.008).
-The thesis supplies intermediate lemmas and proof order; it is not an
-additional completeness requirement. Parallel-by-merge research and the
-optional associativity audit are outside this baseline.
+This index maps Sections 5–7 and Appendix A of
+[Angelic processes for CSP via the UTP](https://doi.org/10.1016/j.tcs.2018.10.008)
+(Ribeiro and Cavalcanti, TCS 756, 2019, pp. 19–63) to Isabelle facts.
+The thesis supplies supporting proofs. Parallel research and the standalone
+associativity audit are outside the paper baseline.
 
-The table records the statements in the current source, not a claim that every
-printed statement holds without qualification. `H` means the imported design
-healthiness `\<^bold>H`; `P is X` means that P is a fixed point of X. An entry
-with no premises is unconditional at its declared Isabelle type. Reactive
-results use arbitrary `trace` instances unless event prefixing requires lists.
-Theorems 1–2 and Lemmas 1–2 belong to the background material; they are not
-claimed as separately numbered results of this development.
+## Reading the tables
 
-AP theories live in `angelic-processes/`; their theory and fact names are
-unchanged. AD and RAD retain their existing layer directories.
+- `P is H` means design healthiness; `P is X` means a fixed point of X.
+- **None** means no extra premises at the stated type and displayed expression.
+- **Qualified** marks an additional restriction: A3 for the reverse AD mapping
+  (Theorems 6 and 8), and initial `ok = True` for Theorem 35's failure test.
+- Reactive results use arbitrary `trace` instances unless list traces are stated.
+
+Theorems 1–2 and Lemmas 1–2 are background results, not separately numbered
+claims here. The tables retain every premise, including the explicit design
+carrier for Theorem 67 and the printed-statement correction for Theorem 68.
 
 ## Definitions and representation
 
@@ -38,12 +37,9 @@ unchanged. AD and RAD retain their existing layer directories.
 | Def. 49 | `NDAP` in `utp_ap_nd` | Conjunction with `Choice_AP`; AP healthiness is separate. |
 | Defs. 50–57 | Choices, `Chaos_AP`, `ChaosCSP_AP`, `Choice_AP`, `Stop_AP`, `Skip_AP`, `PrefixSkip_AP` in `utp_ap_ops` | Compound prefix is `Prefix_AP`. |
 
-The state-substitution notation of Definition 22 is represented using typed
-records, lenses and ordinary substitution. It is not a second dynamically
-enumerated alphabet calculus. Likewise, the generic alphabet manipulations in
-Appendix Lemmas 27–28 are not exposed as separately numbered Isabelle laws.
-The concrete mapping proofs use record equality, substitution and one-point
-reasoning directly.
+Definition 22 uses typed records, lenses and ordinary substitution. The
+general alphabet calculus of Appendix Lemmas 27–28 has no separate numbered
+Isabelle laws; mapping proofs use record equality and substitution directly.
 
 ## Angelic designs: Theorems 3–8
 
@@ -160,19 +156,15 @@ reasoning directly.
 | Lemma 26 | `utp_ades_designs.PBMH_ades_p2ac` | None. |
 | Lemmas 27–28 | Typed record/substitution reasoning | No separate named mechanisation of the paper's general alphabet calculus. |
 
-## Supporting development and deferred work
+## Supporting results
 
-`RAD_seq_closure`, `AP_seq_closure`, `angelic_design_seq_A_closure`,
-`RAD_seq_A2_closure`, the mapping-carrier/Galois laws, and the general prefix
+Sequential closure, A2 closure, mapping/Galois laws and the general prefix
 forms `Prefix_RAD_design` (thesis T.5.4.29) and `Prefix_AP_design` (T.6.4.23)
-support the paper results. They should not be counted as additional numbered
-paper theorems. The dedicated RAD/AP example theories retain the worked
-behavioural calculations; reusable prefix observations and continuations live
-in `utp_rad_seq`, and reusable RA1 healthiness facts live in `utp_rad_healthy`.
+support the paper results. They are not additional numbered paper theorems.
+Worked calculations live in the RAD/AP example theories; shared prefix
+observations are in `utp_rad_seq`, and shared RA1 facts in `utp_rad_healthy`.
 
-The audit under `audits/seq-associativity` is not imported into the paper
-development. Generic reassociation of design sequential composition must not
-be assumed in subsequent research. Adding the audit's conditional laws or
-more thesis-only algebra is deferred; neither is needed for Theorem 63.
-
-For the build boundary, source snapshot procedure and dependency inputs, see [BASELINE.md](BASELINE.md).
+The [sequential audit](../audits/seq-associativity/README.md) is a separate
+session. General reassociation must not be assumed; promoting its conditional
+laws and adding more thesis algebra remain separate work, neither needed for
+Theorem 63. See [baseline checks](BASELINE.md) for the build procedure.
