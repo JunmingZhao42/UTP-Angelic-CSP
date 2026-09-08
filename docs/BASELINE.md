@@ -1,7 +1,7 @@
 # Baseline checks
 
 The [coverage index](PAPER_COVERAGE.md) lists the paper results and their
-assumptions. The normal project build also includes the earlier AD parallel
+assumptions. The normal project build also includes the AD parallel
 theory; the paper check below excludes parallel development. See the
 [research boundary](RESEARCH_BOUNDARY.md) for the current split.
 
@@ -66,3 +66,8 @@ documentation edit.
 
 A passing build checks the stated propositions. Their additional premises
 still apply, and general design sequential associativity remains false.
+
+The AD parallel extension and naming cleanup were subsequently checked at
+`3300bf9`: all three project sessions, the standalone audit and the freshness
+check passed. See [AD parallel](AD_PARALLEL_REVIEW.md#validation) for the
+separate validation record; RAD/AP parallel were excluded.

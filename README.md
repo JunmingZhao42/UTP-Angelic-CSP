@@ -13,12 +13,13 @@ The three sessions build on each other:
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
 `Angelic_CSP.thy` is the entry point. `main` contains the paper development
-and the earlier AD parallel implementation. Further AD extensions and RAD/AP
-parallel work remain separate.
+and the reviewed AD parallel extension. RAD/AP parallel remain work in
+progress on `research/parallel`.
 
 | Read this | For |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
+| [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics, naming and qualified parallel laws |
 | [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What is included in `main` and what is pending |
 | [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
