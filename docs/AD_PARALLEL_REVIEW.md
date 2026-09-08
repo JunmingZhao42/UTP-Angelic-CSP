@@ -1,5 +1,8 @@
 # AD parallel
 
+This records the AD review accepted on `main`. This branch additionally
+contains RAD/AP WIP; see [branch contents](RESEARCH_BOUNDARY.md).
+
 The AD parallel extension is separate from the paper coverage claim. It adds
 choice-set merge lifting, healthiness results, a relational design form,
 conditional algebraic laws and examples. RAD/AP parallel remain work in

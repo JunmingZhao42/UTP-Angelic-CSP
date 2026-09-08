@@ -1,54 +1,51 @@
-# Main and research branches
+# Research branch contents
 
-`main` contains the paper mechanisation, supporting algebra and the reviewed
-AD parallel extension. RAD/AP parallel remain work in progress on
-`research/parallel`. This page describes the split as of **8 September 2026**.
+`research/parallel` builds on reviewed `main` at `2c39a6e`. It includes the
+RAD/AP parallel work as an explicitly provisional extension. The paper
+mechanisation and reviewed AD theory come from `main`.
 
-## Included in main
+## Added to main
 
-| Layer | Development |
+| Area | Research content |
 | --- | --- |
-| AD | Paper results; sequential closure and qualified `Skip_AD` identities; mapping and Galois laws; reviewed parallel extension. |
-| RAD | Paper results; sequential and prefix A2 closure; CSP correspondences; non-divergent sequential closure; general prefix forms. |
-| AP | Paper results; AP/RAD correspondence support; sequential laws and general prefix forms. |
-| Audit | Sequential associativity counterexamples and conditional laws, in a separate session. |
+| RAD | `reactive-angelic-designs/utp_rad_parallel.thy`, with its session registration and aggregate import. |
+| AP | `angelic-processes/utp_ap_parallel.thy`, with its session registration and aggregate import. |
+| AP support | The evaluation, RA3AP, feasibility and top-design facts listed below. |
+| Documents | The mixed parallel guide, semantic notes, historical dependency handoff and PR drafts. |
+| Local material | The existing `slides/` ignore rule and `CLAUDE.md` guidance. |
 
-The directories are `angelic-designs/`, `reactive-angelic-designs/` and
-`angelic-processes/`. `Angelic_CSP.thy` is the entry point.
-See [paper coverage](PAPER_COVERAGE.md) for exact theorem assumptions and
-[baseline checks](BASELINE.md) for build instructions and validation.
+The AP support in `utp_ap_healthy` comprises `II_AP_eval`, `RA3AP_eval`,
+`RA3AP_healthy_wait_eval`, `AP_RA3AP_healthy`, `AP_is_RA3AP`,
+`AP_healthy_not_ok_eval`, `AP_feasible`, `AP_feasibleI`, `AP_feasibleD`
+and `top_AP_design`. These remain WIP alongside the AP parallel theory.
 
-## Parallel status
+The RAD proof now uses `ades_par_is_PBMH_ades`, the reviewed AD fact name.
+All other RAD/AP WIP source bytes are preserved. No definitions, assumptions
+or proof steps have been weakened. Duplicate RAD helper declarations remain
+for later cleanup.
 
-The AD parallel theory is loaded by the AD session. It includes exact and
-upward merge lifting, A2/A3 results, normal-operand laws, conditional
-associativity and examples. The [AD review](AD_PARALLEL_REVIEW.md) records
-the assumptions, naming changes and validation.
+## What the rebuild preserves
 
-`research/parallel` preserves the combined research. Its RAD/AP parallel
-theories, their session registrations and aggregate imports are absent from
-`main`. The mixed parallel guide and provisional research documents also
-remain separate.
+AD theories, dependency pins, paper coverage and the standalone audit come
+from `main`. The audit's `lemma` keywords replace the older `theorem`
+keywords; its statements and proofs are identical. The current paper checker
+keeps its executable permission.
 
-The following support is excluded from `main`:
+The original research tip `8f8b5d9` remains on
+`backup/research-before-main-rebase-2026-09-08`. The
+[rebuild record](RESEARCH_REBASE.md) explains the content checks and build.
+The [parallel guide](../PARALLEL_BY_MERGE.md) retains the research discussion;
+the [dependency handoff](RESEARCH_HANDOFF.md) and [PR drafts](pr-drafts/README.md)
+are dated records whose remote status must be refreshed before submission.
 
-| Research file | Pending additions or relocation |
-| --- | --- |
-| `angelic-processes/utp_ap_healthy.thy` | `II_AP_eval`, `RA3AP_eval`, `RA3AP_healthy_wait_eval`, `AP_RA3AP_healthy`, `AP_is_RA3AP`, `AP_healthy_not_ok_eval`, `AP_feasible`, `AP_feasibleI`, `AP_feasibleD`, `top_AP_design` |
+## Continue development
 
-The AD support is included: `arel_not_applied` is in `utp_ades_core`;
-`A0_healthy_non_empty`, `arel_indep_A3_rel`, `H_A3_intro` and `N_preD_indep`
-are in `utp_ades_healthy`. The A0 helper moved from the parallel theory;
-its statement is unchanged.
+Use the [README](../README.md#build) to set up this branch and
+[baseline checks](BASELINE.md) to build it. Keep RAD/AP changes on this branch
+until their semantics are reviewed. AD's accepted guarantees are in the
+[AD review](AD_PARALLEL_REVIEW.md); a successful research build checks the
+stated proofs, not the completeness or suitability of the proposed operators.
 
-RAD/AP parallel and AP support still need their own review. Merging the
-research branch wholesale would bring all of that pending work into `main`.
-
-## Mathematical boundaries
-
-AD sequential right identity requires normality. The reverse mapping needs
-its A3 qualification. Sequential composition is not associative on the full
-A/RAD/AP carriers; the [audit](../audits/seq-associativity/README.md) gives
-counterexamples and sufficient conditions. Its results are not production
-imports. Keeping research separate does not assert that its pending results
-are false or ready for use.
+Sequential right identity and reverse mappings keep their documented
+normality/A3 qualifications. General sequential associativity remains false;
+see the [separate audit](../audits/seq-associativity/README.md).

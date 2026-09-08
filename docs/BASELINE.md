@@ -1,8 +1,8 @@
 # Baseline checks
 
 The [coverage index](PAPER_COVERAGE.md) lists the paper results and their
-assumptions. The normal project build also includes the AD parallel
-theory; the paper check below excludes parallel development. See the
+assumptions. This branch's normal build includes AD parallel and RAD/AP
+parallel WIP; the paper check below excludes all parallel development. See the
 [research boundary](RESEARCH_BOUNDARY.md) for the current split.
 
 ## Run the checks
@@ -71,3 +71,8 @@ The AD parallel extension and naming cleanup were subsequently checked at
 `3300bf9`: all three project sessions, the standalone audit and the freshness
 check passed. See [AD parallel](AD_PARALLEL_REVIEW.md#validation) for the
 separate validation record; RAD/AP parallel were excluded.
+
+The earlier research dependency handoff is retained in
+[RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) as a historical record. For the
+current branch rebuild and its validation, see
+[RESEARCH_REBASE.md](RESEARCH_REBASE.md).

@@ -34,3 +34,6 @@ AGENTS.md
 *.log
 
 .claude/*
+
+# Local presentation material
+slides/

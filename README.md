@@ -12,16 +12,19 @@ The three sessions build on each other:
 | Reactive angelic designs (RAD) | `reactive-angelic-designs/` | `UTP-Reactive-Angelic-Designs` |
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
-`Angelic_CSP.thy` is the entry point. `main` contains the paper development
-and the reviewed AD parallel extension. RAD/AP parallel remain work in
-progress on `research/parallel`.
+`Angelic_CSP.thy` is the entry point. This is `research/parallel`, based on
+`main` with the reviewed AD parallel foundation. Its normal build also loads
+**RAD/AP parallel WIP**; a passing build does not make that research final.
+Use `main` for the reviewed development.
 
 | Read this | For |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
 | [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics, naming and qualified parallel laws |
+| [Parallel research](PARALLEL_BY_MERGE.md) | The AD/RAD/AP research guide and open issues |
+| [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and source qualifications |
 | [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
-| [Research boundary](docs/RESEARCH_BOUNDARY.md) | What is included in `main` and what is pending |
+| [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
 | [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
 
 ## Build
@@ -33,7 +36,7 @@ The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
 Clone, then set the path to your Isabelle executable:
 
 ```bash
-git clone --recurse-submodules git@github.com:JunmingZhao42/UTP-Angelic-CSP.git
+git clone --branch research/parallel --recurse-submodules git@github.com:JunmingZhao42/UTP-Angelic-CSP.git
 cd UTP-Angelic-CSP
 
 export PROJECT_DIR="$PWD"
