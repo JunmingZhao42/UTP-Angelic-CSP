@@ -16,6 +16,9 @@ results use arbitrary `trace` instances unless event prefixing requires lists.
 Theorems 1–2 and Lemmas 1–2 belong to the background material; they are not
 claimed as separately numbered results of this development.
 
+AP theories live in `angelic-processes/`; their theory and fact names are
+unchanged. AD and RAD retain their existing layer directories.
+
 ## Definitions and representation
 
 | Paper | Implementation | Representation detail |

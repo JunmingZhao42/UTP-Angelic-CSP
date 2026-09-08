@@ -46,3 +46,15 @@ additional premises documented for the paper correspondences.
 The paper-only snapshot completed successfully on 8 September 2026 (exit 0;
 6m42s including dependency rebuilds), using profile `utp-cleanup-2026-09-08`.
 Its manifest and build log were retained in `/private/tmp/utp-step6-paper/`.
+
+AP source files are copied from `angelic-processes/`. The snapshot keeps
+the same directory layout and session names as its source checkout.
+
+After the AP directory move, both the full cleanup build (including the
+retained AD parallel theory and separate audit) and the relocated paper
+snapshot passed. Each no-build freshness check also returned exit 0.
+These checks used profile `utp-cleanup-2026-09-08` and reused the same
+committed dependency export after verifying its hashes against the new
+snapshot. The paper snapshot build took 54s. The commands, results and
+manifests are retained with the cleanup backup under
+`steps6-7-validation/`.

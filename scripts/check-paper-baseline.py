@@ -16,12 +16,14 @@ import tempfile
 
 REPO = Path(__file__).resolve().parent.parent
 PARALLEL = {"utp_ades_parallel", "utp_rad_parallel", "utp_ap_parallel"}
-THEORY_DIRS = (".", "angelic-designs", "reactive-angelic-designs")
+THEORY_DIRS = (".", "angelic-designs", "reactive-angelic-designs",
+               "angelic-processes")
 AGGREGATES = {
     "angelic-designs/utp_ades.thy": "utp_ades_designs",
     "reactive-angelic-designs/utp_rad.thy":
         "utp_rad_nd utp_rad_examples utp_rad_ops_csp",
-    "Angelic_CSP.thy": "utp_ap_nd utp_ap_examples",
+    "Angelic_CSP.thy":
+        '"angelic-processes/utp_ap_nd" "angelic-processes/utp_ap_examples"',
 }
 
 
@@ -73,7 +75,8 @@ def main():
     # Only session registration and the three import-only aggregates change.
     root = (REPO / "ROOT").read_text()
     for theory in PARALLEL:
-        root, count = re.subn(r"(?m)^    " + theory + r"\n", "", root)
+        pattern = r'(?m)^    (?:' + theory + r'|"(?:[^"\n]*/)?' + theory + r'")\n'
+        root, count = re.subn(pattern, "", root)
         sources = sum((REPO / directory / (theory + ".thy")).is_file()
                       for directory in THEORY_DIRS)
         if sources > 1 or count != sources:

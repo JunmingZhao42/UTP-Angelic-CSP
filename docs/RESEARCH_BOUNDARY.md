@@ -39,7 +39,9 @@ an endorsement of the provisional extensions.
 
 `utp_rad_parallel.thy` and `utp_ap_parallel.thy` are absent from this branch,
 including its session registrations and aggregate imports. The three-session
-hierarchy and existing AP file locations are unchanged.
+hierarchy is unchanged. AP theories now live in `angelic-processes/` on
+both the cleanup and research branches; the root `Angelic_CSP.thy` remains
+the entry point.
 
 ## Support kept on the research branch
 
@@ -52,7 +54,7 @@ their original files on `research/parallel`; no research content was discarded.
 | --- | --- |
 | `angelic-designs/utp_ades_core.thy` | `arel_not_applied` |
 | `angelic-designs/utp_ades_healthy.thy` | `A0_healthy_non_empty`, `arel_indep_A3_rel`, `H_A3_intro`, `N_preD_indep` |
-| `utp_ap_healthy.thy` | `II_AP_eval`, `RA3AP_eval`, `RA3AP_healthy_wait_eval`, `AP_RA3AP_healthy`, `AP_is_RA3AP`, `AP_healthy_not_ok_eval`, `AP_feasible`, `AP_feasibleI`, `AP_feasibleD`, `top_AP_design` |
+| `angelic-processes/utp_ap_healthy.thy` | `II_AP_eval`, `RA3AP_eval`, `RA3AP_healthy_wait_eval`, `AP_RA3AP_healthy`, `AP_is_RA3AP`, `AP_healthy_not_ok_eval`, `AP_feasible`, `AP_feasibleI`, `AP_feasibleD`, `top_AP_design` |
 
 `A0_healthy_non_empty` already exists in the retained AD parallel theory.
 Its pending relocation into `utp_ades_healthy` is not taken, so the cleanup

@@ -24,10 +24,11 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
 
 session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]
+  directories "angelic-processes"
   theories
-    utp_ap_healthy
-    utp_ap_rad
-    utp_ap_ops
-    utp_ap_nd
-    utp_ap_examples
+    "angelic-processes/utp_ap_healthy"
+    "angelic-processes/utp_ap_rad"
+    "angelic-processes/utp_ap_ops"
+    "angelic-processes/utp_ap_nd"
+    "angelic-processes/utp_ap_examples"
     Angelic_CSP

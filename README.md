@@ -5,6 +5,10 @@ Ribeiro and Cavalcanti's paper on angelic processes for CSP.
 It provides three stacked sessions for angelic designs, reactive angelic
 designs, and angelic processes, based on the Isabelle/UTP reactive-design stack.
 
+The layer directories are `angelic-designs/`, `reactive-angelic-designs/`,
+and `angelic-processes/`. The top-level `Angelic_CSP.thy` remains the entry
+point; all three session names are unchanged.
+
 The cleanup retains the committed AD parallel implementation; provisional
 AD extensions and RAD/AP parallel remain on `research/parallel`. See the
 [research boundary](docs/RESEARCH_BOUNDARY.md) for the source selection and
