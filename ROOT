@@ -18,6 +18,7 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
     utp_rad_ops
     utp_rad_seq
     utp_rad_ops_csp
+    utp_rad_parallel
     utp_rad_examples
     utp_rad_nd
     utp_rad
@@ -29,6 +30,7 @@ session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
     "angelic-processes/utp_ap_healthy"
     "angelic-processes/utp_ap_rad"
     "angelic-processes/utp_ap_ops"
+    "angelic-processes/utp_ap_parallel"
     "angelic-processes/utp_ap_nd"
     "angelic-processes/utp_ap_examples"
     Angelic_CSP

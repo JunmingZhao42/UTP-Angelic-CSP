@@ -59,6 +59,35 @@ lemma RA3AP_II_AP: "RA3AP II_AP = II_AP"
 lemma II_AP_is_RA3AP [closure]: "II_AP is RA3AP"
   by (rule Healthy_intro, rule RA3AP_II_AP)
 
+lemma II_AP_eval:
+  "II_AP (x, y) \<longleftrightarrow>
+   (\<not> des_vars.ok\<^sub>v x \<or>
+    (des_vars.ok\<^sub>v y \<and>
+     astate.s\<^sub>v (des_vars.more x) \<in>
+       achoices.ac\<^sub>v (des_vars.more y)))"
+  by (simp add: II_AP_design design_def; pred_auto)
+
+lemma RA3AP_eval:
+  "RA3AP P (x, y) \<longleftrightarrow>
+   (if rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
+    then II_AP (x, y) else P (x, y))"
+  by (simp add: RA3AP_def expr_if_def SEXP_def lens_defs
+      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+
+lemma RA3AP_healthy_wait_eval:
+  assumes "P is RA3AP"
+    "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
+  shows "P (x, y) \<longleftrightarrow> II_AP (x, y)"
+proof -
+  have h: "RA3AP P = P"
+    using assms(1) by (simp add: Healthy_def')
+  have "P (x, y) \<longleftrightarrow> RA3AP P (x, y)"
+    by (simp only: h)
+  also have "... \<longleftrightarrow> II_AP (x, y)"
+    using assms(2) by (simp add: RA3AP_eval)
+  finally show ?thesis .
+qed
+
 lemma RA3AP_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades"
   shows "RA3AP P is PBMH_ades"
@@ -367,6 +396,15 @@ lemma AP_Idempotent [closure]: "Idempotent AP"
 lemma AP_healthy [closure]: "AP P is AP"
   by (simp add: Healthy_def' AP_idem)
 
+lemma AP_RA3AP_healthy [closure]: "AP P is RA3AP"
+  by (simp add: Healthy_def' AP_def RA3AP_idem)
+
+lemma AP_is_RA3AP:
+  assumes "P is AP"
+  shows "P is RA3AP"
+  using AP_RA3AP_healthy[of P]
+  by (simp only: Healthy_def' Healthy_if[OF assms])
+
 subsection \<open>Inherited Healthiness\<close>
 
 lemma AP_PBMH_ades_healthy [closure]: "AP P is PBMH_ades"
@@ -397,6 +435,19 @@ lemma AP_is_H:
   shows "P is \<^bold>H"
   using AP_H_healthy[of P]
   by (simp only: Healthy_def' Healthy_if[OF assms])
+
+lemma AP_healthy_not_ok_eval:
+  assumes "P is AP" "\<not> des_vars.ok\<^sub>v x"
+  shows "P (x, y)"
+proof -
+  have h: "\<^bold>H P = P"
+    using AP_is_H[OF assms(1)] by (simp add: Healthy_def')
+  have "P (x, y) \<longleftrightarrow> \<^bold>H P (x, y)"
+    by (simp only: h)
+  also have "..."
+    using assms(2) by (simp add: H1_def; pred_auto)
+  finally show ?thesis .
+qed
 
 lemma AP_wait_false_PBMH_ades:
   assumes "P is AP"
@@ -445,6 +496,34 @@ lemma AP_wf_ok_true_facts:
       rule Healthy_if[OF AP_wf_ok_true_PBMH_ades[OF assms]],
       simp add: usubst)
 
+subsection \<open>Successful Feasibility\<close>
+
+text \<open>
+  An angelic process is feasible when every started observation admits a
+  successful branch result.  This is distinct from the standard reactive
+  notion of productivity, which requires strict trace growth on termination.
+\<close>
+
+definition AP_feasible ::
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> bool" where
+"AP_feasible P \<longleftrightarrow>
+  (\<forall>s0. des_vars.ok\<^sub>v s0 \<and>
+      \<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))
+    \<longrightarrow> (\<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out))"
+
+lemma AP_feasibleI:
+  assumes "\<And>s0. \<lbrakk>des_vars.ok\<^sub>v s0;
+      \<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<rbrakk>
+    \<Longrightarrow> \<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out"
+  shows "AP_feasible P"
+  using assms by (auto simp: AP_feasible_def)
+
+lemma AP_feasibleD:
+  assumes "AP_feasible P" "des_vars.ok\<^sub>v s0"
+    "\<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))"
+  obtains out where "P (s0, out)" "des_vars.ok\<^sub>v out"
+  using assms by (auto simp: AP_feasible_def)
+
 abbreviation bottom_AP :: "('t::trace, 'e) reactive_angelic_design"
     ("\<^bold>\<bottom>\<^sub>A\<^sub>P") where
 "\<^bold>\<bottom>\<^sub>A\<^sub>P \<equiv> AP true"
@@ -452,6 +531,14 @@ abbreviation bottom_AP :: "('t::trace, 'e) reactive_angelic_design"
 abbreviation top_AP :: "('t::trace, 'e) reactive_angelic_design"
     ("\<^bold>\<top>\<^sub>A\<^sub>P") where
 "\<^bold>\<top>\<^sub>A\<^sub>P \<equiv> AP false"
+
+lemma top_AP_design:
+  "(\<^bold>\<top>\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+   (true \<turnstile>
+    (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> false))"
+  by (simp only: AP_wait_cond_design rad_wait_false_false subst_pred(2)
+      comp_apply PBMH_ades_false RA1_false RA2_false
+      pred_ba.compl_bot_eq expr_if_idem)
 
 lemma bottom_AP_lower:
   assumes "P is AP"
