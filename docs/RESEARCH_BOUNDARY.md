@@ -26,7 +26,8 @@ instead retains the earlier committed version described below.
 The right identity for AD sequential composition retains its normality
 qualification and counterexample. The A3 qualification on the reverse mapping
 also remains. Sequential associativity on the full A/RAD/AP carriers must not
-be assumed; the separate audit remains available on the research checkpoint.
+be assumed; the [standalone audit](../audits/seq-associativity/README.md)
+is checked separately from the production sessions.
 
 ## AD parallel boundary
 
@@ -65,8 +66,9 @@ would bring all of them back.
 
 ## Preserved work awaiting later cleanup
 
-The checkpoint also retains the associativity audit, paper coverage and baseline
-notes, snapshot script, PR drafts, parallel guide, and local agent guidance.
+The standalone associativity audit is now retained as a separate commit and
+session. The checkpoint also retains paper coverage and baseline notes, the
+snapshot script, PR drafts, parallel guide, and local agent guidance.
 Those artifacts are not silently promoted as part of the source separation.
 The old dependency handoff notes need refreshing before they describe this
 checkout. The AP directory move and historical commit rewriting are separate
