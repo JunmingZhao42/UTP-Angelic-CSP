@@ -2,8 +2,13 @@
 
 This repository is an Isabelle/UTP workspace for mechanising ideas from
 Ribeiro and Cavalcanti's paper on angelic processes for CSP.
-It provides an angelic-design session and a child angelic-CSP session based on
-the Isabelle/UTP reactive-design stack.
+It provides three stacked sessions for angelic designs, reactive angelic
+designs, and angelic processes, based on the Isabelle/UTP reactive-design stack.
+
+The cleanup retains the committed AD parallel implementation; provisional
+AD extensions and RAD/AP parallel remain on `research/parallel`. See the
+[research boundary](docs/RESEARCH_BOUNDARY.md) for the source selection and
+validation results.
 
 ## Basis
 
