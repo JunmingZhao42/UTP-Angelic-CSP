@@ -66,13 +66,11 @@ would bring all of them back.
 
 ## Preserved work awaiting later cleanup
 
-The standalone associativity audit is now retained as a separate commit and
-session. The checkpoint also retains paper coverage and baseline notes, the
-snapshot script, PR drafts, parallel guide, and local agent guidance.
-Those artifacts are not silently promoted as part of the source separation.
-The old dependency handoff notes need refreshing before they describe this
-checkout. The AP directory move and historical commit rewriting are separate
-later steps. `main`, existing backups, and dependency gitlinks are unchanged.
+The standalone associativity audit is retained in its own session. Paper
+coverage and the snapshot checker are documented in [BASELINE.md](BASELINE.md).
+PR drafts, the parallel guide, and provisional source support remain on the
+research branch. Historical commit rewriting is a separate later step.
+`main`, existing backups, and dependency gitlinks are unchanged.
 
 ## Validation
 

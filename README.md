@@ -8,7 +8,9 @@ designs, and angelic processes, based on the Isabelle/UTP reactive-design stack.
 The cleanup retains the committed AD parallel implementation; provisional
 AD extensions and RAD/AP parallel remain on `research/parallel`. See the
 [research boundary](docs/RESEARCH_BOUNDARY.md) for the source selection and
-validation results.
+validation results. The [paper coverage index](docs/PAPER_COVERAGE.md)
+records the exact theorem qualifications; [baseline guide](docs/BASELINE.md)
+describes the separate paper snapshot.
 
 ## Basis
 
