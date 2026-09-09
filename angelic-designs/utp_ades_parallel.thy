@@ -320,6 +320,57 @@ proof (unfold A3j_def, rule allI)
     by blast
 qed
 
+subsection \<open>Merge Healthiness by Including Skip\<close>
+
+text \<open>
+  The healthiness operator H0 adds the prior state as a permitted merge
+  result for every pair of branch results.  Its fixed points satisfy a
+  stronger condition than @{const A0j}: they always permit this particular
+  result, whereas totality only requires some result.  Other merged results
+  remain permitted.  If functionality @{const A2j} is also required, however,
+  the prior state must be the only result, so the merge is @{term skip\<^sub>m}.
+\<close>
+
+definition H0 :: "'s merge \<Rightarrow> 's merge" where
+  [pred]: "H0 j = (j \<or> skip\<^sub>m)"
+
+lemma H0_eval:
+  fixes j :: "'s merge" and s p q z :: 's
+  shows "merge_eval (H0 j) s p q z \<longleftrightarrow>
+    (merge_eval j s p q z \<or> z = s)"
+  by (simp add: H0_def disj_pred_def skip_merge_eval)
+
+lemma H0_idem: "H0 (H0 j) = H0 j"
+  by (simp add: H0_def disj_pred_def sup_assoc)
+
+lemma H0_Idempotent [closure]: "Idempotent H0"
+  by (simp add: Idempotent_def H0_idem)
+
+lemma H0_mono: "j \<sqsubseteq> k \<Longrightarrow> H0 j \<sqsubseteq> H0 k"
+  by (simp add: H0_def pred_refine_iff disj_pred_def; blast)
+
+lemma H0_Monotonic [closure]: "Monotonic H0"
+  by (rule MonotonicI, rule H0_mono)
+
+lemma H0_healthy [closure]: "H0 j is H0"
+  by (rule Healthy_Idempotent[OF H0_Idempotent])
+
+lemma H0_healthy_iff:
+  fixes j :: "'s merge"
+  shows "j is H0 \<longleftrightarrow> (\<forall>s p q. merge_eval j s p q s)"
+  by (simp add: Healthy_def H0_def fun_eq_iff; pred_auto; blast)
+
+lemma skip_merge_is_H0 [closure]: "skip\<^sub>m is H0"
+  by (simp add: Healthy_def H0_def disj_pred_def)
+
+lemma H0_A0j: "A0j (H0 j)"
+  by (simp add: A0j_def H0_eval; blast)
+
+lemma H0_healthy_A0j:
+  assumes "j is H0"
+  shows "A0j j"
+  using H0_A0j[of j] by (simp only: Healthy_if[OF assms])
+
 subsection \<open>Healthiness Closure\<close>
 
 text \<open>
@@ -405,6 +456,74 @@ lemma ades_par_A0_closure [closure]:
       ades_merge_image_nonempty[where s=s and X=X and Y=Y, OF assms(3)]
     by (simp; blast)
   done
+
+text \<open>
+  Conversely, totality is necessary for closure over all @{const A0}-healthy
+  operands.  Successful singleton choices expose any input at which the
+  merge has no output: their empty merge image permits successful termination
+  with an empty choice set.  The singleton predicates below are local proof
+  witnesses, so no additional process operator is needed.
+\<close>
+
+lemma ades_par_A0_closure_imp_A0j:
+  fixes j :: "'s merge"
+  assumes closed: "\<And>P Q. P is A0 \<Longrightarrow> Q is A0 \<Longrightarrow>
+    (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A0"
+  shows "A0j j"
+proof -
+  let ?S = "\<lambda>x. (\<lambda>(s0, out).
+    des_vars.ok\<^sub>v out \<and>
+    achoices.ac\<^sub>v (des_vars.more out) = {x}) :: 's angelic_design"
+  have singleton_A0: "?S x is A0" for x
+    by (simp add: Healthy_def A0_def fun_eq_iff; pred_auto)
+  show ?thesis
+  proof (unfold A0j_def, intro allI)
+    fix s p q :: 's
+    show "\<exists>z. merge_eval j s p q z"
+    proof (rule ccontr)
+      assume missing: "\<not> (\<exists>z. merge_eval j s p q z)"
+      let ?R = "?S p \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ?S q"
+      let ?s0 = "(\<lparr>ok\<^sub>v = True, s\<^sub>v = s, \<dots> = ()\<rparr>
+        :: 's astate des_vars_ext)"
+      let ?out = "(\<lparr>ok\<^sub>v = True, ac\<^sub>v = {}, \<dots> = ()\<rparr>
+        :: 's achoices des_vars_ext)"
+      have healthy: "?R is A0"
+        by (rule closed; rule singleton_A0)
+      have accepted: "?R (?s0, ?out)"
+        unfolding ades_par_eval
+        apply (rule exI[where x="\<lparr>ok\<^sub>v = True, ac\<^sub>v = {p}, \<dots> = ()\<rparr>"])
+        apply (rule exI[where x="\<lparr>ok\<^sub>v = True, ac\<^sub>v = {q}, \<dots> = ()\<rparr>"])
+        using missing by auto
+      have no_failure: "\<not> ?R (?s0, ok\<^sub>v_update (\<lambda>_. False) ?out)"
+        by (auto simp: ades_par_eval)
+      have "achoices.ac\<^sub>v (des_vars.more ?out) \<noteq> {}"
+        by (rule A0_healthy_non_empty[OF healthy accepted _ no_failure]; simp)
+      then show False by simp
+    qed
+  qed
+qed
+
+lemma ades_par_A0_closure_iff_A0j:
+  fixes j :: "'s merge"
+  shows "(\<forall>P Q. P is A0 \<longrightarrow> Q is A0 \<longrightarrow>
+    (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A0) \<longleftrightarrow> A0j j"
+  using ades_par_A0_closure_imp_A0j[of j] ades_par_A0_closure[where j=j]
+  by blast
+
+text \<open>
+  H0-healthiness supplies the totality premise of @{thm ades_par_A0_closure}.
+  Applying H0 to any merge therefore gives @{const A0} closure as well.
+\<close>
+
+lemma ades_par_A0_closure_H0 [closure]:
+  assumes "P is A0" "Q is A0" "j is H0"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A0"
+  by (rule ades_par_A0_closure[OF assms(1,2) H0_healthy_A0j[OF assms(3)]])
+
+lemma ades_par_A0_closure_H0_image [closure]:
+  assumes "P is A0" "Q is A0"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>H0 j\<^esub> Q) is A0"
+  by (rule ades_par_A0_closure[OF assms H0_A0j])
 
 lemma ades_par_A1_closure [closure]:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
