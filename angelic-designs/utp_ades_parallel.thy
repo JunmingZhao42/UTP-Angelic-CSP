@@ -363,6 +363,20 @@ lemma H0_healthy_iff:
 lemma skip_merge_is_H0 [closure]: "skip\<^sub>m is H0"
   by (simp add: Healthy_def H0_def disj_pred_def)
 
+lemma H0_A2j_only_skip:
+  fixes j :: "'s merge"
+  assumes "j is H0" "A2j j"
+  shows "j = skip\<^sub>m"
+proof -
+  have permits: "merge_eval j s p q s" for s p q
+    using assms(1) by (simp add: H0_healthy_iff)
+  have pointwise: "merge_eval j s p q z \<longleftrightarrow> z = s" for s p q z
+    using assms(2) permits[of s p q]
+    by (simp add: A2j_def; blast)
+  show ?thesis
+    using pointwise by (simp add: fun_eq_iff; pred_auto)
+qed
+
 lemma H0_A0j: "A0j (H0 j)"
   by (simp add: A0j_def H0_eval; blast)
 
@@ -370,6 +384,91 @@ lemma H0_healthy_A0j:
   assumes "j is H0"
   shows "A0j j"
   using H0_A0j[of j] by (simp only: Healthy_if[OF assms])
+
+subsection \<open>Merge Healthiness by Conditionally Including Skip\<close>
+
+text \<open>
+  H3m adds the prior state as a permitted result whenever the merge already
+  permits some result for the same branch inputs. Inputs with no result
+  remain without a result. The suffix distinguishes this merge operator
+  from the imported design healthiness H3.
+
+  Every nonempty image of an H3m-healthy merge contains the prior state.
+  On a state space with at least two elements, this excludes any singleton
+  containing a different state and therefore implies @{const A3j}.
+  This is a sufficient condition, stronger than @{const A3j} itself.
+\<close>
+
+definition H3m :: "'s merge \<Rightarrow> 's merge" where
+  [pred]: "H3m j = (\<lambda>(m,z).
+    j (m,z) \<or> (z = mrg_prior\<^sub>v m \<and> (\<exists>u. j (m,u))))"
+
+lemma H3m_eval:
+  fixes j :: "'s merge" and s p q z :: 's
+  shows "merge_eval (H3m j) s p q z \<longleftrightarrow>
+    (merge_eval j s p q z \<or> (z = s \<and> (\<exists>u. merge_eval j s p q u)))"
+  by (simp add: H3m_def)
+
+lemma H3m_idem: "H3m (H3m j) = H3m j"
+  by (auto simp: H3m_def fun_eq_iff split: prod.splits; blast)
+
+lemma H3m_Idempotent [closure]: "Idempotent H3m"
+  by (simp add: Idempotent_def H3m_idem)
+
+lemma H3m_mono: "j \<sqsubseteq> k \<Longrightarrow> H3m j \<sqsubseteq> H3m k"
+  by (auto simp: H3m_def pred_refine_iff split: prod.splits; blast)
+
+lemma H3m_Monotonic [closure]: "Monotonic H3m"
+  by (rule MonotonicI, rule H3m_mono)
+
+lemma H3m_healthy [closure]: "H3m j is H3m"
+  by (rule Healthy_Idempotent[OF H3m_Idempotent])
+
+lemma H3m_healthy_iff:
+  fixes j :: "'s merge"
+  shows "j is H3m \<longleftrightarrow>
+    (\<forall>s p q z. merge_eval j s p q z \<longrightarrow> merge_eval j s p q s)"
+  by (simp add: Healthy_def H3m_def fun_eq_iff; pred_auto; blast)
+
+lemma H0_healthy_H3m [closure]:
+  assumes "j is H0"
+  shows "j is H3m"
+  using assms by (simp add: H0_healthy_iff H3m_healthy_iff)
+
+lemma H3m_false: "H3m (\<lambda>_. False) = (\<lambda>_. False)"
+  by (auto simp: H3m_def)
+
+lemma H3m_merge_image_prior:
+  fixes j :: "'s merge" and s z :: 's
+  assumes "z \<in> ades_merge_image (H3m j) s X Y"
+  shows "s \<in> ades_merge_image (H3m j) s X Y"
+  using assms by (auto simp: ades_merge_image_def H3m_eval; blast)
+
+lemma H3m_A3j:
+  fixes j :: "'s merge"
+  assumes states: "\<exists>(a::'s) b. a \<noteq> b"
+  shows "A3j (H3m j)"
+proof (unfold A3j_def, rule allI)
+  fix s :: 's
+  obtain a b :: 's where ab: "a \<noteq> b" using states by blast
+  let ?z = "if s = a then b else a"
+  have different: "?z \<noteq> s" using ab by auto
+  show "\<exists>z. \<forall>X Y. ades_merge_image (H3m j) s X Y \<noteq> {z}"
+  proof (rule exI[where x="?z"], intro allI notI)
+    fix X Y
+    assume eq: "ades_merge_image (H3m j) s X Y = {?z}"
+    have "?z \<in> ades_merge_image (H3m j) s X Y" using eq by simp
+    then have "s \<in> ades_merge_image (H3m j) s X Y"
+      by (rule H3m_merge_image_prior)
+    then show False using eq different by simp
+  qed
+qed
+
+lemma H3m_healthy_A3j:
+  fixes j :: "'s merge"
+  assumes healthy: "j is H3m" and states: "\<exists>(a::'s) b. a \<noteq> b"
+  shows "A3j j"
+  using H3m_A3j[OF states, of j] by (simp only: Healthy_if[OF healthy])
 
 subsection \<open>Healthiness Closure\<close>
 
@@ -906,6 +1005,25 @@ proof (rule H_A3_intro, rule ades_par_H_closure[OF PH QH])
   show "pre\<^sub>D (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A3_rel"
     by (simp only: pre_eq ades_par_rel_conj_A3_rel_closure[OF jm])
 qed
+
+text \<open>
+  H3m-healthiness supplies the singleton-exclusion premise for A3 closure.
+  The operands retain the H-healthiness premises of @{thm ades_par_A3_closure};
+  totality of the merge is not required.
+\<close>
+
+lemma ades_par_A3_closure_H3m [closure]:
+  fixes P Q :: "'s angelic_design" and j :: "'s merge"
+  assumes "P is \<^bold>H" "Q is \<^bold>H" "j is H3m"
+    and "\<exists>(a::'s) b. a \<noteq> b"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A3"
+  by (rule ades_par_A3_closure[OF assms(1,2) H3m_healthy_A3j[OF assms(3,4)]])
+
+lemma ades_par_A3_closure_H3m_image [closure]:
+  fixes P Q :: "'s angelic_design" and j :: "'s merge"
+  assumes "P is \<^bold>H" "Q is \<^bold>H" "\<exists>(a::'s) b. a \<noteq> b"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>H3m j\<^esub> Q) is A3"
+  by (rule ades_par_A3_closure[OF assms(1,2) H3m_A3j[OF assms(3)]])
 
 (* For a total merge, excluding some singleton image at each initial state
    is necessary and sufficient for A3 of every parallel of H-healthy operands. *)
