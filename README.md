@@ -32,18 +32,18 @@ Use `main` for the reviewed development.
 
 ## Merge healthiness at a glance
 
-For full-observation parallel `P parallel_M Q`, these are sufficient conditions;
+For full-observation parallel [P parallel_M Q](angelic-designs/utp_ades_parallel_generic.thy#L14), these are sufficient conditions;
 operand requirements apply to both `P` and `Q`. `M is K` means `K M = M`.
 
 | Merge condition | Operands | Result healthiness |
 | --- | --- | --- |
-| `A0M` / `PBMHM` / `H2M` | Arbitrary | `A0` / `PBMH_ades` / `H2`, respectively |
-| `H1M` | `H1` | `H1` |
-| `ADM` | `H1` (in particular, `A`) | AD: `A` |
-| `A2M` | Arbitrary, including RAD/AP predicates | `A2` |
-| `A3M` | `H1` | AD: `A`, `A2`, and `A3` |
-| `RADM_full` | `RAD` | RAD: `RAD` |
-| `APM` | `AP` | AP: `AP` |
+| [A0M](angelic-designs/utp_ades_parallel_generic.thy#L346) / [PBMHM](angelic-designs/utp_ades_parallel_generic.thy#L255) / [H2M](angelic-designs/utp_ades_parallel_generic.thy#L316) | Arbitrary | [A0](angelic-designs/utp_ades_parallel_generic.thy#L535) / [PBMH_ades](angelic-designs/utp_ades_parallel_generic.thy#L520) / [H2](angelic-designs/utp_ades_parallel_generic.thy#L525), respectively |
+| [H1M](angelic-designs/utp_ades_parallel_generic.thy#L287) | `H1` | [H1](angelic-designs/utp_ades_parallel_generic.thy#L555) |
+| [ADM](angelic-designs/utp_ades_parallel_generic.thy#L438) | `H1` (in particular, `A`) | [AD: A](angelic-designs/utp_ades_parallel_generic.thy#L573) |
+| [A2M](angelic-designs/utp_ades_parallel_generic.thy#L406) | Arbitrary, including RAD/AP predicates | [A2](angelic-designs/utp_ades_parallel_generic.thy#L530) |
+| [A3M](angelic-designs/utp_ades_parallel_normal.thy#L115) | `H1` | AD: [A](angelic-designs/utp_ades_parallel_normal.thy#L205), [A2](angelic-designs/utp_ades_parallel_normal.thy#L214), and [A3](angelic-designs/utp_ades_parallel_normal.thy#L196) |
+| [RADM_full](reactive-angelic-designs/utp_rad_parallel_generic.thy#L514) | `RAD` | [RAD: RAD](reactive-angelic-designs/utp_rad_parallel_generic.thy#L702) |
+| [APM](angelic-processes/utp_ap_parallel_generic.thy#L277) | `AP` | [AP: AP](angelic-processes/utp_ap_parallel_generic.thy#L380) |
 
 Merge conditions denote fixed-point healthiness. `RADM_full` and `APM` alone
 do not ensure `A2`; see [Generic merges](docs/GENERIC_PARALLEL.md#merge-healthiness-and-closure)
