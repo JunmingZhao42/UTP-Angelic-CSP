@@ -7,6 +7,11 @@ walkthrough of the merge healthiness conditions and closure rules in
 how [`utp_rdes_parallel.thy`](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy)
 and the angelic theories build on the generic construction.
 
+The extension using merge predicates on complete AD, RAD, and AP observations
+is described in [Generic merge predicates](docs/GENERIC_PARALLEL.md), including
+its monotone, idempotent merge operators and parallel-closure conditions.
+The state-level lifting described below remains available as a specialization.
+
 The central idea is:
 
 > Run both relations from the same initial observation, retain their two final

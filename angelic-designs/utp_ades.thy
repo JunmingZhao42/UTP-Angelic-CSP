@@ -1,5 +1,5 @@
 section \<open>Angelic Designs\<close>
 
 theory utp_ades
-  imports utp_ades_parallel
+  imports utp_ades_parallel_normal
 begin end

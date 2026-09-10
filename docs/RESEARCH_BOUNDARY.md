@@ -1,5 +1,13 @@
 # Research branch contents
 
+`research/generic-parallel-merges` extends the `research/parallel` checkpoint
+at `6d88f02`. Its additional AD, RAD, and AP theories implement merge predicates
+on complete observations, with monotone, idempotent healthiness operators and
+parallel-closure proofs. See [Generic merge predicates](GENERIC_PARALLEL.md)
+for the precise assumptions and the stronger A3 construction. The state-merge
+interface remains available. The account below records the preceding branch
+split and its inherited research boundary.
+
 `research/parallel` builds on reviewed `main` at `2c39a6e`. It includes the
 RAD/AP parallel work as an explicitly provisional extension. The paper
 mechanisation and reviewed AD theory come from `main`.
