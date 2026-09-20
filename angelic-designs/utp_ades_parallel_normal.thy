@@ -155,72 +155,6 @@ lemma A3M_is_A2M [closure]: "A3M M is A2M"
   by (simp add: A2M_healthy_iff AN2_is_A2)
 
 text \<open>
-  The two operand predicates only need H1.  Their branch observations may
-  depend arbitrarily on the prior state and on their own final choice sets.
-  After existentially choosing these observations, the result still has
-  normal_ades form: the branch witnesses are incorporated into F and G.
-\<close>
-
-lemma ades_par_full_A3M_form:
-  fixes P Q :: "'s angelic_design" and M :: "'s ades_merge_rel"
-  assumes PH: "P is H1" and QH: "Q is H1"
-  shows "ades_par_full P (A3M M) Q = normal_ades
-    (\<lambda>s0. \<exists>p q.
-      P (ades_normal_input s0, p) \<and> Q (ades_normal_input s0, q) \<and>
-      ades_merge_eval M (ades_normal_input s0) p q (ades_normal_output False {}))
-    (\<lambda>s0 z. \<exists>p q.
-      P (ades_normal_input s0, p) \<and> Q (ades_normal_input s0, q) \<and>
-      ades_merge_eval M (ades_normal_input s0) p q (ades_normal_output True {z}))"
-proof -
-  have P_unstarted: "\<not> des_vars.ok\<^sub>v x \<Longrightarrow> P (x, p)" for x p
-  proof -
-    assume "\<not> des_vars.ok\<^sub>v x"
-    then have "H1 P (x, p)" by (simp add: H1_def; pred_auto)
-    then show "P (x, p)" by (simp only: Healthy_if[OF PH])
-  qed
-  have Q_unstarted: "\<not> des_vars.ok\<^sub>v x \<Longrightarrow> Q (x, q)" for x q
-  proof -
-    assume "\<not> des_vars.ok\<^sub>v x"
-    then have "H1 Q (x, q)" by (simp add: H1_def; pred_auto)
-    then show "Q (x, q)" by (simp only: Healthy_if[OF QH])
-  qed
-  show ?thesis
-    apply (rule ades_obs_ext)
-    subgoal for b s0 c X
-      by (cases b;
-          auto simp add: ades_par_full_eval A3M_eval
-          normal_ades_eval P_unstarted Q_unstarted; blast)
-    done
-qed
-
-lemma ades_par_full_A3_closure [closure]:
-  assumes "P is H1" "Q is H1" "M is A3M"
-  shows "ades_par_full P M Q is A3"
-proof -
-  have "ades_par_full P (A3M M) Q is A3"
-    by (simp only: ades_par_full_A3M_form[OF assms(1,2)] normal_ades_is_A3)
-  then show ?thesis by (simp only: Healthy_if[OF assms(3)])
-qed
-
-lemma ades_par_full_A3M_A_closure [closure]:
-  assumes "P is H1" "Q is H1" "M is A3M"
-  shows "ades_par_full P M Q is A"
-proof -
-  have "ades_par_full P (A3M M) Q is A"
-    by (simp only: ades_par_full_A3M_form[OF assms(1,2)] normal_ades_is_A)
-  then show ?thesis by (simp only: Healthy_if[OF assms(3)])
-qed
-
-lemma ades_par_full_A3M_A2_closure [closure]:
-  assumes "P is H1" "Q is H1" "M is A3M"
-  shows "ades_par_full P M Q is A2"
-proof -
-  have "ades_par_full P (A3M M) Q is A2"
-    by (simp only: ades_par_full_A3M_form[OF assms(1,2)] normal_ades_is_A2)
-  then show ?thesis by (simp only: Healthy_if[OF assms(3)])
-qed
-
-text \<open>
   For a concrete non-skip instance, normalise the existing right-branch
   merge.  With singleton branch choices it permits the right result 2 and
   rejects the prior state 0.  Thus the combined A/A2/A3 condition does not
@@ -335,6 +269,15 @@ lemma ades_nand_merge_symmetric: "MergeSym ades_nand_merge"
   unfolding MergeSym_def
   by (simp only: ades_nand_merge_eval; fastforce simp: conj_commute)
 
+lemma ADOKM_ades_nand_merge: "ADOKM ades_nand_merge = ades_nand_merge"
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: ADOKM_eval ades_nand_merge_eval normal_ades_eval)
+
+lemma ades_par_full_nand_eval:
+  "ades_par_full P ades_nand_merge Q (x,out) =
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval ades_nand_merge x p q out)"
+  by (subst ades_par_full_eval; simp only: ADOKM_ades_nand_merge)
+
 lemma ades_nand_parallel:
   "ades_par_full (ades_bool_choice a) ades_nand_merge (ades_bool_choice b) =
     ades_bool_choice (\<not> (a \<and> b))"
@@ -346,7 +289,7 @@ proof (rule ades_obs_ext)
   proof (cases started)
     case False
     then show ?thesis
-      by (simp add: ades_par_full_eval ades_bool_choice_eval ades_nand_merge_eval)
+      by (simp add: ades_par_full_nand_eval ades_bool_choice_eval ades_nand_merge_eval)
   next
     case True
     show ?thesis
@@ -358,7 +301,7 @@ proof (rule ades_obs_ext)
         Q: "ades_bool_choice b (ades_normal_input (StateII s0),q)" and
         M: "ades_merge_eval ades_nand_merge (ades_normal_input (StateII s0)) p q
           (ades_normal_output terminated X)"
-        using True by (auto simp only: ades_par_full_eval StateII_def)
+        using True by (auto simp only: ades_par_full_nand_eval StateII_def)
       from M obtain u v where
         p: "p = ades_normal_output True {u}" and
         q: "q = ades_normal_output True {v}" and
@@ -382,7 +325,7 @@ proof (rule ades_obs_ext)
         by (auto simp add: ades_nand_merge_eval ades_bool_choice_eval)
       show "ades_par_full (ades_bool_choice a) ades_nand_merge (ades_bool_choice b)
         (ades_obs started s0 terminated X)"
-        using P Q M True by (auto simp only: ades_par_full_eval StateII_def)
+        using P Q M True by (auto simp only: ades_par_full_nand_eval StateII_def)
     qed
   qed
 qed
@@ -409,14 +352,118 @@ lemma ades_nand_parallel_not_assoc:
 
 lemma ades_nand_merge_not_associative: "\<not> MergeAssoc ades_nand_merge"
 proof
-  assume "MergeAssoc ades_nand_merge"
-  then have "ades_par_full
+  assume assms: "MergeAssoc ades_nand_merge"
+  have "ades_par_full
       (ades_par_full (ades_bool_choice True) ades_nand_merge (ades_bool_choice True))
       ades_nand_merge (ades_bool_choice False) =
     ades_par_full (ades_bool_choice True) ades_nand_merge
       (ades_par_full (ades_bool_choice True) ades_nand_merge (ades_bool_choice False))"
-    by (rule ades_par_full_assoc)
+    by (rule ades_par_full_assoc; simp add: ADOKM_ades_nand_merge assms)
   with ades_nand_parallel_not_assoc show False by contradiction
 qed
+
+subsection \<open>Normal Conjunctive-ok Merges\<close>
+
+definition ANOKM :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  [pred]: "ANOKM = A3M \<circ> OkM"
+
+lemma ANOKM_eval:
+  "ades_merge_eval (ANOKM M) x p q out \<longleftrightarrow>
+    (\<not> des_vars.ok\<^sub>v x \<or>
+      (if des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q
+       then des_vars.ok\<^sub>v out \<and>
+         (\<exists>z \<in> achoices.ac\<^sub>v (des_vars.more out).
+           ades_merge_eval M (ades_normal_input (des_vars.more x)) p q
+             (ades_normal_output True {z}))
+       else ades_merge_eval M (ades_normal_input (des_vars.more x)) p q
+         (ades_normal_output False {})))"
+  by (auto simp: ANOKM_def A3M_eval OkM_eval)
+
+lemma ANOKM_idem: "ANOKM (ANOKM M) = ANOKM M"
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: ANOKM_eval)
+
+lemma ANOKM_Idempotent [closure]: "Idempotent ANOKM"
+  by (simp add: Idempotent_def ANOKM_idem)
+
+lemma ANOKM_mono: "M \<sqsubseteq> N \<Longrightarrow> ANOKM M \<sqsubseteq> ANOKM N"
+  unfolding ANOKM_def comp_apply by (intro A3M_mono OkM_mono)
+
+lemma ANOKM_Monotonic [closure]: "Monotonic ANOKM"
+  by (rule MonotonicI, rule ANOKM_mono)
+
+lemma ANOKM_healthy [closure]: "ANOKM M is ANOKM"
+  by (simp add: Healthy_def' ANOKM_idem)
+
+lemma ANOKM_is_A3M [closure]: "ANOKM M is A3M"
+  by (simp add: ANOKM_def A3M_healthy)
+
+subsection \<open>Symmetry and Non-skip Examples\<close>
+
+lemma ANOKM_MergeSym: "MergeSym M \<Longrightarrow> MergeSym (ANOKM M)"
+  unfolding ANOKM_def comp_apply A3M_def
+  by (intro merge_health_MergeSym OkM_MergeSym)
+
+lemma ANOKM_state_lift:
+  "ANOKM (merge_ades_up j) = A3M (merge_ades_up j)"
+  by (simp add: ANOKM_def)
+
+lemmas ANOKM_right_non_skip = A3M_right_non_skip[folded ANOKM_state_lift]
+lemmas ANOKM_right_branch_dependence =
+  A3M_right_branch_dependence[folded ANOKM_state_lift]
+lemmas ANOKM_right_relaxes_ok_conjunction =
+  A3M_right_relaxes_ok_conjunction[folded ANOKM_state_lift]
+
+text \<open>
+  The right-merge examples retain branch dependence, accept a result
+  different from the prior state, and exhibit the deliberate relaxation
+  of the seed's ok equation after normalisation. No new state-level
+  totality or functionality premise is used by the closure results above.
+\<close>
+
+lemma ADOKM_ANOKM_absorb: "ADOKM (ANOKM M) = ANOKM M"
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: ADOKM_eval ANOKM_eval)
+
+lemma ades_par_full_ANOKM_form:
+  assumes "P is H1" "Q is H1"
+  shows "ades_par_full P (ANOKM M) Q = normal_ades
+    (\<lambda>s0. \<exists>p q. P (ades_normal_input s0,p) \<and>
+      Q (ades_normal_input s0,q) \<and>
+      ades_merge_eval (OkM M) (ades_normal_input s0) p q (ades_normal_output False {}))
+    (\<lambda>s0 z. \<exists>p q. P (ades_normal_input s0,p) \<and>
+      Q (ades_normal_input s0,q) \<and>
+      ades_merge_eval (OkM M) (ades_normal_input s0) p q (ades_normal_output True {z}))"
+proof -
+  have eval: "ades_par_full P (ANOKM M) Q (x,out) =
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval (ANOKM M) x p q out)" for x out
+    by (subst ades_par_full_eval; simp only: ADOKM_ANOKM_absorb)
+  have P_unstarted: "\<not> des_vars.ok\<^sub>v x \<Longrightarrow> P (x,p)" for x p
+  proof -
+    assume "\<not> des_vars.ok\<^sub>v x"
+    then have "H1 P (x,p)" by (simp add: H1_def; pred_auto)
+    then show "P (x,p)" by (simp only: Healthy_if[OF assms(1)])
+  qed
+  have Q_unstarted: "\<not> des_vars.ok\<^sub>v x \<Longrightarrow> Q (x,q)" for x q
+  proof -
+    assume "\<not> des_vars.ok\<^sub>v x"
+    then have "H1 Q (x,q)" by (simp add: H1_def; pred_auto)
+    then show "Q (x,q)" by (simp only: Healthy_if[OF assms(2)])
+  qed
+  show ?thesis
+    apply (rule ades_obs_ext)
+    subgoal for b s0 c X
+      apply (cases b; auto simp add: eval ANOKM_eval OkM_eval normal_ades_eval P_unstarted Q_unstarted)
+      by blast
+    done
+qed
+
+lemma ades_par_full_ANOKM_closure:
+  assumes "P is H1" "Q is H1"
+  shows "ades_par_full P (ANOKM M) Q is A"
+    and "ades_par_full P (ANOKM M) Q is A2"
+    and "ades_par_full P (ANOKM M) Q is A3"
+  by (simp_all only: ades_par_full_ANOKM_form[OF assms]
+      normal_ades_is_A normal_ades_is_A2 normal_ades_is_A3)
 
 end

@@ -7,25 +7,9 @@ begin
 text \<open>
   A full merge relates the complete prior observation and both branch
   observations to the complete final observation. It can therefore constrain
-  the final control flag and choice set directly. The state-level lifting
-  remains an instance of this interface.
+  the final control flag and choice set directly. We develop the merge
+  healthiness infrastructure, then define parallel using OkM followed by ADM.
 \<close>
-
-abbreviation ades_par_full ::
-  "'s angelic_design \<Rightarrow> 's ades_merge_rel \<Rightarrow>
-   's angelic_design \<Rightarrow> 's angelic_design"
-where "ades_par_full P M Q \<equiv> P \<parallel>\<^bsub>M\<^esub> Q"
-
-lemma ades_par_full_eval:
-  fixes P Q :: "'s angelic_design" and M :: "'s ades_merge_rel"
-  shows "ades_par_full P M Q (x,out) \<longleftrightarrow>
-    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval M x p q out)"
-  by (cases x; cases out;
-      simp add: par_by_merge_def par_sep_def; pred_auto; blast)
-
-lemma ades_par_state_as_full:
-  "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q = ades_par_full P (merge_ades_up j) Q"
-  by simp
 
 text \<open>
   Symmetry and associativity are separate algebraic requirements on the merge,
@@ -231,27 +215,6 @@ qed
 
 subsection \<open>Merge Healthiness Operators\<close>
 
-text \<open>
-  Weakest-for-closure claims depend on the permitted operands: a merge
-  condition is weakest when it holds exactly for the merges that preserve
-  the target healthiness for every permitted pair of operands. Idempotence,
-  monotonicity, and the slice fixed-point equivalences alone do not show this.
-
-  For arbitrary operands, constant branch selectors P(x,p) = (p = p0) and
-  Q(x,q) = (q = q0) recover any chosen merge slice. Universal closure therefore
-  forces every slice to be healthy. Together with the closure lemmas below,
-  this shows that PBMHM, H2M, A0M, and A2M are weakest for their respective
-  targets with arbitrary operands. The necessity arguments and counterexamples
-  in these comments are mathematical explanations, not additional Isabelle
-  necessity or counterexample lemmas. See also docs/GENERIC_PARALLEL.md.
-\<close>
-
-text \<open>
-  PBMHM is weakest for PBMH_ades closure with arbitrary operands, by the
-  selector argument above. This does not assert weakestness when the operands
-  are restricted to an already healthy layer.
-\<close>
-
 definition PBMHM :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "PBMHM = merge_health PBMH_ades"
 
@@ -275,14 +238,6 @@ lemma PBMHM_healthy [closure]: "PBMHM M is PBMHM"
 lemma PBMHM_healthy_iff:
   "M is PBMHM \<longleftrightarrow> (\<forall>p q. merge_slice M p q is PBMH_ades)"
   by (simp only: PBMHM_def merge_health_healthy_iff)
-
-text \<open>
-  H1M is sufficient but not weakest for H1 closure with H1-healthy operands.
-  At an unstarted input, those operands accept every branch result, so closure
-  needs some pair p,q for each final output o. H1M instead requires every pair
-  p,q to permit o. For example, M(x,p,q,o) = (not ok(x) and p = o and q = o)
-  yields the H1-healthy parallel predicate not ok(x), but fails H1M.
-\<close>
 
 definition H1M :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "H1M = merge_health H1"
@@ -308,11 +263,6 @@ lemma H1M_healthy_iff:
   "M is H1M \<longleftrightarrow> (\<forall>p q. merge_slice M p q is H1)"
   by (simp only: H1M_def merge_health_healthy_iff)
 
-text \<open>
-  H2M is weakest for H2 closure with arbitrary operands: the closure lemma
-  gives sufficiency and constant branch selectors give necessity.
-\<close>
-
 definition H2M :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "H2M = merge_health H2"
 
@@ -336,12 +286,6 @@ lemma H2M_healthy [closure]: "H2M M is H2M"
 lemma H2M_healthy_iff:
   "M is H2M \<longleftrightarrow> (\<forall>p q. merge_slice M p q is H2)"
   by (simp only: H2M_def merge_health_healthy_iff)
-
-text \<open>
-  A0M is weakest for A0 closure with arbitrary operands, by the same selector
-  argument. It constrains full observation slices; it is distinct from the
-  state-merge totality predicate A0j and the earlier skip-adding operator H0.
-\<close>
 
 definition A0M :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "A0M = merge_health A0"
@@ -367,12 +311,6 @@ lemma A0M_healthy_iff:
   "M is A0M \<longleftrightarrow> (\<forall>p q. merge_slice M p q is A0)"
   by (simp only: A0M_def merge_health_healthy_iff)
 
-text \<open>
-  A1M supplies the slice lifting and its healthiness algebra. No separate
-  parallel closure or weakest-for-closure characterisation is claimed for
-  A1M here.
-\<close>
-
 definition A1M :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "A1M = merge_health A1"
 
@@ -397,12 +335,6 @@ lemma A1M_healthy_iff:
   "M is A1M \<longleftrightarrow> (\<forall>p q. merge_slice M p q is A1)"
   by (simp only: A1M_def merge_health_healthy_iff)
 
-text \<open>
-  A2M is weakest for A2 closure with arbitrary operands, by the closure lemma
-  and the selector argument. This statement applies to the full merge
-  interface and does not assert necessity of the earlier state condition A2j.
-\<close>
-
 definition A2M :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "A2M = merge_health A2"
 
@@ -426,14 +358,6 @@ lemma A2M_healthy [closure]: "A2M M is A2M"
 lemma A2M_healthy_iff:
   "M is A2M \<longleftrightarrow> (\<forall>p q. merge_slice M p q is A2)"
   by (simp only: A2M_def merge_health_healthy_iff)
-
-text \<open>
-  ADM is sufficient but not weakest for A closure with H1-healthy operands
-  (also when both operands are A-healthy). The example given for H1M yields
-  not ok(x), which is A-healthy, but fails H1M and hence ADM. The component
-  equivalence below characterises this chosen class of merges, rather than
-  every merge that preserves A.
-\<close>
 
 definition ADM :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel"
 where [pred]: "ADM = merge_health A"
@@ -497,147 +421,266 @@ lemma ADM_intro:
   shows "M is ADM"
   using assms by (simp add: ADM_components_iff)
 
-subsection \<open>Healthiness Closure of Generic Parallel\<close>
+text \<open>
+  Every slice healthiness operator preserves merge symmetry. In particular,
+  a symmetric seed can be repaired by ADM without losing commutativity.
+  No analogous preservation of MergeAssoc is claimed.
+\<close>
 
-lemma ades_par_full_PBMH_distrib:
-  "PBMH_ades (ades_par_full P M Q) = ades_par_full P (PBMHM M) Q"
-  by (rule ades_obs_ext;
-      simp only: PBMH_ades_obs ades_par_full_eval PBMHM_def
-        merge_health_eval merge_slice_eval; blast)
+lemma ADM_MergeSym:
+  "MergeSym M \<Longrightarrow> MergeSym (ADM M)"
+  by (simp only: ADM_def; rule merge_health_MergeSym)
 
-lemma ades_par_full_H2_distrib:
-  "H2 (ades_par_full P M Q) = ades_par_full P (H2M M) Q"
-  by (rule ades_obs_ext;
-      simp only: H2_obs ades_par_full_eval H2M_def
-        merge_health_eval merge_slice_eval; blast)
+subsection \<open>Conjunctive-ok Seed and Healthy Parallel\<close>
 
-lemma ades_par_full_A2_distrib:
-  "A2 (ades_par_full P M Q) = ades_par_full P (A2M M) Q"
-  by (rule ades_obs_ext;
-      simp only: A2_obs ades_par_full_eval A2M_def
-        merge_health_eval merge_slice_eval; blast)
+text \<open>
+  OkM restricts the seed merge to the conjunction of branch ok flags.
+  Choice sets remain governed by the supplied full merge. The completed
+  merge is then normalised by the existing layer healthiness operator.
+  This follows the seed/normalisation architecture of reactive-design
+  parallel; it does not assert an exact CSP correspondence or retain the
+  seed equation globally after normalisation.
+\<close>
 
-lemma ades_par_full_PBMH_closure [closure]:
-  assumes "M is PBMHM"
-  shows "ades_par_full P M Q is PBMH_ades"
-  by (simp only: Healthy_def' ades_par_full_PBMH_distrib Healthy_if[OF assms])
+definition OkM :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  [pred]: "OkM M = (\<lambda>(m,out).
+    des_vars.ok\<^sub>v out =
+      (des_vars.ok\<^sub>v (mrg_left\<^sub>v m) \<and>
+       des_vars.ok\<^sub>v (mrg_right\<^sub>v m)) \<and> M (m,out))"
 
-lemma ades_par_full_H2_closure [closure]:
-  assumes "M is H2M"
-  shows "ades_par_full P M Q is H2"
-  by (simp only: Healthy_def' ades_par_full_H2_distrib Healthy_if[OF assms])
+lemma OkM_eval:
+  "ades_merge_eval (OkM M) x p q out \<longleftrightarrow>
+    (des_vars.ok\<^sub>v out = (des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q) \<and>
+     ades_merge_eval M x p q out)"
+  by (simp add: OkM_def)
 
-lemma ades_par_full_A2_closure [closure]:
-  assumes "M is A2M"
-  shows "ades_par_full P M Q is A2"
-  by (simp only: Healthy_def' ades_par_full_A2_distrib Healthy_if[OF assms])
+lemma OkM_idem: "OkM (OkM M) = OkM M"
+  by (auto simp: OkM_def fun_eq_iff)
+
+lemma OkM_Idempotent [closure]: "Idempotent OkM"
+  by (simp add: Idempotent_def OkM_idem)
+
+lemma OkM_mono: "M \<sqsubseteq> N \<Longrightarrow> OkM M \<sqsubseteq> OkM N"
+  by (auto simp: OkM_def pred_refine_iff)
+
+lemma OkM_Monotonic [closure]: "Monotonic OkM"
+  by (rule MonotonicI, rule OkM_mono)
+
+lemma OkM_MergeSym: "MergeSym M \<Longrightarrow> MergeSym (OkM M)"
+  by (auto simp: MergeSym_def OkM_eval)
+
+lemma OkM_PBMHM_commute:
+  "(OkM \<circ> PBMHM) M = (PBMHM \<circ> OkM) M"
+  unfolding comp_apply
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: OkM_eval PBMHM_def merge_health_eval PBMH_ades_obs)
+
+lemmas OkM_PBMHM_commute' = OkM_PBMHM_commute[simplified comp_apply]
+
+lemma OkM_A2M_commute:
+  "(OkM \<circ> A2M) M = (A2M \<circ> OkM) M"
+  unfolding comp_apply
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: OkM_eval A2M_def merge_health_eval A2_obs)
+
+lemmas OkM_A2M_commute' = OkM_A2M_commute[simplified comp_apply]
+
+subsection \<open>AD Normalisation\<close>
+
+lemma A_obs:
+  "A P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or> (\<exists>Y \<subseteq> X. P (ades_obs True s0 False Y)) \<or>
+      (c \<and> X \<noteq> {} \<and> (\<exists>Y \<subseteq> X. P (ades_obs True s0 True Y))))"
+  apply (simp add: A_design_form)
+  apply pred_simp
+  by (auto simp: des_vars_collapse)
+
+definition ADOKM :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  [pred]: "ADOKM = ADM \<circ> OkM"
+
+lemma ADOKM_obs:
+  "merge_slice (ADOKM M) p q (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or>
+      (if des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q
+       then c \<and> X \<noteq> {} \<and>
+         (\<exists>Y \<subseteq> X. merge_slice M p q (ades_obs True s0 True Y))
+       else (\<exists>Y \<subseteq> X. merge_slice M p q (ades_obs True s0 False Y))))"
+  by (auto simp: ADOKM_def ADM_def merge_health_eval A_obs OkM_eval)
+
+lemmas ADOKM_eval = ADOKM_obs[simplified merge_slice_eval]
+
+lemma ok_merge_subset_twice:
+  "(\<exists>Y \<subseteq> X. \<exists>Z \<subseteq> Y. F Z) \<longleftrightarrow> (\<exists>Z \<subseteq> X. F Z)"
+  by (meson subset_refl subset_trans)
+
+lemma ok_merge_nonempty_subset_twice:
+  assumes "X \<noteq> {}"
+  shows "(\<exists>Y \<subseteq> X. Y \<noteq> {} \<and> (\<exists>Z \<subseteq> Y. F Z)) \<longleftrightarrow>
+    (\<exists>Z \<subseteq> X. F Z)"
+proof
+  assume "\<exists>Y \<subseteq> X. Y \<noteq> {} \<and> (\<exists>Z \<subseteq> Y. F Z)"
+  then show "\<exists>Z \<subseteq> X. F Z" by (blast intro: subset_trans)
+next
+  assume "\<exists>Z \<subseteq> X. F Z"
+  with assms show "\<exists>Y \<subseteq> X. Y \<noteq> {} \<and> (\<exists>Z \<subseteq> Y. F Z)"
+    by (intro exI[of _ X]; simp)
+qed
+
+lemma ADOKM_idem: "ADOKM (ADOKM M) = ADOKM M"
+  apply (rule merge_slice_ext, rule ades_obs_ext)
+  apply (simp only: ADOKM_obs)
+  subgoal for p q b s0 c X
+    by (cases "X = {}"; simp add: ok_merge_subset_twice
+        ok_merge_nonempty_subset_twice split: if_splits)
+  done
+
+lemma ADOKM_Idempotent [closure]: "Idempotent ADOKM"
+  by (simp add: Idempotent_def ADOKM_idem)
+
+lemma ADOKM_mono: "M \<sqsubseteq> N \<Longrightarrow> ADOKM M \<sqsubseteq> ADOKM N"
+  unfolding ADOKM_def comp_apply by (intro ADM_mono OkM_mono)
+
+lemma ADOKM_Monotonic [closure]: "Monotonic ADOKM"
+  by (rule MonotonicI, rule ADOKM_mono)
+
+lemma ADOKM_healthy [closure]: "ADOKM M is ADOKM"
+  by (simp add: Healthy_def' ADOKM_idem)
+
+lemma ADOKM_is_ADM [closure]: "ADOKM M is ADM"
+  by (simp add: ADOKM_def ADM_healthy)
+
+lemma ADOKM_MergeSym: "MergeSym M \<Longrightarrow> MergeSym (ADOKM M)"
+  unfolding ADOKM_def comp_apply ADM_def
+  by (intro merge_health_MergeSym OkM_MergeSym)
+
+lemma OkM_merge_ades_up [simp]: "OkM (merge_ades_up j) = merge_ades_up j"
+  by (auto simp: OkM_def merge_ades_up_def fun_eq_iff)
+
+text \<open>
+  The public operator first restricts the supplied merge with OkM and then
+  applies the layer healthiness operator. Its choice-set policy comes from
+  the supplied merge, subject to that healthiness transformation. The seed's
+  conjunction of branch ok flags need not hold globally after completion.
+\<close>
+
+abbreviation ades_par_full ::
+  "'s angelic_design \<Rightarrow> 's ades_merge_rel \<Rightarrow>
+   's angelic_design \<Rightarrow> 's angelic_design"
+where "ades_par_full P M Q \<equiv> P \<parallel>\<^bsub>ADOKM M\<^esub> Q"
+
+lemma ades_par_full_eval:
+  "ades_par_full P M Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and>
+      ades_merge_eval (ADOKM M) x p q out)"
+proof -
+  have eval: "par_by_merge P N Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval N x p q out)" for N
+    by (cases x; cases out;
+        simp add: par_by_merge_def par_sep_def; pred_auto; blast)
+  show ?thesis by (rule eval)
+qed
+
+lemma ades_par_full_PBMH_closure [closure]: "ades_par_full P M Q is PBMH_ades"
+proof -
+  have healthy: "ADOKM M is PBMHM"
+    using ADOKM_is_ADM[of M] by (auto simp: ADM_components_iff)
+  have slices: "PBMH_ades (merge_slice (ADOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (ADOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded PBMHM_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: PBMH_ades_obs ades_par_full_eval;
+        use slices[unfolded PBMH_ades_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma ades_par_full_H2_closure [closure]: "ades_par_full P M Q is H2"
+proof -
+  have healthy: "ADOKM M is H2M"
+    using ADOKM_is_ADM[of M] by (auto simp: ADM_components_iff)
+  have slices: "H2 (merge_slice (ADOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (ADOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded H2M_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: H2_obs ades_par_full_eval;
+        use slices[unfolded H2_obs merge_slice_eval] in \<open>blast\<close>)
+qed
 
 lemma ades_par_full_A0_closure [closure]:
   fixes P Q :: "'s angelic_design" and M :: "'s ades_merge_rel"
-  assumes "M is A0M"
   shows "ades_par_full P M Q is A0"
-proof (unfold A0_healthy_obs_iff, intro allI impI)
-  fix s0 :: 's
-  assume running: "ades_par_full P M Q (ades_obs True s0 True {})"
-  obtain p q where branches:
-      "P (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,p)"
-      "Q (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,q)"
-    and success: "merge_slice M p q (ades_obs True s0 True {})"
-    using running by (auto simp: ades_par_full_eval)
-  have slice: "merge_slice M p q is A0"
-    using assms by (simp add: A0M_healthy_iff)
-  have failure: "merge_slice M p q (ades_obs True s0 False {})"
-    using slice success by (auto simp: A0_healthy_obs_iff)
-  show "ades_par_full P M Q (ades_obs True s0 False {})"
-    using branches failure by (auto simp: ades_par_full_eval)
+proof -
+  have healthy: "ADOKM M is A0M"
+    using ADOKM_is_ADM[of M] by (auto simp: ADM_components_iff)
+  show ?thesis
+    using healthy[unfolded A0M_healthy_iff A0_healthy_obs_iff]
+    by (auto simp only: A0_healthy_obs_iff ades_par_full_eval merge_slice_eval; blast)
 qed
 
 lemma ades_par_full_H1_closure [closure]:
   fixes P Q :: "'s angelic_design" and M :: "'s ades_merge_rel"
-  assumes "P is H1" "Q is H1" "M is H1M"
+  assumes "P is H1" "Q is H1"
   shows "ades_par_full P M Q is H1"
-proof (unfold H1_healthy_obs_iff, intro allI)
-  fix s0 :: 's and c :: bool and X :: "'s set"
-  let ?x = "\<lparr>ok\<^sub>v = False, s\<^sub>v = s0, \<dots> = ()\<rparr>"
-  let ?out = "\<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>"
-  have p: "P (?x,?out)" and q: "Q (?x,?out)"
-    using assms(1,2) by (simp_all add: H1_healthy_obs_iff)
-  have slice: "merge_slice M ?out ?out is H1"
-    using assms(3) by (simp add: H1M_healthy_iff)
-  have m: "merge_slice M ?out ?out (?x,?out)"
-    using slice by (simp add: H1_healthy_obs_iff)
-  show "ades_par_full P M Q (ades_obs False s0 c X)"
-    using p q m by (auto simp: ades_par_full_eval)
+proof -
+  have healthy: "ADOKM M is H1M"
+    using ADOKM_is_ADM[of M] by (auto simp: ADM_components_iff)
+  show ?thesis
+    using healthy[unfolded H1M_healthy_iff H1_healthy_obs_iff] assms[unfolded H1_healthy_obs_iff]
+    by (auto simp only: H1_healthy_obs_iff ades_par_full_eval merge_slice_eval; blast)
 qed
 
 lemma ades_par_full_A_closure [closure]:
-  assumes "P is H1" "Q is H1" "M is ADM"
-  shows "ades_par_full P M Q is A"
-proof -
-  have parts: "M is H1M" "M is H2M" "M is PBMHM" "M is A0M"
-    using assms(3) by (simp_all add: ADM_components_iff)
-  show ?thesis
-    using ades_par_full_H1_closure[OF assms(1,2) parts(1)]
-      ades_par_full_H2_closure[OF parts(2), of P Q]
-      ades_par_full_PBMH_closure[OF parts(3), of P Q]
-      ades_par_full_A0_closure[OF parts(4), of P Q]
-    by (simp add: A_healthy_components_iff)
-qed
-
-lemma ades_par_full_ADM_image [closure]:
   assumes "P is H1" "Q is H1"
-  shows "ades_par_full P (ADM M) Q is A"
-  by (rule ades_par_full_A_closure[OF assms ADM_healthy])
+  shows "ades_par_full P M Q is A"
+  using ades_par_full_H1_closure[OF assms] ades_par_full_H2_closure
+    ades_par_full_PBMH_closure ades_par_full_A0_closure
+  by (auto simp: A_healthy_components_iff)
 
-subsection \<open>Algebraic Laws\<close>
-
-text \<open>
-  These laws concern full predicates; no operand healthiness is needed.
-  Disjunction (demonic choice) distributes through parallel, and false is
-  an annihilator. For healthy operands and a healthy merge, the closure
-  theorems above establish that the resulting expressions stay in the layer.
-\<close>
+lemma ades_par_full_normalise:
+  "ades_par_full P (ADOKM M) Q = ades_par_full P M Q"
+  by (simp only: ADOKM_idem)
 
 lemma ades_par_full_mono:
-  fixes P1 P2 Q1 Q2 :: "'s angelic_design" and M1 M2 :: "'s ades_merge_rel"
   assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2" "M1 \<sqsubseteq> M2"
   shows "ades_par_full P1 M1 Q1 \<sqsubseteq> ades_par_full P2 M2 Q2"
-  using assms
+  using assms(1,2) ADOKM_mono[OF assms(3)]
   by (auto simp: pred_refine_iff ades_par_full_eval split: prod.splits; blast)
 
 lemma ades_par_full_comm:
   assumes "MergeSym M"
   shows "ades_par_full P M Q = ades_par_full Q M P"
-  by (rule par_by_merge_comm; use assms in \<open>simp add: MergeSym_iff_swap\<close>)
+  by (rule par_by_merge_comm; use ADOKM_MergeSym[OF assms] in \<open>simp add: MergeSym_iff_swap\<close>)
 
 lemma ades_par_full_comm_iff:
-  "MergeSym M \<longleftrightarrow> (\<forall>P Q. ades_par_full P M Q = ades_par_full Q M P)"
+  "MergeSym (ADOKM M) \<longleftrightarrow> (\<forall>P Q. ades_par_full P M Q = ades_par_full Q M P)"
 proof
-  assume "MergeSym M"
+  assume "MergeSym (ADOKM M)"
   then show "\<forall>P Q. ades_par_full P M Q = ades_par_full Q M P"
-    by (blast intro: ades_par_full_comm)
+    by (auto simp: fun_eq_iff ades_par_full_eval MergeSym_def; blast)
 next
   assume comm: "\<forall>P Q. ades_par_full P M Q = ades_par_full Q M P"
-  show "MergeSym M"
+  show "MergeSym (ADOKM M)"
   proof (unfold MergeSym_def, intro allI)
     fix x p q out
     have eq: "ades_par_full (\<lambda>(x,r). r = p) M (\<lambda>(x,r). r = q) =
         ades_par_full (\<lambda>(x,r). r = q) M (\<lambda>(x,r). r = p)"
       using comm by blast
     from fun_cong[OF eq, of "(x,out)"]
-    show "ades_merge_eval M x p q out = ades_merge_eval M x q p out"
+    show "ades_merge_eval (ADOKM M) x p q out = ades_merge_eval (ADOKM M) x q p out"
       by (simp add: ades_par_full_eval)
   qed
 qed
 
 lemma ades_par_full_assoc:
-  assumes "MergeAssoc M"
+  assumes "MergeAssoc (ADOKM M)"
   shows "ades_par_full (ades_par_full P M Q) M R =
     ades_par_full P M (ades_par_full Q M R)"
 proof (rule ext, clarify)
   fix x out
-  have assoc: "(\<exists>y. ades_merge_eval M x p q y \<and> ades_merge_eval M x y r out) =
-      (\<exists>y. ades_merge_eval M x q r y \<and> ades_merge_eval M x p y out)"
+  have assoc: "(\<exists>y. ades_merge_eval (ADOKM M) x p q y \<and> ades_merge_eval (ADOKM M) x y r out) =
+      (\<exists>y. ades_merge_eval (ADOKM M) x q r y \<and> ades_merge_eval (ADOKM M) x p y out)"
     for p q r
     using assms by (simp add: MergeAssoc_def)
   show "ades_par_full (ades_par_full P M Q) M R (x,out) =
@@ -646,18 +689,18 @@ proof (rule ext, clarify)
 qed
 
 lemma ades_par_full_assoc_iff:
-  "MergeAssoc M \<longleftrightarrow>
+  "MergeAssoc (ADOKM M) \<longleftrightarrow>
     (\<forall>P Q R. ades_par_full (ades_par_full P M Q) M R =
       ades_par_full P M (ades_par_full Q M R))"
 proof
-  assume "MergeAssoc M"
+  assume "MergeAssoc (ADOKM M)"
   then show "\<forall>P Q R. ades_par_full (ades_par_full P M Q) M R =
       ades_par_full P M (ades_par_full Q M R)"
     by (blast intro: ades_par_full_assoc)
 next
   assume assoc: "\<forall>P Q R. ades_par_full (ades_par_full P M Q) M R =
       ades_par_full P M (ades_par_full Q M R)"
-  show "MergeAssoc M"
+  show "MergeAssoc (ADOKM M)"
   proof (unfold MergeAssoc_def, intro allI)
     fix x p q r out
     have eq: "ades_par_full
@@ -667,8 +710,8 @@ next
         (ades_par_full (\<lambda>(x,u). u = q) M (\<lambda>(x,u). u = r))"
       using assoc by blast
     from fun_cong[OF eq, of "(x,out)"]
-    show "(\<exists>y. ades_merge_eval M x p q y \<and> ades_merge_eval M x y r out) =
-        (\<exists>y. ades_merge_eval M x q r y \<and> ades_merge_eval M x p y out)"
+    show "(\<exists>y. ades_merge_eval (ADOKM M) x p q y \<and> ades_merge_eval (ADOKM M) x y r out) =
+        (\<exists>y. ades_merge_eval (ADOKM M) x q r y \<and> ades_merge_eval (ADOKM M) x p y out)"
       by (simp add: ades_par_full_eval)
   qed
 qed
@@ -681,31 +724,10 @@ lemma ades_par_full_disj_right:
   "ades_par_full P M (Q \<or> R) = (ades_par_full P M Q \<or> ades_par_full P M R)"
   by (auto simp: fun_eq_iff ades_par_full_eval disj_pred_def split: prod.splits)
 
-lemma ades_par_full_disj_merge:
-  "ades_par_full P (M \<or> N) Q = (ades_par_full P M Q \<or> ades_par_full P N Q)"
-  by (auto simp: fun_eq_iff ades_par_full_eval disj_pred_def split: prod.splits)
-
 lemma ades_par_full_false_left [simp]: "ades_par_full false M P = false"
   by (rule par_by_merge_left_false)
 
 lemma ades_par_full_false_right [simp]: "ades_par_full P M false = false"
   by (rule par_by_merge_right_false)
-
-lemma ades_par_full_false_merge [simp]: "ades_par_full P false Q = false"
-  by (rule par_by_merge_false)
-
-text \<open>
-  Every slice healthiness operator preserves merge symmetry. In particular,
-  a symmetric seed can be repaired by ADM without losing commutativity.
-  No analogous preservation of MergeAssoc is claimed.
-\<close>
-
-lemma ADM_MergeSym:
-  "MergeSym M \<Longrightarrow> MergeSym (ADM M)"
-  by (simp only: ADM_def; rule merge_health_MergeSym)
-
-lemma ades_par_full_ADM_comm:
-  "MergeSym M \<Longrightarrow> ades_par_full P (ADM M) Q = ades_par_full Q (ADM M) P"
-  by (rule ades_par_full_comm, rule ADM_MergeSym)
 
 end

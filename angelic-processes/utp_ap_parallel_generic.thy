@@ -7,82 +7,15 @@ begin
 
 text \<open>
   The full merge observes the prior observation, both complete branch
-  observations, and the complete final observation.  The parallel operator
-  adds no equations relating their termination or waiting flags.
+  observations, and the complete final observation. The parallel operator
+  uses OkM followed by AP merge healthiness.
 
   Waiting is an input condition: when the prior state is waiting, the
   merge supplies the angelic-process identity.  For a nonwaiting prior,
   the merge can depend on both branch observations.
 \<close>
 
-abbreviation ap_par_full ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) rad_state ades_merge_rel \<Rightarrow>
-   ('t, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) reactive_angelic_design"
-where
-  "ap_par_full P M Q \<equiv> ades_par_full P M Q"
-
-subsection \<open>Parallel Algebra\<close>
-
-lemma ap_par_full_mono:
-  fixes P1 P2 Q1 Q2 :: "('t::trace, 'e) reactive_angelic_design"
-    and M1 M2 :: "('t, 'e) rad_state ades_merge_rel"
-  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2" "M1 \<sqsubseteq> M2"
-  shows "ap_par_full P1 M1 Q1 \<sqsubseteq> ap_par_full P2 M2 Q2"
-  by (rule ades_par_full_mono[OF assms])
-
-lemma ap_par_full_comm:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  assumes "MergeSym M"
-  shows "ap_par_full P M Q = ap_par_full Q M P"
-  by (rule ades_par_full_comm[OF assms])
-
-lemma ap_par_full_assoc:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  assumes "MergeAssoc M"
-  shows "ap_par_full (ap_par_full P M Q) M R =
-    ap_par_full P M (ap_par_full Q M R)"
-  by (rule ades_par_full_assoc[OF assms])
-
-lemma ap_par_full_disj_left:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  shows "ap_par_full (P \<or> Q) M R =
-    (ap_par_full P M R \<or> ap_par_full Q M R)"
-  by (rule ades_par_full_disj_left)
-
-lemma ap_par_full_disj_right:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  shows "ap_par_full P M (Q \<or> R) =
-    (ap_par_full P M Q \<or> ap_par_full P M R)"
-  by (rule ades_par_full_disj_right)
-
-lemma ap_par_full_false_left:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  shows "ap_par_full false M P = false"
-  by (rule ades_par_full_false_left)
-
-lemma ap_par_full_false_right:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  shows "ap_par_full P M false = false"
-  by (rule ades_par_full_false_right)
-
 subsection \<open>Waiting Merge Healthiness\<close>
-
-text \<open>
-  RA3APM is sufficient but not weakest for RA3AP closure with RA3AP-healthy
-  operands. At a started, waiting input such operands cannot produce a branch
-  output with ok = False. Merge entries for that impossible branch can be
-  removed without changing parallel, although RA3APM requires the II_AP slice
-  on those branch pairs too. This is an explanatory mathematical argument,
-  not a separate Isabelle counterexample lemma.
-\<close>
 
 definition RA3APM ::
   "('t::trace, 'e) rad_state ades_merge_rel \<Rightarrow>
@@ -127,54 +60,6 @@ lemma RA3APM_healthy_wait:
   using RA3APM_eval[of M x p q out] assms
   by (simp add: Healthy_def')
 
-lemma II_AP_full_parallel_wait:
-  fixes M :: "('t::trace, 'e) rad_state ades_merge_rel"
-    and x :: "('t, 'e) rad_state astate des_vars_ext"
-    and out :: "('t, 'e) rad_state achoices des_vars_ext"
-  assumes "M is RA3APM"
-    "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
-  shows "ap_par_full II_AP M II_AP (x, out) \<longleftrightarrow>
-    II_AP (x, out)"
-proof -
-  let ?p = "\<lparr>ok\<^sub>v = True,
-    ac\<^sub>v = {astate.s\<^sub>v (des_vars.more x)}, \<dots> = ()\<rparr>"
-  have witness: "II_AP (x, ?p)"
-    by (simp add: II_AP_eval)
-  show ?thesis
-    by (simp only: ades_par_full_eval RA3APM_healthy_wait[OF assms];
-        blast intro: witness)
-qed
-
-lemma RA3AP_full_parallel:
-  fixes M :: "('t::trace, 'e) rad_state ades_merge_rel"
-  assumes "M is RA3APM"
-  shows "ap_par_full (RA3AP P) M (RA3AP Q) =
-    RA3AP (ap_par_full P M Q)"
-proof (rule ext)
-  fix w :: "('t, 'e) rad_state astate des_vars_ext \<times>
-    ('t, 'e) rad_state achoices des_vars_ext"
-  obtain x out where w: "w = (x, out)" by (cases w) auto
-  show "ap_par_full (RA3AP P) M (RA3AP Q) w =
-    RA3AP (ap_par_full P M Q) w"
-  proof (cases "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))")
-    case False
-    then show ?thesis
-      by (simp add: w ades_par_full_eval RA3AP_eval)
-  next
-    case True
-    have identity: "ap_par_full II_AP M II_AP (x, out) = II_AP (x, out)"
-      by (rule II_AP_full_parallel_wait[OF assms True])
-    then show ?thesis
-      by (simp add: w ades_par_full_eval RA3AP_eval True)
-  qed
-qed
-
-lemma ades_par_full_RA3AP_closure [closure]:
-  assumes "P is RA3AP" "Q is RA3AP" "M is RA3APM"
-  shows "ap_par_full P M Q is RA3AP"
-  using RA3AP_full_parallel[OF assms(3), of P Q] assms(1,2)
-  by (simp add: Healthy_def')
-
 lemma II_AP_is_A [closure]:
   "(II_AP :: ('t::trace, 'e) reactive_angelic_design) is A"
 proof -
@@ -213,7 +98,7 @@ proof -
   show ?thesis
     using RA3AP_H1_closure[OF parts(1)] closed_H2
       RA3AP_PBMH_ades_closure[OF parts(3)] RA3AP_A0_closure[OF parts(4)]
-    by (simp add: A_healthy_components_iff)
+    by (auto simp: A_healthy_components_iff)
 qed
 
 lemma RA3APM_preserves_ADM:
@@ -264,16 +149,6 @@ lemma RA3APM_preserves_RA2M:
   shows "RA3APM M is RA2M"
   by (simp add: Healthy_def' RA2M_RA3APM_commute Healthy_if[OF assms])
 
-text \<open>
-  APM is sufficient but not weakest for AP closure with AP-healthy operands,
-  when merges are compared on all observations. The same unreachable-branch
-  deletion described for RA3APM preserves every AP parallel result but breaks
-  the RA3APM component of an APM-healthy merge. The component equivalence below
-  therefore characterises the chosen merge class, not all AP-closure-preserving
-  merges. Non-necessity is explained mathematically, rather than by an
-  additional mechanised counterexample.
-\<close>
-
 definition APM ::
   "('t::trace, 'e) rad_state ades_merge_rel \<Rightarrow>
    ('t, 'e) rad_state ades_merge_rel"
@@ -322,12 +197,6 @@ lemma APM_MergeSym:
   unfolding APM_def comp_apply ADM_def
   by (intro RA3APM_MergeSym RA2M_MergeSym merge_health_MergeSym assms)
 
-lemma ap_par_full_comm_APM:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  assumes "MergeSym M"
-  shows "ap_par_full P (APM M) Q = ap_par_full Q (APM M) P"
-  by (rule ap_par_full_comm[OF APM_MergeSym[OF assms]])
-
 lemma APM_healthy_iff:
   "M is APM \<longleftrightarrow>
     ((M is ADM) \<and> (M is RA2M) \<and> (M is RA3APM))"
@@ -342,52 +211,6 @@ next
   then show "M is APM"
     by (simp add: Healthy_def' APM_def)
 qed
-
-subsection \<open>Combined Closure\<close>
-
-lemma ap_par_full_AP_closure_components:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_state ades_merge_rel"
-  assumes "P is AP" "Q is AP"
-    "M is ADM" "M is RA2M" "M is RA3APM"
-  shows "ap_par_full P M Q is AP"
-proof -
-  let ?NP = "((\<not> (RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)) \<turnstile>
-    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t))"
-  let ?NQ = "((\<not> (RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f)) \<turnstile>
-    (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t))"
-  have P_form: "P = RA3AP ?NP"
-    by (simp only: AP_RA3AP_design[symmetric] Healthy_if[OF assms(1)])
-  have Q_form: "Q = RA3AP ?NQ"
-    by (simp only: AP_RA3AP_design[symmetric] Healthy_if[OF assms(2)])
-  have NP_H1: "?NP is H1" and NQ_H1: "?NQ is H1"
-    using A_is_H1[of ?NP] A_is_H1[of ?NQ]
-    by (simp_all only: Healthy_if[OF AP_body_is_A] Healthy_def')
-  have body_A: "ap_par_full ?NP M ?NQ is A"
-    by (rule ades_par_full_A_closure[OF NP_H1 NQ_H1 assms(3)])
-  have body_RA2: "ap_par_full ?NP M ?NQ is RA2"
-    by (rule ades_par_full_RA2_closure[OF
-          AP_body_is_RA2 AP_body_is_RA2 assms(4)])
-  have closed: "RA3AP (ap_par_full ?NP M ?NQ) is AP"
-    by (rule RA3AP_AP_intro[OF body_A body_RA2])
-  show ?thesis
-    apply (subst P_form)
-    apply (subst Q_form)
-    apply (subst RA3AP_full_parallel[OF assms(5)])
-    by (rule closed)
-qed
-
-lemma ap_par_full_AP_closure [closure]:
-  assumes "P is AP" "Q is AP" "M is APM"
-  shows "ap_par_full P M Q is AP"
-  using assms
-  by (auto simp only: APM_healthy_iff
-      intro: ap_par_full_AP_closure_components)
-
-lemma ap_par_full_AP_closure_image [closure]:
-  assumes "P is AP" "Q is AP"
-  shows "ap_par_full P (APM M) Q is AP"
-  by (rule ap_par_full_AP_closure[OF assms APM_healthy])
 
 subsection \<open>A Right-Branch Merge Example\<close>
 
@@ -467,5 +290,353 @@ proof -
     and "r \<noteq> s0"
     by (simp_all add: prior_def left_def right_def)
 qed
+
+subsection \<open>Conjunctive-ok Seed and Healthy Parallel\<close>
+
+definition APOKM ::
+  "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
+where [pred]: "APOKM = APM \<circ> OkM"
+
+lemma APOKM_mono:
+  "M \<sqsubseteq> N \<Longrightarrow> APOKM M \<sqsubseteq> APOKM N"
+  unfolding APOKM_def comp_apply by (intro APM_mono OkM_mono)
+
+lemma APOKM_Monotonic [closure]: "Monotonic APOKM"
+  by (rule MonotonicI, rule APOKM_mono)
+
+lemma APOKM_is_APM [closure]: "APOKM M is APM"
+  by (simp add: APOKM_def APM_healthy)
+
+lemma APOKM_form:
+  "APOKM M = RA3APM (RA2M (ADOKM M))"
+  by (simp add: APOKM_def APM_def ADOKM_def)
+
+lemma APOKM_obs:
+  "merge_slice (APOKM M) p q (ades_obs b s0 c X) =
+    (if rad_state.wait\<^sub>v s0 then II_AP (ades_obs b s0 c X)
+     else merge_slice (ADOKM M) (rad_merge_output s0 p) (rad_merge_output s0 q)
+       (ades_obs b (rad_zero_trace s0) c (rad_normalise_choices s0 X)))"
+  by (simp add: APOKM_form RA3APM_eval RA2M_eval)
+
+lemma APOKM_active:
+  assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
+  shows "merge_slice (APOKM M) p q (ades_obs b s0 c X) =
+    merge_slice (ADOKM M) p q (ades_obs b s0 c X)"
+  using assms by (simp add: APOKM_form RA3APM_eval RA2M_zero)
+
+lemma ADOKM_APOKM_active:
+  assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
+  shows "merge_slice (ADOKM (APOKM M)) p q (ades_obs b s0 c X) =
+    merge_slice (ADOKM M) p q (ades_obs b s0 c X)"
+proof -
+  have "merge_slice (ADOKM (APOKM M)) p q (ades_obs b s0 c X) =
+    merge_slice (ADOKM (ADOKM M)) p q (ades_obs b s0 c X)"
+    using assms
+    by (simp add: ADOKM_eval APOKM_active[simplified merge_slice_eval, OF assms])
+  then show ?thesis by (simp add: ADOKM_idem)
+qed
+
+lemma APOKM_idem: "APOKM (APOKM M) = APOKM M"
+  apply (rule merge_slice_ext, rule ades_obs_ext)
+  apply (simp only: APOKM_obs)
+  subgoal for p q b s0 c X
+  proof -
+    have zero: "rad_state.tr\<^sub>v (rad_zero_trace s0) = 0"
+      by (simp add: rad_zero_trace_def)
+    show ?thesis
+      by (cases "rad_state.wait\<^sub>v s0";
+          simp add: ADOKM_APOKM_active[OF zero, simplified merge_slice_eval])
+  qed
+  done
+
+lemma APOKM_Idempotent [closure]: "Idempotent APOKM"
+  by (simp add: Idempotent_def APOKM_idem)
+
+lemma APOKM_healthy [closure]: "APOKM M is APOKM"
+  by (simp add: Healthy_def' APOKM_idem)
+
+lemma APOKM_MergeSym: "MergeSym M \<Longrightarrow> MergeSym (APOKM M)"
+  unfolding APOKM_def comp_apply
+  by (intro APM_MergeSym OkM_MergeSym)
+
+lemma APOKM_state_lift:
+  "APOKM (merge_ades_up j) = APM (merge_ades_up j)"
+  by (simp add: APOKM_def)
+
+text \<open>
+  The public operator first restricts the supplied merge with OkM and then
+  applies the layer healthiness operator. Its choice-set policy comes from
+  the supplied merge, subject to that healthiness transformation. The seed's
+  conjunction of branch ok flags need not hold globally after completion.
+\<close>
+
+abbreviation ap_par_full ::
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) rad_merge_rel \<Rightarrow>
+   ('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t::trace, 'e) reactive_angelic_design"
+where "ap_par_full P M Q \<equiv> P \<parallel>\<^bsub>APOKM M\<^esub> Q"
+
+lemma ap_par_full_eval:
+  "ap_par_full P M Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and>
+      ades_merge_eval (APOKM M) x p q out)"
+proof -
+  have eval: "par_by_merge P N Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval N x p q out)" for N
+    by (cases x; cases out;
+        simp add: par_by_merge_def par_sep_def; pred_auto; blast)
+  show ?thesis by (rule eval)
+qed
+
+lemma ap_par_full_PBMH_closure [closure]: "ap_par_full P M Q is PBMH_ades"
+proof -
+  have healthy: "APOKM M is PBMHM"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff APM_preserves_ADM ADM_components_iff)
+  have slices: "PBMH_ades (merge_slice (APOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (APOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded PBMHM_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: PBMH_ades_obs ap_par_full_eval;
+        use slices[unfolded PBMH_ades_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma ap_par_full_H2_closure [closure]: "ap_par_full P M Q is H2"
+proof -
+  have healthy: "APOKM M is H2M"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff APM_preserves_ADM ADM_components_iff)
+  have slices: "H2 (merge_slice (APOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (APOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded H2M_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: H2_obs ap_par_full_eval;
+        use slices[unfolded H2_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma ap_par_full_A0_closure [closure]:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  shows "ap_par_full P M Q is A0"
+proof -
+  have healthy: "APOKM M is A0M"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff APM_preserves_ADM ADM_components_iff)
+  show ?thesis
+    using healthy[unfolded A0M_healthy_iff A0_healthy_obs_iff]
+    by (auto simp only: A0_healthy_obs_iff ap_par_full_eval merge_slice_eval; blast)
+qed
+
+lemma ap_par_full_H1_closure [closure]:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  assumes "P is H1" "Q is H1"
+  shows "ap_par_full P M Q is H1"
+proof -
+  have healthy: "APOKM M is H1M"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff APM_preserves_ADM ADM_components_iff)
+  show ?thesis
+    using healthy[unfolded H1M_healthy_iff H1_healthy_obs_iff] assms[unfolded H1_healthy_obs_iff]
+    by (auto simp only: H1_healthy_obs_iff ap_par_full_eval merge_slice_eval; blast)
+qed
+
+lemma ap_par_full_A_closure [closure]:
+  assumes "P is H1" "Q is H1"
+  shows "ap_par_full P M Q is A"
+  using ap_par_full_H1_closure[OF assms] ap_par_full_H2_closure
+    ap_par_full_PBMH_closure ap_par_full_A0_closure
+  by (auto simp: A_healthy_components_iff)
+
+lemma ap_par_full_RA2_closure [closure]:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+    and M :: "('t, 'e) rad_merge_rel"
+  assumes "P is RA2" "Q is RA2"
+  shows "ap_par_full P M Q is RA2"
+proof -
+  have healthy: "APOKM M is RA2M"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff ADM_components_iff)
+  have Pnorm: "P (x,out) = P (rad_merge_input x,
+      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
+    using fun_cong[OF Healthy_if[OF assms(1)], of "(x,out)"]
+    by (simp only: RA2_merge_eval)
+  have Qnorm: "Q (x,out) = Q (rad_merge_input x,
+      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
+    using fun_cong[OF Healthy_if[OF assms(2)], of "(x,out)"]
+    by (simp only: RA2_merge_eval)
+  have Mnorm: "ades_merge_eval (APOKM M) x p q out =
+      ades_merge_eval (APOKM M) (rad_merge_input x)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) p)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) q)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x p q out
+    using arg_cong[where f="\<lambda>N. ades_merge_eval N x p q out",
+      OF Healthy_if[OF healthy]]
+    by (simp only: RA2M_eval)
+  have reindex: "(\<exists>p q. F (rad_merge_output s0 p) (rad_merge_output s0 q)) =
+      (\<exists>p q. F p q)" for F and s0 :: "('t, 'e) rad_state"
+    by (metis rad_merge_output_surj)
+  show ?thesis
+  proof (rule Healthy_intro, rule ext, clarify)
+    fix x out
+    show "RA2 (ap_par_full P M Q) (x,out) = ap_par_full P M Q (x,out)"
+      by (simp only: RA2_merge_eval ap_par_full_eval;
+          subst Pnorm; subst Qnorm; subst Mnorm; rule reindex[symmetric])
+  qed
+qed
+
+lemma II_AP_has_result:
+  fixes x :: "('t::trace, 'e) rad_state astate des_vars_ext"
+  obtains out where "II_AP (x,out)"
+proof -
+  let ?s0 = "astate.s\<^sub>v (des_vars.more x)"
+  have "II_AP (x,\<lparr>ok\<^sub>v = True, ac\<^sub>v = {?s0}, \<dots> = ()\<rparr>)"
+    by (simp add: II_AP_eval)
+  then show thesis by (rule that)
+qed
+
+lemma ap_par_full_RA3AP_closure [closure]:
+  assumes "P is RA3AP" "Q is RA3AP"
+  shows "ap_par_full P M Q is RA3AP"
+proof -
+  have healthy: "APOKM M is RA3APM"
+    using APOKM_is_APM[of M] by (auto simp: APM_healthy_iff ADM_components_iff)
+  have waiting: "ap_par_full P M Q (x,out) = II_AP (x,out)"
+    if w: "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))" for x out
+  proof -
+    have Pw: "P (x,p) = II_AP (x,p)" for p
+      using RA3AP_healthy_wait_eval[OF assms(1) w] .
+    have Qw: "Q (x,q) = II_AP (x,q)" for q
+      using RA3AP_healthy_wait_eval[OF assms(2) w] .
+    have Mw: "ades_merge_eval (APOKM M) x p q out = II_AP (x,out)" for p q
+    proof -
+      have "merge_slice (APOKM M) p q is RA3AP"
+        using healthy by (simp add: RA3APM_def merge_health_healthy_iff)
+      from RA3AP_healthy_wait_eval[OF this w]
+      show ?thesis by simp
+    qed
+    obtain y where y: "II_AP (x,y)" by (rule II_AP_has_result)
+    show ?thesis
+      using y by (simp add: ap_par_full_eval Pw Qw Mw; blast)
+  qed
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp add: RA3AP_eval waiting)
+qed
+
+lemma AP_is_RA2:
+  assumes "P is AP"
+  shows "P is RA2"
+proof -
+  have "RA2 (AP P) = AP P"
+    by (simp only: AP_RA3AP_design RA2_RA3AP_commute[simplified comp_apply]
+        Healthy_if[OF AP_body_is_RA2])
+  then show ?thesis using assms by (simp add: Healthy_def')
+qed
+
+lemma ap_par_full_AP_closure [closure]:
+  assumes "P is AP" "Q is AP"
+  shows "ap_par_full P M Q is AP"
+proof -
+  have ph: "P is H1" and qh: "Q is H1"
+    using AP_is_H[OF assms(1)] AP_is_H[OF assms(2)]
+    by (auto intro: H_implies_H1)
+  have a: "ap_par_full P M Q is A"
+    by (rule ap_par_full_A_closure[OF ph qh])
+  have r2: "ap_par_full P M Q is RA2"
+    by (rule ap_par_full_RA2_closure[OF AP_is_RA2[OF assms(1)] AP_is_RA2[OF assms(2)]])
+  have r3: "ap_par_full P M Q is RA3AP"
+    by (rule ap_par_full_RA3AP_closure[OF AP_is_RA3AP[OF assms(1)] AP_is_RA3AP[OF assms(2)]])
+  from RA3AP_AP_intro[OF a r2] show ?thesis
+    by (simp only: Healthy_if[OF r3])
+qed
+
+lemma ap_par_full_normalise:
+  "ap_par_full P (APOKM M) Q = ap_par_full P M Q"
+  by (simp only: APOKM_idem)
+
+lemma ap_par_full_mono:
+  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2" "M1 \<sqsubseteq> M2"
+  shows "ap_par_full P1 M1 Q1 \<sqsubseteq> ap_par_full P2 M2 Q2"
+  using assms(1,2) APOKM_mono[OF assms(3)]
+  by (auto simp: pred_refine_iff ap_par_full_eval split: prod.splits; blast)
+
+lemma ap_par_full_comm:
+  assumes "MergeSym M"
+  shows "ap_par_full P M Q = ap_par_full Q M P"
+  by (rule par_by_merge_comm; use APOKM_MergeSym[OF assms] in \<open>simp add: MergeSym_iff_swap\<close>)
+
+lemma ap_par_full_comm_iff:
+  "MergeSym (APOKM M) \<longleftrightarrow> (\<forall>P Q. ap_par_full P M Q = ap_par_full Q M P)"
+proof
+  assume "MergeSym (APOKM M)"
+  then show "\<forall>P Q. ap_par_full P M Q = ap_par_full Q M P"
+    by (auto simp: fun_eq_iff ap_par_full_eval MergeSym_def; blast)
+next
+  assume comm: "\<forall>P Q. ap_par_full P M Q = ap_par_full Q M P"
+  show "MergeSym (APOKM M)"
+  proof (unfold MergeSym_def, intro allI)
+    fix x p q out
+    have eq: "ap_par_full (\<lambda>(x,r). r = p) M (\<lambda>(x,r). r = q) =
+        ap_par_full (\<lambda>(x,r). r = q) M (\<lambda>(x,r). r = p)"
+      using comm by blast
+    from fun_cong[OF eq, of "(x,out)"]
+    show "ades_merge_eval (APOKM M) x p q out = ades_merge_eval (APOKM M) x q p out"
+      by (simp add: ap_par_full_eval)
+  qed
+qed
+
+lemma ap_par_full_assoc:
+  assumes "MergeAssoc (APOKM M)"
+  shows "ap_par_full (ap_par_full P M Q) M R =
+    ap_par_full P M (ap_par_full Q M R)"
+proof (rule ext, clarify)
+  fix x out
+  have assoc: "(\<exists>y. ades_merge_eval (APOKM M) x p q y \<and> ades_merge_eval (APOKM M) x y r out) =
+      (\<exists>y. ades_merge_eval (APOKM M) x q r y \<and> ades_merge_eval (APOKM M) x p y out)"
+    for p q r
+    using assms by (simp add: MergeAssoc_def)
+  show "ap_par_full (ap_par_full P M Q) M R (x,out) =
+      ap_par_full P M (ap_par_full Q M R) (x,out)"
+    unfolding ap_par_full_eval using assoc by blast
+qed
+
+lemma ap_par_full_assoc_iff:
+  "MergeAssoc (APOKM M) \<longleftrightarrow>
+    (\<forall>P Q R. ap_par_full (ap_par_full P M Q) M R =
+      ap_par_full P M (ap_par_full Q M R))"
+proof
+  assume "MergeAssoc (APOKM M)"
+  then show "\<forall>P Q R. ap_par_full (ap_par_full P M Q) M R =
+      ap_par_full P M (ap_par_full Q M R)"
+    by (blast intro: ap_par_full_assoc)
+next
+  assume assoc: "\<forall>P Q R. ap_par_full (ap_par_full P M Q) M R =
+      ap_par_full P M (ap_par_full Q M R)"
+  show "MergeAssoc (APOKM M)"
+  proof (unfold MergeAssoc_def, intro allI)
+    fix x p q r out
+    have eq: "ap_par_full
+        (ap_par_full (\<lambda>(x,u). u = p) M (\<lambda>(x,u). u = q)) M
+        (\<lambda>(x,u). u = r) =
+      ap_par_full (\<lambda>(x,u). u = p) M
+        (ap_par_full (\<lambda>(x,u). u = q) M (\<lambda>(x,u). u = r))"
+      using assoc by blast
+    from fun_cong[OF eq, of "(x,out)"]
+    show "(\<exists>y. ades_merge_eval (APOKM M) x p q y \<and> ades_merge_eval (APOKM M) x y r out) =
+        (\<exists>y. ades_merge_eval (APOKM M) x q r y \<and> ades_merge_eval (APOKM M) x p y out)"
+      by (simp add: ap_par_full_eval)
+  qed
+qed
+
+lemma ap_par_full_disj_left:
+  "ap_par_full (P \<or> Q) M R = (ap_par_full P M R \<or> ap_par_full Q M R)"
+  by (auto simp: fun_eq_iff ap_par_full_eval disj_pred_def split: prod.splits)
+
+lemma ap_par_full_disj_right:
+  "ap_par_full P M (Q \<or> R) = (ap_par_full P M Q \<or> ap_par_full P M R)"
+  by (auto simp: fun_eq_iff ap_par_full_eval disj_pred_def split: prod.splits)
+
+lemma ap_par_full_false_left [simp]: "ap_par_full false M P = false"
+  by (rule par_by_merge_left_false)
+
+lemma ap_par_full_false_right [simp]: "ap_par_full P M false = false"
+  by (rule par_by_merge_right_false)
 
 end

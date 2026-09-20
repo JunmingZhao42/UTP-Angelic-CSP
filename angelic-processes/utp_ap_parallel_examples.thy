@@ -20,23 +20,27 @@ text \<open>
 definition BasicMerge_AP :: "('t::trace, 'e) rad_state ades_merge_rel" where
   "BasicMerge_AP = APM basic_merge_seed"
 
+lemma APOKM_basic_merge_seed:
+  "APOKM basic_merge_seed = BasicMerge_AP"
+  by (simp add: APOKM_def BasicMerge_AP_def)
+
 lemma BasicMerge_AP_healthy [closure]: "BasicMerge_AP is APM"
   by (simp add: BasicMerge_AP_def APM_healthy)
 
-lemma BasicMerge_AP_parallel_closure [closure]:
+lemma ap_par_full_basic_closure [closure]:
   fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
   assumes "P is AP" "Q is AP"
-  shows "ap_par_full P BasicMerge_AP Q is AP"
-  by (rule ap_par_full_AP_closure[OF assms BasicMerge_AP_healthy])
+  shows "ap_par_full P basic_merge_seed Q is AP"
+  by (rule ap_par_full_AP_closure[OF assms])
 
 lemma BasicMerge_AP_MergeSym: "MergeSym BasicMerge_AP"
   unfolding BasicMerge_AP_def
   by (rule APM_MergeSym, rule basic_merge_seed_MergeSym)
 
-lemma BasicMerge_AP_parallel_comm:
+lemma ap_par_full_basic_comm:
   fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  shows "ap_par_full P BasicMerge_AP Q = ap_par_full Q BasicMerge_AP P"
-  by (rule ap_par_full_comm[OF BasicMerge_AP_MergeSym])
+  shows "ap_par_full P basic_merge_seed Q = ap_par_full Q basic_merge_seed P"
+  by (rule ap_par_full_comm[OF basic_merge_seed_MergeSym])
 
 lemma BasicMerge_AP_started_zero:
   fixes s0 :: "('t::trace, 'e) rad_state"
@@ -46,21 +50,50 @@ lemma BasicMerge_AP_started_zero:
   by (simp add: BasicMerge_AP_def APM_def RA3APM_eval RA2M_zero
       assms basic_merge_seed_ADM_eq_H1M H1M_def merge_health_eval H1_obs)
 
-lemma BasicMerge_AP_parallel_started_zero:
+lemma ap_par_full_basic_started_zero:
   fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
     and s0 :: "('t, 'e) rad_state"
   assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
-  shows "ap_par_full P BasicMerge_AP Q (ades_obs True s0 c X) \<longleftrightarrow>
+  shows "ap_par_full P basic_merge_seed Q (ades_obs True s0 c X) \<longleftrightarrow>
     (c \<and> (\<exists>l r z.
       P (ades_obs True s0 True {l}) \<and>
       Q (ades_obs True s0 True {r}) \<and>
       z \<in> X \<and> basic_merge_state s0 l r z))"
 proof -
-  have eq: "ap_par_full P BasicMerge_AP Q (ades_obs True s0 c X) =
-      ades_par_full P basic_merge_seed Q (ades_obs True s0 c X)"
-    by (simp only: ades_par_full_eval
-        BasicMerge_AP_started_zero[OF assms, simplified merge_slice_eval])
-  show ?thesis by (simp only: eq basic_merge_seed_parallel_eval)
+  have eval: "ap_par_full P basic_merge_seed Q (ades_obs True s0 c X) =
+    (\<exists>p q. P (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,p) \<and>
+      Q (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,q) \<and>
+      merge_slice basic_merge_seed p q (ades_obs True s0 c X))"
+    by (subst ap_par_full_eval; simp only: APOKM_basic_merge_seed
+        BasicMerge_AP_started_zero[OF assms, simplified merge_slice_eval] merge_slice_eval)
+  have obs: "p = \<lparr>ok\<^sub>v = True, ac\<^sub>v = {l}, \<dots> = ()\<rparr>"
+    if "des_vars.ok\<^sub>v p" "achoices.ac\<^sub>v (des_vars.more p) = {l}" for p l
+    using that by (cases p; pred_auto)
+  show ?thesis
+  proof
+    assume h: "ap_par_full P basic_merge_seed Q (ades_obs True s0 c X)"
+    obtain p q l r z where h:
+      "P (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,p)"
+      "Q (\<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>,q)"
+      "des_vars.ok\<^sub>v p" "des_vars.ok\<^sub>v q" "c"
+      "achoices.ac\<^sub>v (des_vars.more p) = {l}"
+      "achoices.ac\<^sub>v (des_vars.more q) = {r}"
+      "z \<in> X" "basic_merge_state s0 l r z"
+      using h by (auto simp: eval basic_merge_seed_eval)
+    show "c \<and> (\<exists>l r z. P (ades_obs True s0 True {l}) \<and>
+      Q (ades_obs True s0 True {r}) \<and> z \<in> X \<and> basic_merge_state s0 l r z)"
+      using h(1,2,5,8,9) by (simp only: obs[OF h(3,6)] obs[OF h(4,7)]; blast)
+  next
+    assume "c \<and> (\<exists>l r z. P (ades_obs True s0 True {l}) \<and>
+      Q (ades_obs True s0 True {r}) \<and> z \<in> X \<and> basic_merge_state s0 l r z)"
+    then obtain l r z where h: "c" "P (ades_obs True s0 True {l})"
+      "Q (ades_obs True s0 True {r})" "z \<in> X" "basic_merge_state s0 l r z" by blast
+    show "ap_par_full P basic_merge_seed Q (ades_obs True s0 c X)"
+      unfolding eval
+      apply (rule exI[of _ "\<lparr>ok\<^sub>v = True, ac\<^sub>v = {l}, \<dots> = ()\<rparr>"])
+      apply (rule exI[of _ "\<lparr>ok\<^sub>v = True, ac\<^sub>v = {r}, \<dots> = ()\<rparr>"])
+      using h by (auto simp: basic_merge_seed_eval)
+  qed
 qed
 
 lemma BasicMerge_AP_singletons:
@@ -149,7 +182,6 @@ lemma BasicMerge_AP_wait_repairs_failed_branches:
   by (simp_all add: BasicMerge_AP_def APM_def RA3APM_eval
       II_AP_eval assms basic_merge_seed_eval)
 
-
 subsection \<open>Associativity and Worked Prefixes\<close>
 
 lemma RA3APM_MergeAssoc:
@@ -162,10 +194,10 @@ lemma BasicMerge_AP_MergeAssoc: "MergeAssoc BasicMerge_AP"
   by (simp only: BasicMerge_AP_def APM_def comp_apply basic_merge_seed_ADM_eq_H1M;
       intro RA3APM_MergeAssoc RA2M_MergeAssoc H1M_MergeAssoc basic_merge_seed_MergeAssoc)
 
-lemma BasicMerge_AP_parallel_assoc:
-  "ap_par_full (ap_par_full P BasicMerge_AP Q) BasicMerge_AP R =
-    ap_par_full P BasicMerge_AP (ap_par_full Q BasicMerge_AP R)"
-  by (rule ap_par_full_assoc[OF BasicMerge_AP_MergeAssoc])
+lemma ap_par_full_basic_assoc:
+  "ap_par_full (ap_par_full P basic_merge_seed Q) basic_merge_seed R =
+    ap_par_full P basic_merge_seed (ap_par_full Q basic_merge_seed R)"
+  by (rule ap_par_full_assoc; simp only: APOKM_basic_merge_seed BasicMerge_AP_MergeAssoc)
 
 lemma BasicMerge_AP_prefix_singleton:
   "PrefixSkip_AP a (ades_obs True s0 True {z}) =
@@ -173,13 +205,13 @@ lemma BasicMerge_AP_prefix_singleton:
   using fun_cong[OF H1_PrefixSkip_RAD[of a], of "ades_obs True s0 True {z}"]
   by (simp add: H1_obs)
 
-lemma BasicMerge_AP_prefixes_complete:
+lemma ap_par_full_basic_prefixes_complete:
   assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
     "\<not> rad_state.wait\<^sub>v z"
-  shows "ap_par_full (PrefixSkip_AP a) BasicMerge_AP (PrefixSkip_AP b)
+  shows "ap_par_full (PrefixSkip_AP a) basic_merge_seed (PrefixSkip_AP b)
     (ades_obs True s0 c {z}) \<longleftrightarrow>
     (c \<and> a = b \<and> rad_state.tr\<^sub>v z = [a])"
-  by (simp only: BasicMerge_AP_parallel_started_zero[OF assms(1,2)]
+  by (simp only: ap_par_full_basic_started_zero[OF assms(1,2)]
       BasicMerge_AP_prefix_singleton BasicMerge_RAD_prefix_singleton[OF assms(2)];
       auto simp: basic_merge_state_def assms zero_list_def intro!: exI[where x=z])
 

@@ -7,20 +7,13 @@ begin
 
 text \<open>
   The merge sees complete branch observations, including termination flags
-  and choice sets of reactive states.  The following operators impose reactive
-  healthiness on that relation; they do not prescribe a conjunction of branch
-  termination flags or a disjunction of branch waiting flags.
+  and choice sets of reactive states. Merge healthiness provides the closure kit.
+  The public operator below restricts the seed to conjunctive branch ok flags
+  before applying reactive merge healthiness. Waiting policies remain in M.
 \<close>
 
 type_synonym ('t, 'e) rad_merge_rel =
   "(('t, 'e) rad_state) ades_merge_rel"
-
-abbreviation rad_par_full ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) rad_merge_rel \<Rightarrow>
-   ('t, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) reactive_angelic_design"
-where "rad_par_full P M Q \<equiv> ades_par_full P M Q"
 
 subsection \<open>Simultaneous trace normalisation\<close>
 
@@ -106,12 +99,6 @@ lemma RA2_merge_eval:
   by (simp add: RA2_def rad_merge_input_def rad_merge_output_def Let_def;
       pred_auto)
 
-text \<open>
-  RA2M is sufficient for RA2 closure with RA2-healthy operands. Whether it is
-  weakest for that closure is not established here. Simultaneous normalisation
-  constrains both branch observations as well as the final observation.
-\<close>
-
 definition RA2M ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
 where
@@ -153,100 +140,19 @@ lemma RA2M_Monotonic [closure]: "Monotonic RA2M"
 lemma RA2M_healthy [closure]: "RA2M M is RA2M"
   by (simp add: Healthy_def' RA2M_idem)
 
-lemma ades_par_full_RA2_closure:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  assumes "P is RA2" "Q is RA2" "M is RA2M"
-  shows "ades_par_full P M Q is RA2"
-proof -
-  have Pnorm: "P (x,out) = P (rad_merge_input x,
-      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
-    using fun_cong[OF Healthy_if[OF assms(1)], of "(x,out)"]
-    by (simp only: RA2_merge_eval)
-  have Qnorm: "Q (x,out) = Q (rad_merge_input x,
-      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
-    using fun_cong[OF Healthy_if[OF assms(2)], of "(x,out)"]
-    by (simp only: RA2_merge_eval)
-  have Mnorm: "ades_merge_eval M x p q out =
-      ades_merge_eval M (rad_merge_input x)
-        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) p)
-        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) q)
-        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x p q out
-    using arg_cong[where f="\<lambda>M. ades_merge_eval M x p q out",
-      OF Healthy_if[OF assms(3)]]
-    by (simp only: RA2M_eval)
-  show ?thesis
-  proof (rule Healthy_intro, rule ext)
-    fix w :: "('t, 'e) rad_state astate des_vars_ext \<times>
-      ('t, 'e) rad_state achoices des_vars_ext"
-    obtain x out where w: "w = (x,out)" by (cases w) auto
-    let ?s0 = "astate.s\<^sub>v (des_vars.more x)"
-    show "RA2 (ades_par_full P M Q) w = ades_par_full P M Q w"
-    proof (simp only: w RA2_merge_eval ades_par_full_eval, rule iffI)
-      assume "\<exists>p q. P (rad_merge_input x,p) \<and> Q (rad_merge_input x,q) \<and>
-        ades_merge_eval M (rad_merge_input x) p q (rad_merge_output ?s0 out)"
-      then obtain p q where pq:
-        "P (rad_merge_input x,p)" "Q (rad_merge_input x,q)"
-        "ades_merge_eval M (rad_merge_input x) p q (rad_merge_output ?s0 out)"
-        by blast
-      obtain p0 where p0: "rad_merge_output ?s0 p0 = p"
-        by (rule rad_merge_output_surj)
-      obtain q0 where q0: "rad_merge_output ?s0 q0 = q"
-        by (rule rad_merge_output_surj)
-      show "\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval M x p q out"
-        using pq p0 q0 Pnorm[of x p0] Qnorm[of x q0] Mnorm[of x p0 q0 out]
-        by blast
-    next
-      assume "\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval M x p q out"
-      then obtain p q where pq: "P (x,p)" "Q (x,q)" "ades_merge_eval M x p q out"
-        by blast
-      show "\<exists>p q. P (rad_merge_input x,p) \<and> Q (rad_merge_input x,q) \<and>
-        ades_merge_eval M (rad_merge_input x) p q (rad_merge_output ?s0 out)"
-        using pq Pnorm[of x p] Qnorm[of x q] Mnorm[of x p q out] by blast
-    qed
-  qed
-qed
-
 subsection \<open>Healthiness of prior/output slices\<close>
-
-text \<open>
-  RA1M is weakest for RA1 closure with arbitrary operands: constant branch
-  selectors recover any merge slice, making slice healthiness necessary;
-  the closure lemma below gives sufficiency. As with the AD slice operators,
-  this necessity argument is mathematical and is not a separate Isabelle
-  lemma here. It does not establish weakestness for restricted RAD operands.
-\<close>
 
 definition RA1M ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
 where "RA1M = merge_health RA1"
 
-text \<open>
-  RA3M is sufficient but not weakest for RA3 closure with RA3-healthy operands.
-  At a started, waiting input those operands cannot produce a branch output
-  with ok = False. Removing merge entries for such a branch leaves every
-  parallel result unchanged, but can violate the II_Rac slice required by
-  RA3M even on those unreachable branch pairs.
-\<close>
-
 definition RA3M ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
 where "RA3M = merge_health RA3"
 
-text \<open>
-  CSPA1M is sufficient for CSPA1 closure with CSPA1-healthy operands. Its
-  weakest-for-closure status is not established separately here.
-\<close>
-
 definition CSPA1M ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
 where "CSPA1M = merge_health CSPA1"
-
-text \<open>
-  CSPA2M equals H2M, as proved below, and inherits its weakest-for-closure
-  status for CSPA2 (which is H2) with arbitrary operands. Necessity follows
-  by the same mathematical selector argument used in the AD layer.
-\<close>
 
 definition CSPA2M ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
@@ -500,17 +406,6 @@ lemma RA3M_preserves_RA2M:
 
 subsection \<open>Combined reactive merge healthiness\<close>
 
-text \<open>
-  RADM_full is sufficient but not weakest for RAD closure with RAD-healthy
-  operands, when merges are compared on all observations. Starting from a
-  healthy merge, delete its entries at started, waiting inputs where a branch
-  has ok = False. RAD operands never reach those entries, so parallel is
-  unchanged, while the required RA3M identity slice is broken. This is a
-  mathematical non-necessity argument, not a mechanised counterexample here.
-  The fixed-point equivalence below identifies the six selected components;
-  it is not an equivalence with universal RAD parallel closure.
-\<close>
-
 definition RADM_full ::
   "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
 where
@@ -588,17 +483,6 @@ next
   then show "M is RADM_full" by (blast intro: RADM_full_intro)
 qed
 
-subsection \<open>Closure of full parallel\<close>
-
-lemma ades_par_full_RA1_distrib:
-  "RA1 (ades_par_full P M Q) = ades_par_full P (RA1M M) Q"
-  by (rule ades_obs_ext;
-      simp add: RA1_obs ades_par_full_eval RA1M_def merge_health_eval; blast)
-
-lemma ades_par_full_RA1_closure:
-  "M is RA1M \<Longrightarrow> ades_par_full P M Q is RA1"
-  by (simp add: Healthy_def' ades_par_full_RA1_distrib)
-
 lemma CSPA1_healthy_obs_iff:
   fixes P :: "('t::trace, 'e) reactive_angelic_design"
   shows "P is CSPA1 \<longleftrightarrow>
@@ -617,36 +501,6 @@ next
         insert h; auto; blast)
 qed
 
-lemma ades_par_full_CSPA1_closure:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  assumes "P is CSPA1" "Q is CSPA1" "M is CSPA1M"
-  shows "ades_par_full P M Q is CSPA1"
-proof -
-  have P: "P (ades_obs False s0 c X)"
-    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for s0 c X
-    using assms(1) that by (simp add: CSPA1_healthy_obs_iff)
-  have Q: "Q (ades_obs False s0 c X)"
-    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for s0 c X
-    using assms(2) that by (simp add: CSPA1_healthy_obs_iff)
-  have M: "merge_slice M p q (ades_obs False s0 c X)"
-    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for p q s0 c X
-    using assms(3) that
-    by (simp add: CSPA1M_healthy_iff CSPA1_healthy_obs_iff)
-  show ?thesis
-    unfolding CSPA1_healthy_obs_iff
-  proof (intro allI impI)
-    fix s0 :: "('t, 'e) rad_state" and c :: bool
-      and X :: "('t, 'e) rad_state set"
-    assume ne: "rad_trace_extensions s0 \<inter> X \<noteq> {}"
-    show "ades_par_full P M Q (ades_obs False s0 c X)"
-      unfolding ades_par_full_eval
-      using P[OF ne, of c] Q[OF ne, of c]
-        M[OF ne, of "\<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>"
-          "\<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>" c]
-      by auto
-  qed
-qed
-
 lemma II_Rac_has_result:
   fixes x :: "('t::trace, 'e) rad_state astate des_vars_ext"
   obtains out where "II_Rac (x,out)"
@@ -655,34 +509,6 @@ proof -
   let ?out = "\<lparr>ok\<^sub>v = True, ac\<^sub>v = {?s0}, \<dots> = ()\<rparr>"
   have "II_Rac (x,?out)" by (simp add: II_Rac_eval)
   then show thesis by (rule that)
-qed
-
-lemma ades_par_full_RA3_closure:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  assumes "P is RA3" "Q is RA3" "M is RA3M"
-  shows "ades_par_full P M Q is RA3"
-proof -
-  have waiting: "ades_par_full P M Q (x,out) = II_Rac (x,out)"
-    if w: "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))" for x out
-  proof -
-    have Pw: "P (x,p) = II_Rac (x,p)" for p
-      using RA3_healthy_wait_eval[OF assms(1) w] .
-    have Qw: "Q (x,q) = II_Rac (x,q)" for q
-      using RA3_healthy_wait_eval[OF assms(2) w] .
-    have Mw: "ades_merge_eval M x p q out = II_Rac (x,out)" for p q
-    proof -
-      have "merge_slice M p q is RA3"
-        using assms(3) by (simp add: RA3M_healthy_iff)
-      from RA3_healthy_wait_eval[OF this w]
-      show ?thesis by simp
-    qed
-    obtain y where y: "II_Rac (x,y)" by (rule II_Rac_has_result)
-    show ?thesis
-      using y by (simp add: ades_par_full_eval Pw Qw Mw; blast)
-  qed
-  show ?thesis
-    by (rule Healthy_intro, rule ades_obs_ext;
-        simp add: RA3_obs waiting)
 qed
 
 lemma RAD_is_CSPA1_full:
@@ -699,98 +525,6 @@ proof -
   then show ?thesis using assms by (simp add: Healthy_def')
 qed
 
-lemma rad_par_full_RAD_closure:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  assumes "P is RAD" "Q is RAD" "M is RADM_full"
-  shows "ades_par_full P M Q is RAD"
-proof -
-  let ?W = "ades_par_full P M Q"
-  have m: "M is PBMHM" "M is H2M" "M is CSPA1M"
-    "M is RA1M" "M is RA2M" "M is RA3M"
-    using assms(3) by (simp_all add: RADM_full_healthy_iff)
-  have pb: "PBMH_ades ?W = ?W"
-    using ades_par_full_PBMH_closure[OF m(1)] by (simp add: Healthy_def')
-  have h2: "H2 ?W = ?W"
-    using ades_par_full_H2_closure[OF m(2)] by (simp add: Healthy_def')
-  have c1: "CSPA1 ?W = ?W"
-    using ades_par_full_CSPA1_closure[OF RAD_is_CSPA1_full[OF assms(1)]
-      RAD_is_CSPA1_full[OF assms(2)] m(3)] by (simp add: Healthy_def')
-  have r1: "RA1 ?W = ?W"
-    using ades_par_full_RA1_closure[OF m(4)] by (simp add: Healthy_def')
-  have r2: "RA2 ?W = ?W"
-    using ades_par_full_RA2_closure[OF RA_is_RA2[OF RAD_is_RA[OF assms(1)]]
-      RA_is_RA2[OF RAD_is_RA[OF assms(2)]] m(5)] by (simp add: Healthy_def')
-  have r3: "RA3 ?W = ?W"
-    using ades_par_full_RA3_closure[OF RA_is_RA3[OF RAD_is_RA[OF assms(1)]]
-      RA_is_RA3[OF RAD_is_RA[OF assms(2)]] m(6)] by (simp add: Healthy_def')
-  show ?thesis
-    by (simp add: Healthy_def' RAD_def RA_def CSPA2_def pb h2 c1 r1 r2 r3)
-qed
-
-lemma rad_par_full_RAD_closure_image:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-  assumes "P is RAD" "Q is RAD"
-  shows "ades_par_full P (RADM_full M) Q is RAD"
-  by (rule rad_par_full_RAD_closure[OF assms RADM_full_healthy])
-
-subsection \<open>Algebra of full reactive parallel\<close>
-
-text \<open>
-  These are the generic parallel laws instantiated at the reactive alphabet.
-  Healthiness closure alone does not establish commutativity or associativity:
-  those laws retain their respective symmetry and associativity assumptions
-  on the full merge.  Repairing a symmetric merge with @{const RADM_full}
-  preserves its symmetry.
-\<close>
-
-lemma rad_par_full_mono:
-  fixes P1 P2 Q1 Q2 :: "('t::trace, 'e) reactive_angelic_design"
-    and M1 M2 :: "('t, 'e) rad_merge_rel"
-  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2" "M1 \<sqsubseteq> M2"
-  shows "rad_par_full P1 M1 Q1 \<sqsubseteq> rad_par_full P2 M2 Q2"
-  by (rule ades_par_full_mono[OF assms])
-
-lemma rad_par_full_comm:
-  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  assumes "MergeSym M"
-  shows "rad_par_full P M Q = rad_par_full Q M P"
-  by (rule ades_par_full_comm[OF assms])
-
-lemma rad_par_full_assoc:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  assumes "MergeAssoc M"
-  shows "rad_par_full (rad_par_full P M Q) M R =
-    rad_par_full P M (rad_par_full Q M R)"
-  by (rule ades_par_full_assoc[OF assms])
-
-lemma rad_par_full_disj_left:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  shows "rad_par_full (P \<or> Q) M R =
-    (rad_par_full P M R \<or> rad_par_full Q M R)"
-  by (rule ades_par_full_disj_left)
-
-lemma rad_par_full_disj_right:
-  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  shows "rad_par_full P M (Q \<or> R) =
-    (rad_par_full P M Q \<or> rad_par_full P M R)"
-  by (rule ades_par_full_disj_right)
-
-lemma rad_par_full_false_left:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  shows "rad_par_full false M P = false"
-  by (rule ades_par_full_false_left)
-
-lemma rad_par_full_false_right:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
-    and M :: "('t, 'e) rad_merge_rel"
-  shows "rad_par_full P M false = false"
-  by (rule ades_par_full_false_right)
-
 lemma RA2M_MergeSym:
   assumes "MergeSym M"
   shows "MergeSym (RA2M M)"
@@ -803,10 +537,414 @@ lemma RADM_full_MergeSym:
     H2M_def PBMHM_def
   by (intro merge_health_MergeSym RA2M_MergeSym assms)
 
-lemma rad_par_full_comm_RADM_full:
+subsection \<open>Conjunctive-ok Seed and Healthy Parallel\<close>
+
+lemma OkM_RA1M_commute:
+  "(OkM \<circ> RA1M) M = (RA1M \<circ> OkM) M"
+  unfolding comp_apply
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      auto simp: OkM_eval RA1M_def merge_health_eval RA1_obs)
+
+lemmas OkM_RA1M_commute' = OkM_RA1M_commute[simplified comp_apply]
+
+lemma OkM_RA2M_commute:
+  "(OkM \<circ> RA2M) M = (RA2M \<circ> OkM) M"
+  unfolding comp_apply
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      simp add: OkM_eval RA2M_eval rad_merge_output_def)
+
+lemmas OkM_RA2M_commute' = OkM_RA2M_commute[simplified comp_apply]
+
+definition rad_ok_body ::
+  "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
+where [pred]: "rad_ok_body M = RA1M (CSPA1M (H2M (PBMHM (OkM M))))"
+
+lemma rad_ok_body_obs:
+  "merge_slice (rad_ok_body M) p q (ades_obs b s0 c X) \<longleftrightarrow>
+    (rad_trace_extensions s0 \<inter> X \<noteq> {} \<and>
+     (\<not> b \<or>
+      (if des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q
+       then c \<and> (\<exists>Y \<subseteq> rad_trace_extensions s0 \<inter> X.
+         merge_slice M p q (ades_obs b s0 True Y))
+       else (\<exists>Y \<subseteq> rad_trace_extensions s0 \<inter> X.
+         merge_slice M p q (ades_obs b s0 False Y)))))"
+  by (cases b; cases c; cases "des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q";
+      auto simp: rad_ok_body_def RA1M_def CSPA1M_def H2M_def PBMHM_def
+        merge_health_eval RA1_obs CSPA1_obs H2_obs PBMH_ades_obs OkM_eval)
+
+lemmas rad_ok_body_eval = rad_ok_body_obs[simplified merge_slice_eval]
+
+lemma ok_merge_extensions_subset_twice:
+  assumes "E \<inter> X \<noteq> {}"
+  shows "(\<exists>Y \<subseteq> E \<inter> X. E \<inter> Y \<noteq> {} \<and>
+      (\<exists>Z \<subseteq> E \<inter> Y. F Z)) \<longleftrightarrow>
+    (\<exists>Z \<subseteq> E \<inter> X. F Z)"
+proof
+  assume "\<exists>Y \<subseteq> E \<inter> X. E \<inter> Y \<noteq> {} \<and>
+    (\<exists>Z \<subseteq> E \<inter> Y. F Z)"
+  then obtain Y Z where "Y \<subseteq> E \<inter> X" "Z \<subseteq> E \<inter> Y" "F Z"
+    by blast
+  then have "Z \<subseteq> E \<inter> X" "F Z" by auto
+  then show "\<exists>Z \<subseteq> E \<inter> X. F Z" by blast
+next
+  assume "\<exists>Z \<subseteq> E \<inter> X. F Z"
+  with assms show "\<exists>Y \<subseteq> E \<inter> X. E \<inter> Y \<noteq> {} \<and>
+    (\<exists>Z \<subseteq> E \<inter> Y. F Z)"
+    by (intro exI[of _ "E \<inter> X"]; simp)
+qed
+
+lemma rad_ok_body_idem: "rad_ok_body (rad_ok_body M) = rad_ok_body M"
+  apply (rule merge_slice_ext, rule ades_obs_ext)
+  subgoal for p q b s0 c X
+  proof (cases "rad_trace_extensions s0 \<inter> X = {}")
+    case True
+    then show ?thesis by (simp add: rad_ok_body_eval)
+  next
+    case False
+    have flat:
+      "(\<exists>Y \<subseteq> rad_trace_extensions s0 \<inter> X.
+        rad_trace_extensions s0 \<inter> Y \<noteq> {} \<and>
+        (\<exists>Z \<subseteq> rad_trace_extensions s0 \<inter> Y.
+          merge_slice M p q (ades_obs a s0 d Z))) =
+       (\<exists>Z \<subseteq> rad_trace_extensions s0 \<inter> X.
+          merge_slice M p q (ades_obs a s0 d Z))" for a d
+      by (rule ok_merge_extensions_subset_twice[OF False])
+    show ?thesis
+      using False
+      apply (simp only: rad_ok_body_obs)
+      by (simp add: flat[simplified] split: if_splits)
+  qed
+  done
+
+lemma rad_ok_body_RA2M_commute:
+  "(rad_ok_body \<circ> RA2M) M = (RA2M \<circ> rad_ok_body) M"
+  unfolding comp_apply
+  by (simp only: rad_ok_body_def OkM_RA2M_commute'
+      RA2M_PBMHM_commute RA2M_H2M_commute RA2M_CSPA1M_commute
+      RA2M_RA1M_commute)
+
+lemmas rad_ok_body_RA2M_commute' = rad_ok_body_RA2M_commute[simplified comp_apply]
+
+lemma rad_ok_body_RA3M_absorb:
+  "RA3M (rad_ok_body (RA3M M)) = RA3M (rad_ok_body M)"
+  by (rule merge_slice_ext, rule ades_obs_ext;
+      simp add: RA3M_def merge_health_eval RA3_obs rad_ok_body_eval
+        split: if_splits)
+
+definition RADOKM ::
+  "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel"
+where [pred]: "RADOKM = RADM_full \<circ> OkM"
+
+lemma RADOKM_mono:
+  "M \<sqsubseteq> N \<Longrightarrow> RADOKM M \<sqsubseteq> RADOKM N"
+  unfolding RADOKM_def comp_apply by (intro RADM_full_mono OkM_mono)
+
+lemma RADOKM_Monotonic [closure]: "Monotonic RADOKM"
+  by (rule MonotonicI, rule RADOKM_mono)
+
+lemma RADOKM_is_RADM_full [closure]: "RADOKM M is RADM_full"
+  by (simp add: RADOKM_def RADM_full_healthy)
+
+lemma RADOKM_form:
+  "RADOKM M = RA2M (RA3M (rad_ok_body M))"
+  by (simp add: RADOKM_def RADM_full_def rad_ok_body_def RA2M_RA3M_commute)
+
+lemma RADOKM_idem: "RADOKM (RADOKM M) = RADOKM M"
+  by (simp only: RADOKM_form rad_ok_body_RA2M_commute'
+      RA2M_RA3M_commute RA2M_idem rad_ok_body_RA3M_absorb rad_ok_body_idem)
+
+lemma RADOKM_Idempotent [closure]: "Idempotent RADOKM"
+  by (simp add: Idempotent_def RADOKM_idem)
+
+lemma RADOKM_healthy [closure]: "RADOKM M is RADOKM"
+  by (simp add: Healthy_def' RADOKM_idem)
+
+lemma RADOKM_MergeSym: "MergeSym M \<Longrightarrow> MergeSym (RADOKM M)"
+  unfolding RADOKM_def comp_apply
+  by (intro RADM_full_MergeSym OkM_MergeSym)
+
+lemma RADOKM_state_lift:
+  "RADOKM (merge_ades_up j) = RADM_full (merge_ades_up j)"
+  by (simp add: RADOKM_def)
+
+text \<open>
+  The public operator first restricts the supplied merge with OkM and then
+  applies the layer healthiness operator. Its choice-set policy comes from
+  the supplied merge, subject to that healthiness transformation. The seed's
+  conjunction of branch ok flags need not hold globally after completion.
+\<close>
+
+abbreviation rad_par_full ::
+  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) rad_merge_rel \<Rightarrow>
+   ('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t::trace, 'e) reactive_angelic_design"
+where "rad_par_full P M Q \<equiv> P \<parallel>\<^bsub>RADOKM M\<^esub> Q"
+
+lemma rad_par_full_eval:
+  "rad_par_full P M Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and>
+      ades_merge_eval (RADOKM M) x p q out)"
+proof -
+  have eval: "par_by_merge P N Q (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval N x p q out)" for N
+    by (cases x; cases out;
+        simp add: par_by_merge_def par_sep_def; pred_auto; blast)
+  show ?thesis by (rule eval)
+qed
+
+lemma rad_par_full_PBMH_closure [closure]: "rad_par_full P M Q is PBMH_ades"
+proof -
+  have healthy: "RADOKM M is PBMHM"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have slices: "PBMH_ades (merge_slice (RADOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (RADOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded PBMHM_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: PBMH_ades_obs rad_par_full_eval;
+        use slices[unfolded PBMH_ades_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma rad_par_full_H2_closure [closure]: "rad_par_full P M Q is H2"
+proof -
+  have healthy: "RADOKM M is H2M"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have slices: "H2 (merge_slice (RADOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (RADOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded H2M_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: H2_obs rad_par_full_eval;
+        use slices[unfolded H2_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma rad_par_full_RA1_closure [closure]: "rad_par_full P M Q is RA1"
+proof -
+  have healthy: "RADOKM M is RA1M"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have slices: "RA1 (merge_slice (RADOKM M) p q) (ades_obs b s0 c X) =
+      merge_slice (RADOKM M) p q (ades_obs b s0 c X)" for p q b s0 c X
+    using healthy[unfolded RA1M_healthy_iff]
+    by (auto simp: Healthy_def')
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: RA1_obs rad_par_full_eval;
+        use slices[unfolded RA1_obs merge_slice_eval] in \<open>blast\<close>)
+qed
+
+lemma rad_par_full_RA2_closure [closure]:
   fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+    and M :: "('t, 'e) rad_merge_rel"
+  assumes "P is RA2" "Q is RA2"
+  shows "rad_par_full P M Q is RA2"
+proof -
+  have healthy: "RADOKM M is RA2M"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have Pnorm: "P (x,out) = P (rad_merge_input x,
+      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
+    using fun_cong[OF Healthy_if[OF assms(1)], of "(x,out)"]
+    by (simp only: RA2_merge_eval)
+  have Qnorm: "Q (x,out) = Q (rad_merge_input x,
+      rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x out
+    using fun_cong[OF Healthy_if[OF assms(2)], of "(x,out)"]
+    by (simp only: RA2_merge_eval)
+  have Mnorm: "ades_merge_eval (RADOKM M) x p q out =
+      ades_merge_eval (RADOKM M) (rad_merge_input x)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) p)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) q)
+        (rad_merge_output (astate.s\<^sub>v (des_vars.more x)) out)" for x p q out
+    using arg_cong[where f="\<lambda>N. ades_merge_eval N x p q out",
+      OF Healthy_if[OF healthy]]
+    by (simp only: RA2M_eval)
+  have reindex: "(\<exists>p q. F (rad_merge_output s0 p) (rad_merge_output s0 q)) =
+      (\<exists>p q. F p q)" for F and s0 :: "('t, 'e) rad_state"
+    by (metis rad_merge_output_surj)
+  show ?thesis
+  proof (rule Healthy_intro, rule ext, clarify)
+    fix x out
+    show "RA2 (rad_par_full P M Q) (x,out) = rad_par_full P M Q (x,out)"
+      by (simp only: RA2_merge_eval rad_par_full_eval;
+          subst Pnorm; subst Qnorm; subst Mnorm; rule reindex[symmetric])
+  qed
+qed
+
+lemma rad_par_full_CSPA1_closure [closure]:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes "P is CSPA1" "Q is CSPA1"
+  shows "rad_par_full P M Q is CSPA1"
+proof -
+  have healthy: "RADOKM M is CSPA1M"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have P: "P (ades_obs False s0 c X)"
+    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for s0 c X
+    using assms(1) that by (simp add: CSPA1_healthy_obs_iff)
+  have Q: "Q (ades_obs False s0 c X)"
+    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for s0 c X
+    using assms(2) that by (simp add: CSPA1_healthy_obs_iff)
+  have merge: "merge_slice (RADOKM M) p q (ades_obs False s0 c X)"
+    if "rad_trace_extensions s0 \<inter> X \<noteq> {}" for p q s0 c X
+    using healthy that
+    by (simp add: CSPA1M_healthy_iff CSPA1_healthy_obs_iff)
+  show ?thesis
+    unfolding CSPA1_healthy_obs_iff
+  proof (intro allI impI)
+    fix s0 :: "('t, 'e) rad_state" and c :: bool
+      and X :: "('t, 'e) rad_state set"
+    assume ne: "rad_trace_extensions s0 \<inter> X \<noteq> {}"
+    show "rad_par_full P M Q (ades_obs False s0 c X)"
+      unfolding rad_par_full_eval
+      using P[OF ne, of c] Q[OF ne, of c]
+        merge[OF ne, of "\<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>"
+          "\<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>" c]
+      by auto
+  qed
+qed
+
+lemma rad_par_full_RA3_closure [closure]:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes "P is RA3" "Q is RA3"
+  shows "rad_par_full P M Q is RA3"
+proof -
+  have healthy: "RADOKM M is RA3M"
+    using RADOKM_is_RADM_full[of M] by (auto simp: RADM_full_healthy_iff)
+  have waiting: "rad_par_full P M Q (x,out) = II_Rac (x,out)"
+    if w: "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))" for x out
+  proof -
+    have Pw: "P (x,p) = II_Rac (x,p)" for p
+      using RA3_healthy_wait_eval[OF assms(1) w] .
+    have Qw: "Q (x,q) = II_Rac (x,q)" for q
+      using RA3_healthy_wait_eval[OF assms(2) w] .
+    have Mw: "ades_merge_eval (RADOKM M) x p q out = II_Rac (x,out)" for p q
+    proof -
+      have "merge_slice (RADOKM M) p q is RA3"
+        using healthy by (simp add: RA3M_healthy_iff)
+      from RA3_healthy_wait_eval[OF this w]
+      show ?thesis by simp
+    qed
+    obtain y where y: "II_Rac (x,y)" by (rule II_Rac_has_result)
+    show ?thesis
+      using y by (simp add: rad_par_full_eval Pw Qw Mw; blast)
+  qed
+  show ?thesis
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp add: RA3_obs waiting)
+qed
+
+lemma rad_par_full_RAD_closure [closure]:
+  assumes "P is RAD" "Q is RAD"
+  shows "rad_par_full P M Q is RAD"
+proof -
+  let ?W = "rad_par_full P M Q"
+  have pb: "PBMH_ades ?W = ?W"
+    using rad_par_full_PBMH_closure by (simp add: Healthy_def')
+  have h2: "H2 ?W = ?W"
+    using rad_par_full_H2_closure by (simp add: Healthy_def')
+  have c1: "CSPA1 ?W = ?W"
+    using rad_par_full_CSPA1_closure[OF RAD_is_CSPA1_full[OF assms(1)]
+      RAD_is_CSPA1_full[OF assms(2)]] by (simp add: Healthy_def')
+  have r1: "RA1 ?W = ?W"
+    using rad_par_full_RA1_closure by (simp add: Healthy_def')
+  have r2: "RA2 ?W = ?W"
+    using rad_par_full_RA2_closure[OF RA_is_RA2[OF RAD_is_RA[OF assms(1)]]
+      RA_is_RA2[OF RAD_is_RA[OF assms(2)]]] by (simp add: Healthy_def')
+  have r3: "RA3 ?W = ?W"
+    using rad_par_full_RA3_closure[OF RA_is_RA3[OF RAD_is_RA[OF assms(1)]]
+      RA_is_RA3[OF RAD_is_RA[OF assms(2)]]] by (simp add: Healthy_def')
+  show ?thesis
+    by (simp add: Healthy_def' RAD_def RA_def CSPA2_def pb h2 c1 r1 r2 r3)
+qed
+
+lemma rad_par_full_normalise:
+  "rad_par_full P (RADOKM M) Q = rad_par_full P M Q"
+  by (simp only: RADOKM_idem)
+
+lemma rad_par_full_mono:
+  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2" "M1 \<sqsubseteq> M2"
+  shows "rad_par_full P1 M1 Q1 \<sqsubseteq> rad_par_full P2 M2 Q2"
+  using assms(1,2) RADOKM_mono[OF assms(3)]
+  by (auto simp: pred_refine_iff rad_par_full_eval split: prod.splits; blast)
+
+lemma rad_par_full_comm:
   assumes "MergeSym M"
-  shows "rad_par_full P (RADM_full M) Q = rad_par_full Q (RADM_full M) P"
-  by (rule rad_par_full_comm[OF RADM_full_MergeSym[OF assms]])
+  shows "rad_par_full P M Q = rad_par_full Q M P"
+  by (rule par_by_merge_comm; use RADOKM_MergeSym[OF assms] in \<open>simp add: MergeSym_iff_swap\<close>)
+
+lemma rad_par_full_comm_iff:
+  "MergeSym (RADOKM M) \<longleftrightarrow> (\<forall>P Q. rad_par_full P M Q = rad_par_full Q M P)"
+proof
+  assume "MergeSym (RADOKM M)"
+  then show "\<forall>P Q. rad_par_full P M Q = rad_par_full Q M P"
+    by (auto simp: fun_eq_iff rad_par_full_eval MergeSym_def; blast)
+next
+  assume comm: "\<forall>P Q. rad_par_full P M Q = rad_par_full Q M P"
+  show "MergeSym (RADOKM M)"
+  proof (unfold MergeSym_def, intro allI)
+    fix x p q out
+    have eq: "rad_par_full (\<lambda>(x,r). r = p) M (\<lambda>(x,r). r = q) =
+        rad_par_full (\<lambda>(x,r). r = q) M (\<lambda>(x,r). r = p)"
+      using comm by blast
+    from fun_cong[OF eq, of "(x,out)"]
+    show "ades_merge_eval (RADOKM M) x p q out = ades_merge_eval (RADOKM M) x q p out"
+      by (simp add: rad_par_full_eval)
+  qed
+qed
+
+lemma rad_par_full_assoc:
+  assumes "MergeAssoc (RADOKM M)"
+  shows "rad_par_full (rad_par_full P M Q) M R =
+    rad_par_full P M (rad_par_full Q M R)"
+proof (rule ext, clarify)
+  fix x out
+  have assoc: "(\<exists>y. ades_merge_eval (RADOKM M) x p q y \<and> ades_merge_eval (RADOKM M) x y r out) =
+      (\<exists>y. ades_merge_eval (RADOKM M) x q r y \<and> ades_merge_eval (RADOKM M) x p y out)"
+    for p q r
+    using assms by (simp add: MergeAssoc_def)
+  show "rad_par_full (rad_par_full P M Q) M R (x,out) =
+      rad_par_full P M (rad_par_full Q M R) (x,out)"
+    unfolding rad_par_full_eval using assoc by blast
+qed
+
+lemma rad_par_full_assoc_iff:
+  "MergeAssoc (RADOKM M) \<longleftrightarrow>
+    (\<forall>P Q R. rad_par_full (rad_par_full P M Q) M R =
+      rad_par_full P M (rad_par_full Q M R))"
+proof
+  assume "MergeAssoc (RADOKM M)"
+  then show "\<forall>P Q R. rad_par_full (rad_par_full P M Q) M R =
+      rad_par_full P M (rad_par_full Q M R)"
+    by (blast intro: rad_par_full_assoc)
+next
+  assume assoc: "\<forall>P Q R. rad_par_full (rad_par_full P M Q) M R =
+      rad_par_full P M (rad_par_full Q M R)"
+  show "MergeAssoc (RADOKM M)"
+  proof (unfold MergeAssoc_def, intro allI)
+    fix x p q r out
+    have eq: "rad_par_full
+        (rad_par_full (\<lambda>(x,u). u = p) M (\<lambda>(x,u). u = q)) M
+        (\<lambda>(x,u). u = r) =
+      rad_par_full (\<lambda>(x,u). u = p) M
+        (rad_par_full (\<lambda>(x,u). u = q) M (\<lambda>(x,u). u = r))"
+      using assoc by blast
+    from fun_cong[OF eq, of "(x,out)"]
+    show "(\<exists>y. ades_merge_eval (RADOKM M) x p q y \<and> ades_merge_eval (RADOKM M) x y r out) =
+        (\<exists>y. ades_merge_eval (RADOKM M) x q r y \<and> ades_merge_eval (RADOKM M) x p y out)"
+      by (simp add: rad_par_full_eval)
+  qed
+qed
+
+lemma rad_par_full_disj_left:
+  "rad_par_full (P \<or> Q) M R = (rad_par_full P M R \<or> rad_par_full Q M R)"
+  by (auto simp: fun_eq_iff rad_par_full_eval disj_pred_def split: prod.splits)
+
+lemma rad_par_full_disj_right:
+  "rad_par_full P M (Q \<or> R) = (rad_par_full P M Q \<or> rad_par_full P M R)"
+  by (auto simp: fun_eq_iff rad_par_full_eval disj_pred_def split: prod.splits)
+
+lemma rad_par_full_false_left [simp]: "rad_par_full false M P = false"
+  by (rule par_by_merge_left_false)
+
+lemma rad_par_full_false_right [simp]: "rad_par_full P M false = false"
+  by (rule par_by_merge_right_false)
 
 end

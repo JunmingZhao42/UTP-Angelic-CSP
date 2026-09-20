@@ -12,42 +12,47 @@ The three sessions build on each other:
 | Reactive angelic designs (RAD) | `reactive-angelic-designs/` | `UTP-Reactive-Angelic-Designs` |
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
-`Angelic_CSP.thy` is the entry point. This is `research/generic-parallel-merges`,
-extending the `research/parallel` checkpoint at `6d88f02` with full-observation
-merge predicates for AD, RAD, and AP. Its normal build also loads
-**generic merge and RAD/AP parallel research**; a passing build does not make
-that research final.
-Use `main` for the reviewed development.
+[Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
+`research/generic-parallel-merges` branch adds parallel operators with merge
+predicates over the full AD, RAD, and AP observations. This parallel work is
+experimental and is included in the build. The reviewed development is on `main`.
 
-| Read this | For |
+| Documentation | Contents |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
-| [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics, naming and qualified parallel laws |
+| [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics and assumptions for the parallel laws |
 | [Parallel research](PARALLEL_BY_MERGE.md) | The AD/RAD/AP research guide and open issues |
 | [Generic merges](docs/GENERIC_PARALLEL.md) | Full-observation merge healthiness and closure proofs |
-| [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and source qualifications |
+| [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
 | [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
 | [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
 
-## Merge healthiness at a glance
+## Merge healthiness
 
-For full-observation parallel [P parallel_M Q](angelic-designs/utp_ades_parallel_generic.thy#L14), these are sufficient conditions;
-operand requirements apply to both `P` and `Q`. `M is K` means `K M = M`.
+Each parallel operator uses
+[OkM](angelic-designs/utp_ades_parallel_generic.thy#L445) to add
+`ok' = ok_left ∧ ok_right` to the supplied merge, then applies merge healthiness
+for its layer. The supplied merge determines how to combine the choice sets;
+healthiness may modify that relation.
 
-| Merge condition | Operands | Result healthiness |
+| Operator | Completed merge | Operand → result healthiness |
 | --- | --- | --- |
-| [A0M](angelic-designs/utp_ades_parallel_generic.thy#L346) / [PBMHM](angelic-designs/utp_ades_parallel_generic.thy#L255) / [H2M](angelic-designs/utp_ades_parallel_generic.thy#L316) | Arbitrary | [A0](angelic-designs/utp_ades_parallel_generic.thy#L535) / [PBMH_ades](angelic-designs/utp_ades_parallel_generic.thy#L520) / [H2](angelic-designs/utp_ades_parallel_generic.thy#L525), respectively |
-| [H1M](angelic-designs/utp_ades_parallel_generic.thy#L287) | `H1` | [H1](angelic-designs/utp_ades_parallel_generic.thy#L555) |
-| [ADM](angelic-designs/utp_ades_parallel_generic.thy#L438) | `H1` (in particular, `A`) | [AD: A](angelic-designs/utp_ades_parallel_generic.thy#L573) |
-| [A2M](angelic-designs/utp_ades_parallel_generic.thy#L406) | Arbitrary, including RAD/AP predicates | [A2](angelic-designs/utp_ades_parallel_generic.thy#L530) |
-| [A3M](angelic-designs/utp_ades_parallel_normal.thy#L115) | `H1` | AD: [A](angelic-designs/utp_ades_parallel_normal.thy#L205), [A2](angelic-designs/utp_ades_parallel_normal.thy#L214), and [A3](angelic-designs/utp_ades_parallel_normal.thy#L196) |
-| [RADM_full](reactive-angelic-designs/utp_rad_parallel_generic.thy#L514) | `RAD` | [RAD: RAD](reactive-angelic-designs/utp_rad_parallel_generic.thy#L702) |
-| [APM](angelic-processes/utp_ap_parallel_generic.thy#L277) | `AP` | [AP: AP](angelic-processes/utp_ap_parallel_generic.thy#L380) |
+| [ades_par_full](angelic-designs/utp_ades_parallel_generic.thy#L566) | [ADOKM](angelic-designs/utp_ades_parallel_generic.thy#L498) = ADM ∘ OkM | [H1 → A](angelic-designs/utp_ades_parallel_generic.thy#L634) |
+| [rad_par_full](reactive-angelic-designs/utp_rad_parallel_generic.thy#L677) | [RADOKM](reactive-angelic-designs/utp_rad_parallel_generic.thy#L634) = RADM_full ∘ OkM | [RAD → RAD](reactive-angelic-designs/utp_rad_parallel_generic.thy#L834) |
+| [ap_par_full](angelic-processes/utp_ap_parallel_generic.thy#L373) | [APOKM](angelic-processes/utp_ap_parallel_generic.thy#L296) = APM ∘ OkM | [AP → AP](angelic-processes/utp_ap_parallel_generic.thy#L533) |
 
-Merge conditions denote fixed-point healthiness. `RADM_full` and `APM` alone
-do not ensure `A2`; see [Generic merges](docs/GENERIC_PARALLEL.md#merge-healthiness-and-closure)
-for component conditions and closure lemmas.
+The table assumes both operands satisfy the condition on the left of the arrow.
+There is no healthiness requirement on the supplied merge. The three merge
+transformations are monotone and idempotent.
+
+The `ok'` equation is imposed before normalisation and need not hold afterwards;
+see the [AD formula](angelic-designs/utp_ades_parallel_generic.thy#L501).
+This is the same two-step construction used by
+[reactive-design parallel](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L123).
+An exact correspondence between the operators, and general synchronisation
+laws, have not been proved. The [generic parallel guide](docs/GENERIC_PARALLEL.md)
+gives the definitions, proofs and examples.
 
 ## Build
 
@@ -55,9 +60,7 @@ Use **Isabelle2025-2** and the dependency commits pinned in `deps/`.
 The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
 `Optics` and `Z_Toolkit` use compatibility forks recorded in `.gitmodules`.
 
-To obtain this generic-merge investigation, clone
-`research/generic-parallel-merges`, then set the path to your Isabelle
-executable. The preceding research baseline remains on `research/parallel`.
+Clone this branch and set the path to your Isabelle executable:
 
 ```bash
 git clone --branch research/generic-parallel-merges --recurse-submodules git@github.com:JunmingZhao42/UTP-Angelic-CSP.git
