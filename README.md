@@ -20,9 +20,7 @@ experimental and is included in the build. The reviewed development is on `main`
 | Documentation | Contents |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
-| [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics and assumptions for the parallel laws |
-| [Parallel research](PARALLEL_BY_MERGE.md) | The AD/RAD/AP research guide and open issues |
-| [Generic merges](docs/GENERIC_PARALLEL.md) | Full-observation merge healthiness and closure proofs |
+| [Parallel by merge](docs/PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
 | [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
 | [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
@@ -30,29 +28,26 @@ experimental and is included in the build. The reviewed development is on `main`
 
 ## Merge healthiness
 
-Each parallel operator uses
-[OkM](angelic-designs/utp_ades_parallel_generic.thy#L445) to add
-`ok' = ok_left ∧ ok_right` to the supplied merge, then applies merge healthiness
-for its layer. The supplied merge determines how to combine the choice sets;
-healthiness may modify that relation.
+[AD parallel](angelic-designs/utp_ades_parallel.thy), written `P ∥AD[M] Q`,
+uses `M` directly. Separate closure theorems relate `A0`, `A1`, `A2` and
+`A3` to the merge conditions `A0m`, `A1m`, `A2m` and `A3m w`. Each merge
+condition is monotone and idempotent. `A3m w` uses a common singleton witness;
+it does not require normal designs.
 
-| Operator | Completed merge | Operand → result healthiness |
-| --- | --- | --- |
-| [ades_par_full](angelic-designs/utp_ades_parallel_generic.thy#L566) | [ADOKM](angelic-designs/utp_ades_parallel_generic.thy#L498) = ADM ∘ OkM | [H1 → A](angelic-designs/utp_ades_parallel_generic.thy#L634) |
-| [rad_par_full](reactive-angelic-designs/utp_rad_parallel_generic.thy#L677) | [RADOKM](reactive-angelic-designs/utp_rad_parallel_generic.thy#L634) = RADM_full ∘ OkM | [RAD → RAD](reactive-angelic-designs/utp_rad_parallel_generic.thy#L834) |
-| [ap_par_full](angelic-processes/utp_ap_parallel_generic.thy#L373) | [APOKM](angelic-processes/utp_ap_parallel_generic.thy#L296) = APM ∘ OkM | [AP → AP](angelic-processes/utp_ap_parallel_generic.thy#L533) |
+The lifted operator constructs `lift_merge j` directly from a state merge `j`,
+with startup and termination conditions and a relation between choice sets.
+It satisfies `A0m` and `A1m`; the lifted parallel operator applies `A3` to
+its result. The generic operator imposes no termination policy of its own.
 
-The table assumes both operands satisfy the condition on the left of the arrow.
-There is no healthiness requirement on the supplied merge. The three merge
-transformations are monotone and idempotent.
+RAD and AP parallel still apply their constructors `RADOKM` and `APOKM`
+automatically. All three layers use direct definitions. The old pointwise
+implementation and general merge-lifting framework have been removed.
 
-The `ok'` equation is imposed before normalisation and need not hold afterwards;
-see the [AD formula](angelic-designs/utp_ades_parallel_generic.thy#L501).
-This is the same two-step construction used by
-[reactive-design parallel](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L123).
-An exact correspondence between the operators, and general synchronisation
-laws, have not been proved. The [generic parallel guide](docs/GENERIC_PARALLEL.md)
-gives the definitions, proofs and examples.
+The [parallel guide](docs/PARALLEL.md) gives the assumptions and examples.
+The AD construction and examples share `utp_ades_parallel.thy`, including
+the counterexample showing that even a symmetric merge satisfying all four
+merge conditions need not give associative parallel. General synchronisation
+and exact correspondence with reactive-design parallel remain unproved.
 
 ## Build
 

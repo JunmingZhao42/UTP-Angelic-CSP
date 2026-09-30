@@ -1,4 +1,9 @@
-# Parallel by Merge in UTP
+# Historical parallel-by-merge notes
+
+> These notes retain the earlier UTP walkthrough and pointwise angelic
+> construction. That angelic implementation has been removed from this
+> branch. Use [Parallel by merge](docs/PARALLEL.md) for the current
+> conjunction-based operators and their assumptions.
 
 This note explains the main mathematical ideas in
 [`utp_concurrency.thy`](deps/UTP/utp_concurrency.thy), gives a quick-reference
@@ -8,9 +13,9 @@ how [`utp_rdes_parallel.thy`](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy)
 and the angelic theories build on the generic construction.
 
 The extension using merge predicates on complete AD, RAD, and AP observations
-is described in [Generic merge predicates](docs/GENERIC_PARALLEL.md), including
+is described in [Generic merge predicates](docs/PARALLEL.md), including
 its monotone, idempotent merge operators and parallel-closure conditions.
-The state-level lifting described below remains available as a specialization.
+The state-level lifting described below is historical and is no longer implemented.
 
 The central idea is:
 
@@ -586,10 +591,10 @@ The generic theory records this calculation as `par_by_merge_comm`.  Its
 premise is the direct symmetry equation `swap_m ;; M = M`, so the result also
 applies to heterogeneous merges whose prior and final types differ.
 
-### A typing limitation of `SymMerge`
+### Symmetry with different initial and result types
 
-The current type of `SymMerge` uses the homogeneous `merge` synonym. However,
-`swap_m` itself, and the symmetry equation
+`SymMerge` and `swap_m` allow different initial and result types. The symmetry
+equation
 
 $$
 \mathit{swap}_m;M=M,
@@ -600,10 +605,10 @@ and final types are different. This distinction matters for angelic designs:
 their initial observation contains an `astate`, while their final observation
 contains an `achoices` set.
 
-For angelic-process work, `par_by_merge_comm` therefore uses the direct
-symmetry equation. A future library improvement could generalise the type of
-`SymMerge`, allowing the same premise to be written with the healthiness
-notation for heterogeneous merges too.
+The library declarations have been generalised in place, so angelic designs
+can use `M is SymMerge` directly. `ThreeWayMerge` and `AssocMerge` also allow
+the initial type to differ from the branch-result type. Their branch and
+final result types must agree so that one merge result can feed into another.
 
 ## 8. Three-way merging and associativity
 

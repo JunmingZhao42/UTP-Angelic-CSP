@@ -1,4 +1,9 @@
-# AD parallel
+# Historical AD parallel review
+
+> This review records the earlier pointwise implementation on `main`.
+> It does not describe the current branch, which now uses only the
+> [conjunction-based merge](PARALLEL.md). The validation record below
+> applies to its stated historical revision.
 
 This records the AD review accepted on `main`. This branch additionally
 contains RAD/AP WIP; see [branch contents](RESEARCH_BOUNDARY.md).
