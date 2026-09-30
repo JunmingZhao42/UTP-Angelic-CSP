@@ -1422,6 +1422,22 @@ definition A3 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 lemma A3_is_H: "A3 P is \<^bold>H"
   by (simp add: A3_def rdesign_is_H1_H2)
 
+text \<open>For a design, A3 adds empty-choice behaviour exactly when every
+  singleton permits failure. Nonempty choice sets are unchanged.\<close>
+
+lemma A3_obs_H:
+  assumes "R is \<^bold>H"
+  shows "A3 R (ades_obs b s0 c X) \<longleftrightarrow>
+    (R (ades_obs b s0 c X) \<or>
+      (X = {} \<and> (\<forall>z. R (ades_obs b s0 False {z}))))"
+proof -
+  have form: "R = (pre\<^sub>D R \<turnstile>\<^sub>r post\<^sub>D R)"
+    using H1_H2_eq_rdesign[of R] assms by (simp add: Healthy_def')
+  show ?thesis
+    apply (subst (2 3) form)
+    by (simp add: A3_def A3_rel_def; pred_auto; blast)
+qed
+
 lemma A3_healthy:
   assumes "P is A"
   shows "P is A3 \<longleftrightarrow> pre\<^sub>D P is A3_rel"

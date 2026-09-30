@@ -109,6 +109,14 @@ lemma d2ac_rdesign:
    ((\<not> p2ac_rel (\<not> P) \<and> p2ac_exist P) \<turnstile>\<^sub>r p2ac_rel Q)"
   by (simp add: d2ac_def, pred_auto)
 
+lemma d2ac_healthy_obs:
+  assumes "P is \<^bold>H"
+  shows "d2ac P (ades_obs b s0 c Z) \<longleftrightarrow>
+    (\<not> b \<or> (\<forall>z. P (des_obs True s0 False z)) \<or>
+      (\<exists>z\<in>Z. P (des_obs True s0 c z)))"
+  by (subst (1 2 3) Healthy_if[OF assms, THEN sym];
+      simp only: H1_H2_eq_rdesign d2ac_rdesign; pred_auto; blast)
+
 lemma d2ac_A0 [simp]: "A0 (d2ac P) = d2ac P"
   by (simp add: A0_def d2ac_def, pred_auto)
 
@@ -155,6 +163,11 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
                     \<dots> = \<lparr>ac\<^sub>v = {des_vars.more s1}, \<dots> = ()\<rparr>\<rparr>
   in PBMH_ades P (ades_in, ades_out))"
 
+lemma ac2p_healthy_obs:
+  assumes "P is PBMH_ades"
+  shows "ac2p P (des_obs b s0 c z) = P (ades_obs b s0 c {z})"
+  by (simp add: ac2p_def Healthy_if[OF assms] StateII_def)
+
 (* Paper Lemma 25 *)
 lemma ac2p_PBMH_ades [simp]: "ac2p (PBMH_ades P) = ac2p P"
   by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
@@ -197,7 +210,7 @@ lemma ac2p_rel_subset:
     P (StateII s0, \<lparr>ac\<^sub>v = A, \<dots> = ()\<rparr>) \<and> A \<subseteq> {s1})"
   by (pred_auto)
 
-(* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) ∧ \<forall>y \<in> ac. y = z *)
+(* Paper Lemma 4. ac2p(P)(s,z) = \<exists> ac. P(s, ac) \<and> \<forall>y \<in> ac. y = z *)
 (* Direct singleton evaluation of P is valid when P is PBMH_ades-healthy;
    the general mapping first applies PBMH_ades. *)
 lemma ac2p_alt:
@@ -246,6 +259,12 @@ theorem ac2p_d2ac:
   using ac2p_d2ac_rdesign[of "pre\<^sub>D P" "post\<^sub>D P"]
     H1_H2_eq_rdesign[of P] assms
   by (simp add: Healthy_def' comp_apply)
+
+lemma d2ac_healthy_singleton_obs:
+  assumes "P is \<^bold>H"
+  shows "d2ac P (ades_obs b s0 c {z}) = P (des_obs b s0 c z)"
+  using ac2p_d2ac[OF assms]
+  by (metis comp_apply ac2p_healthy_obs A_is_PBMH_ades d2ac_is_A)
 
 (* Thesis Theorem T.5.3.6, specialised to the relation-level mapping. *)
 lemma p2ac_ac2p_rel_refine:

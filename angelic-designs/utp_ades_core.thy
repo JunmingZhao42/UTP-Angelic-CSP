@@ -56,6 +56,11 @@ abbreviation ades_output :: "bool \<Rightarrow> 's set \<Rightarrow> 's achoices
   "ades_output b X \<equiv>
     \<lparr>ok\<^sub>v = b, \<dots> = \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>\<rparr>"
 
+lemma choices_ex:
+  "(\<exists>p :: 's achoices des_vars_ext. F p) \<longleftrightarrow>
+   (\<exists>b X. F (ades_output b X))"
+  by pred_auto
+
 abbreviation ades_obs ::
   "bool \<Rightarrow> 's \<Rightarrow> bool \<Rightarrow> 's set \<Rightarrow>
    's astate des_vars_ext \<times> 's achoices des_vars_ext"

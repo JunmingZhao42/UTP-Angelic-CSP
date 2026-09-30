@@ -6,6 +6,8 @@ session "UTP-Angelic-Designs" in "angelic-designs" = "UTP-Reactive-Designs" +
     utp_ades_healthy
     utp_ades_designs
     utp_ades_parallel
+    utp_ades_parallel_lifted
+    utp_ades_parallel_choice
     utp_ades
 
 session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Angelic-Designs" +
