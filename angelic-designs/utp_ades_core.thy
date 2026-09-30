@@ -49,6 +49,27 @@ type_synonym ('s, '\<alpha>, '\<beta>) angelic_design_rel_ext =
 type_synonym 's angelic_rel = "('s, unit, unit) angelic_rel_ext"
 type_synonym 's angelic_design = "('s, unit, unit) angelic_design_rel_ext"
 
+abbreviation ades_started_input :: "'s astate \<Rightarrow> 's astate des_vars_ext" where
+  "ades_started_input s0 \<equiv> \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>"
+
+abbreviation ades_output :: "bool \<Rightarrow> 's set \<Rightarrow> 's achoices des_vars_ext" where
+  "ades_output b X \<equiv>
+    \<lparr>ok\<^sub>v = b, \<dots> = \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>\<rparr>"
+
+abbreviation ades_obs ::
+  "bool \<Rightarrow> 's \<Rightarrow> bool \<Rightarrow> 's set \<Rightarrow>
+   's astate des_vars_ext \<times> 's achoices des_vars_ext"
+where
+  "ades_obs b s0 c X \<equiv>
+   (\<lparr>ok\<^sub>v = b, s\<^sub>v = s0, \<dots> = ()\<rparr>,
+    \<lparr>ok\<^sub>v = c, ac\<^sub>v = X, \<dots> = ()\<rparr>)"
+
+lemma ades_obs_ext:
+  fixes P Q :: "'s angelic_design"
+  assumes "\<And>b s0 c X. P (ades_obs b s0 c X) = Q (ades_obs b s0 c X)"
+  shows "P = Q"
+  using assms by (simp add: fun_eq_iff; pred_auto)
+
 abbreviation arel_state_subst ::
   "('s, '\<alpha>) astate_ext subst \<Rightarrow>
    ('s, '\<alpha>, '\<beta>) angelic_rel_ext \<Rightarrow>
@@ -82,6 +103,33 @@ lemma not_refine:
   assumes "P \<sqsubseteq> Q"
   shows "(\<not> Q) \<sqsubseteq> (\<not> P)"
   using assms by pred_auto
+
+lemma H1_obs:
+  "H1 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or> P (ades_obs b s0 c X))"
+  by (simp add: H1_def; pred_auto)
+
+lemma H2_obs:
+  "H2 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (P (ades_obs b s0 False X) \<or> (c \<and> P (ades_obs b s0 True X)))"
+  by (simp add: H2_split; pred_auto)
+
+lemma H1_healthy_obs_iff:
+  fixes P :: "'s angelic_design"
+  shows "P is H1 \<longleftrightarrow> (\<forall>s0 c X. P (ades_obs False s0 c X))"
+proof
+  assume h: "P is H1"
+  show "\<forall>s0 c X. P (ades_obs False s0 c X)"
+    using H1_obs[of P False] by (simp only: Healthy_if[OF h]; simp)
+next
+  assume h: "\<forall>s0 c X. P (ades_obs False s0 c X)"
+  show "P is H1"
+  proof (rule Healthy_intro, rule ades_obs_ext)
+    fix b s0 c X
+    show "H1 P (ades_obs b s0 c X) = P (ades_obs b s0 c X)"
+      using h by (cases b; auto simp: H1_obs)
+  qed
+qed
 
 subsection \<open>PBMH\<close>
 
@@ -136,5 +184,19 @@ lemma conj_absorb_by_agree:
   assumes "((\<not> X) \<and> B) = ((\<not> X) \<and> A)"
   shows "(X \<and> ((\<not> A) \<and> B)) = ((\<not> A) \<and> B)"
   using assms by pred_auto
+
+lemma achoices_ac_update_self [simp]:
+  "achoices.ac\<^sub>v_update (\<lambda>_. achoices.ac\<^sub>v r) r = r"
+  by (cases r) simp
+
+lemma idem_fix_extract:
+  assumes idem: "\<And>y. F (F y) = F y" and e: "F (G x) = x"
+  shows "F x = x"
+proof -
+  have "F x = F (F (G x))" by (simp only: e)
+  also have "... = F (G x)" by (rule idem)
+  also have "... = x" by (rule e)
+  finally show ?thesis .
+qed
 
 end

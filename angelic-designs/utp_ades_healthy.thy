@@ -220,6 +220,11 @@ lemma PBMH_ades_eval:
     by (rule exI[where x=X]; cases ac'; cases "des_vars.more ac'"; simp)
   done
 
+lemma PBMH_ades_obs:
+  "PBMH_ades P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<exists>Y \<subseteq> X. P (ades_obs b s0 c Y))"
+  by (simp add: PBMH_ades_eval; blast)
+
 (* PBMH_ades-healthy predicates are upward closed in the angelic-choice
    component when the design observation otherwise agrees. *)
 lemma PBMH_ades_upward:
@@ -550,6 +555,31 @@ lemma PBMH_ades_ac_non_empty [simp]:
 definition A0 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A0 P = (P \<and> ((ok\<^sup>< \<and> \<not> P\<^sup>f) \<longrightarrow> (ok\<^sup>> \<longrightarrow> ac_non_empty)))"
 
+lemma A0_obs:
+  "A0 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (P (ades_obs b s0 c X) \<and>
+      (b \<and> c \<and> X = {} \<longrightarrow> P (ades_obs b s0 False X)))"
+  by (simp add: A0_def; pred_auto)
+
+lemma A0_healthy_obs_iff:
+  fixes P :: "'s angelic_design"
+  shows "P is A0 \<longleftrightarrow>
+    (\<forall>s0. P (ades_obs True s0 True {}) \<longrightarrow>
+      P (ades_obs True s0 False {}))"
+proof
+  assume h: "P is A0"
+  show "\<forall>s0. P (ades_obs True s0 True {}) \<longrightarrow>
+    P (ades_obs True s0 False {})"
+    using A0_obs[of P True _ True "{}"] h
+    by (simp only: Healthy_if; blast)
+next
+  assume h: "\<forall>s0. P (ades_obs True s0 True {}) \<longrightarrow>
+    P (ades_obs True s0 False {})"
+  show "P is A0"
+    by (rule Healthy_intro, rule ades_obs_ext;
+        simp only: A0_obs; insert h; auto)
+qed
+
 lemma A0_idem: "A0 (A0 P) = A0 P"
   by (pred_auto)
 
@@ -590,6 +620,17 @@ subsection \<open>A1\<close>
 
 definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A1 P = ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r PBMH (post\<^sub>D P))"
+
+lemma A1_obs:
+  "A1 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or> (\<exists>Y\<subseteq>X. P (ades_obs True s0 False Y)) \<or>
+      (c \<and> (\<exists>Y\<subseteq>X. P (ades_obs True s0 True Y))))"
+  apply (simp add: A1_def)
+  apply pred_simp
+  by (auto simp: des_vars_collapse)
+
+lemma A1_is_H: "A1 P is \<^bold>H"
+  by (simp add: A1_def rdesign_is_H1_H2)
 
 (* Paper Lemma 16. Putting a design in PBMH. *)
 lemma PBMH_rdesign:
@@ -673,6 +714,14 @@ lemma A_design_form:
    ((\<not> PBMH (\<not> pre\<^sub>D P)) \<turnstile>\<^sub>r
      (PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e))"
   by (pred_auto)
+
+lemma A_obs:
+  "A P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or> (\<exists>Y \<subseteq> X. P (ades_obs True s0 False Y)) \<or>
+      (c \<and> X \<noteq> {} \<and> (\<exists>Y \<subseteq> X. P (ades_obs True s0 True Y))))"
+  apply (simp add: A_design_form)
+  apply pred_simp
+  by (auto simp: des_vars_collapse)
 
 (* A over the ok'-substituted design of a predicate, in \<turnstile> form. *)
 lemma A_design:
@@ -848,10 +897,39 @@ lemma A_PBMH_ades:
   by (simp add: A_design_form PBMH_ades_rdesign PBMH_idem
       PBMH_conj_nonempty)
 
+lemma A1_A: "A1 (A P) = A P"
+  using A1_eq_PBMH_ades[of "A P"] A_is_H[of P]
+  by (simp add: Healthy_def' A_PBMH_ades)
+
 lemma A_is_PBMH_ades:
   assumes "P is A"
   shows "P is PBMH_ades"
   using A_PBMH_ades[of P] by (simp only: Healthy_if[OF assms] Healthy_def')
+
+lemma A_healthy_components_iff:
+  fixes P :: "'s angelic_design"
+  shows "P is A \<longleftrightarrow>
+    ((P is H1) \<and> (P is H2) \<and> (P is PBMH_ades) \<and> (P is A0))"
+proof
+  assume h: "P is A"
+  have h1: "P is H1"
+    using A_is_H1[of P] by (simp only: Healthy_if[OF h] Healthy_def')
+  have h2: "P is H2"
+    using A_is_H2[of P] by (simp only: Healthy_if[OF h] Healthy_def')
+  have a0: "P is A0"
+  proof -
+    have "A P is A0" by (simp add: Healthy_def A_def A0_idem)
+    then show ?thesis by (simp only: Healthy_if[OF h])
+  qed
+  show "(P is H1) \<and> (P is H2) \<and> (P is PBMH_ades) \<and> (P is A0)"
+    using h1 h2 A_is_PBMH_ades[OF h] a0 by blast
+next
+  assume h: "(P is H1) \<and> (P is H2) \<and> (P is PBMH_ades) \<and> (P is A0)"
+  have hh: "P is \<^bold>H"
+    using h by (simp add: Healthy_def H1_H2_comp)
+  show "P is A"
+    using h by (simp add: Healthy_def A_def A1_eq_PBMH_ades[OF hh])
+qed
 
 lemma angelic_design_seq_PBMH_closure:
   assumes "P is PBMH_ades" "Q is PBMH_ades"
@@ -1192,6 +1270,12 @@ lemma A2_arel_to_ades:
   by (simp add: arel_to_ades_def A2_rdesign
       A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
 
+lemma A2_obs:
+  "A2 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (P (ades_obs b s0 c {}) \<or>
+     (\<exists>z\<in>X. P (ades_obs b s0 c {z})))"
+  by (simp add: A2_def)
+
 lemma A2_idem: "A2 (A2 P) = A2 P"
   by (simp add: A2_def fun_eq_iff comp_def; blast)
 
@@ -1335,6 +1419,9 @@ lemma A3_rel_empty [simp]:
 definition A3 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
 [pred]: "A3 P = (A3_rel (pre\<^sub>D P) \<turnstile>\<^sub>r post\<^sub>D P)"
 
+lemma A3_is_H: "A3 P is \<^bold>H"
+  by (simp add: A3_def rdesign_is_H1_H2)
+
 lemma A3_healthy:
   assumes "P is A"
   shows "P is A3 \<longleftrightarrow> pre\<^sub>D P is A3_rel"
@@ -1360,6 +1447,26 @@ lemma H_A3_intro:
   shows "P is A3"
   using assms H1_H2_eq_rdesign[of P]
   by (simp add: Healthy_def' A3_def)
+
+lemma A3_healthy_obsI:
+  fixes P :: "'s angelic_design"
+  assumes "P is \<^bold>H"
+    "\<And>s0. \<not> P (ades_obs True s0 False {}) \<Longrightarrow>
+      \<exists>z. \<not> P (ades_obs True s0 False {z})"
+  shows "P is A3"
+proof (rule H_A3_intro[OF assms(1)])
+  have pre:
+    "pre\<^sub>D P (\<lparr>s\<^sub>v = s0, \<dots> = ()\<rparr>, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
+      (\<not> P (ades_obs True s0 False X))"
+    for s0 X
+    by (pred_simp; simp add: des_vars_collapse)
+
+  show "pre\<^sub>D P is A3_rel"
+    unfolding A3_rel_healthy'
+    apply (rule allI)
+    subgoal for x by (cases x; simp add: pre assms(2))
+    done
+qed
 
 lemma A3_rel_PBMH:
   fixes P :: "'s angelic_rel"
@@ -1525,5 +1632,8 @@ lemma A0_design_gen:
   "$ok\<^sup>> \<sharp> X \<Longrightarrow>
    A0 (X \<turnstile> Y) = (X \<turnstile> (Y \<and> ac_non_empty))"
   by (simp add: A0_def unrest; pred_auto; blast)
+
+lemma H2_disj: "H2 (P \<or> Q) = (H2 P \<or> H2 Q)"
+  by (simp add: H2_split fun_eq_iff; pred_auto)
 
 end
