@@ -1,3 +1,4 @@
+(This is a file for agent so it's very long. For human please read PRALLEL.md.)
 # Historical parallel-by-merge notes
 
 > These notes retain the earlier UTP walkthrough and pointwise angelic
