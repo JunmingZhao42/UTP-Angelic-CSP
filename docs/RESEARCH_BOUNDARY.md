@@ -3,7 +3,7 @@
 `research/generic-parallel-merges` extends the `research/parallel` checkpoint
 at `6d88f02`. Its additional AD, RAD, and AP theories implement merge predicates
 on complete observations, with monotone, idempotent healthiness operators and
-parallel-closure proofs. See [Parallel by merge](PARALLEL.md)
+parallel-closure proofs. See [Parallel by merge](../PARALLEL.md)
 for the precise assumptions and the stronger A3 construction. The pointwise
 state-merge interface has been removed. The three
 `utp_*_parallel.thy` files now contain the conjunction-based implementation.

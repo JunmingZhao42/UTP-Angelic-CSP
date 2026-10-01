@@ -88,8 +88,8 @@ proof -
     using assms(1) assms(2) by (simp_all add: A_healthy_components_iff)
   have par_A: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is A"
     by (rule ades_par_A_closure[OF operands_H1 lift_merge_is_A0m lift_merge_is_A1m])
-  have obs: "ac2p (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (des_obs ok0 s0 okOut sOut) =
-      (ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q) (des_obs ok0 s0 okOut sOut)"
+  have obs: "ac2p (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>) =
+      (ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q) (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)"
     for ok0 s0 okOut sOut
     using operands_H1
     by (cases ok0; auto simp: ac2p_healthy_obs[OF A_is_PBMH_ades[OF par_A]]
@@ -97,7 +97,7 @@ proof -
         ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(1)]]
         ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(2)]] H1_healthy_obs_iff; blast)
   show ?thesis
-    by (rule ref_antisym; rule des_obs_refineI; simp only: obs)
+    by (rule ext; metis obs des_vars.cases_scheme surj_pair)
 qed
 
 lemma ades_par_lift_merge_A2_closure:

@@ -112,8 +112,8 @@ lemma d2ac_rdesign:
 lemma d2ac_healthy_obs:
   assumes "P is \<^bold>H"
   shows "d2ac P (ades_obs b s0 c Z) \<longleftrightarrow>
-    (\<not> b \<or> (\<forall>z. P (des_obs True s0 False z)) \<or>
-      (\<exists>z\<in>Z. P (des_obs True s0 c z)))"
+    (\<not> b \<or> (\<forall>z. P (\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = False, \<dots> = z\<rparr>)) \<or>
+      (\<exists>z\<in>Z. P (\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = c, \<dots> = z\<rparr>)))"
   by (subst (1 2 3) Healthy_if[OF assms, THEN sym];
       simp only: H1_H2_eq_rdesign d2ac_rdesign; pred_auto; blast)
 
@@ -165,7 +165,7 @@ definition ac2p :: "'s angelic_design \<Rightarrow> 's des_hrel" where
 
 lemma ac2p_healthy_obs:
   assumes "P is PBMH_ades"
-  shows "ac2p P (des_obs b s0 c z) = P (ades_obs b s0 c {z})"
+  shows "ac2p P (\<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = c, \<dots> = z\<rparr>) = P (ades_obs b s0 c {z})"
   by (simp add: ac2p_def Healthy_if[OF assms] StateII_def)
 
 (* Paper Lemma 25 *)
@@ -262,7 +262,7 @@ theorem ac2p_d2ac:
 
 lemma d2ac_healthy_singleton_obs:
   assumes "P is \<^bold>H"
-  shows "d2ac P (ades_obs b s0 c {z}) = P (des_obs b s0 c z)"
+  shows "d2ac P (ades_obs b s0 c {z}) = P (\<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = c, \<dots> = z\<rparr>)"
   using ac2p_d2ac[OF assms]
   by (metis comp_apply ac2p_healthy_obs A_is_PBMH_ades d2ac_is_A)
 

@@ -20,7 +20,7 @@ experimental and is included in the build. The reviewed development is on `main`
 | Documentation | Contents |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
-| [Parallel by merge](docs/PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
+| [Parallel by merge](PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
 | [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
 | [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
@@ -43,7 +43,7 @@ RAD and AP parallel still apply their constructors `RADOKM` and `APOKM`
 automatically. All three layers use direct definitions. The old pointwise
 implementation and general merge-lifting framework have been removed.
 
-The [parallel guide](docs/PARALLEL.md) gives the assumptions and examples.
+The [parallel guide](PARALLEL.md) gives the assumptions and examples.
 The AD construction and examples share `utp_ades_parallel.thy`, including
 the counterexample showing that even a symmetric merge satisfying all four
 merge conditions need not give associative parallel. General synchronisation

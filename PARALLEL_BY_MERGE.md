@@ -2,7 +2,7 @@
 
 > These notes retain the earlier UTP walkthrough and pointwise angelic
 > construction. That angelic implementation has been removed from this
-> branch. Use [Parallel by merge](docs/PARALLEL.md) for the current
+> branch. Use [Parallel by merge](PARALLEL.md) for the current
 > conjunction-based operators and their assumptions.
 
 This note explains the main mathematical ideas in
@@ -13,7 +13,7 @@ how [`utp_rdes_parallel.thy`](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy)
 and the angelic theories build on the generic construction.
 
 The extension using merge predicates on complete AD, RAD, and AP observations
-is described in [Generic merge predicates](docs/PARALLEL.md), including
+is described in [Generic merge predicates](PARALLEL.md), including
 its monotone, idempotent merge operators and parallel-closure conditions.
 The state-level lifting described below is historical and is no longer implemented.
 

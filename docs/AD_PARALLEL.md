@@ -1,5 +1,7 @@
 # Angelic design parallel by merge
 
+[Overview](../PARALLEL.md) · [AD](AD_PARALLEL.md) · [RAD](RAD_PARALLEL.md) · [AP](AP_PARALLEL.md)
+
 The two AD parallel files serve different purposes:
 
 | Theory | Purpose | File structure |
@@ -49,7 +51,6 @@ They also commute. Thus, if `M is A0m` and `M is A1m`, then
 `A3m w (A2m M)` satisfies all four merge conditions.
 
 ### Algebra
-
 
 | Property | Premises | Algebraic law | Lemma |
 | --- | --- | --- | --- |
