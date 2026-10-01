@@ -5,7 +5,7 @@ session "UTP-Angelic-Designs" in "angelic-designs" = "UTP-Reactive-Designs" +
     utp_ades_ops
     utp_ades_healthy
     utp_ades_designs
-    utp_ades_parallel_lifted
+    utp_ades_parallel
     utp_ades
 
 session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Angelic-Designs" +
@@ -18,7 +18,7 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
     utp_rad_ops
     utp_rad_seq
     utp_rad_ops_csp
-    utp_rad_parallel_lifted
+    utp_rad_parallel
     utp_rad_examples
     utp_rad_nd
     utp_rad
@@ -31,6 +31,6 @@ session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
     "angelic-processes/utp_ap_rad"
     "angelic-processes/utp_ap_ops"
     "angelic-processes/utp_ap_nd"
-    "angelic-processes/utp_ap_parallel_lifted"
+    "angelic-processes/utp_ap_parallel"
     "angelic-processes/utp_ap_examples"
     Angelic_CSP

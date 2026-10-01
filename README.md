@@ -13,7 +13,7 @@ The three sessions build on each other:
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
 [Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
-`research/parallel` branch keeps one lifted parallel operator per
+`research/parallel` branch keeps one parallel operator by lifted merge per
 AD, RAD and AP layer. This experimental work is included in the build.
 The reviewed development is on `main`.
 
@@ -26,7 +26,7 @@ The reviewed development is on `main`.
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
 | [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
 
-## Lifted parallel
+## Parallel by merge
 
 AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge
 and applies RAD. AP transports RAD parallel through RA1 and H1. Each layer

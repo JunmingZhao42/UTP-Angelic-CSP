@@ -1,6 +1,6 @@
 # Parallel by merge
 
-This branch has one lifted parallel operator per layer. Each guide lists
+This branch has one parallel operator by lifted merge per layer. Each guide lists
 closure, algebra and ordinary-layer correspondence laws with their premises.
 
 | Layer | Guide | Operator |

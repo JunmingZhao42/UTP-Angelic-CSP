@@ -1,8 +1,8 @@
-section \<open>Investigating lifted parallel for angelic processes\<close>
+section \<open>Angelic process parallel by merge\<close>
 
-theory utp_ap_parallel_lifted
+theory utp_ap_parallel
   imports utp_ap_nd
-    "UTP-Reactive-Angelic-Designs.utp_rad_parallel_lifted"
+    "UTP-Reactive-Angelic-Designs.utp_rad_parallel"
 begin
 
 text \<open>This branch uses parallel through RAD as the sole AP operator.
@@ -115,7 +115,7 @@ lemma ap_RD_reverse_roundtrip_NDAP:
 
 subsection \<open>Parallel transported through RAD\<close>
 
-text \<open>This construction uses the existing RAD candidate without a new set lift.
+text \<open>This construction uses the RAD parallel operator without a new set lift.
   Its ordinary correspondence retains RD after parallel.\<close>
 
 definition ap_par ::

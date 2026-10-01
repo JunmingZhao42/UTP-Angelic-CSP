@@ -16,8 +16,8 @@ import tempfile
 
 REPO = Path(__file__).resolve().parent.parent
 PARALLEL = {
-    "utp_ades_parallel_lifted", "utp_rad_parallel_lifted",
-    "utp_ap_parallel_lifted",
+    "utp_ades_parallel", "utp_rad_parallel",
+    "utp_ap_parallel",
 }
 THEORY_DIRS = (".", "angelic-designs", "reactive-angelic-designs",
                "angelic-processes")

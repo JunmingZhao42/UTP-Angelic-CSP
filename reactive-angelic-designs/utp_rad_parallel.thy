@@ -1,7 +1,7 @@
-section \<open>Lifting reactive merges to choice sets\<close>
+section \<open>Reactive angelic design parallel by merge\<close>
 
-theory utp_rad_parallel_lifted
-  imports utp_rad_csp "UTP-Angelic-Designs.utp_ades_parallel_lifted"
+theory utp_rad_parallel
+  imports utp_rad_csp "UTP-Angelic-Designs.utp_ades_parallel"
 begin
 
 type_synonym ('t, 'e) rad_merge_rel =
@@ -30,7 +30,7 @@ where
     rad_state.wait\<^sub>v z = (rad_state.wait\<^sub>v l \<or> rad_state.wait\<^sub>v r)"
 
 
-text \<open>This candidate lifts full reactive merge observations. It uses p2ac rather
+text \<open>This operator lifts full reactive merge observations. It uses p2ac rather
   than d2ac, and applies RAD after parallel. The correspondence therefore has
   RD after ordinary parallel too. This is the only RAD parallel operator in this branch.\<close>
 
@@ -101,51 +101,46 @@ lemma rad_lift_merge_obs:
         (rad2csp_obs \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)))"
   by (simp add: rad_lift_merge_def Let_def)
 
-lemma csp_obs_ex:
-  "(\<exists>p :: ('t::trace, 'e set) rp. F p) =
-    (\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>))"
-proof
-  assume "\<exists>p. F p"
-  then obtain p where "F p" by blast
-  have rep: "rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v (csp2rad_obs p),
-    \<dots> = des_vars.more (csp2rad_obs p)\<rparr> = p"
-    by (simp add: csp2rad_obs_def rad2csp_obs_def)
-  show "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
-    using \<open>F p\<close> rep by metis
-next
-  assume "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
-  then show "\<exists>p. F p" by blast
-qed
-
-lemma flat_parallel_obs:
-  "(P \<parallel>\<^bsub>M\<^esub> Q) (x,out) =
-    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> merge_eval M x p q out)"
-  by (simp add: par_by_merge_def; pred_auto)
-
-lemma rad_lift_merge_p2ac:
+lemma rad_par_raw_p2ac:
   "rad_p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
     (rad_p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> rad_p2ac Q)"
-  apply (rule ades_obs_ext)
-  apply (simp only: rad_p2ac_obs flat_parallel_obs csp_obs_ex
-    lifted_parallel_eval choices_ex rad_lift_merge_obs[simplified])
-  by (blast intro: exI[where x="{_}"])
+proof -
+  have csp_obs_ex:
+    "(\<exists>p :: ('t::trace, 'e set) rp. F p) =
+      (\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>))"
+    for F
+  proof
+    assume "\<exists>p. F p"
+    then obtain p where "F p" by blast
+    have rep: "rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v (csp2rad_obs p),
+      \<dots> = des_vars.more (csp2rad_obs p)\<rparr> = p"
+      by (simp add: csp2rad_obs_def rad2csp_obs_def)
+    show "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
+      using \<open>F p\<close> rep by metis
+  next
+    assume "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
+    then show "\<exists>p. F p" by blast
+  qed
 
-lemma rad_lift_merge_ac2p:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
-    (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
-  using arg_cong[where f=rad_ac2p,
-    OF rad_lift_merge_p2ac[of "rad_ac2p P" M "rad_ac2p Q"]]
-  by (simp only: rad_ac2p_p2ac_inverse'
-      rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)] rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
+  have flat_parallel_obs:
+    "(P \<parallel>\<^bsub>M\<^esub> Q) (x,out) =
+      (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> merge_eval M x p q out)"
+    for P Q M x out
+    by (simp add: par_by_merge_def; pred_auto)
+  show ?thesis
+    apply (rule ades_obs_ext)
+    apply (simp only: rad_p2ac_obs flat_parallel_obs csp_obs_ex
+      ades_par_raw_eval choices_ex rad_lift_merge_obs[simplified])
+    by (blast intro: exI[where x="{_}"])
+qed
 
-lemma rad_lift_merge_A2:
+lemma rad_par_raw_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
   shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is A2"
 proof -
   have form: "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
       rad_p2ac (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
-    by (simp only: rad_lift_merge_p2ac rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
+    by (simp only: rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
         rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
   show ?thesis by (simp add: form rad_p2ac_def Healthy_def')
 qed
@@ -192,7 +187,7 @@ lemma rad_par_RAD:
 lemma rad_par_p2ac:
   "rad_par (rad_p2ac P) M (rad_p2ac Q) =
     rad_p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q))"
-  by (simp only: rad_par_def rad_lift_merge_p2ac[symmetric]
+  by (simp only: rad_par_def rad_par_raw_p2ac[symmetric]
       rad_p2ac_RD)
 
 lemma rad_par_form:
@@ -217,12 +212,12 @@ lemma rad_par_A2:
 text \<open>The remaining closure obligation is on ordinary parallel. If it is
   RD-healthy, the raw lifted parallel is already RAD-healthy.\<close>
 
-lemma rad_lift_merge_RAD:
+lemma rad_par_raw_RAD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
     "(rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q) is RD"
   shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
   using rad_p2ac_RD_closure[OF assms(5)]
-  by (simp only: rad_lift_merge_p2ac
+  by (simp only: rad_par_raw_p2ac
       rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
@@ -282,7 +277,7 @@ lemma rad_par_mono:
   shows "rad_par P1 M Q1 \<sqsubseteq> rad_par P2 M Q2"
   unfolding rad_par_def
   by (rule RAD_mono; use assms in
-      \<open>auto simp: pred_refine_iff lifted_parallel_eval split: prod.splits; blast\<close>)
+      \<open>auto simp: pred_refine_iff ades_par_raw_eval split: prod.splits; blast\<close>)
 
 lemma rad_par_comm:
   assumes "rad_lift_merge M is SymMerge"

@@ -1,4 +1,3 @@
-(This is a file for agent so it's very long. For human please read PRALLEL.md.)
 # Historical parallel-by-merge notes
 
 > These notes retain the earlier UTP walkthrough and pointwise angelic
@@ -13,10 +12,10 @@ walkthrough of the merge healthiness conditions and closure rules in
 how [`utp_rdes_parallel.thy`](deps/UTP-Reactive-Designs/utp_rdes_parallel.thy)
 and the angelic theories build on the generic construction.
 
-The extension using merge predicates on complete AD, RAD, and AP observations
-is described in [Generic merge predicates](PARALLEL.md), including
-its monotone, idempotent merge operators and parallel-closure conditions.
-The state-level lifting described below is historical and is no longer implemented.
+The former generic AD/RAD/AP operators and merge-healthiness constructors
+are historical. This branch now has one parallel operator per layer, using
+merge lifting and the completion described in [Parallel by merge](PARALLEL.md).
+The older state-level construction below is also historical.
 
 The central idea is:
 
