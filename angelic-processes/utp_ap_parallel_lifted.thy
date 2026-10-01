@@ -1,14 +1,13 @@
 section \<open>Investigating lifted parallel for angelic processes\<close>
 
 theory utp_ap_parallel_lifted
-  imports utp_ap_parallel utp_ap_nd
+  imports utp_ap_nd
     "UTP-Reactive-Angelic-Designs.utp_rad_parallel_lifted"
 begin
 
-text \<open>We reuse rad_lift_merge because AP and RAD share the observation alphabet.
-  The existing ap_par has merge-based AP closure. The separate ap_par_via_rad
-  below gives correspondence by construction, but identifies processes with
-  the same RA1 image. No equality between these two operators is claimed.\<close>
+text \<open>This branch uses parallel through RAD as the sole AP operator.
+  It has ordinary reactive-design mapping laws, but can identify distinct
+  divergent processes. No equivalence with the former direct operator is claimed.\<close>
 
 subsection \<open>Conversions and their limits\<close>
 
@@ -119,135 +118,78 @@ subsection \<open>Parallel transported through RAD\<close>
 text \<open>This construction uses the existing RAD candidate without a new set lift.
   Its ordinary correspondence retains RD after parallel.\<close>
 
-definition ap_par_via_rad ::
+definition ap_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
    ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
 where
-  "ap_par_via_rad P M Q = H1 (rad_par_lifted (RA1 P) M (RA1 Q))"
+  "ap_par P M Q = H1 (rad_par (RA1 P) M (RA1 Q))"
 
-lemma ap_par_via_rad_AP:
-  "ap_par_via_rad P M Q is AP"
-  unfolding ap_par_via_rad_def
-  by (rule H1_RAD_AP_closure[OF rad_par_lifted_RAD])
+lemma ap_par_AP:
+  "ap_par P M Q is AP"
+  unfolding ap_par_def
+  by (rule H1_RAD_AP_closure[OF rad_par_RAD])
 
-lemma ap_par_via_rad_RA1:
-  "RA1 (ap_par_via_rad P M Q) = rad_par_lifted (RA1 P) M (RA1 Q)"
-  unfolding ap_par_via_rad_def
-  by (rule RA1_H1_RAD_healthy[OF rad_par_lifted_RAD, simplified comp_apply])
+lemma ap_par_RA1:
+  "RA1 (ap_par P M Q) = rad_par (RA1 P) M (RA1 Q)"
+  unfolding ap_par_def
+  by (rule RA1_H1_RAD_healthy[OF rad_par_RAD, simplified comp_apply])
 
-lemma ap_par_via_rad_H1:
+lemma ap_par_H1:
   assumes "P is RAD" "Q is RAD"
-  shows "ap_par_via_rad (H1 P) M (H1 Q) = H1 (rad_par_lifted P M Q)"
-  by (simp only: ap_par_via_rad_def
+  shows "ap_par (H1 P) M (H1 Q) = H1 (rad_par P M Q)"
+  by (simp only: ap_par_def
       RA1_H1_RAD_healthy[OF assms(1), simplified comp_apply]
       RA1_H1_RAD_healthy[OF assms(2), simplified comp_apply])
 
-lemma ap_par_via_rad_A2:
+lemma ap_par_A2:
   assumes "P is AP" "Q is AP" "P is A2" "Q is A2"
-  shows "ap_par_via_rad P M Q is A2"
-  unfolding ap_par_via_rad_def
-  by (rule H1_A2_closure, rule rad_par_lifted_A2;
+  shows "ap_par P M Q is A2"
+  unfolding ap_par_def
+  by (rule H1_A2_closure, rule rad_par_A2;
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
-lemma ap_par_via_rad_ac2p:
+lemma ap_par_ac2p:
   assumes "P is AP" "Q is AP" "P is A2" "Q is A2"
-  shows "rad_ac2p (RA1 (ap_par_via_rad P M Q)) =
+  shows "rad_ac2p (RA1 (ap_par P M Q)) =
     RD (rad_ac2p (RA1 P) \<parallel>\<^bsub>M\<^esub> rad_ac2p (RA1 Q))"
-  unfolding ap_par_via_rad_RA1
-  by (rule rad_par_lifted_ac2p;
+  unfolding ap_par_RA1
+  by (rule rad_par_ac2p;
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
-lemma ap_par_via_rad_p2ac:
+lemma ap_par_p2ac:
   assumes "P is RD" "Q is RD"
-  shows "ap_par_via_rad (H1 (rad_p2ac P)) M (H1 (rad_p2ac Q)) =
+  shows "ap_par (H1 (rad_p2ac P)) M (H1 (rad_p2ac Q)) =
     H1 (rad_p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q)))"
-  by (simp only: ap_par_via_rad_H1[OF rad_p2ac_RD_closure[OF assms(1)]
-        rad_p2ac_RD_closure[OF assms(2)]] rad_par_lifted_p2ac)
+  by (simp only: ap_par_H1[OF rad_p2ac_RD_closure[OF assms(1)]
+        rad_p2ac_RD_closure[OF assms(2)]] rad_par_p2ac)
 
-lemma ap_par_via_rad_roundtrip:
-  "H1 (RA1 (ap_par_via_rad P M Q)) = ap_par_via_rad P M Q"
-  by (subst ap_par_via_rad_RA1; simp only: ap_par_via_rad_def)
+lemma ap_par_roundtrip:
+  "H1 (RA1 (ap_par P M Q)) = ap_par P M Q"
+  by (subst ap_par_RA1; simp only: ap_par_def)
 
-lemma ap_par_via_rad_normalise_operands:
-  "ap_par_via_rad (H1 (RA1 (AP P))) M (H1 (RA1 (AP Q))) =
-    ap_par_via_rad (AP P) M (AP Q)"
-  by (simp only: ap_par_via_rad_def
+lemma ap_par_normalise_operands:
+  "ap_par (H1 (RA1 (AP P))) M (H1 (RA1 (AP Q))) =
+    ap_par (AP P) M (AP Q)"
+  by (simp only: ap_par_def
     RA1_H1_RAD_healthy[OF RA1_AP_RAD_closure[OF AP_healthy], simplified comp_apply])
 
-lemma ap_par_via_rad_Chaos:
-  "ap_par_via_rad Chaos\<^sub>A\<^sub>P M Q = ap_par_via_rad ChaosCSP\<^sub>A\<^sub>P M Q"
-  by (simp only: ap_par_via_rad_def Chaos_AP_same_RAD)
+lemma ap_par_Chaos:
+  "ap_par Chaos\<^sub>A\<^sub>P M Q = ap_par ChaosCSP\<^sub>A\<^sub>P M Q"
+  by (simp only: ap_par_def Chaos_AP_same_RAD)
 
-subsection \<open>The existing AP operator with a lifted basic merge\<close>
 
-text \<open>APOKM is already monotone and idempotent and gives AP closure. For the
-  basic merge, it leaves the lifted policy unchanged at a started, nonwaiting
-  prior with zero trace. The global correspondence of this operator remains
-  open. In particular, the rule below rejects an empty final set even when a
-  branch fails; this must be considered when choosing the failure semantics.\<close>
+subsection \<open>Algebra\<close>
 
-lemma ap_lift_merge_APOKM:
-  "APOKM (rad_lift_merge M) is APOKM"
-  by (rule APOKM_healthy)
+lemma ap_par_mono:
+  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
+  shows "ap_par P1 M Q1 \<sqsubseteq> ap_par P2 M Q2"
+  unfolding ap_par_def
+  by (rule H1_monotone, rule rad_par_mono;
+      rule RA1_mono; fact)
 
-lemma ap_lift_merge_AP:
-  assumes "P is AP" "Q is AP"
-  shows "ap_par P (rad_lift_merge M) Q is AP"
-  by (rule ap_par_AP_closure[OF assms])
-
-lemma ap_lift_basic_active:
-  assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
-  shows "ades_merge_obs (APOKM (rad_lift_merge rad_basic_merge))
-    True s0 okL X okR Y okOut Z =
-    ades_merge_obs (rad_lift_merge rad_basic_merge)
-      True s0 okL X okR Y okOut Z"
-  by (auto simp: APOKM_active[simplified, OF assms]
-      rad_lift_basic_merge_obs[simplified]; blast)
-
-lemma ap_par_lift_basic_active:
-  assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
-  shows "ap_par P (rad_lift_merge rad_basic_merge) Q (ades_obs True s0 okOut Z) =
-    (P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge rad_basic_merge\<^esub> Q)
-      (ades_obs True s0 okOut Z)"
-  by (simp only: ap_par_eval ades_par_eval choices_ex
-      ap_lift_basic_active[OF assms, simplified])
-
-lemma ap_par_lift_basic_empty:
-  assumes "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
-  shows "\<not> ap_par P (rad_lift_merge rad_basic_merge) Q
-    (ades_obs True s0 okOut {})"
-  by (subst ap_par_lift_basic_active[OF assms];
-      auto simp: ades_par_eval choices_ex rad_lift_basic_merge_obs[simplified])
-
-lemma PBMH_A2_nonempty_singleton:
-  assumes "P is PBMH_ades" "P is A2" "X \<noteq> {}"
-    "P (ades_obs ok0 s0 okOut X)"
-  shows "\<exists>sL\<in>X. P (ades_obs ok0 s0 okOut {sL})"
-proof -
-  have up: "P (ades_obs ok0 s0 okOut {}) \<Longrightarrow>
-      P (ades_obs ok0 s0 okOut {sL})" for sL
-    using PBMH_ades_obs[of P ok0 s0 okOut "{sL}"]
-    by (auto simp only: Healthy_if[OF assms(1)] intro: exI[where x="{}"])
-  show ?thesis
-    using A2_obs[of P ok0 s0 okOut X] up assms(3,4)
-    by (simp only: Healthy_if[OF assms(2)]; blast)
-qed
-
-lemma ap_par_lift_basic_active_obs:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2"
-    "rad_state.tr\<^sub>v s0 = 0" "\<not> rad_state.wait\<^sub>v s0"
-  shows "ap_par P (rad_lift_merge rad_basic_merge) Q (ades_obs True s0 okOut Z) =
-    (\<exists>okL sL okR sR. \<exists>sOut\<in>Z.
-      P (ades_obs True s0 okL {sL}) \<and> Q (ades_obs True s0 okR {sR}) \<and>
-      (okL \<and> okR \<longrightarrow> okOut) \<and> basic_merge_state s0 sL sR sOut)"
-  apply (subst ap_par_lift_basic_active[OF assms(5,6)])
-  apply (simp only: ades_par_eval choices_ex rad_lift_basic_merge_obs[simplified])
-  apply (rule iffI)
-  subgoal
-    using PBMH_A2_nonempty_singleton[OF AP_is_PBMH_ades[OF assms(1)] assms(3)]
-      PBMH_A2_nonempty_singleton[OF AP_is_PBMH_ades[OF assms(2)] assms(4)]
-    by metis
-  subgoal by (fastforce intro: exI[where x="{_}"])
-  done
+lemma ap_par_comm:
+  assumes "rad_lift_merge M is SymMerge"
+  shows "ap_par P M Q = ap_par Q M P"
+  by (simp only: ap_par_def rad_par_comm[OF assms])
 
 end

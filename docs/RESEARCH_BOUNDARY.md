@@ -1,14 +1,10 @@
 # Research branch contents
 
-`research/generic-parallel-merges` extends the `research/parallel` checkpoint
-at `6d88f02`. Its additional AD, RAD, and AP theories implement merge predicates
-on complete observations, with monotone, idempotent healthiness operators and
-parallel-closure proofs. See [Parallel by merge](../PARALLEL.md)
-for the precise assumptions and the stronger A3 construction. The pointwise
-state-merge interface has been removed. The three
-`utp_*_parallel.thy` files now contain the conjunction-based implementation.
-The account below is historical: it records the preceding branch split,
-not the current source layout.
+`research/lifted-parallel-only` simplifies the current research snapshot to
+one lifted operator per layer, removing the generic AD/RAD/AP operators and
+merge-healthiness constructors. The [parallel guide](../PARALLEL.md) records
+closure and mapping premises, including the AP transport tradeoff.
+The account below is historical and records the preceding branch split.
 
 `research/parallel` builds on reviewed `main` at `2c39a6e`. It includes the
 RAD/AP parallel work as an explicitly provisional extension. The paper

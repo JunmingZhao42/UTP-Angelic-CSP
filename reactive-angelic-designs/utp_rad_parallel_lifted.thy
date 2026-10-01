@@ -1,12 +1,38 @@
 section \<open>Lifting reactive merges to choice sets\<close>
 
 theory utp_rad_parallel_lifted
-  imports utp_rad_parallel_examples utp_rad_csp
+  imports utp_rad_csp "UTP-Angelic-Designs.utp_ades_parallel_lifted"
 begin
+
+type_synonym ('t, 'e) rad_merge_rel =
+  "(('t, 'e) rad_state) ades_merge_rel"
+
+lemma RA1_obs:
+  "RA1 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (P (ades_obs b s0 c (rad_trace_extensions s0 \<inter> X)) \<and>
+      rad_trace_extensions s0 \<inter> X \<noteq> {})"
+  by (simp add: RA1_def Let_def)
+
+lemma CSPA1_obs:
+  "CSPA1 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (P (ades_obs b s0 c X) \<or>
+      (\<not> b \<and> rad_trace_extensions s0 \<inter> X \<noteq> {}))"
+  by (simp add: CSPA1_def RA1_not_ok_eval; pred_auto)
+
+definition basic_merge_state ::
+  "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow>
+   ('t, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow> bool"
+where
+  "basic_merge_state s0 l r z \<longleftrightarrow>
+    rad_state.tr\<^sub>v s0 \<le> rad_state.tr\<^sub>v z \<and>
+    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v l \<and>
+    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v r \<and>
+    rad_state.wait\<^sub>v z = (rad_state.wait\<^sub>v l \<or> rad_state.wait\<^sub>v r)"
+
 
 text \<open>This candidate lifts full reactive merge observations. It uses p2ac rather
   than d2ac, and applies RAD after parallel. The correspondence therefore has
-  RD after ordinary parallel too. It does not replace the generic rad_par.\<close>
+  RD after ordinary parallel too. This is the only RAD parallel operator in this branch.\<close>
 
 subsection \<open>Why the AD completion cannot be reused directly\<close>
 
@@ -98,15 +124,15 @@ lemma flat_parallel_obs:
 
 lemma rad_lift_merge_p2ac:
   "rad_p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
-    (rad_p2ac P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> rad_p2ac Q)"
+    (rad_p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> rad_p2ac Q)"
   apply (rule ades_obs_ext)
   apply (simp only: rad_p2ac_obs flat_parallel_obs csp_obs_ex
-    ades_par_eval choices_ex rad_lift_merge_obs[simplified])
+    lifted_parallel_eval choices_ex rad_lift_merge_obs[simplified])
   by (blast intro: exI[where x="{_}"])
 
 lemma rad_lift_merge_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_ac2p (P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> Q) =
+  shows "rad_ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
     (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
   using arg_cong[where f=rad_ac2p,
     OF rad_lift_merge_p2ac[of "rad_ac2p P" M "rad_ac2p Q"]]
@@ -115,9 +141,9 @@ lemma rad_lift_merge_ac2p:
 
 lemma rad_lift_merge_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> Q) is A2"
+  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is A2"
 proof -
-  have form: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> Q) =
+  have form: "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
       rad_p2ac (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
     by (simp only: rad_lift_merge_p2ac rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
         rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
@@ -153,92 +179,40 @@ lemma rad_p2ac_RD_closure:
   shows "rad_p2ac P is RAD"
   by (simp only: Healthy_def' rad_p2ac_RD[symmetric] Healthy_if[OF assms])
 
-definition rad_par_lifted ::
+definition rad_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
     ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
 where
-  "rad_par_lifted P M Q = RAD (P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> Q)"
+  "rad_par P M Q = RAD (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
 
-lemma rad_par_lifted_RAD:
-  "rad_par_lifted P M Q is RAD"
-  by (simp add: rad_par_lifted_def RAD_healthy)
+lemma rad_par_RAD:
+  "rad_par P M Q is RAD"
+  by (simp add: rad_par_def RAD_healthy)
 
-lemma rad_par_lifted_p2ac:
-  "rad_par_lifted (rad_p2ac P) M (rad_p2ac Q) =
+lemma rad_par_p2ac:
+  "rad_par (rad_p2ac P) M (rad_p2ac Q) =
     rad_p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q))"
-  by (simp only: rad_par_lifted_def rad_lift_merge_p2ac[symmetric]
+  by (simp only: rad_par_def rad_lift_merge_p2ac[symmetric]
       rad_p2ac_RD)
 
-lemma rad_par_lifted_form:
+lemma rad_par_form:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_par_lifted P M Q =
+  shows "rad_par P M Q =
     rad_p2ac (RD (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q))"
-  using rad_par_lifted_p2ac[of "rad_ac2p P" M "rad_ac2p Q"]
+  using rad_par_p2ac[of "rad_ac2p P" M "rad_ac2p Q"]
   by (simp only: rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
-lemma rad_par_lifted_ac2p:
+lemma rad_par_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_ac2p (rad_par_lifted P M Q) =
+  shows "rad_ac2p (rad_par P M Q) =
     RD (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
-  by (simp only: rad_par_lifted_form[OF assms] rad_ac2p_p2ac_inverse')
+  by (simp only: rad_par_form[OF assms] rad_ac2p_p2ac_inverse')
 
-lemma rad_par_lifted_A2:
+lemma rad_par_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_par_lifted P M Q is A2"
-  by (simp add: rad_par_lifted_form[OF assms] rad_p2ac_def Healthy_def')
-
-subsection \<open>Lifting merge healthiness operators\<close>
-
-text \<open>Restricting a lifted merge to singleton observations recovers the ordinary
-  merge. This lets us transfer idempotence and monotonicity. These algebraic
-  facts alone do not establish a parallel closure law for a chosen condition.\<close>
-
-definition rad_lower_merge ::
-  "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e set) rp merge"
-where
-  "rad_lower_merge N = (\<lambda>(m,out).
-    let x = csp2rad_obs (mrg_prior\<^sub>v m);
-        p = csp2rad_obs (mrg_left\<^sub>v m);
-        q = csp2rad_obs (mrg_right\<^sub>v m);
-        z = csp2rad_obs out
-    in ades_merge_obs N (des_vars.ok\<^sub>v x) (des_vars.more x)
-        (des_vars.ok\<^sub>v p) {des_vars.more p}
-        (des_vars.ok\<^sub>v q) {des_vars.more q}
-        (des_vars.ok\<^sub>v z) {des_vars.more z})"
-
-lemma rad_lower_lift_merge [simp]:
-  "rad_lower_merge (rad_lift_merge M) = M"
-  apply (rule ext)
-  apply (auto simp: rad_lower_merge_def rad_lift_merge_obs[simplified]
-      Let_def csp2rad_obs_def rad2csp_obs_def split: prod.splits)
-  by (metis (mono_tags, lifting) mrg.surjective old.unit.exhaust rea_vars.surjective)+
-
-lemma rad_lift_merge_mono:
-  assumes "M \<sqsubseteq> N"
-  shows "rad_lift_merge M \<sqsubseteq> rad_lift_merge N"
-  using assms by (auto simp: pred_refine_iff rad_lift_merge_def Let_def split: prod.splits; blast)
-
-lemma rad_lower_merge_mono:
-  assumes "M \<sqsubseteq> N"
-  shows "rad_lower_merge M \<sqsubseteq> rad_lower_merge N"
-  using assms by (auto simp: pred_refine_iff rad_lower_merge_def Let_def split: prod.splits)
-
-definition rad_lift_health where
-  "rad_lift_health H M = rad_lift_merge (H (rad_lower_merge M))"
-
-lemma rad_lift_health_idem:
-  assumes "Idempotent H"
-  shows "rad_lift_health H (rad_lift_health H M) = rad_lift_health H M"
-  using assms by (simp add: rad_lift_health_def Idempotent_def)
-
-lemma rad_lift_health_mono:
-  assumes "Monotonic H" "M \<sqsubseteq> N"
-  shows "rad_lift_health H M \<sqsubseteq> rad_lift_health H N"
-  unfolding rad_lift_health_def
-  by (rule rad_lift_merge_mono;
-      use assms rad_lower_merge_mono[OF assms(2)] in
-        \<open>auto simp: Monotonic_refine\<close>)
+  shows "rad_par P M Q is A2"
+  by (simp add: rad_par_form[OF assms] rad_p2ac_def Healthy_def')
 
 text \<open>The remaining closure obligation is on ordinary parallel. If it is
   RD-healthy, the raw lifted parallel is already RAD-healthy.\<close>
@@ -246,44 +220,20 @@ text \<open>The remaining closure obligation is on ordinary parallel. If it is
 lemma rad_lift_merge_RAD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
     "(rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q) is RD"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
+  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
   using rad_p2ac_RD_closure[OF assms(5)]
   by (simp only: rad_lift_merge_p2ac
       rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
-lemma rad_par_lifted_ac2p_RD:
+lemma rad_par_ac2p_RD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
     "(rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q) is RD"
-  shows "rad_ac2p (rad_par_lifted P M Q) =
+  shows "rad_ac2p (rad_par P M Q) =
     (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
-  by (simp only: rad_par_lifted_ac2p[OF assms(1-4)] Healthy_if[OF assms(5)])
+  by (simp only: rad_par_ac2p[OF assms(1-4)] Healthy_if[OF assms(5)])
 
-lemma rad_lift_health_lift:
-  "rad_lift_health H (rad_lift_merge M) = rad_lift_merge (H M)"
-  by (simp add: rad_lift_health_def)
-
-lemma rad_lift_health_fixed:
-  assumes "M is H"
-  shows "rad_lift_merge M is rad_lift_health H"
-  by (simp only: Healthy_def' rad_lift_health_lift Healthy_if[OF assms])
-
-lemma rad_lift_R1m_Idempotent:
-  "Idempotent (rad_lift_health R1m)"
-  using rad_lift_health_idem[OF R1m_Idempotent]
-  by (auto simp: Idempotent_def)
-
-lemma rad_lift_R1m_Monotonic:
-  "Monotonic (rad_lift_health R1m)"
-  using rad_lift_health_mono[OF R1m_Monotonic]
-  by (auto simp: Monotonic_refine)
-
-subsection \<open>Basic trace merge\<close>
-
-text \<open>This policy keeps the state constraint on failure and allows okOut when
-  either branch fails. Refusals are unconstrained. The lemmas check the raw
-  lifting; startup and waiting healthiness still come from the outer RAD.
-  This is not a correspondence theorem for the library's stateful rdes_par.\<close>
+subsection \<open>Basic merge example\<close>
 
 definition rad_basic_merge :: "('t::trace, 'e set) rp merge" where
   "rad_basic_merge = (\<lambda>(m,out).
@@ -323,5 +273,22 @@ lemma rad_lift_basic_same:
   "ades_merge_obs (rad_lift_merge rad_basic_merge)
     ok0 s0 True {s0} True {s0} True {s0}"
   by (simp add: rad_lift_basic_merge_obs[simplified] basic_merge_state_def)
+
+
+subsection \<open>Algebra\<close>
+
+lemma rad_par_mono:
+  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
+  shows "rad_par P1 M Q1 \<sqsubseteq> rad_par P2 M Q2"
+  unfolding rad_par_def
+  by (rule RAD_mono; use assms in
+      \<open>auto simp: pred_refine_iff lifted_parallel_eval split: prod.splits; blast\<close>)
+
+lemma rad_par_comm:
+  assumes "rad_lift_merge M is SymMerge"
+  shows "rad_par P M Q = rad_par Q M P"
+  unfolding rad_par_def
+  by (rule arg_cong[where f=RAD], rule par_by_merge_comm;
+      use assms in \<open>simp add: Healthy_def'\<close>)
 
 end

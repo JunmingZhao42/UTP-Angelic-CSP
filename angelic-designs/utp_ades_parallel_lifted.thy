@@ -1,8 +1,40 @@
 section \<open>Angelic Parallel and Ordinary Designs\<close>
 
 theory utp_ades_parallel_lifted
-  imports utp_ades_parallel
+  imports utp_ades_designs
 begin
+
+type_synonym 's ades_mrg =
+  "('s astate des_vars_ext, 's achoices des_vars_ext, 's achoices des_vars_ext) mrg"
+
+type_synonym 's ades_merge_rel = "('s ades_mrg, 's achoices des_vars_ext) urel"
+
+abbreviation ades_merge_eval ::
+  "'s ades_merge_rel \<Rightarrow> 's astate des_vars_ext \<Rightarrow>
+   's achoices des_vars_ext \<Rightarrow> 's achoices des_vars_ext \<Rightarrow>
+   's achoices des_vars_ext \<Rightarrow> bool"
+where
+"ades_merge_eval M s0 p q out \<equiv>
+  M ((\<lparr>mrg_prior\<^sub>v = s0, mrg_left\<^sub>v = p, mrg_right\<^sub>v = q, \<dots> = ()\<rparr>
+      :: 's ades_mrg), out)"
+
+abbreviation ades_merge_obs where
+  "ades_merge_obs M b s0 a X d Y c Z \<equiv>
+    (\<lambda>(x,out). ades_merge_eval M x (ades_output a X) (ades_output d Y) out)
+      (ades_obs b s0 c Z)"
+
+lemma lifted_parallel_eval:
+  "(P \<parallel>\<^bsub>M\<^esub> Q) (x,out) \<longleftrightarrow>
+    (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> ades_merge_eval M x p q out)"
+  by (cases x; cases out;
+      simp add: par_by_merge_def par_sep_def; pred_auto; blast)
+
+lemma SymMerge_ades:
+  fixes M :: "'s ades_merge_rel"
+  shows "M is SymMerge \<longleftrightarrow>
+    (\<forall>x p q out. ades_merge_eval M x p q out = ades_merge_eval M x q p out)"
+  by (simp add: Healthy_def' fun_eq_iff; pred_auto; blast)
+
 
 text \<open>Lift a state merge to choice sets and apply A3 to the parallel result.\<close>
 
@@ -30,13 +62,46 @@ lemma lift_merge_obs:
       (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>sOut\<in>Z. merge_eval j s0 sL sR sOut)))"
   by (auto simp: lift_merge_def Let_def)
 
-lemma lift_merge_is_A0m: "lift_merge j is A0m"
-  by (auto simp: A0m_healthy_iff A0_healthy_obs_iff lift_merge_obs[simplified]
-      lift_merge_def Let_def)
+lemma lift_merge_slice_A0:
+  "(\<lambda>(x,out). ades_merge_eval (lift_merge j) x p q out) is A0"
+  by (rule Healthy_intro; rule ades_obs_ext;
+      auto simp: A0_obs lift_merge_def Let_def)
 
-lemma lift_merge_is_A1m: "lift_merge j is A1m"
-  by (unfold A1m_healthy_iff; intro allI Healthy_intro; rule ades_obs_ext;
+lemma lift_merge_slice_A1:
+  "(\<lambda>(x,out). ades_merge_eval (lift_merge j) x p q out) is A1"
+  by (rule Healthy_intro; rule ades_obs_ext;
       auto simp: A1_obs lift_merge_def Let_def; blast)
+
+lemma lifted_parallel_A_closure:
+  assumes "P is H1" "Q is H1"
+  shows "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) is A"
+proof -
+  let ?R = "P \<parallel>\<^bsub>lift_merge j\<^esub> Q"
+  have a0: "?R is A0"
+    by (simp only: A0_healthy_obs_iff lifted_parallel_eval choices_ex
+        lift_merge_obs[simplified]; auto)
+  have merge:
+    "(\<lambda>(x,out). ades_merge_eval (lift_merge j) x p q out) (ades_obs True s0 c Z) =
+      ((\<exists>W\<subseteq>Z. (\<lambda>(x,out). ades_merge_eval (lift_merge j) x p q out) (ades_obs True s0 False W)) \<or>
+       (c \<and> (\<exists>W\<subseteq>Z. (\<lambda>(x,out). ades_merge_eval (lift_merge j) x p q out) (ades_obs True s0 True W))))"
+    for p q s0 c Z
+    by (subst (1) Healthy_if[OF lift_merge_slice_A1, symmetric]; simp only: A1_obs; simp)
+  have unstarted: "?R (ades_obs False s0 c Z)" for s0 c Z
+    using assms[unfolded H1_healthy_obs_iff]
+    by (simp add: lifted_parallel_eval choices_ex lift_merge_obs[simplified])
+  have a1: "?R is A1"
+    apply (rule Healthy_intro, rule ades_obs_ext)
+    subgoal for b s0 c X
+      apply (cases b)
+      subgoal
+        apply (simp add: A1_obs lifted_parallel_eval)
+        using merge[of _ _ s0 c X, simplified]
+        by auto
+      subgoal by (simp add: A1_obs unstarted)
+      done
+    done
+  show ?thesis using a0 a1 by (simp add: Healthy_def' A_def)
+qed
 
 subsection \<open>Choice-Set Correspondence\<close>
 
@@ -61,7 +126,7 @@ text \<open>For A- and A2-healthy operands, a started parallel accepts a final s
 
 lemma ades_par_lift_merge_obs:
   assumes "P is A" and "Q is A" and "P is A2" and "Q is A2"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<longleftrightarrow>
+  shows "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<longleftrightarrow>
     (\<not> ok0 \<or> (\<exists>okL sL okR sR. \<exists>sOut\<in>Z.
       P (ades_obs True s0 okL {sL}) \<and> Q (ades_obs True s0 okR {sR}) \<and>
       merge_eval j s0 sL sR sOut \<and> (okL \<and> okR \<longrightarrow> okOut)))"
@@ -70,7 +135,7 @@ proof -
     using assms(1) assms(2) by (simp_all add: A_healthy_components_iff)
   show ?thesis
     using operands_H1
-    apply (cases ok0; simp add: ades_par_eval choices_ex
+    apply (cases ok0; simp add: lifted_parallel_eval choices_ex
         lift_merge_obs[simplified] H1_healthy_obs_iff)
     apply (rule iffI)
     subgoal
@@ -82,13 +147,13 @@ qed
 
 lemma lift_merge_ac2p:
   assumes "P is A" and "Q is A" and "P is A2" and "Q is A2"
-  shows "ac2p (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) = ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q"
+  shows "ac2p (P \<parallel>\<^bsub>lift_merge j\<^esub> Q) = ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q"
 proof -
   have operands_H1: "P is H1" "Q is H1"
     using assms(1) assms(2) by (simp_all add: A_healthy_components_iff)
-  have par_A: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is A"
-    by (rule ades_par_A_closure[OF operands_H1 lift_merge_is_A0m lift_merge_is_A1m])
-  have obs: "ac2p (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>) =
+  have par_A: "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) is A"
+    by (rule lifted_parallel_A_closure[OF operands_H1])
+  have obs: "ac2p (P \<parallel>\<^bsub>lift_merge j\<^esub> Q) (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>) =
       (ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q) (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>, \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)"
     for ok0 s0 okOut sOut
     using operands_H1
@@ -102,7 +167,7 @@ qed
 
 lemma ades_par_lift_merge_A2_closure:
   assumes "P is A" "Q is A" "P is A2" "Q is A2"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is A2"
+  shows "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) is A2"
   by (rule Healthy_intro, rule ades_obs_ext;
       simp only: A2_obs ades_par_lift_merge_obs[OF assms]; blast)
 
@@ -110,133 +175,61 @@ lemma ades_par_lift_merge_A2_closure:
 subsection \<open>A3-Completed Parallel from a State Merge\<close>
 
 text \<open>Apply A3 after parallel. For H1-healthy operands, only empty final sets can change,
-  and A0m/A1m give A closure. A- and A2-healthy operands give A2 closure.
-  No A3m witness or H3 normality is required.\<close>
+  and the lifted merge gives A closure. A- and A2-healthy operands give A2 closure.
+  No H3 normality is required.\<close>
 
-definition ades_par_lifted ::
+definition ades_par ::
   "'s angelic_design \<Rightarrow> 's merge \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design"
   ("_ \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
   "P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q =
-    A3 (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q)"
+    A3 (P \<parallel>\<^bsub>lift_merge j\<^esub> Q)"
 
 lemma ades_par_lift_merge_A_closure:
   assumes "P is H1" "Q is H1"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is A"
-  by (rule ades_par_A_closure[OF assms lift_merge_is_A0m lift_merge_is_A1m])
+  shows "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) is A"
+  by (rule lifted_parallel_A_closure[OF assms])
 
-lemma ades_par_lifted_A_closure [closure]:
+lemma ades_par_A_closure [closure]:
   assumes "P is H1" "Q is H1"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) is A"
-  unfolding ades_par_lifted_def
+  unfolding ades_par_def
   by (rule A3_preserves_A[OF ades_par_lift_merge_A_closure[OF assms]])
 
-lemma ades_par_lifted_A2_closure [closure]:
+lemma ades_par_A2_closure [closure]:
   assumes "P is A" "Q is A" "P is A2" "Q is A2"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) is A2"
-  unfolding ades_par_lifted_def
+  unfolding ades_par_def
   by (rule A3_preserves_A2[OF ades_par_lift_merge_A2_closure[OF assms]])
 
-lemma ades_par_lifted_A3_closure [closure]:
+lemma ades_par_A3_closure [closure]:
   "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) is A3"
-  by (simp add: ades_par_lifted_def Healthy_def' A3_idem)
+  by (simp add: ades_par_def Healthy_def' A3_idem)
 
-lemma ades_par_lifted_eval:
+lemma ades_par_eval:
   assumes "P is H1" "Q is H1"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<longleftrightarrow>
-    ((P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<or>
+    ((P \<parallel>\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<or>
       (Z = {} \<and> (\<forall>sOut.
-        (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 False {sOut}))))"
+        (P \<parallel>\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 False {sOut}))))"
 proof -
-  have designs_H: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is \<^bold>H"
+  have designs_H: "(P \<parallel>\<^bsub>lift_merge j\<^esub> Q) is \<^bold>H"
     using ades_par_lift_merge_A_closure[OF assms]
-      A_is_H[of "P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q"]
+      A_is_H[of "P \<parallel>\<^bsub>lift_merge j\<^esub> Q"]
     by (simp add: Healthy_def')
-  show ?thesis by (simp only: ades_par_lifted_def A3_obs_H[OF designs_H])
+  show ?thesis by (simp only: ades_par_def A3_obs_H[OF designs_H])
 qed
 
-lemma ades_par_lifted_nonempty:
+lemma ades_par_nonempty:
   assumes "P is H1" "Q is H1" "Z \<noteq> {}"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 okOut Z) =
-    (P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z)"
-  by (simp only: ades_par_lifted_eval[OF assms(1,2)] assms(3); simp)
-
-text \<open>The contract assumes H-healthiness, with no A2 or normality requirement.
-  P_f s0 X and P_t s0 X fix initial ok to True and final ok to False/True;
-  likewise for Q. The superscripts @{term "P\<^sup>f"} and @{term "P\<^sup>t"} set only final ok.
-  M_j checks nonempty branch sets and the state merge.
-  Fail covers failure of either branch, including both by H2; Finish uses P_t and Q_t.
-  Pre excludes Fail at Z and at some singleton. For nonempty Z, excluding Fail at Z
-  already gives the singleton condition. Post requires Finish while Pre holds.
-  The quotes embed the HOL functions Fail and Finish, applied to the initial state
-  and final choice set.\<close>
-
-lemma ades_par_lifted_design:
-  fixes P Q :: "'s angelic_design" and j :: "'s merge"
-    and P_f P_t Q_f Q_t Fail Finish :: "'s \<Rightarrow> 's set \<Rightarrow> bool"
-    and M_j :: "'s \<Rightarrow> 's set \<Rightarrow> 's set \<Rightarrow> 's set \<Rightarrow> bool"
-    and Pre Post :: "'s angelic_rel"
-  assumes "P is \<^bold>H" and "Q is \<^bold>H"
-  defines "P_f \<equiv> \<lambda>s0 X. P (ades_obs True s0 False X)"
-    and "P_t \<equiv> \<lambda>s0 X. P (ades_obs True s0 True X)"
-    and "Q_f \<equiv> \<lambda>s0 Y. Q (ades_obs True s0 False Y)"
-    and "Q_t \<equiv> \<lambda>s0 Y. Q (ades_obs True s0 True Y)"
-    and "M_j \<equiv> \<lambda>s0 X Y Z. X \<noteq> {} \<and> Y \<noteq> {} \<and>
-      (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>sOut\<in>Z. merge_eval j s0 sL sR sOut)"
-    and "Fail \<equiv> \<lambda>s0 Z. \<exists>X Y. M_j s0 X Y Z \<and>
-      ((P_f s0 X \<and> Q_t s0 Y) \<or> (P_t s0 X \<and> Q_f s0 Y))"
-    and "Finish \<equiv> \<lambda>s0 Z. \<exists>X Y. M_j s0 X Y Z \<and> P_t s0 X \<and> Q_t s0 Y"
-    and "Pre \<equiv> (\<not> \<guillemotleft>Fail\<guillemotright> ($s\<^sup><) ($ac\<^sup>>) \<and> (\<exists>sOut. \<not> \<guillemotleft>Fail\<guillemotright> ($s\<^sup><) {sOut}))\<^sub>e"
-    and "Post \<equiv> (\<guillemotleft>Finish\<guillemotright> ($s\<^sup><) ($ac\<^sup>>))\<^sub>e"
-  shows "P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q = (Pre \<turnstile>\<^sub>r Post)"
-proof -
-  have operands_H1: "P is H1" "Q is H1"
-    using assms(1) assms(2) by (simp_all add: H_implies_H1)
-  have operands_H2: "P is H2" "Q is H2"
-    using assms(1) assms(2) by (simp_all add: H_implies_H2)
-  have p_up: "P (ades_obs True s0 False X) \<Longrightarrow> P (ades_obs True s0 True X)" for s0 X
-    using H2_obs[of P True s0 True X]
-    by (simp only: Healthy_if[OF operands_H2(1)]; blast)
-  have q_up: "Q (ades_obs True s0 False Y) \<Longrightarrow> Q (ades_obs True s0 True Y)" for s0 Y
-    using H2_obs[of Q True s0 True Y]
-    by (simp only: Healthy_if[OF operands_H2(2)]; blast)
-  have started:
-    "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs True s0 okOut Z) \<longleftrightarrow>
-      (\<exists>okL X okR Y. P (ades_obs True s0 okL X) \<and> Q (ades_obs True s0 okR Y) \<and>
-        M_j s0 X Y Z \<and> (okL \<and> okR \<longrightarrow> okOut))" for s0 okOut Z
-    by (simp only: ades_par_eval choices_ex lift_merge_obs[simplified] M_j_def; blast)
-  have started_contract:
-    "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs True s0 okOut Z) \<longleftrightarrow>
-      (Fail s0 Z \<or> (okOut \<and> Finish s0 Z))" for s0 okOut Z
-    unfolding started Fail_def Finish_def P_f_def P_t_def Q_f_def Q_t_def
-    using p_up q_up
-    by (cases okOut; auto simp: ex_bool_eq)
-  have raw_h1: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) is H1"
-    using ades_par_lift_merge_A_closure[OF operands_H1]
-    by (simp add: A_healthy_components_iff)
-  have raw:
-    "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z) \<longleftrightarrow>
-      (\<not>ok0 \<or> Fail s0 Z \<or> (okOut \<and> Finish s0 Z))" for ok0 s0 okOut Z
-    using raw_h1 by (cases ok0; simp add: H1_healthy_obs_iff started_contract)
-  have fail_upward: "Z \<subseteq> W \<Longrightarrow> Fail s0 Z \<Longrightarrow> Fail s0 W" for s0 Z W
-    unfolding Fail_def M_j_def by (metis subset_eq)
-  have all_fail: "(\<forall>sOut. Fail s0 {sOut}) \<Longrightarrow> Z \<noteq> {} \<Longrightarrow> Fail s0 Z" for s0 Z
-  proof -
-    assume every: "\<forall>sOut. Fail s0 {sOut}" and nonempty: "Z \<noteq> {}"
-    obtain sOut where member: "sOut \<in> Z" using nonempty by blast
-    show "Fail s0 Z"
-      using fail_upward[of "{sOut}" Z s0] every member by auto
-  qed
-  show ?thesis
-    unfolding Pre_def Post_def
-    by (rule ades_obs_ext;
-        simp only: ades_par_lifted_eval[OF operands_H1] raw; pred_auto; blast intro: all_fail)
-qed
+    (P \<parallel>\<^bsub>lift_merge j\<^esub> Q) (ades_obs ok0 s0 okOut Z)"
+  by (simp only: ades_par_eval[OF assms(1,2)] assms(3); simp)
 
 text \<open>For A- and A2-healthy operands, completed parallel equals ordinary parallel
   followed by d2ac. Both conversion laws hold for any state merge.\<close>
 
-lemma ades_par_lifted_d2ac_ac2p:
+lemma ades_par_d2ac_ac2p:
   assumes "P is A" "Q is A" "P is A2" "Q is A2"
   shows "P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q =
     d2ac (ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q)"
@@ -248,21 +241,21 @@ proof -
         use assms(1,2) A_is_H[of P] A_is_H[of Q] in \<open>auto simp: Healthy_def'\<close>)+
   show ?thesis
     apply (rule ades_obs_ext)
-    apply (simp only: ades_par_lifted_eval[OF operands_H1]
+    apply (simp only: ades_par_eval[OF operands_H1]
       ades_par_lift_merge_obs[OF assms] d2ac_healthy_obs[OF des_par_H_closure[OF designs_H]]
       ordinary_parallel_obs ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(1)]]
       ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(2)]])
     by blast
 qed
 
-lemma ades_par_lifted_d2ac:
+lemma ades_par_d2ac:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
   shows "d2ac P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> d2ac Q = d2ac (P \<parallel>\<^sub>D\<^bsub>j\<^esub> Q)"
-  by (simp only: ades_par_lifted_d2ac_ac2p[OF d2ac_is_A d2ac_is_A d2ac_is_A2 d2ac_is_A2]
+  by (simp only: ades_par_d2ac_ac2p[OF d2ac_is_A d2ac_is_A d2ac_is_A2 d2ac_is_A2]
       ac2p_d2ac[OF assms(1), simplified comp_apply]
       ac2p_d2ac[OF assms(2), simplified comp_apply])
 
-lemma ades_par_lifted_ac2p:
+lemma ades_par_ac2p:
   assumes "P is A" "Q is A" "P is A2" "Q is A2"
   shows "ac2p (P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) = ac2p P \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p Q"
 proof -
@@ -270,21 +263,22 @@ proof -
     by (rule ac2p_H_closure;
         use assms(1,2) A_is_H[of P] A_is_H[of Q] in \<open>auto simp: Healthy_def'\<close>)+
   show ?thesis
-    by (simp only: ades_par_lifted_d2ac_ac2p[OF assms]
+    by (simp only: ades_par_d2ac_ac2p[OF assms]
         ac2p_d2ac[OF des_par_H_closure[OF designs_H], simplified comp_apply])
 qed
 
-lemma ades_par_lifted_mono:
+lemma ades_par_mono:
   assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
   shows "(P1 \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q1) \<sqsubseteq>
     (P2 \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q2)"
-  unfolding ades_par_lifted_def
-  by (rule A3_mono, rule ades_par_mono[OF assms]; simp)
+  unfolding ades_par_def
+  by (rule A3_mono; use assms in \<open>auto simp: pred_refine_iff lifted_parallel_eval split: prod.splits; blast\<close>)
 
-lemma ades_par_lifted_comm:
+lemma ades_par_comm:
   assumes "lift_merge j is SymMerge"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) = (Q \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> P)"
-  by (simp only: ades_par_lifted_def ades_par_comm[OF assms])
+  unfolding ades_par_def
+  by (rule arg_cong[where f=A3], rule par_by_merge_comm; use assms in \<open>simp add: Healthy_def'\<close>)
 
 text \<open>Completion loses ordinary disjunction distribution. Associativity follows from
   associative state merging at the same initial state, with A- and A2-healthy
@@ -292,7 +286,7 @@ text \<open>Completion loses ordinary disjunction distribution. Associativity fo
 
 subsubsection \<open>Associativity of Completed Parallel\<close>
 
-lemma ades_par_lifted_assoc:
+lemma ades_par_assoc:
   fixes P Q R :: "'s angelic_design" and j :: "'s merge"
   assumes "P is A" "Q is A" "R is A"
     and "P is A2" "Q is A2" "R is A2"
@@ -305,31 +299,31 @@ proof -
   have operands_H1: "P is H1" "Q is H1" "R is H1"
     using assms(1-3) by (simp_all add: A_healthy_components_iff)
   have pq: "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) is A"
-    by (rule ades_par_lifted_A_closure[OF operands_H1(1,2)])
+    by (rule ades_par_A_closure[OF operands_H1(1,2)])
   have qr: "(Q \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> R) is A"
-    by (rule ades_par_lifted_A_closure[OF operands_H1(2,3)])
+    by (rule ades_par_A_closure[OF operands_H1(2,3)])
   have pq2: "(P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> Q) is A2"
-    by (rule ades_par_lifted_A2_closure[OF assms(1,2) assms(4,5)])
+    by (rule ades_par_A2_closure[OF assms(1,2) assms(4,5)])
   have qr2: "(Q \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>j\<^esub> R) is A2"
-    by (rule ades_par_lifted_A2_closure[OF assms(2,3) assms(5,6)])
+    by (rule ades_par_A2_closure[OF assms(2,3) assms(5,6)])
   show ?thesis
-    by (simp only: ades_par_lifted_d2ac_ac2p[OF pq assms(3) pq2 assms(6)]
-        ades_par_lifted_d2ac_ac2p[OF assms(1) qr assms(4) qr2]
-        ades_par_lifted_ac2p[OF assms(1,2) assms(4,5)]
-        ades_par_lifted_ac2p[OF assms(2,3) assms(5,6)]
+    by (simp only: ades_par_d2ac_ac2p[OF pq assms(3) pq2 assms(6)]
+        ades_par_d2ac_ac2p[OF assms(1) qr assms(4) qr2]
+        ades_par_ac2p[OF assms(1,2) assms(4,5)]
+        ades_par_ac2p[OF assms(2,3) assms(5,6)]
         des_par_assoc_state[OF assms(7)])
 qed
 
-lemma ades_par_lifted_skip_assoc:
+lemma ades_par_skip_assoc:
   assumes "P is A" "Q is A" "R is A" "P is A2" "Q is A2" "R is A2"
   shows "((P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> R) =
     (P \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> R))"
-  by (rule ades_par_lifted_assoc[OF assms]; simp add: skip_merge_eval)
+  by (rule ades_par_assoc[OF assms]; simp add: skip_merge_eval)
 
 subsection \<open>Skip Merge Example\<close>
 
 text \<open>Skip requires sOut = s0, so its set lifting requires s0 in the final set.
-  A0m and A1m follow from the general lifting lemmas.\<close>
+\<close>
 
 lemma lift_merge_skip_eval:
   "ades_merge_eval (lift_merge skip\<^sub>m) x p q out \<longleftrightarrow>
@@ -371,7 +365,7 @@ lemma bool_choice_H1: "ades_bool_choice k is H1"
 lemma skip_completed_success:
   "(ades_bool_choice u \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> ades_bool_choice v)
     (ades_obs b s0 c Z) = (\<not>b \<or> (c \<and> s0 \<in> Z))"
-  by (simp only: ades_par_lifted_eval[OF bool_choice_H1 bool_choice_H1]
+  by (simp only: ades_par_eval[OF bool_choice_H1 bool_choice_H1]
       ades_par_lift_merge_obs[OF ades_bool_choice_healthy ades_bool_choice_healthy
         ades_bool_choice_A2 ades_bool_choice_A2]
       ades_bool_choice_eval skip_merge_eval; auto)
@@ -382,8 +376,8 @@ lemma chaos_H1: "(true :: 's angelic_design) is H1"
 lemma skip_completed_failure:
   "(true \<parallel>\<^sub>A\<^sub>D\<^sup>3\<^bsub>skip\<^sub>m\<^esub> ades_bool_choice v)
     (ades_obs b s0 c Z) = (\<not>b \<or> s0 \<in> Z)"
-  apply (simp only: ades_par_lifted_eval[OF chaos_H1 bool_choice_H1]
-      ades_par_eval choices_ex lift_merge_skip_eval ades_bool_choice_eval)
+  apply (simp only: ades_par_eval[OF chaos_H1 bool_choice_H1]
+      lifted_parallel_eval choices_ex lift_merge_skip_eval ades_bool_choice_eval)
   apply (simp add: true_pred_def)
   by (cases b; cases s0; auto simp: ex_bool_eq intro!: exI[where x="{v}"])
 

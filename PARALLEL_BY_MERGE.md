@@ -93,7 +93,7 @@ possible states.
 ### Level 1: angelic-design choice-set lifting
 
 This level is implemented in
-[`utp_ades_parallel.thy`](angelic-designs/utp_ades_parallel.thy).
+`utp_ades_parallel.thy`.
 
 1. Start with a homogeneous state-level merge $J$.
 
@@ -146,7 +146,7 @@ necessity result is established for `A2j`.
 ### Level 2: reactive angelic designs
 
 This level is implemented in
-[`utp_rad_parallel.thy`](reactive-angelic-designs/utp_rad_parallel.thy).
+`utp_rad_parallel.thy`.
 
 1. `RA1m` requires the merged trace to extend the prior trace. `RA2m` removes
    dependence on the common trace history. Their primed variants additionally
@@ -181,7 +181,7 @@ of $J$ again yields commutativity.
 ### Level 3: angelic processes
 
 This level is implemented in
-[`utp_ap_parallel.thy`](angelic-processes/utp_ap_parallel.thy).
+`utp_ap_parallel.thy`.
 
 1. `merge_AP(J)` is an abbreviation for the existing upward-closed AD lift:
 
@@ -218,9 +218,9 @@ The main properties move upward through the construction as follows:
 
 The source path corresponding to these levels is
 [`utp_concurrency.thy`](deps/UTP/utp_concurrency.thy) →
-[`utp_ades_parallel.thy`](angelic-designs/utp_ades_parallel.thy) →
-[`utp_rad_parallel.thy`](reactive-angelic-designs/utp_rad_parallel.thy), with
-[`utp_ap_parallel.thy`](angelic-processes/utp_ap_parallel.thy) specialising the AD lift and
+`utp_ades_parallel.thy` →
+`utp_rad_parallel.thy`, with
+`utp_ap_parallel.thy` specialising the AD lift and
 using the RAD waiting-case support.
 
 ## Critical review notes

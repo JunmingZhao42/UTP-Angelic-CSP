@@ -13,9 +13,9 @@ The three sessions build on each other:
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
 [Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
-`research/generic-parallel-merges` branch adds parallel operators with merge
-predicates over the full AD, RAD, and AP observations. This parallel work is
-experimental and is included in the build. The reviewed development is on `main`.
+`research/lifted-parallel-only` branch keeps one lifted parallel operator per
+AD, RAD and AP layer. This experimental work is included in the build.
+The reviewed development is on `main`.
 
 | Documentation | Contents |
 | --- | --- |
@@ -26,28 +26,12 @@ experimental and is included in the build. The reviewed development is on `main`
 | [Research boundary](docs/RESEARCH_BOUNDARY.md) | What this research branch adds to `main` |
 | [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
 
-## Merge healthiness
+## Lifted parallel
 
-[AD parallel](angelic-designs/utp_ades_parallel.thy), written `P ∥AD[M] Q`,
-uses `M` directly. Separate closure theorems relate `A0`, `A1`, `A2` and
-`A3` to the merge conditions `A0m`, `A1m`, `A2m` and `A3m w`. Each merge
-condition is monotone and idempotent. `A3m w` uses a common singleton witness;
-it does not require normal designs.
-
-The lifted operator constructs `lift_merge j` directly from a state merge `j`,
-with startup and termination conditions and a relation between choice sets.
-It satisfies `A0m` and `A1m`; the lifted parallel operator applies `A3` to
-its result. The generic operator imposes no termination policy of its own.
-
-RAD and AP parallel still apply their constructors `RADOKM` and `APOKM`
-automatically. All three layers use direct definitions. The old pointwise
-implementation and general merge-lifting framework have been removed.
-
-The [parallel guide](PARALLEL.md) gives the assumptions and examples.
-The AD construction and examples share `utp_ades_parallel.thy`, including
-the counterexample showing that even a symmetric merge satisfying all four
-merge conditions need not give associative parallel. General synchronisation
-and exact correspondence with reactive-design parallel remain unproved.
+AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge
+and applies RAD. AP transports RAD parallel through RA1 and H1. Each layer
+has closure and mapping laws with explicit premises; AP transport can
+identify distinct divergent processes. See the [parallel guide](PARALLEL.md).
 
 ## Build
 
@@ -55,12 +39,9 @@ Use **Isabelle2025-2** and the dependency commits pinned in `deps/`.
 The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
 `Optics` and `Z_Toolkit` use compatibility forks recorded in `.gitmodules`.
 
-Clone this branch and set the path to your Isabelle executable:
+From this branch's checkout, set the path to your Isabelle executable:
 
 ```bash
-git clone --branch research/generic-parallel-merges --recurse-submodules git@github.com:JunmingZhao42/UTP-Angelic-CSP.git
-cd UTP-Angelic-CSP
-
 export PROJECT_DIR="$PWD"
 export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
 export UTP_PROFILE="utp-2025-2"
