@@ -13,7 +13,7 @@ The three sessions build on each other:
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
 [Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
-`research/lifted-parallel-only` branch keeps one lifted parallel operator per
+`research/parallel` branch keeps one lifted parallel operator per
 AD, RAD and AP layer. This experimental work is included in the build.
 The reviewed development is on `main`.
 

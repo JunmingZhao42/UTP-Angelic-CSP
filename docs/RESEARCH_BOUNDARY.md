@@ -1,6 +1,6 @@
 # Research branch contents
 
-`research/lifted-parallel-only` simplifies the current research snapshot to
+`research/parallel` simplifies the current research snapshot to
 one lifted operator per layer, removing the generic AD/RAD/AP operators and
 merge-healthiness constructors. The [parallel guide](../PARALLEL.md) records
 closure and mapping premises, including the AP transport tradeoff.
