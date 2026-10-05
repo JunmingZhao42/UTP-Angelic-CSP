@@ -1,3 +1,0 @@
-session Sequential_Composition_Audit = "UTP-Angelic-CSP" +
-  options [document = false, timeout = 60, threads = 4]
-  theories Sequential_Composition_Audit

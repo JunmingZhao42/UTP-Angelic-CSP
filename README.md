@@ -12,17 +12,25 @@ The three sessions build on each other:
 | Reactive angelic designs (RAD) | `reactive-angelic-designs/` | `UTP-Reactive-Angelic-Designs` |
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
-`Angelic_CSP.thy` is the entry point. `main` contains the paper development
-and the reviewed AD parallel extension. RAD/AP parallel remain work in
-progress on `research/parallel`.
+[Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
+`research/parallel` branch keeps one parallel operator by lifted merge per
+AD, RAD and AP layer. This experimental work is included in the build.
+The reviewed development is on `main`.
 
-| Read this | For |
+| Documentation | Contents |
 | --- | --- |
 | [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
-| [AD parallel](docs/AD_PARALLEL_REVIEW.md) | Merge semantics, naming and qualified parallel laws |
-| [Baseline checks](docs/BASELINE.md) | Paper-only builds and validation records |
-| [Research boundary](docs/RESEARCH_BOUNDARY.md) | What is included in `main` and what is pending |
-| [Sequential associativity audit](audits/seq-associativity/README.md) | Counterexamples and conditions for reassociation |
+| [Baseline checks](docs/BASELINE.md) | Full-project and paper-only build checks |
+| [Parallel by merge](PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
+| [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
+| [Research boundary](docs/RESEARCH_BOUNDARY.md) | Paper baseline and parallel research scope |
+
+## Parallel by merge
+
+AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge
+and applies RAD. AP transports RAD parallel through RA1 and H1. Each layer
+has closure and mapping laws with explicit premises; AP transport can
+identify distinct divergent processes. See the [parallel guide](PARALLEL.md).
 
 ## Build
 
@@ -30,12 +38,9 @@ Use **Isabelle2025-2** and the dependency commits pinned in `deps/`.
 The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
 `Optics` and `Z_Toolkit` use compatibility forks recorded in `.gitmodules`.
 
-Clone, then set the path to your Isabelle executable:
+From this branch's checkout, set the path to your Isabelle executable:
 
 ```bash
-git clone --recurse-submodules git@github.com:JunmingZhao42/UTP-Angelic-CSP.git
-cd UTP-Angelic-CSP
-
 export PROJECT_DIR="$PWD"
 export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
 export UTP_PROFILE="utp-2025-2"

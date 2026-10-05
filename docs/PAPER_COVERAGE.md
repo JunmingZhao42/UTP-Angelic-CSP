@@ -164,7 +164,6 @@ support the paper results. They are not additional numbered paper theorems.
 Worked calculations live in the RAD/AP example theories; shared prefix
 observations are in `utp_rad_seq`, and shared RA1 facts in `utp_rad_healthy`.
 
-The [sequential audit](../audits/seq-associativity/README.md) is a separate
-session. General reassociation must not be assumed; promoting its conditional
-laws and adding more thesis algebra remain separate work, neither needed for
-Theorem 63. See [baseline checks](BASELINE.md) for the build procedure.
+General reassociation must not be assumed. Additional conditional associativity
+laws and thesis algebra remain separate work, neither needed for Theorem 63.
+See [baseline checks](BASELINE.md) for the build procedure.

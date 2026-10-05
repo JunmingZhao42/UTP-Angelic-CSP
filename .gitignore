@@ -34,3 +34,10 @@ AGENTS.md
 *.log
 
 .claude/*
+
+# Local presentation material
+slides/
+
+# Local agent guidance and exploratory audits
+/CLAUDE.md
+/audits/
