@@ -22,7 +22,7 @@
 	branch = main
 [submodule "deps/Z_Toolkit"]
 	path = deps/Z_Toolkit
-	url = git@github.com:JunmingZhao42/Z_Toolkit.git
+	url = git@github.com:isabelle-utp/Z_Toolkit.git
 	branch = main
 [submodule "deps/Circus_Toolkit"]
 	path = deps/Circus_Toolkit
