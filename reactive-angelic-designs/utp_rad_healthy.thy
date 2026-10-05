@@ -1232,4 +1232,81 @@ proof -
   finally show ?thesis .
 qed
 
+lemma II_Rac_eval:
+  "II_Rac (x, y) \<longleftrightarrow>
+   ((\<not> des_vars.ok\<^sub>v x \<and>
+     rad_trace_extensions (astate.s\<^sub>v (des_vars.more x)) \<inter>
+       achoices.ac\<^sub>v (des_vars.more y) \<noteq> {}) \<or>
+    (des_vars.ok\<^sub>v y \<and>
+     astate.s\<^sub>v (des_vars.more x) \<in> achoices.ac\<^sub>v (des_vars.more y)))"
+  by (simp add: II_Rac_def RA1_def Let_def; pred_auto)
+
+lemma RA1_not_ok_eval:
+  "RA1 (\<not> ok\<^sup><) (x, y) \<longleftrightarrow>
+   (\<not> des_vars.ok\<^sub>v x \<and>
+    rad_trace_extensions (astate.s\<^sub>v (des_vars.more x)) \<inter>
+      achoices.ac\<^sub>v (des_vars.more y) \<noteq> {})"
+  by (simp add: RA1_def Let_def; pred_auto)
+
+lemma RA3_eval:
+  "RA3 P (x, y) \<longleftrightarrow>
+   (if rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
+    then II_Rac (x, y) else P (x, y))"
+  by (simp add: RA3_def expr_if_def SEXP_def lens_defs
+      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+
+lemma RA3_healthy_wait_eval:
+  assumes "P is RA3" "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
+  shows "P (x, y) \<longleftrightarrow> II_Rac (x, y)"
+proof -
+  have h: "RA3 P = P"
+    using assms(1) by (simp add: Healthy_def')
+  have "P (x, y) \<longleftrightarrow> RA3 P (x, y)"
+    by (simp only: h)
+  also have "... \<longleftrightarrow> II_Rac (x, y)"
+    using assms(2) by (simp add: RA3_eval)
+  finally show ?thesis .
+qed
+
+lemma H2_not_ok:
+  "H2 ((\<not> ok\<^sup><) :: ('t::trace, 'e) reactive_angelic_design) = (\<not> ok\<^sup><)"
+  by (simp add: H2_split fun_eq_iff; pred_auto)
+
+lemma H2_RA1_commute: "H2 (RA1 P) = RA1 (H2 P)"
+  by (simp add: H2_split RA1_def fun_eq_iff Let_def; pred_auto; blast)
+
+lemma H2_RA3_commute: "H2 (RA3 P) = RA3 (H2 P)"
+  by (simp add: H2_split RA3_def II_Rac_def RA1_def expr_if_def
+      fun_eq_iff Let_def; pred_auto; blast)
+
+lemma RA_is_RA2:
+  assumes "P is RA"
+  shows "P is RA2"
+proof -
+  have h: "RA1 (RA2 (RA3 P)) = P"
+    using assms by (simp add: Healthy_def' RA_def)
+  have "RA2 (RA1 (RA3 P)) = RA1 (RA2 (RA3 P))"
+    by (rule RA1_RA2_commute'[symmetric])
+  also have "... = P" by (rule h)
+  finally have "RA2 (RA1 (RA3 P)) = P" .
+  then show ?thesis
+    unfolding Healthy_def' by (rule idem_fix_extract[where F = RA2, OF RA2_idem])
+qed
+
+lemma RA_is_RA3:
+  assumes "P is RA"
+  shows "P is RA3"
+proof -
+  have h: "RA1 (RA2 (RA3 P)) = P"
+    using assms by (simp add: Healthy_def' RA_def)
+  have "RA3 (RA1 (RA2 P)) = RA1 (RA3 (RA2 P))"
+    by (simp only: RA1_RA3_commute'[symmetric])
+  also have "... = RA1 (RA2 (RA3 P))"
+    by (simp only: RA2_RA3_commute'[symmetric])
+  also have "... = P" by (rule h)
+  finally have "RA3 (RA1 (RA2 P)) = P" .
+  then show ?thesis
+    unfolding Healthy_def' by (rule idem_fix_extract[where F = RA3, OF RA3_idem])
+qed
+
 end

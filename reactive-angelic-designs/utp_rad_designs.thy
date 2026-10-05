@@ -258,4 +258,17 @@ method rad_closure uses add =
    (rule design_is_H1_H2; pred_auto),
    (simp add: rad_wait_false_distrib add))
 
+lemma H2_CSPA1_commute: "H2 (CSPA1 P) = CSPA1 (H2 P)"
+proof -
+  have "H2 (CSPA1 P) = (H2 P \<or> H2 (RA1 (\<not> ok\<^sup><)))"
+    by (simp add: CSPA1_def H2_disj)
+  also have "... = (H2 P \<or> RA1 (H2 (\<not> ok\<^sup><)))"
+    by (simp only: H2_RA1_commute)
+  also have "... = (H2 P \<or> RA1 (\<not> ok\<^sup><))"
+    by (simp only: H2_not_ok)
+  also have "... = CSPA1 (H2 P)"
+    by (simp add: CSPA1_def)
+  finally show ?thesis .
+qed
+
 end
