@@ -28,7 +28,8 @@ with tempfile.TemporaryDirectory() as directory:
             assert hashlib.sha256((repo / relative).read_bytes()).hexdigest() == hashes["source_sha256"]
             if relative not in manifest["transformed_files"]:
                 assert data == (repo / relative).read_bytes(), relative
-    for theory in ("utp_ades_parallel", "utp_rad_parallel", "utp_ap_parallel"):
+    for theory in ("utp_ades_parallel", "utp_rad_parallel", "utp_ap_parallel",
+                   "utp_rad_representation"):
         assert not list((output / "project").rglob(theory + ".thy"))
         assert theory not in (output / "project/ROOT").read_text()
         for relative in manifest["transformed_files"]:
