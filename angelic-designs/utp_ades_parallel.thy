@@ -445,4 +445,267 @@ lemma ades_par_skip_assoc:
     (P \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> R))"
   by (rule ades_par_assoc_state[OF assms]; simp add: skip_merge_eval)
 
+subsection \<open>A3 Closure Without Completion\<close>
+
+text \<open>For each initial state, merge_excludes_output requires a state that no
+  branch-state pair can merge to. The excluded state may depend on s0, but must
+  be uniform over sL and sR. This is a Boolean condition on the state merge;
+  it leaves lift_merge, merge_ades, and ades_par unchanged.\<close>
+
+definition merge_excludes_output :: "'s merge \<Rightarrow> bool" where
+  "merge_excludes_output j \<longleftrightarrow>
+    (\<forall>s0. \<exists>sOut. \<forall>sL sR. \<not> merge_eval j s0 sL sR sOut)"
+
+
+lemma ades_par_lifted_A3_iff:
+  assumes "P is H1" "Q is H1"
+  shows "(P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3 \<longleftrightarrow>
+    (\<forall>s0. \<exists>sOut.
+      \<not> (P \<parallel>\<^bsub>merge_ades j\<^esub> Q) (ades_obs True s0 False {sOut}))"
+  using ades_par_ne_lifted_iff[OF assms, where j=j]
+  by (simp add: ades_par_def Healthy_def'; blast)
+
+text \<open>The merge condition guarantees A3 already for H1-healthy operands.
+  No A2, A3, or normality assumption on the operands is needed.\<close>
+
+lemma ades_par_lifted_A3_closure [closure]:
+  assumes "P is H1" "Q is H1" "merge_excludes_output j"
+  shows "(P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3"
+  unfolding ades_par_lifted_A3_iff[OF assms(1,2)]
+  using assms(3)
+  by (auto simp: merge_excludes_output_def ades_par_by_merge_eval
+      choices_ex merge_ades_obs[simplified]; blast)
+
+lemma ades_par_eq_lifted:
+  assumes "P is H1" "Q is H1" "merge_excludes_output j"
+  shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q = P \<parallel>\<^bsub>merge_ades j\<^esub> Q"
+  using ades_par_lifted_A3_closure[OF assms]
+  by (simp add: ades_par_def Healthy_def')
+
+lemma ades_par_lifted_ac2p:
+  assumes "P is A" "Q is A" "P is A2" "Q is A2" "merge_excludes_output j"
+  shows "ac2p (P \<parallel>\<^bsub>merge_ades j\<^esub> Q) =
+    (ac2p P) \<parallel>\<^sub>D\<^bsub>j\<^esub> (ac2p Q)"
+  using ades_par_ac2p[OF assms(1-4), where j=j] ades_par_eq_lifted[of P Q j] assms
+  by (simp add: A_healthy_components_iff)
+
+lemma ades_par_lifted_d2ac:
+  assumes "D is \<^bold>H" "E is \<^bold>H" "merge_excludes_output j"
+  shows "(d2ac D) \<parallel>\<^bsub>merge_ades j\<^esub> (d2ac E) =
+    d2ac (D \<parallel>\<^sub>D\<^bsub>j\<^esub> E)"
+  using ades_par_d2ac[OF assms(1,2), where j=j]
+    ades_par_eq_lifted[of "d2ac D" "d2ac E" j]
+    assms(3) d2ac_is_A[of D] d2ac_is_A[of E]
+  by (simp add: A_healthy_components_iff)
+
+subsubsection \<open>Necessity for All Healthy Operands\<close>
+
+text \<open>Chaos accepts every branch observation, so its singleton outputs expose
+  the entire output range of j. It therefore witnesses necessity even when
+  both operands are required to satisfy A, A2, and A3.\<close>
+
+lemma ades_par_lifted_chaos_obs:
+  fixes j :: "'s merge"
+  shows "(true \<parallel>\<^bsub>merge_ades j\<^esub> true) (ades_obs ok0 s0 okOut SOut) \<longleftrightarrow>
+    (\<not> ok0 \<or> (\<exists>sL sR. \<exists>sOut\<in>SOut. merge_eval j s0 sL sR sOut))"
+proof -
+  have A: "(true :: 's angelic_design) is A"
+    by (rule Healthy_intro, rule ades_obs_ext; auto simp: A_obs true_pred_def)
+  have A2: "(true :: 's angelic_design) is A2"
+    by (rule Healthy_intro, rule ades_obs_ext; simp add: A2_obs true_pred_def)
+  show ?thesis
+    by (simp only: ades_par_lifted_obs[OF A A A2 A2]; simp add: ex_bool_eq all_bool_eq true_pred_def)
+qed
+
+lemma ades_par_lifted_chaos_A3_iff:
+  "(true \<parallel>\<^bsub>merge_ades j\<^esub> true) is A3 \<longleftrightarrow> merge_excludes_output j"
+proof -
+  have H1: "(true :: 's angelic_design) is H1"
+    by (simp add: H1_healthy_obs_iff true_pred_def)
+  show ?thesis
+    by (simp add: ades_par_lifted_A3_iff[OF H1 H1]
+        ades_par_lifted_chaos_obs merge_excludes_output_def)
+qed
+
+lemma merge_excludes_output_iff_A3_closure:
+  fixes j :: "'s merge"
+  shows "merge_excludes_output j \<longleftrightarrow>
+    (\<forall>P Q :: 's angelic_design.
+      (P is A) \<and> (P is A2) \<and> (P is A3) \<and>
+      (Q is A) \<and> (Q is A2) \<and> (Q is A3) \<longrightarrow>
+      (P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3)"
+proof
+  assume "merge_excludes_output j"
+  then show "\<forall>P Q :: 's angelic_design.
+      (P is A) \<and> (P is A2) \<and> (P is A3) \<and>
+      (Q is A) \<and> (Q is A2) \<and> (Q is A3) \<longrightarrow>
+      (P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3"
+    by (auto intro: ades_par_lifted_A3_closure simp: A_healthy_components_iff)
+next
+  assume closure: "\<forall>P Q :: 's angelic_design.
+      (P is A) \<and> (P is A2) \<and> (P is A3) \<and>
+      (Q is A) \<and> (Q is A2) \<and> (Q is A3) \<longrightarrow>
+      (P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3"
+  have A: "(true :: 's angelic_design) is A"
+    by (rule Healthy_intro, rule ades_obs_ext; auto simp: A_obs true_pred_def)
+  have A2: "(true :: 's angelic_design) is A2"
+    by (rule Healthy_intro, rule ades_obs_ext; simp add: A2_obs true_pred_def)
+  have A3: "(true :: 's angelic_design) is A3"
+    by (simp add: Healthy_def' A3_def; pred_auto)
+  show "merge_excludes_output j"
+    using closure A A2 A3 ades_par_lifted_chaos_A3_iff[of j] by blast
+qed
+
+subsubsection \<open>Examples and the Normality Boundary\<close>
+
+text \<open>Normality alone does not suffice: Chaos is normal, but its lifted
+  parallel with the always-true merge is not A3-healthy.\<close>
+
+lemma normal_operands_not_lifted_A3:
+  "(true :: 's angelic_design) is \<^bold>N"
+  "\<not> ((true \<parallel>\<^bsub>merge_ades true\<^esub> true :: 's angelic_design) is A3)"
+  by (simp add: Healthy_def' H1_H3_true; pred_auto)
+     (simp only: ades_par_lifted_chaos_A3_iff; simp add: merge_excludes_output_def true_pred_def)
+
+text \<open>Skip satisfies the condition exactly when the state type has at least
+  two values. The natural-number merge sOut = Suc (sL + sR) is total and uses
+  both branches while excluding zero. Right projection excludes no output.\<close>
+
+lemma merge_excludes_output_skip_iff:
+  "merge_excludes_output (skip\<^sub>m :: 's merge) \<longleftrightarrow> (\<exists>x y :: 's. x \<noteq> y)"
+  by (simp add: merge_excludes_output_def skip_merge_eval; metis (full_types))
+
+lemma merge_excludes_output_Suc_add:
+  "merge_excludes_output
+    (\<lambda>(m,z). z = Suc (mrg_left\<^sub>v m + mrg_right\<^sub>v m))"
+  by (auto simp: merge_excludes_output_def intro!: exI[where x=0])
+
+lemma merge_excludes_output_right_projection:
+  "\<not> merge_excludes_output (\<lambda>(m,z). z = mrg_right\<^sub>v m)"
+  by (simp add: merge_excludes_output_def)
+
+text \<open>The condition does not force normality of the result. With Boolean
+  states and skip merge, Chaos parallel has precondition s0 \<notin> SOut:
+  it is A3-healthy by the closure law, but its precondition depends on SOut.\<close>
+
+lemma ades_par_lifted_skip_not_normal:
+  "\<not> ((true \<parallel>\<^bsub>merge_ades (skip\<^sub>m :: bool merge)\<^esub> true) is \<^bold>N)"
+proof
+  let ?R = "true \<parallel>\<^bsub>merge_ades (skip\<^sub>m :: bool merge)\<^esub> true"
+  have form: "?R = (($s\<^sup>< \<notin> $ac\<^sup>>)\<^sub>e \<turnstile>\<^sub>r
+      ($s\<^sup>< \<in> $ac\<^sup>>)\<^sub>e)"
+    by (rule ades_obs_ext;
+        simp only: ades_par_lifted_chaos_obs skip_merge_eval;
+        pred_simp; auto)
+  assume normal: "?R is \<^bold>N"
+  have "$ac\<^sup>> \<sharp> pre\<^sub>D ?R"
+    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF normal])
+  then show False
+    by (simp add: form unrest unrest_lens; pred_auto)
+qed
+
+subsection \<open>A Monotone Idempotent State-Merge Healthiness\<close>
+
+text \<open>Fix a witness function w independently of j. A3j w has type
+  's merge \<Rightarrow> 's merge and excludes exactly the output w s0 at each initial
+  state. It strengthens the supplied merge while preserving all other tuples.
+  Its fixed points therefore guarantee A3 closure without operand normality.\<close>
+
+definition A3j :: "('s \<Rightarrow> 's) \<Rightarrow> 's merge \<Rightarrow> 's merge" where
+  "A3j w j = (\<lambda>(m,sOut). j (m,sOut) \<and> sOut \<noteq> w (mrg_prior\<^sub>v m))"
+
+lemma A3j_eval:
+  "merge_eval (A3j w j) s0 sL sR sOut \<longleftrightarrow>
+    merge_eval j s0 sL sR sOut \<and> sOut \<noteq> w s0"
+  by (simp add: A3j_def)
+
+lemma A3j_idem: "A3j w (A3j w j) = A3j w j"
+  by (auto simp: A3j_def fun_eq_iff)
+
+lemma A3j_Idempotent [closure]: "Idempotent (A3j w)"
+  by (simp add: Idempotent_def A3j_idem)
+
+lemma A3j_mono: "j \<sqsubseteq> k \<Longrightarrow> A3j w j \<sqsubseteq> A3j w k"
+  by (auto simp: A3j_def pred_refine_iff split: prod.splits)
+
+lemma A3j_Monotonic [closure]: "Monotonic (A3j w)"
+  by (rule MonotonicI, rule A3j_mono)
+
+lemma A3j_refine: "j \<sqsubseteq> A3j w j"
+  by (auto simp: A3j_def pred_refine_iff split: prod.splits)
+
+lemma A3j_healthy [closure]: "A3j w j is A3j w"
+  by (simp add: Healthy_def' A3j_idem)
+
+lemma A3j_healthy_iff:
+  "j is A3j w \<longleftrightarrow> (\<forall>s0 sL sR. \<not> merge_eval j s0 sL sR (w s0))"
+  by (simp add: Healthy_def' A3j_def fun_eq_iff; pred_auto; blast)
+
+lemma A3j_excludes_output: "merge_excludes_output (A3j w j)"
+  by (auto simp: merge_excludes_output_def A3j_eval intro!: exI[where x="w _"])
+
+lemma A3j_healthy_excludes_output:
+  assumes "j is A3j w"
+  shows "merge_excludes_output j"
+  using assms by (auto simp: A3j_healthy_iff merge_excludes_output_def; blast)
+
+lemma ades_par_lifted_A3j_closure [closure]:
+  assumes "P is H1" "Q is H1" "j is A3j w"
+  shows "(P \<parallel>\<^bsub>merge_ades j\<^esub> Q) is A3"
+  by (rule ades_par_lifted_A3_closure[OF assms(1,2)
+        A3j_healthy_excludes_output[OF assms(3)]])
+
+lemma ades_par_A3j_eq_lifted:
+  assumes "P is H1" "Q is H1"
+  shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>A3j w j\<^esub> Q = P \<parallel>\<^bsub>merge_ades (A3j w j)\<^esub> Q"
+  by (rule ades_par_eq_lifted[OF assms A3j_excludes_output])
+
+text \<open>For fixed w this is a sufficient subclass. Taking the union of these
+  classes over all witness functions recovers merge_excludes_output exactly.\<close>
+
+lemma merge_excludes_output_iff_A3j:
+  "merge_excludes_output j \<longleftrightarrow> (\<exists>w. j is A3j w)"
+  unfolding merge_excludes_output_def A3j_healthy_iff
+  by metis
+
+lemma A3j_SymMerge:
+  assumes "j is SymMerge"
+  shows "A3j w j is SymMerge"
+  using assms
+  by (simp add: Healthy_def' A3j_def fun_eq_iff; pred_auto; blast)
+
+subsubsection \<open>Examples and Algebraic Boundary\<close>
+
+text \<open>A suitable witness preserves an already healthy merge. For Boolean
+  skip one can take w = Not; the natural-number Suc-add merge excludes zero.
+  The canonical choice w = id instead removes every skip observation.\<close>
+
+lemma A3j_skip_healthy_iff:
+  "(skip\<^sub>m :: 's merge) is A3j w \<longleftrightarrow> (\<forall>s0. w s0 \<noteq> s0)"
+  by (simp add: A3j_healthy_iff skip_merge_eval)
+
+lemma A3j_Suc_add_healthy:
+  "(\<lambda>(m,z). z = Suc (mrg_left\<^sub>v m + mrg_right\<^sub>v m)) is A3j (\<lambda>_. 0)"
+  by (simp add: A3j_healthy_iff)
+
+lemma A3j_id_skip: "A3j id skip\<^sub>m = (false :: 's merge)"
+  by (simp add: A3j_def fun_eq_iff; pred_auto)
+
+text \<open>Symmetry is preserved, but totality and state-merge associativity need
+  not be. Addition is associative; after excluding zero, the left bracketing
+  of (1,0,0) reaches 1, while the right bracketing has no intermediate output
+  for (0,0). Mapping laws use the transformed merge on both sides.\<close>
+
+lemma A3j_add_boundary:
+  fixes j :: "nat merge"
+  defines "j \<equiv> (\<lambda>(m,z). z = mrg_left\<^sub>v m + mrg_right\<^sub>v m)"
+  shows "(\<exists>sMid. merge_eval j s0 sL sR sMid \<and> merge_eval j s0 sMid sThird sOut) =
+    (\<exists>sMid. merge_eval j s0 sR sThird sMid \<and> merge_eval j s0 sL sMid sOut)"
+    and "(\<exists>sMid. merge_eval (A3j (\<lambda>_. 0) j) 0 1 0 sMid \<and>
+      merge_eval (A3j (\<lambda>_. 0) j) 0 sMid 0 1)"
+    and "\<not> (\<exists>sMid. merge_eval (A3j (\<lambda>_. 0) j) 0 0 0 sMid \<and>
+      merge_eval (A3j (\<lambda>_. 0) j) 0 1 sMid 1)"
+    and "\<not> (\<exists>sOut. merge_eval (A3j (\<lambda>_. 0) j) 0 0 0 sOut)"
+  by (simp_all add: j_def A3j_eval add.assoc)
+
 end

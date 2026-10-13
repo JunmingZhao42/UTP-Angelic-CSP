@@ -2,7 +2,11 @@ section \<open>Reactive angelic design parallel by merge\<close>
 
 theory utp_rad_parallel
   imports utp_rad_csp "UTP-Angelic-Designs.utp_ades_parallel"
+    "UTP-Reactive-Designs.utp_rdes_parallel"
 begin
+
+(* The ordinary parallel import restores this notation; retain the RAD meaning. *)
+no_notation wait_f ("_\<^sub>f" [1000] 1000)
 
 type_synonym ('t, 'e) rad_merge_rel =
   "(('t, 'e) rad_state) ades_merge_rel"
@@ -30,9 +34,10 @@ where
     rad_state.wait\<^sub>v z = (rad_state.wait\<^sub>v l \<or> rad_state.wait\<^sub>v r)"
 
 
-text \<open>This operator lifts full reactive merge observations. It uses p2ac rather
-  than d2ac, and applies RAD after parallel. The correspondence therefore has
-  RD after ordinary parallel too. This is the only RAD parallel operator in this branch.\<close>
+text \<open>This operator lifts full reactive merge observations and uses p2ac rather
+  than d2ac. The public operator applies RAD after parallel. For RAD and A2
+  operands, a RADm-healthy merge makes that completion redundant. This is the
+  only RAD parallel operator in this branch.\<close>
 
 subsection \<open>Why the AD completion cannot be reused directly\<close>
 
@@ -61,6 +66,207 @@ proof
   then show False
     by (simp add: A3_def; pred_auto)
 qed
+
+subsection \<open>Ordinary Reactive Merge Healthiness\<close>
+
+text \<open>The merge argument is an ordinary merge on complete reactive observations.
+  R2m enforces trace growth and removes the common history. RD1m supplies
+  unstarted behaviour, RD2 permits a false output flag to become true, and
+  R3cm supplies the waiting behaviour of R3c. These do not impose normality.
+  The local split declaration ensures that ordinary reactive records are
+  expanded before their design-record parent.\<close>
+
+context
+begin
+
+declare des_vars.splits [alpha_splits del]
+
+lemma par_by_merge_eval:
+  fixes P Q :: "'s hrel"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) (x,z) = (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> merge_eval M x p q z)"
+  by (simp add: par_by_merge_def; pred_auto)
+
+lemma SymMerge_eval:
+  fixes M :: "'s merge"
+  shows "(M is SymMerge) \<longleftrightarrow> (\<forall>x p q z. merge_eval M x p q z = merge_eval M x q p z)"
+  by (simp add: Healthy_def' fun_eq_iff; pred_auto; blast)
+
+lemma AssocMerge_eval:
+  fixes M :: "'s merge"
+  assumes "M is SymMerge" "AssocMerge M"
+  shows "(\<exists>u. merge_eval M x p q u \<and> merge_eval M x u r z) =
+    (\<exists>u. merge_eval M x q r u \<and> merge_eval M x p u z)"
+  using assms by (simp add: Healthy_def' AssocMerge_def fun_eq_iff; pred_auto; blast)
+
+definition R3cm :: "('t::trace, 'a) rp merge \<Rightarrow> ('t, 'a) rp merge" where
+  [pred]: "R3cm M = (\<lambda>(m,z). if rea_vars.wait\<^sub>v (mrg_prior\<^sub>v m)
+    then RD1m skip\<^sub>m (m,z) else M (m,z))"
+
+lemma RD1m_eval:
+  "merge_eval (RD1m M) x p q z \<longleftrightarrow>
+    merge_eval M x p q z \<or> (\<not> des_vars.ok\<^sub>v x \<and> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z)"
+  by (pred_auto)
+
+lemma R3cm_eval:
+  "merge_eval (R3cm M) x p q z =
+    (if rea_vars.wait\<^sub>v x then
+      z = x \<or> (\<not> des_vars.ok\<^sub>v x \<and> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z)
+     else merge_eval M x p q z)"
+  by (pred_auto)
+
+lemma RD1m_idem: "RD1m (RD1m M) = RD1m M"
+  by (pred_auto)
+
+lemma RD1m_mono: "M \<sqsubseteq> N \<Longrightarrow> RD1m M \<sqsubseteq> RD1m N"
+  by (pred_auto)
+
+lemma RD1m_Idempotent [closure]: "Idempotent RD1m"
+  by (simp add: Idempotent_def RD1m_idem)
+
+lemma RD1m_Monotonic [closure]: "Monotonic RD1m"
+  by (auto simp: Monotonic_refine intro: RD1m_mono)
+
+lemma R3cm_idem: "R3cm (R3cm M) = R3cm M"
+  by (pred_auto)
+
+lemma R3cm_mono: "M \<sqsubseteq> N \<Longrightarrow> R3cm M \<sqsubseteq> R3cm N"
+  by (pred_auto)
+
+lemma R3cm_Idempotent [closure]: "Idempotent R3cm"
+  by (simp add: Idempotent_def R3cm_idem)
+
+lemma R3cm_Monotonic [closure]: "Monotonic R3cm"
+  by (auto simp: Monotonic_refine intro: R3cm_mono)
+
+lemma RD1m_R3cm_commute: "RD1m (R3cm M) = R3cm (RD1m M)"
+  by (pred_auto)
+
+lemma RD1m_R2m_commute: "RD1m (R2m M) = R2m (RD1m M)"
+  by (pred_auto)
+
+lemma R2m_R3cm_commute: "R2m (R3cm M) = R3cm (R2m M)"
+  by (pred_auto; metis minus_zero_eq)
+
+lemma RD2_RD1m_commute: "RD2 (RD1m M) = RD1m (RD2 M)"
+  by (simp add: RD2_def H2_split; pred_auto)
+
+lemma RD2_R3cm_commute: "RD2 (R3cm M) = R3cm (RD2 M)"
+  by (simp add: RD2_def H2_split; pred_auto)
+
+lemma RD2_R2m_commute: "RD2 (R2m M) = R2m (RD2 M)"
+  by (simp add: RD2_def H2_split; pred_auto)
+
+end
+
+text \<open>The four components commute. Their composite RADm is monotone and
+  idempotent; its fixed points satisfy all four component conditions.
+  The resulting ordinary parallel is RD-healthy for RD operands.\<close>
+
+context
+begin
+
+declare des_vars.splits [alpha_splits del]
+
+definition RADm :: "('t::trace, 'a) rp merge \<Rightarrow> ('t, 'a) rp merge" where
+  "RADm M = RD1m (R3cm (R2m (RD2 M)))"
+
+lemma RADm_idem: "RADm (RADm M) = RADm M"
+  by (simp add: RADm_def RD2_RD1m_commute RD2_R3cm_commute RD2_R2m_commute
+      RD1m_R2m_commute[symmetric] R2m_R3cm_commute RD1m_R3cm_commute[symmetric]
+      RD1m_idem R3cm_idem R2m_idem RD2_idem)
+
+lemma RADm_mono: "M \<sqsubseteq> N \<Longrightarrow> RADm M \<sqsubseteq> RADm N"
+  by (simp add: RADm_def RD1m_mono R3cm_mono R2m_mono RD2_mono)
+
+lemma RADm_healthy [closure]: "RADm M is RADm"
+  by (simp add: Healthy_def' RADm_idem)
+
+lemma RADm_Idempotent [closure]: "Idempotent RADm"
+  by (simp add: Idempotent_def RADm_idem)
+
+lemma RADm_Monotonic [closure]: "Monotonic RADm"
+  by (auto simp: Monotonic_refine intro: RADm_mono)
+
+lemma RADm_healths:
+  "RADm M is RD1m" "RADm M is R3cm" "RADm M is R2m" "RADm M is RD2"
+  by (simp_all add: Healthy_def' RADm_def
+      RD2_RD1m_commute RD2_R3cm_commute RD2_R2m_commute
+      RD1m_R2m_commute[symmetric] RD1m_R3cm_commute
+      R2m_R3cm_commute RD1m_idem R3cm_idem R2m_idem RD2_idem)
+
+lemma RADm_healthy_iff:
+  "(M is RADm) \<longleftrightarrow> ((M is RD1m) \<and> (M is R3cm) \<and> (M is R2m) \<and> (M is RD2))"
+proof
+  assume M: "M is RADm"
+  show "(M is RD1m) \<and> (M is R3cm) \<and> (M is R2m) \<and> (M is RD2)"
+    using RADm_healths[of M] by (simp only: Healthy_if[OF M])
+next
+  assume "(M is RD1m) \<and> (M is R3cm) \<and> (M is R2m) \<and> (M is RD2)"
+  then show "M is RADm" by (simp add: Healthy_def' RADm_def)
+qed
+
+lemma RADm_R1m:
+  assumes "M is RADm"
+  shows "M is R1m"
+proof -
+  have h: "M is R2m" using assms by (simp add: RADm_healthy_iff)
+  have "R1m M = R1m (R2m M)" by (simp only: Healthy_if[OF h])
+  also have "... = R2m M" by (simp add: R2m_def R1m_idem)
+  also have "... = M" by (rule Healthy_if[OF h])
+  finally show ?thesis by (simp only: Healthy_def')
+qed
+
+lemma R3cm_par_by_merge:
+  fixes P Q :: "('t::trace, 'a) rp_hrel" and M :: "('t, 'a) rp merge"
+  assumes "P is R3c" "Q is R3c" "M is R3cm"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c"
+proof -
+  have wait: "R3c P (x,z) =
+      (if rea_vars.wait\<^sub>v x then
+        z = x \<or> (\<not> des_vars.ok\<^sub>v x \<and> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z)
+       else P (x,z))" for P :: "('t,'a) rp_hrel" and x z
+    by (pred_auto)
+  have "R3c (R3c P \<parallel>\<^bsub>R3cm M\<^esub> R3c Q) = (R3c P \<parallel>\<^bsub>R3cm M\<^esub> R3c Q)"
+  proof (rule ext)
+    fix obs :: "('t, 'a) rp \<times> ('t, 'a) rp"
+    obtain x z where obs: "obs = (x,z)" by (cases obs) auto
+    show "R3c (R3c P \<parallel>\<^bsub>R3cm M\<^esub> R3c Q) obs = (R3c P \<parallel>\<^bsub>R3cm M\<^esub> R3c Q) obs"
+      unfolding obs
+      by (cases "rea_vars.wait\<^sub>v x"; simp add: wait par_by_merge_eval R3cm_eval; blast intro: exI[where x=x])
+  qed
+  then show ?thesis
+    by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)]
+        Healthy_if[OF assms(3)] Healthy_def')
+qed
+
+lemma RD_par_by_RADm [closure]:
+  assumes "P is RD" "Q is RD" "M is RADm"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is RD"
+proof -
+  have m: "M is RD1m" "M is R3cm" "M is R2m" "M is RD2" "M is R1m"
+    using assms(3) RADm_R1m unfolding RADm_healthy_iff by auto
+  have h: "(P \<parallel>\<^bsub>M\<^esub> Q) is R1" "(P \<parallel>\<^bsub>M\<^esub> Q) is R2"
+    "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c" "(P \<parallel>\<^bsub>M\<^esub> Q) is RD1" "(P \<parallel>\<^bsub>M\<^esub> Q) is RD2"
+    using assms(1,2) m
+    by (auto intro: R1_par_by_merge R2_par_by_merge R3cm_par_by_merge
+        RD1_par_by_merge RD2_par_by_merge RD_healths)
+  show ?thesis
+    using h R2_implies_R2c[OF h(2)]
+    by (simp add: Healthy_def' RD_alt_def RH_def)
+qed
+
+lemma RADm_SymMerge:
+  assumes "M is SymMerge"
+  shows "RADm M is SymMerge"
+  using assms
+  by (simp add: RADm_def Healthy_def' fun_eq_iff RD2_def H2_split; pred_auto; blast)
+
+lemma RADm_unstarted:
+  assumes "\<not> des_vars.ok\<^sub>v x"
+  shows "merge_eval (RADm M) x p q z \<longleftrightarrow> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z"
+  using assms by (simp add: RADm_def R3cm_def; pred_auto)
+
+end
 
 subsection \<open>Choice-set lifting and raw correspondence\<close>
 
@@ -101,8 +307,25 @@ lemma rad_lift_merge_obs:
         (rad2csp_obs \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)))"
   by (simp add: rad_lift_merge_def Let_def)
 
+lemma rad_lift_merge_mono:
+  assumes "M \<sqsubseteq> N"
+  shows "rad_lift_merge M \<sqsubseteq> rad_lift_merge N"
+  using assms
+  by (auto simp: pred_refine_iff rad_lift_merge_def Let_def split: prod.splits; blast)
+
+lemma rad_lift_merge_SymMerge:
+  assumes "M is SymMerge"
+  shows "rad_lift_merge M is SymMerge"
+proof -
+  have sym: "merge_eval M x p q z = merge_eval M x q p z" for x p q z
+    using assms by (simp add: SymMerge_eval)
+  show ?thesis
+    by (simp add: SymMerge_ades rad_lift_merge_def Let_def sym; blast)
+qed
+
 lemma rad_par_raw_p2ac:
-  "rad_p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
+  fixes P Q :: "('t::trace, 'e set) rp_hrel"
+  shows "rad_p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
     (rad_p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> rad_p2ac Q)"
 proof -
   have csp_obs_ex:
@@ -122,14 +345,9 @@ proof -
     then show "\<exists>p. F p" by blast
   qed
 
-  have flat_parallel_obs:
-    "(P \<parallel>\<^bsub>M\<^esub> Q) (x,out) =
-      (\<exists>p q. P (x,p) \<and> Q (x,q) \<and> merge_eval M x p q out)"
-    for P Q M x out
-    by (simp add: par_by_merge_def; pred_auto)
   show ?thesis
     apply (rule ades_obs_ext)
-    apply (simp only: rad_p2ac_obs flat_parallel_obs csp_obs_ex
+    apply (simp only: rad_p2ac_obs par_by_merge_eval csp_obs_ex
       ades_par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
     by (blast intro: exI[where x="{_}"])
 qed
@@ -144,6 +362,11 @@ proof -
         rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
   show ?thesis by (simp add: form rad_p2ac_def Healthy_def')
 qed
+
+lemma rad_par_raw_ac2p:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
+  shows "rad_ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) = (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  by (metis rad_ac2p_p2ac_inverse' rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2' assms)
 
 subsection \<open>Reactive-design healthiness and completed parallel\<close>
 
@@ -209,8 +432,9 @@ lemma rad_par_A2:
   shows "rad_par P M Q is A2"
   by (simp add: rad_par_form[OF assms] rad_p2ac_def Healthy_def')
 
-text \<open>The remaining closure obligation is on ordinary parallel. If it is
-  RD-healthy, the raw lifted parallel is already RAD-healthy.\<close>
+text \<open>Closure transfers from ordinary parallel: if it is RD-healthy, the raw
+  lifted parallel is already RAD-healthy. The RADm results below discharge
+  this obligation using a condition on the merge alone.\<close>
 
 lemma rad_par_raw_RAD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
@@ -227,6 +451,108 @@ lemma rad_par_ac2p_RD:
   shows "rad_ac2p (rad_par P M Q) =
     (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
   by (simp only: rad_par_ac2p[OF assms(1-4)] Healthy_if[OF assms(5)])
+
+subsection \<open>RAD Closure Without Completion\<close>
+
+text \<open>RAD and A2 operands map to ordinary RD predicates. A RADm-healthy
+  merge therefore makes lifted parallel RAD-healthy before completion.
+  RADm is sufficient; no necessity claim is made. The same merge is used on
+  both sides of each correspondence. No normality premise or excluded-output
+  witness is required.\<close>
+
+lemma rad_ac2p_RD:
+  assumes "P is RAD" "P is A2"
+  shows "rad_ac2p P is RD"
+proof -
+  have "rad_p2ac (RD (rad_ac2p P)) = P"
+    by (simp only: rad_p2ac_RD rad_p2ac_ac2p_RAD_A2'[OF assms] Healthy_if[OF assms(1)])
+  then have "RD (rad_ac2p P) = rad_ac2p P"
+    by (metis rad_ac2p_p2ac_inverse')
+  then show ?thesis by (simp only: Healthy_def')
+qed
+
+lemma rad_par_raw_RADm [closure]:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
+  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
+  by (rule rad_par_raw_RAD[OF assms(1-4)];
+      rule RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
+
+lemma rad_par_eq_raw:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
+  shows "rad_par P M Q = (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
+  by (simp only: rad_par_def Healthy_if[OF rad_par_raw_RADm[OF assms]])
+
+lemma rad_par_RADm_eq_raw:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
+  shows "rad_par P (RADm M) Q = (P \<parallel>\<^bsub>rad_lift_merge (RADm M)\<^esub> Q)"
+  by (rule rad_par_eq_raw[OF assms RADm_healthy])
+
+lemma rad_par_ac2p_RADm:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
+  shows "rad_ac2p (rad_par P M Q) = (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  by (rule rad_par_ac2p_RD[OF assms(1-4)];
+      rule RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
+
+lemma rad_par_form_RADm:
+  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
+  shows "rad_par P M Q = rad_p2ac (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  by (simp only: rad_par_form[OF assms(1-4)]
+      Healthy_if[OF RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)]
+        rad_ac2p_RD[OF assms(2,4)] assms(5)]])
+
+lemma rad_par_p2ac_RADm:
+  assumes "D is RD" "E is RD" "M is RADm"
+  shows "rad_par (rad_p2ac D) M (rad_p2ac E) = rad_p2ac (D \<parallel>\<^bsub>M\<^esub> E)"
+  by (simp only: rad_par_p2ac Healthy_if[OF RD_par_by_RADm[OF assms]])
+
+subsection \<open>Algebra\<close>
+
+lemma rad_par_mono:
+  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
+  shows "rad_par P1 M Q1 \<sqsubseteq> rad_par P2 M Q2"
+  unfolding rad_par_def
+  by (rule RAD_mono; use assms in
+      \<open>auto simp: pred_refine_iff ades_par_by_merge_eval split: prod.splits; blast\<close>)
+
+lemma rad_par_comm:
+  assumes "rad_lift_merge M is SymMerge"
+  shows "rad_par P M Q = rad_par Q M P"
+  unfolding rad_par_def
+  by (rule arg_cong[where f=RAD], rule par_by_merge_comm;
+      use assms in \<open>simp add: Healthy_def'\<close>)
+
+lemma rad_par_comm_merge:
+  assumes "M is SymMerge"
+  shows "rad_par P M Q = rad_par Q M P"
+  by (rule rad_par_comm[OF rad_lift_merge_SymMerge[OF assms]])
+
+lemma rad_par_assoc_state:
+  assumes "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2"
+    "M is RADm"
+    and assoc: "\<And>x p q r z.
+      (\<exists>u. merge_eval M x p q u \<and> merge_eval M x u r z) =
+      (\<exists>u. merge_eval M x q r u \<and> merge_eval M x p u z)"
+  shows "rad_par (rad_par P M Q) M R = rad_par P M (rad_par Q M R)"
+proof -
+  have ordinary: "((D \<parallel>\<^bsub>M\<^esub> E) \<parallel>\<^bsub>M\<^esub> F) = (D \<parallel>\<^bsub>M\<^esub> (E \<parallel>\<^bsub>M\<^esub> F))" for D E F
+    by (rule ext; simp only: split_paired_all par_by_merge_eval; use assoc in blast)
+  have pq: "rad_par P M Q is RAD" "rad_par P M Q is A2"
+    by (simp_all add: rad_par_RAD rad_par_A2[OF assms(1,2,4,5)])
+  have qr: "rad_par Q M R is RAD" "rad_par Q M R is A2"
+    by (simp_all add: rad_par_RAD rad_par_A2[OF assms(2,3,5,6)])
+  show ?thesis
+    by (simp only: rad_par_form_RADm[OF pq(1) assms(3) pq(2) assms(6,7)]
+        rad_par_form_RADm[OF assms(1) qr(1) assms(4) qr(2) assms(7)]
+        rad_par_ac2p_RADm[OF assms(1,2,4,5,7)]
+        rad_par_ac2p_RADm[OF assms(2,3,5,6,7)] ordinary)
+qed
+
+lemma rad_par_assoc:
+  assumes "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2"
+    "M is RADm" "M is SymMerge" "AssocMerge M"
+  shows "rad_par (rad_par P M Q) M R = rad_par P M (rad_par Q M R)"
+  by (rule rad_par_assoc_state[OF assms(1-7) AssocMerge_eval[OF assms(8,9)]])
+
 
 subsection \<open>Basic merge example\<close>
 
@@ -270,20 +596,84 @@ lemma rad_lift_basic_same:
   by (simp add: rad_lift_basic_merge_obs[simplified] basic_merge_state_def)
 
 
-subsection \<open>Algebra\<close>
+subsubsection \<open>Repairing the Basic Merge\<close>
 
-lemma rad_par_mono:
-  assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
-  shows "rad_par P1 M Q1 \<sqsubseteq> rad_par P2 M Q2"
-  unfolding rad_par_def
-  by (rule RAD_mono; use assms in
-      \<open>auto simp: pred_refine_iff ades_par_by_merge_eval split: prod.splits; blast\<close>)
+text \<open>The basic merge is not RADm-healthy. Applying RADm repairs unstarted
+  and waiting behaviour. On started, non-waiting observations it preserves the
+  original policy when both branch traces extend the initial trace. These
+  trace premises hold for outputs admitted by R1-healthy operands.\<close>
 
-lemma rad_par_comm:
-  assumes "rad_lift_merge M is SymMerge"
-  shows "rad_par P M Q = rad_par Q M P"
-  unfolding rad_par_def
-  by (rule arg_cong[where f=RAD], rule par_by_merge_comm;
-      use assms in \<open>simp add: Healthy_def'\<close>)
+context
+begin
+
+declare des_vars.splits [alpha_splits del]
+
+lemma rad_basic_merge_not_RADm:
+  "\<not> ((rad_basic_merge :: ('t::trace, 'e set) rp merge) is RADm)"
+proof -
+  have "\<not> ((rad_basic_merge :: ('t, 'e set) rp merge) is RD1m)"
+    apply (simp add: Healthy_def' fun_eq_iff rad_basic_merge_def basic_merge_state_def csp2rad_obs_def)
+    apply (pred_simp)
+    by (metis (mono_tags, lifting) order_refl)
+  then show ?thesis by (simp add: RADm_healthy_iff)
+qed
+
+lemma rad_basic_merge_RD2: "rad_basic_merge is RD2"
+  by (simp add: Healthy_def' RD2_def H2_split rad_basic_merge_def basic_merge_state_def
+      csp2rad_obs_def; pred_auto)
+
+lemma rad_basic_merge_R2m:
+  assumes "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v p" "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v q"
+  shows "merge_eval (R2m rad_basic_merge) x p q z = merge_eval rad_basic_merge x p q z"
+  using assms
+  apply (simp add: rad_basic_merge_def basic_merge_state_def csp2rad_obs_def)
+  apply (pred_simp)
+  by (metis diff_add_cancel_left')
+
+lemma RADm_basic_merge_running:
+  assumes "des_vars.ok\<^sub>v x" "\<not> rea_vars.wait\<^sub>v x"
+    "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v p" "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v q"
+  shows "merge_eval (RADm rad_basic_merge) x p q z = merge_eval rad_basic_merge x p q z"
+  using assms
+  by (simp add: RADm_def Healthy_if[OF rad_basic_merge_RD2]
+      RD1m_eval R3cm_eval rad_basic_merge_R2m[OF assms(3,4)])
+
+lemma RADm_basic_merge_waiting:
+  assumes "des_vars.ok\<^sub>v x" "rea_vars.wait\<^sub>v x"
+  shows "merge_eval (RADm rad_basic_merge) x p q z \<longleftrightarrow> z = x"
+  using assms by (simp add: RADm_def R3cm_def RD1m_def; pred_auto)
+
+end
+
+subsubsection \<open>Post-State-Dependent Failure\<close>
+
+text \<open>The seed below constrains the final refusal set, including on failure.
+  With RD true as each operand, started running parallel accepts an output
+  exactly when its trace extends the initial trace and its refusal set is empty.
+  In particular, the failure slice still depends on the post-state. The raw
+  p2ac correspondence transfers this example to RAD and A2 operands.\<close>
+
+context
+begin
+
+declare des_vars.splits [alpha_splits del]
+
+lemma RADm_post_ref_example:
+  fixes x z :: "('t::trace, 'e set) rp"
+  assumes "des_vars.ok\<^sub>v x" "\<not> rea_vars.wait\<^sub>v x"
+  shows "(RD true \<parallel>\<^bsub>RADm (\<lambda>(m,out). rea_vars.more out = {})\<^esub> RD true) (x,z) \<longleftrightarrow>
+    rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z \<and> rea_vars.more z = {}"
+proof -
+  let ?N = "RADm (\<lambda>(m,out). rea_vars.more out = {})"
+  have d: "RD true (x,p) \<longleftrightarrow> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v p" for p
+    using assms by (cases x; cases p; simp add: RD2_def H2_split; pred_auto)
+  have n: "merge_eval ?N x p q z \<longleftrightarrow> rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z \<and> rea_vars.more z = {}"
+    for p q
+    using assms by (cases x; cases z; simp add: RADm_def RD2_def H2_split; pred_auto)
+  show ?thesis
+    by (simp only: par_by_merge_eval d n; blast intro: exI[where x=x])
+qed
+
+end
 
 end
