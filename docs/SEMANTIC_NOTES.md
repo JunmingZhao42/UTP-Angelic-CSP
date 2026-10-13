@@ -11,7 +11,7 @@ predicates that belong to each semantic theory. In particular, a value of type
 type. RAD and AP use the same reactive angelic alphabet with different
 healthiness conditions.
 
-The representation adapters have distinct meanings:
+The mappings and composition operators have distinct meanings:
 
 - `PBMH` acts on state-to-choice relations. `PBMH_ades` applies the same choice
   closure inside the full design alphabet while preserving the outer control
@@ -23,9 +23,15 @@ The representation adapters have distinct meanings:
 - `aseq` composes state-to-choice relations. `aseq_ades` works on the full
   observation alphabet, whereas `angelic_design_seq` additionally hides the
   intermediate termination observation.
-- `rad2csp_obs` and `csp2rad_obs` repackage reactive observations between the
-  nested angelic alphabet and the flat CSP alphabet. Their inverse laws justify
-  the adapters used by `rad_ac2p` and `rad_p2ac`.
+- `rad_state` is `('t, 'e set) rea_vars_ext`: waiting and trace are the library
+  fields, and the extension tail contains the refusal set. The outer design
+  supplies `ok`. Thus `ac2p`, `p2ac`, and `d2ac` apply directly;
+  no observation or relation adapter is needed.
+
+The [representation audit](../reactive-angelic-designs/utp_rad_representation.thy)
+checks the old/new state bijection, trace and waiting updates, both predicate
+mappings, merge lifting, and raw parallel. The former implementation is retained
+at `backup/rad-before-rea-vars-ext-20261013` (`5043f35`).
 
 ## Qualifications to the mathematical source
 
@@ -45,8 +51,8 @@ premises under the explicit observation semantics:
   final choice set, equivalently when the design is normal. This is the
   qualification in thesis Theorem T.4.5.8; `P_dummy` also demonstrates why an
   unrestricted right-identity law would fail.
-- `ac2p P` evaluates `PBMH_ades P` at a singleton choice, with the observation
-  adapters applied. Replacing this by direct singleton evaluation of `P`
+- `ac2p P` evaluates `PBMH_ades P` at a singleton choice, retaining the outer
+  design flags. Replacing this by direct singleton evaluation of `P`
   requires PBMH healthiness. Empty-choice behaviour therefore matters even
   though the target observation is a singleton.
 

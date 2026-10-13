@@ -22,9 +22,9 @@ ap_par P M Q = H1 (rad_par (RA1 P) M (RA1 Q))
 
 ### Mapping laws
 
-Write `F(P) = rad_ac2p (RA1 P)` and `G(D) = H1 (rad_p2ac D)`.
+Write `F(P) = ac2p (RA1 P)` and `G(D) = H1 (p2ac D)`.
 All parallel mapping laws below hold for arbitrary `M`, with the same flat RD
-scope as [the RAD guide](RAD_PARALLEL.md#rad_ac2prad_p2ac-mapping-laws).
+scope as [the RAD guide](RAD_PARALLEL.md#ac2pp2ac-mapping-laws).
 
 | Operand premises | Equality | Lemma |
 | --- | --- | --- |

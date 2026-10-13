@@ -19,7 +19,8 @@ The reviewed development is on `main`.
 
 | Documentation | Contents |
 | --- | --- |
-| [Paper coverage](docs/PAPER_COVERAGE.md) | Definitions, theorem names and exact assumptions |
+| [Paper coverage](docs/PAPER_COVERAGE.md) | Coverage index, qualifications and links to the three layer guides |
+| [AD](docs/AD.md) · [RAD](docs/RAD.md) · [AP](docs/AP.md) | Definitions, formulas, exact premises and implementation links mapped to the paper and thesis |
 | [Baseline checks](docs/BASELINE.md) | Full-project and paper-only build checks |
 | [Parallel by merge](PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
 | [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
