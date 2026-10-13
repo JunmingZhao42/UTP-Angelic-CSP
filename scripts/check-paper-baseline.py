@@ -30,8 +30,8 @@ AGGREGATES = {
 }
 
 
-def git(directory, *args):
-    return subprocess.check_output(["git", "-C", str(directory), *args])
+def git(directory, *args, text=True):
+    return subprocess.check_output(["git", "-C", str(directory), *args], text=text)
 
 
 def digest(data):
@@ -57,7 +57,7 @@ def main():
     project = output / "project"
     project.mkdir()
     manifest = {
-        "parent_head": git(REPO, "rev-parse", "HEAD").decode().strip(),
+        "parent_head": git(REPO, "rev-parse", "HEAD").strip(),
         "project_source": "working tree; parallel theories excluded",
         "dependency_source": "each checked-out submodule HEAD; local edits excluded",
         "dependencies": {}, "files": {}, "transformed_files": [],
@@ -107,20 +107,20 @@ def main():
     for name in ("ROOT", "ROOTS"):
         shutil.copyfile(REPO / "deps" / name, deps / name)
     modules = git(REPO, "config", "--file", ".gitmodules", "--get-regexp",
-                  r"^submodule\..*\.path$").decode().splitlines()
+                  r"^submodule\..*\.path$").splitlines()
     for entry in modules:
         relative = entry.split(maxsplit=1)[1]
         source = REPO / relative
         target = project / relative
         target.mkdir(parents=True)
-        head = git(source, "rev-parse", "HEAD").decode().strip()
-        parent = git(REPO, "ls-tree", "HEAD", relative).decode().split()[2]
-        status = git(source, "status", "--porcelain=v1",
-                     "--untracked-files=all").decode()
+        head = git(source, "rev-parse", "HEAD").strip()
         manifest["dependencies"][relative] = {
-            "head": head, "parent_gitlink": parent, "excluded_local_status": status,
+            "head": head,
+            "parent_gitlink": git(REPO, "ls-tree", "HEAD", relative).split()[2],
+            "excluded_local_status": git(source, "status", "--porcelain=v1",
+                                         "--untracked-files=all"),
         }
-        archive = git(source, "archive", "--format=tar", head)
+        archive = git(source, "archive", "--format=tar", head, text=False)
         with tarfile.open(fileobj=io.BytesIO(archive)) as archive_file:
             for member in archive_file.getmembers():
                 path = Path(member.name)
@@ -141,22 +141,21 @@ def main():
     if args.prepare_only:
         return
 
-    env = os.environ.copy()
-    env.update(ISABELLE_IDENTIFIER=args.profile, PROJECT_DIR=str(project))
     command = [args.isabelle, "build", "-v", "-b", "-d", str(deps),
                "-d", str(project), "-o", "system_heaps=false", "-o",
                f"threads={args.threads}", "UTP-Angelic-CSP"]
     print("Build command: " + " ".join(command), flush=True)
-    result = {"command": command, "profile": args.profile, "project": str(project)}
+    print(f"Build output: {output / 'build.log'}", flush=True)
     with (output / "build.log").open("w") as log:
-        with subprocess.Popen(command, env=env, cwd=project, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, text=True) as process:
-            for line in process.stdout:
-                print(line, end="", flush=True)
-                log.write(line)
-            result["exit_code"] = process.wait()
+        process = subprocess.run(command, cwd=project, stdout=log,
+                                 stderr=subprocess.STDOUT,
+                                 env=dict(os.environ, ISABELLE_IDENTIFIER=args.profile,
+                                          PROJECT_DIR=str(project)))
+    result = {"command": command, "profile": args.profile, "project": str(project),
+              "exit_code": process.returncode}
     (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
-    raise SystemExit(result["exit_code"])
+    print(f"Build exit code: {process.returncode}", flush=True)
+    raise SystemExit(process.returncode)
 
 
 if __name__ == "__main__":

@@ -38,6 +38,8 @@ The checker leaves the source checkout and submodules untouched.
 `manifest.json` records source hashes, the parent commit, exported dependency
 commits, parent gitlinks and excluded submodule changes. The output directory
 contains `project/` and, after a build, `build.log` and `result.json`.
+Build output goes directly to `build.log`; the checker prints its path and
+the final exit code.
 
 Useful options:
 
