@@ -28,10 +28,10 @@ definition basic_merge_state ::
    ('t, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow> bool"
 where
   "basic_merge_state s0 l r z \<longleftrightarrow>
-    rad_state.tr\<^sub>v s0 \<le> rad_state.tr\<^sub>v z \<and>
-    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v l \<and>
-    rad_state.tr\<^sub>v z = rad_state.tr\<^sub>v r \<and>
-    rad_state.wait\<^sub>v z = (rad_state.wait\<^sub>v l \<or> rad_state.wait\<^sub>v r)"
+    rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v z \<and>
+    rad_tr\<^sub>v z = rad_tr\<^sub>v l \<and>
+    rad_tr\<^sub>v z = rad_tr\<^sub>v r \<and>
+    rad_wait\<^sub>v z = (rad_wait\<^sub>v l \<or> rad_wait\<^sub>v r)"
 
 
 text \<open>This operator lifts full reactive merge observations and uses p2ac rather
@@ -47,13 +47,13 @@ lemma RAD_empty:
   by (subst Healthy_if[OF assms, symmetric]; simp add: RAD_def RA_def RA1_obs)
 
 lemma rad_d2ac_not_RAD:
-  "\<not> (rad_d2ac D is RAD)"
+  "\<not> (d2ac D is RAD)"
 proof
-  assume "rad_d2ac D is RAD"
-  then have "\<not> rad_d2ac D (ades_obs False s0 True {})" for s0
+  assume "d2ac D is RAD"
+  then have "\<not> d2ac D (ades_obs False s0 True {})" for s0
     by (rule RAD_empty)
   then show False
-    by (simp add: rad_d2ac_def d2ac_def; pred_auto)
+    by (simp add: d2ac_def; pred_auto)
 qed
 
 lemma A3_not_RAD:
@@ -287,24 +287,24 @@ where
     in X \<noteq> {} \<and> Y \<noteq> {} \<and>
       (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>sOut\<in>Z.
         merge_eval M
-          (rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v x, \<dots> = s0\<rparr>)
-          (rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v p, \<dots> = sL\<rparr>)
-          (rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v q, \<dots> = sR\<rparr>)
-          (rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v out, \<dots> = sOut\<rparr>)))"
+          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v x, \<dots> = s0\<rparr>)
+          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v p, \<dots> = sL\<rparr>)
+          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v q, \<dots> = sR\<rparr>)
+          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v out, \<dots> = sOut\<rparr>)))"
 
 lemma rad_p2ac_obs:
-  "rad_p2ac P (ades_obs ok0 s0 okOut Z) =
-    (\<exists>sOut\<in>Z. P (rad2csp_obs \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>,
-                  rad2csp_obs \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>))"
-  by (simp add: rad_p2ac_def p2ac_def csp2rad_rel_def)
+  "p2ac P (ades_obs ok0 s0 okOut Z) =
+    (\<exists>sOut\<in>Z. P (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>,
+                   \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>))"
+  by (simp add: p2ac_def)
 
 lemma rad_lift_merge_obs:
   "ades_merge_obs (rad_lift_merge M) ok0 s0 okL X okR Y okOut Z =
     (X \<noteq> {} \<and> Y \<noteq> {} \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>sOut\<in>Z.
-      merge_eval M (rad2csp_obs \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>)
-        (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)
-        (rad2csp_obs \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>)
-        (rad2csp_obs \<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)))"
+      merge_eval M (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>)
+        (\<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)
+        (\<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>)
+        (\<lparr>ok\<^sub>v = okOut, \<dots> = sOut\<rparr>)))"
   by (simp add: rad_lift_merge_def Let_def)
 
 lemma rad_lift_merge_mono:
@@ -325,76 +325,57 @@ qed
 
 lemma rad_par_raw_p2ac:
   fixes P Q :: "('t::trace, 'e set) rp_hrel"
-  shows "rad_p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
-    (rad_p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> rad_p2ac Q)"
-proof -
-  have csp_obs_ex:
-    "(\<exists>p :: ('t::trace, 'e set) rp. F p) =
-      (\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>))"
-    for F
-  proof
-    assume "\<exists>p. F p"
-    then obtain p where "F p" by blast
-    have rep: "rad2csp_obs \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v (csp2rad_obs p),
-      \<dots> = des_vars.more (csp2rad_obs p)\<rparr> = p"
-      by (simp add: csp2rad_obs_def rad2csp_obs_def)
-    show "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
-      using \<open>F p\<close> rep by metis
-  next
-    assume "\<exists>okL sL. F (rad2csp_obs \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)"
-    then show "\<exists>p. F p" by blast
-  qed
-
-  show ?thesis
-    apply (rule ades_obs_ext)
-    apply (simp only: rad_p2ac_obs par_by_merge_eval csp_obs_ex
+  shows "p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
+    (p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> p2ac Q)"
+  apply (rule ades_obs_ext)
+  apply (simp only: rad_p2ac_obs par_by_merge_eval
       ades_par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
-    by (blast intro: exI[where x="{_}"])
-qed
+  apply (simp only: des_vars.splits)
+  by (blast intro: exI[where x="{_}"])
 
 lemma rad_par_raw_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
   shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is A2"
 proof -
   have form: "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
-      rad_p2ac (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+      p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
     by (simp only: rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
         rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
-  show ?thesis by (simp add: form rad_p2ac_def Healthy_def')
+  show ?thesis by (simp add: form Healthy_def')
 qed
 
 lemma rad_par_raw_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) = (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  shows "ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) = (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (metis rad_ac2p_p2ac_inverse' rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2' assms)
 
 subsection \<open>Reactive-design healthiness and completed parallel\<close>
 
 lemma rad_p2ac_RD1:
-  "rad_p2ac (RD1 P) = CSPA1 (rad_p2ac P)"
+  "p2ac (RD1 P) = CSPA1 (p2ac P)"
   apply (rule ades_obs_ext)
-  apply (simp add: rad_p2ac_obs CSPA1_obs RD1_def rad2csp_obs_def
-        rad_trace_extensions_def)
-  by (auto simp: pred expr_simps des_vars.ok_def rea_vars.tr_def
-      subst_app_def subst_upd_def subst_id_def)
+  subgoal for b s c X
+    by (cases b; cases c;
+        auto simp: p2ac_def CSPA1_obs RD1_def rad_trace_extensions_def
+          expr_defs lens_defs alpha_defs disj_pred_def conj_pred_def)
+  done
 
 lemma rad_p2ac_RD2:
-  "rad_p2ac (RD2 P) = CSPA2 (rad_p2ac P)"
+  "p2ac (RD2 P) = CSPA2 (p2ac P)"
   apply (rule ades_obs_ext)
-  apply (simp add: rad_p2ac_obs CSPA2_def RD2_def H2_obs H2_split
-        rad2csp_obs_def)
-  by (auto simp: expr_defs lens_defs des_vars.ok_def rad_p2ac_def p2ac_def
-      csp2rad_rel_def rad2csp_obs_def disj_pred_def conj_pred_def)
+  apply (simp add: rad_p2ac_obs CSPA2_def RD2_def H2_obs H2_split)
+  by (auto simp: expr_defs lens_defs des_vars.ok_def p2ac_def
+        disj_pred_def conj_pred_def)
 
 lemma rad_p2ac_RD:
-  "rad_p2ac (RD P) = RAD (rad_p2ac P)"
+  "p2ac (RD P) = RAD (p2ac P)"
   unfolding RD_alt_def RD2_RH_commute RD1_RH_commute
   by (simp only: rad_p2ac_R' rad_p2ac_RD1 rad_p2ac_RD2 RAD_def comp_apply
       Healthy_if[OF rad_p2ac_PBMH_ades])
 
 lemma rad_p2ac_RD_closure:
   assumes "P is RD"
-  shows "rad_p2ac P is RAD"
+  shows "p2ac P is RAD"
   by (simp only: Healthy_def' rad_p2ac_RD[symmetric] Healthy_if[OF assms])
 
 definition rad_par ::
@@ -408,29 +389,29 @@ lemma rad_par_RAD:
   by (simp add: rad_par_def RAD_healthy)
 
 lemma rad_par_p2ac:
-  "rad_par (rad_p2ac P) M (rad_p2ac Q) =
-    rad_p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q))"
+  "rad_par (p2ac P) M (p2ac Q) =
+    p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q))"
   by (simp only: rad_par_def rad_par_raw_p2ac[symmetric]
       rad_p2ac_RD)
 
 lemma rad_par_form:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
   shows "rad_par P M Q =
-    rad_p2ac (RD (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q))"
-  using rad_par_p2ac[of "rad_ac2p P" M "rad_ac2p Q"]
+    p2ac (RD (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q))"
+  using rad_par_p2ac[of "ac2p P" M "ac2p Q"]
   by (simp only: rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 lemma rad_par_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_ac2p (rad_par P M Q) =
-    RD (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  shows "ac2p (rad_par P M Q) =
+    RD (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (simp only: rad_par_form[OF assms] rad_ac2p_p2ac_inverse')
 
 lemma rad_par_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
   shows "rad_par P M Q is A2"
-  by (simp add: rad_par_form[OF assms] rad_p2ac_def Healthy_def')
+  by (simp add: rad_par_form[OF assms] Healthy_def')
 
 text \<open>Closure transfers from ordinary parallel: if it is RD-healthy, the raw
   lifted parallel is already RAD-healthy. The RADm results below discharge
@@ -438,7 +419,7 @@ text \<open>Closure transfers from ordinary parallel: if it is RD-healthy, the r
 
 lemma rad_par_raw_RAD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    "(rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q) is RD"
+    "(ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q) is RD"
   shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
   using rad_p2ac_RD_closure[OF assms(5)]
   by (simp only: rad_par_raw_p2ac
@@ -447,9 +428,9 @@ lemma rad_par_raw_RAD:
 
 lemma rad_par_ac2p_RD:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    "(rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q) is RD"
-  shows "rad_ac2p (rad_par P M Q) =
-    (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+    "(ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q) is RD"
+  shows "ac2p (rad_par P M Q) =
+    (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (simp only: rad_par_ac2p[OF assms(1-4)] Healthy_if[OF assms(5)])
 
 subsection \<open>RAD Closure Without Completion\<close>
@@ -462,11 +443,11 @@ text \<open>RAD and A2 operands map to ordinary RD predicates. A RADm-healthy
 
 lemma rad_ac2p_RD:
   assumes "P is RAD" "P is A2"
-  shows "rad_ac2p P is RD"
+  shows "ac2p P is RD"
 proof -
-  have "rad_p2ac (RD (rad_ac2p P)) = P"
+  have "p2ac (RD (ac2p P)) = P"
     by (simp only: rad_p2ac_RD rad_p2ac_ac2p_RAD_A2'[OF assms] Healthy_if[OF assms(1)])
-  then have "RD (rad_ac2p P) = rad_ac2p P"
+  then have "RD (ac2p P) = ac2p P"
     by (metis rad_ac2p_p2ac_inverse')
   then show ?thesis by (simp only: Healthy_def')
 qed
@@ -489,20 +470,20 @@ lemma rad_par_RADm_eq_raw:
 
 lemma rad_par_ac2p_RADm:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "rad_ac2p (rad_par P M Q) = (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  shows "ac2p (rad_par P M Q) = (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (rule rad_par_ac2p_RD[OF assms(1-4)];
       rule RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
 
 lemma rad_par_form_RADm:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "rad_par P M Q = rad_p2ac (rad_ac2p P \<parallel>\<^bsub>M\<^esub> rad_ac2p Q)"
+  shows "rad_par P M Q = p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (simp only: rad_par_form[OF assms(1-4)]
       Healthy_if[OF RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)]
         rad_ac2p_RD[OF assms(2,4)] assms(5)]])
 
 lemma rad_par_p2ac_RADm:
   assumes "D is RD" "E is RD" "M is RADm"
-  shows "rad_par (rad_p2ac D) M (rad_p2ac E) = rad_p2ac (D \<parallel>\<^bsub>M\<^esub> E)"
+  shows "rad_par (p2ac D) M (p2ac E) = p2ac (D \<parallel>\<^bsub>M\<^esub> E)"
   by (simp only: rad_par_p2ac Healthy_if[OF RD_par_by_RADm[OF assms]])
 
 subsection \<open>Algebra\<close>
@@ -561,24 +542,23 @@ definition rad_basic_merge :: "('t::trace, 'e set) rp merge" where
     (des_vars.ok\<^sub>v (mrg_left\<^sub>v m) \<and>
       des_vars.ok\<^sub>v (mrg_right\<^sub>v m) \<longrightarrow> des_vars.ok\<^sub>v out) \<and>
     basic_merge_state
-      (des_vars.more (csp2rad_obs (mrg_prior\<^sub>v m)))
-      (des_vars.more (csp2rad_obs (mrg_left\<^sub>v m)))
-      (des_vars.more (csp2rad_obs (mrg_right\<^sub>v m)))
-      (des_vars.more (csp2rad_obs out)))"
+      (des_vars.more (mrg_prior\<^sub>v m))
+      (des_vars.more (mrg_left\<^sub>v m))
+      (des_vars.more (mrg_right\<^sub>v m))
+      (des_vars.more out))"
 
 lemma rad_lift_basic_merge_obs:
   "ades_merge_obs (rad_lift_merge rad_basic_merge) ok0 s0 okL X okR Y okOut Z =
     (X \<noteq> {} \<and> Y \<noteq> {} \<and> (okL \<and> okR \<longrightarrow> okOut) \<and>
       (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>sOut\<in>Z. basic_merge_state s0 sL sR sOut))"
   apply (simp only: rad_lift_merge_obs)
-  apply (simp add: rad_basic_merge_def csp2rad_obs_def rad2csp_obs_def basic_merge_state_def)
-  by blast
+  by (simp add: rad_basic_merge_def; blast)
 
 lemma rad_lift_basic_trace_agreement:
   assumes "ades_merge_obs (rad_lift_merge rad_basic_merge)
       ok0 s0 okL X okR Y okOut Z"
     "sL \<in> X" "sR \<in> Y"
-  shows "rad_state.tr\<^sub>v sL = rad_state.tr\<^sub>v sR"
+  shows "rad_tr\<^sub>v sL = rad_tr\<^sub>v sR"
   using assms
   apply (simp only: rad_lift_basic_merge_obs)
   unfolding basic_merge_state_def
@@ -612,21 +592,20 @@ lemma rad_basic_merge_not_RADm:
   "\<not> ((rad_basic_merge :: ('t::trace, 'e set) rp merge) is RADm)"
 proof -
   have "\<not> ((rad_basic_merge :: ('t, 'e set) rp merge) is RD1m)"
-    apply (simp add: Healthy_def' fun_eq_iff rad_basic_merge_def basic_merge_state_def csp2rad_obs_def)
+    apply (simp add: Healthy_def' fun_eq_iff rad_basic_merge_def basic_merge_state_def)
     apply (pred_simp)
     by (metis (mono_tags, lifting) order_refl)
   then show ?thesis by (simp add: RADm_healthy_iff)
 qed
 
 lemma rad_basic_merge_RD2: "rad_basic_merge is RD2"
-  by (simp add: Healthy_def' RD2_def H2_split rad_basic_merge_def basic_merge_state_def
-      csp2rad_obs_def; pred_auto)
+  by (simp add: Healthy_def' RD2_def H2_split rad_basic_merge_def basic_merge_state_def; pred_auto)
 
 lemma rad_basic_merge_R2m:
   assumes "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v p" "rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v q"
   shows "merge_eval (R2m rad_basic_merge) x p q z = merge_eval rad_basic_merge x p q z"
   using assms
-  apply (simp add: rad_basic_merge_def basic_merge_state_def csp2rad_obs_def)
+  apply (simp add: rad_basic_merge_def basic_merge_state_def)
   apply (pred_simp)
   by (metis diff_add_cancel_left')
 

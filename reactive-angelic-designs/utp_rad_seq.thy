@@ -16,32 +16,16 @@ lemma RAD_seq_demonic_distrib:
   "(P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) ;;\<^sub>R\<^sub>A\<^sub>D R = (P ;;\<^sub>R\<^sub>A\<^sub>D R) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q ;;\<^sub>R\<^sub>A\<^sub>D R)"
   by (rule angelic_design_seq_demonic)
 
-(* The observation repackaging distributes over sequential composition. *)
-lemma csp2rad_rel_seq_distrib:
-  fixes P Q :: "('t::trace, 'e set) rp_hrel"
-  shows "csp2rad_rel (P ;; Q) = (csp2rad_rel P ;; csp2rad_rel Q)"
-proof -
-  have handover:
-    "P (x, m) \<Longrightarrow> Q (m, y) \<Longrightarrow>
-     \<exists>n. P (x, rad2csp_obs n) \<and> Q (rad2csp_obs n, y)"
-    for x m y
-    by (intro exI[where x="csp2rad_obs m"]) simp
-  show ?thesis
-    by (auto simp add: csp2rad_rel_def seq_def fun_eq_iff
-        intro: handover split: prod.splits)
-qed
-
-(* Thesis Theorem T.G.7.11, lifted to the reactive angelic mapping. *)
 lemma rad_p2ac_seq:
-  "rad_p2ac (P ;; Q) = (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q)"
-  by (simp only: rad_p2ac_def comp_apply csp2rad_rel_seq_distrib
+  "p2ac (P ;; Q) = (p2ac P ;;\<^sub>R\<^sub>A\<^sub>D p2ac Q)"
+  by (simp only: comp_apply
       p2ac_seq)
 
 (* Thesis Theorem T.5.4.22. *)
 lemma RAD_seq_CSP_refine:
   assumes "P is RAD" "Q is RAD"
   shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) \<sqsubseteq>
-    rad_p2ac (rad_ac2p P ;; rad_ac2p Q)"
+    p2ac (ac2p P ;; ac2p Q)"
   unfolding rad_p2ac_seq
   by (rule angelic_design_seq_mono[OF RAD_is_PBMH_ades[OF assms(1)]];
       rule rad_p2ac_ac2p_refine'[OF RAD_is_PBMH_ades]) (fact assms)+
@@ -49,14 +33,14 @@ lemma RAD_seq_CSP_refine:
 (* Thesis Theorem T.5.4.23. *)
 lemma RAD_seq_CSP_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_p2ac (rad_ac2p P ;; rad_ac2p Q) =
+  shows "p2ac (ac2p P ;; ac2p Q) =
     (P ;;\<^sub>R\<^sub>A\<^sub>D Q)"
   by (simp only: rad_p2ac_seq rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 (* Thesis Theorem T.5.4.24: the correspondence of sequential composition with CSP. *)
 lemma RAD_seq_CSP_inverse:
-  "rad_ac2p (rad_p2ac P ;;\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P ;; Q"
+  "ac2p (p2ac P ;;\<^sub>R\<^sub>A\<^sub>D p2ac Q) = P ;; Q"
   by (simp only: rad_p2ac_seq[symmetric] rad_ac2p_p2ac_inverse')
 
 subsection \<open>Sequential composition of RA1 designs\<close>
@@ -141,7 +125,7 @@ text \<open>
   sufficient assumptions.
 \<close>
 
-(* Thesis Theorem T.G.8.5: 
+(* Thesis Theorem T.G.8.5:
   normal form for the composition of RA designs. *)
 lemma RA_design_seq:
   assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
@@ -412,7 +396,7 @@ lemma trace_le_append [simp]: "(xs :: 'e list) \<le> xs @ ys"
 lemma RA1_prefix_post:
   "RA1 (prefix_post a) = prefix_post a"
   by (simp add: RA1_def prefix_post_def ades_singleton_choice_def
-      expr_if_def rad_state.wait_def rad_trace_extensions_def
+      expr_if_def rad_wait_def rad_trace_extensions_def
       fun_eq_iff Let_def bex_nonempty_absorb;
       auto intro: trace_le_append)
 
@@ -421,8 +405,8 @@ definition prefix_handover ::
   "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
    ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_handover a P = (\<lambda> (s0, ac').
-  \<exists> y. \<not> rad_state.wait\<^sub>v y \<and>
-    rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<and>
+  \<exists> y. \<not> rad_wait\<^sub>v y \<and>
+    rad_tr\<^sub>v y = rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<and>
     P (des_vars.more_update (astate.s\<^sub>v_update (\<lambda>_. y)) s0, ac'))"
 
 (* The prefix is either still offering the event or has handed over. *)
@@ -430,11 +414,11 @@ definition prefix_continuation ::
   "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
    ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_continuation a P = (\<lambda> (s0, ac').
-  \<exists> y. if rad_state.wait\<^sub>v y
+  \<exists> y. if rad_wait\<^sub>v y
     then y \<in> achoices.ac\<^sub>v (des_vars.more ac') \<and>
-      rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-      a \<notin> rad_state.ref\<^sub>v y
-    else rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<and>
+      rad_tr\<^sub>v y = rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+      a \<notin> rad_ref\<^sub>v y
+    else rad_tr\<^sub>v y = rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<and>
       P (des_vars.more_update (astate.s\<^sub>v_update (\<lambda>_. y)) s0, ac'))"
 
 lemma prefix_handover_aseq:
@@ -443,7 +427,7 @@ lemma prefix_handover_aseq:
   by (simp only: RA1_prefix_post;
       simp add: aseq_ades_def prefix_post_def
       ades_singleton_choice_def expr_if_def prefix_handover_def fun_eq_iff
-      lens_defs rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def
+      lens_defs rad_wait_def astate.s_def des_vars.more\<^sub>L_def
       SEXP_def subst_app_def subst_ext_def conj_pred_def not_pred_def;
       auto simp add: if_bool_eq_disj split: prod.splits)
 
@@ -454,7 +438,7 @@ lemma prefix_continuation_aseq:
   by (simp only: RA1_prefix_post;
       simp add: aseq_ades_def prefix_post_def
       ades_singleton_choice_def expr_if_def prefix_continuation_def
-      ades_state_choice_def fun_eq_iff lens_defs rad_state.wait_def
+      ades_state_choice_def fun_eq_iff lens_defs rad_wait_def
       astate.s_def des_vars.more\<^sub>L_def
       SEXP_def subst_app_def subst_ext_def;
       auto simp add: if_bool_eq_disj split: prod.splits)
@@ -566,7 +550,7 @@ lemma prefix_continuation_skip:
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_skip_post)
   apply (simp add: RA1_def aseq_ades_def prefix_post_def skip_post_def ades_singleton_choice_def
       ades_state_choice_def expr_if_def rad_trace_extensions_def
-      fun_eq_iff Let_def lens_defs rad_state.wait_def astate.s_def
+      fun_eq_iff Let_def lens_defs rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def bex_nonempty_absorb)
   apply clarify
   subgoal for x0 y0
@@ -574,7 +558,7 @@ lemma prefix_continuation_skip:
      apply fastforce
     apply (elim bexE conjE)
     subgoal for y
-      by (cases "rad_state.wait\<^sub>v y";
+      by (cases "rad_wait\<^sub>v y";
           rule_tac x=y in bexI; fastforce)
     done
   done
@@ -624,30 +608,30 @@ definition prefix_diverge_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angel
 where
 [pred]: "prefix_diverge_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<le>
-    rad_state.tr\<^sub>v y)"
+    rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a] \<le>
+    rad_tr\<^sub>v y)"
 
 (* The event is offered and has not yet occurred. *)
 definition prefix_offer_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design"
 where
 [pred]: "prefix_offer_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.wait\<^sub>v y \<and>
-    rad_state.tr\<^sub>v y =
-      rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-    a \<notin> rad_state.ref\<^sub>v y)"
+    rad_wait\<^sub>v y \<and>
+    rad_tr\<^sub>v y =
+      rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+    a \<notin> rad_ref\<^sub>v y)"
 
 lemma prefix_diverge_post_p2ac:
   "prefix_diverge_post a = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.tr\<^sub>v s @ [a] \<le> rad_state.tr\<^sub>v y)\<rceil>\<^sub>D"
+    rad_tr\<^sub>v s @ [a] \<le> rad_tr\<^sub>v y)\<rceil>\<^sub>D"
   by (simp add: prefix_diverge_post_def p2ac_def fun_eq_iff
       subst_app_def subst_ext_def SEXP_def lens_defs
       des_vars.more\<^sub>L_def; pred_auto; blast)
 
 lemma prefix_offer_post_p2ac:
   "prefix_offer_post a = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and>
-    a \<notin> rad_state.ref\<^sub>v y)\<rceil>\<^sub>D"
+    rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s \<and>
+    a \<notin> rad_ref\<^sub>v y)\<rceil>\<^sub>D"
   by (simp add: prefix_offer_post_def p2ac_def fun_eq_iff
       subst_app_def subst_ext_def SEXP_def lens_defs
       des_vars.more\<^sub>L_def; pred_auto; blast)
@@ -683,9 +667,9 @@ lemma prefix_handover_diverge:
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
   apply (simp add: RA1_def aseq_ades_def prefix_post_def
       ades_singleton_choice_def expr_if_def
-      rad_state.wait_def
+      rad_wait_def
       prefix_diverge_post_def rad_trace_extensions_def fun_eq_iff
-      Let_def lens_defs rad_state.wait_def astate.s_def
+      Let_def lens_defs rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def true_pred_def conj_pred_def
       not_pred_def SEXP_def subst_ext_def
       subst_app_def ex_in_conv[symmetric])
@@ -696,13 +680,13 @@ lemma prefix_handover_diverge:
     apply (elim bexE)
     subgoal for y
       apply (rule conjI)
-       apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-           (rad_state.tr\<^sub>v_update
-             (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
+       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
+           (rad_tr\<^sub>v_update
+             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
              y)" in bexI; fastforce)
-      by (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-          (rad_state.tr\<^sub>v_update
-            (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
+      by (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
+          (rad_tr\<^sub>v_update
+            (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
             y)" in exI; fastforce)
     done
   done
@@ -718,7 +702,7 @@ lemma prefix_continuation_chaos:
   apply (simp add: RA1_def aseq_ades_def prefix_post_def
       ades_singleton_choice_def prefix_offer_post_def prefix_diverge_post_def
       ades_state_choice_def expr_if_def rad_trace_extensions_def
-      fun_eq_iff Let_def lens_defs rad_state.wait_def astate.s_def
+      fun_eq_iff Let_def lens_defs rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def true_pred_def disj_pred_def
       conj_pred_def not_pred_def SEXP_def
       subst_ext_def subst_app_def ex_in_conv[symmetric])
@@ -733,13 +717,13 @@ lemma prefix_continuation_chaos:
        by (rule_tac x=y in exI; fastforce)
     subgoal for y
       apply (rule conjI)
-       apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-           (rad_state.tr\<^sub>v_update
-             (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
+       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
+           (rad_tr\<^sub>v_update
+             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
              y)" in bexI; fastforce)
-      by (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-          (rad_state.tr\<^sub>v_update
-            (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
+      by (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
+          (rad_tr\<^sub>v_update
+            (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
             y)" in exI; fastforce)
     done
   done
@@ -779,15 +763,13 @@ proof -
         rad_normalise_choices_def rad_trace_difference_def
         rad_zero_trace_def fun_eq_iff Let_def)
     apply pred_auto
-    subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+    subgoal for t ac w r tb
       by (frule (1) append_le,
-          rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
-            wait\<^sub>v = waitv\<rparr>" in bexI; simp)
-    subgoal for trv acv trv2 refv waitv
-      by (frule list_append_prefixD, frule diff_le,
-          rule_tac x="trv2 - trv" in exI, rule conjI,
-          rule_tac x=refv in exI, rule_tac x=waitv in exI,
-          rule_tac x=trv2 in exI; simp)
+          rule_tac x="rea_vars_ext w tb r" in bexI; simp)
+    subgoal for t ac y
+      apply (cases y)
+      apply simp
+      using diff_le by blast
     done
 qed
 
@@ -804,14 +786,13 @@ proof -
       rad_normalise_choices_def rad_trace_difference_def
       rad_zero_trace_def fun_eq_iff Let_def)
   apply pred_auto
-  subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+  subgoal for t ac w r ta
     by (drule sym, frule (1) nil,
-        rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
-          wait\<^sub>v = True\<rparr>" in bexI; simp)
-  subgoal for tr ac ref wait
-    by (rule_tac x=ref in exI, rule_tac x=True in exI, rule conjI,
-        rule_tac x=tr in exI,
-        simp_all add: diff_cancel zero_list_def)
+        rule_tac x="rea_vars_ext True ta r" in bexI; simp)
+  subgoal for ac y
+    apply (cases y)
+    apply (simp add: zero_list_def)
+    by force
   done
 qed
 
@@ -821,21 +802,17 @@ lemma prefix_handover_nonwait:
   "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D (\<not> rad_wait_lens\<^sup><)) = true"
   apply (simp add: RA1_def aseq_ades_def prefix_post_def
       ades_singleton_choice_def expr_if_def
-      rad_state.wait_def rad_trace_extensions_def fun_eq_iff
-      Let_def lens_defs rad_state.wait_def astate.s_def
+      rad_wait_def rad_trace_extensions_def fun_eq_iff
+      Let_def lens_defs rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def true_pred_def conj_pred_def
       not_pred_def SEXP_def subst_ext_def
       subst_app_def ex_in_conv[symmetric])
   apply (rule allI, rule conjI)
   subgoal for aa
-    by (rule_tac x="\<lparr>rad_state.tr\<^sub>v =
-        rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more aa)) @ [a],
-        ref\<^sub>v = {}, wait\<^sub>v = False\<rparr>" in bexI;
+    by (rule_tac x="(rea_vars_ext (False) (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more aa)) @ [a]) ({}))" in bexI;
         simp add: trace_le_append)
   subgoal for aa
-    by (rule_tac x="\<lparr>rad_state.tr\<^sub>v =
-        rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more aa)) @ [a],
-        ref\<^sub>v = {}, wait\<^sub>v = False\<rparr>" in exI;
+    by (rule_tac x="(rea_vars_ext (False) (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more aa)) @ [a]) ({}))" in exI;
         simp add: trace_le_append)
   done
 

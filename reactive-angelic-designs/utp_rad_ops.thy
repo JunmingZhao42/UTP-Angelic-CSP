@@ -9,7 +9,7 @@ subsection \<open>Angelic Choice\<close>
 (* Paper Definition 37. *)
 abbreviation achoice_RAD ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
-  (infixl "\<squnion>\<^sub>R\<^sub>A\<^sub>D" 70) 
+  (infixl "\<squnion>\<^sub>R\<^sub>A\<^sub>D" 70)
 where "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P \<squnion> Q"
 
 lemma RAD_angelic_choice:
@@ -61,15 +61,15 @@ qed
 
 (* Paper Theorem 20 / Thesis Theorem T.5.4.2. *)
 theorem RAD_angelic_choice_CSP:
-  "rad_ac2p (rad_p2ac P \<squnion>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<squnion> Q"
+  "ac2p (p2ac P \<squnion>\<^sub>R\<^sub>A\<^sub>D p2ac Q) = P \<squnion> Q"
 proof -
   have distribute:
-      "rad_ac2p (rad_p2ac P \<and> rad_p2ac Q) =
-       (rad_ac2p (rad_p2ac P) \<and> rad_ac2p (rad_p2ac Q))"
-    unfolding rad_ac2p_def comp_apply
+      "ac2p (p2ac P \<and> p2ac Q) =
+       (ac2p (p2ac P) \<and> ac2p (p2ac Q))"
+    unfolding comp_apply
     apply (subst ac2p_conj)
       apply (rule rad_p2ac_PBMH_ades)+
-    by (simp add: rad2csp_rel_def fun_eq_iff conj_pred_def)
+    by (simp add:  fun_eq_iff conj_pred_def)
   show ?thesis
     apply (simp only: RAD_angelic_choice distribute rad_ac2p_p2ac_inverse')
     by (simp only: conj_pred_def)
@@ -78,17 +78,17 @@ qed
 (* Paper Theorem 21 / Thesis Theorem T.5.4.3. *)
 theorem RAD_angelic_choice_CSP_refine:
   assumes "P is RAD" "Q is RAD"
-  shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q \<sqsubseteq> rad_p2ac (rad_ac2p P \<squnion> rad_ac2p Q)"
+  shows "P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q \<sqsubseteq> p2ac (ac2p P \<squnion> ac2p Q)"
 proof -
-  have P_round: "P \<sqsubseteq> rad_p2ac (rad_ac2p P)"
+  have P_round: "P \<sqsubseteq> p2ac (ac2p P)"
     by (rule rad_p2ac_ac2p_refine'[OF RAD_is_PBMH_ades[OF assms(1)]])
-  have Q_round: "Q \<sqsubseteq> rad_p2ac (rad_ac2p Q)"
+  have Q_round: "Q \<sqsubseteq> p2ac (ac2p Q)"
     by (rule rad_p2ac_ac2p_refine'[OF RAD_is_PBMH_ades[OF assms(2)]])
   have "(P \<and> Q) \<sqsubseteq>
-      (rad_p2ac (rad_ac2p P) \<and> rad_p2ac (rad_ac2p Q))"
+      (p2ac (ac2p P) \<and> p2ac (ac2p Q))"
     by (rule pred_ba.inf_mono[OF P_round Q_round])
   also have "... \<sqsubseteq>
-      rad_p2ac (rad_ac2p P \<and> rad_ac2p Q)"
+      p2ac (ac2p P \<and> ac2p Q)"
     by (rule rad_p2ac_conj)
   finally show ?thesis
     apply (simp only: RAD_angelic_choice)
@@ -145,22 +145,22 @@ qed
 
 (* Paper Theorem 23 / Thesis Theorem T.5.4.5. *)
 theorem RAD_demonic_choice_CSP_distrib:
-  "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) =
-   rad_p2ac (rad_ac2p P) \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac (rad_ac2p Q)"
+  "p2ac (ac2p P \<sqinter> ac2p Q) =
+   p2ac (ac2p P) \<sqinter>\<^sub>R\<^sub>A\<^sub>D p2ac (ac2p Q)"
   by (rule rad_p2ac_disj[simplified disj_pred_def])
 
 (* Paper Lemma 7 / Thesis Lemma L.5.4.1. *)
 lemma RAD_demonic_choice_CSP_A2:
   assumes "P is RAD" "Q is RAD"
     and "P is A2" "Q is A2"
-  shows "rad_p2ac (rad_ac2p P \<sqinter> rad_ac2p Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
+  shows "p2ac (ac2p P \<sqinter> ac2p Q) = P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q"
   by (simp only: RAD_demonic_choice_CSP_distrib
       rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 (* Paper Theorem 24 / Thesis Theorem T.5.4.6. *)
 theorem RAD_demonic_choice_CSP:
-  "rad_ac2p (rad_p2ac P \<sqinter>\<^sub>R\<^sub>A\<^sub>D rad_p2ac Q) = P \<sqinter> Q"
+  "ac2p (p2ac P \<sqinter>\<^sub>R\<^sub>A\<^sub>D p2ac Q) = P \<sqinter> Q"
   by (simp only: rad_ac2p_disj[simplified disj_pred_def]
       rad_ac2p_p2ac_inverse')
 
@@ -353,8 +353,8 @@ subsection \<open>Stop\<close>
 (* Paper Definition 41: \<in>\<^sub>a\<^sub>c y \<bullet> y.tr = s.tr \<and> y.wait *)
 definition stop_post :: "('t::trace, 'e) reactive_angelic_design" where
 [pred]: "stop_post = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
-  rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-  rad_state.wait\<^sub>v y))"
+  rad_tr\<^sub>v y = rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+  rad_wait\<^sub>v y))"
 
 (* Paper Definition 41. *)
 definition Stop_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>R\<^sub>A\<^sub>D") where
@@ -363,7 +363,7 @@ definition Stop_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>R\
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
 lemma stop_post_p2ac:
   "stop_post = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and> rad_state.wait\<^sub>v y)\<rceil>\<^sub>D"
+    rad_tr\<^sub>v y = rad_tr\<^sub>v s \<and> rad_wait\<^sub>v y)\<rceil>\<^sub>D"
   by (simp add: stop_post_def ades_singleton_choice_def p2ac_def fun_eq_iff subst_app_def
       subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
       pred_auto; blast)
@@ -374,7 +374,7 @@ lemma stop_post_PBMH [simp]: "PBMH_ades stop_post = stop_post"
 lemma rad_wait_false_stop_post: "(stop_post \<^sub>f) = stop_post"
   by (simp add: stop_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma stop_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> stop_post"
   apply (simp add: unrest_lens stop_post_def ades_singleton_choice_def)
@@ -391,9 +391,16 @@ lemma stop_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> stop_post"
 (* The Stop postcondition only relates the traces of the initial and
    final states, so trace normalisation leaves it fixed. *)
 lemma RA2_stop_post: "RA2 stop_post = stop_post"
-  by (simp add: RA2_def stop_post_def ades_singleton_choice_def rad_normalise_choices_def
+  apply (simp add: RA2_def stop_post_def ades_singleton_choice_def rad_normalise_choices_def
       rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def;
-      pred_auto; force dest: minus_zero_eq[rotated])
+      pred_auto)
+  subgoal for t ac w r ta
+    by (frule (1) minus_zero_eq[rotated],
+        rule_tac x="rea_vars_ext True ta r" in bexI; simp)
+  subgoal for ac y
+    apply (cases y)
+    by force
+  done
 
 lemma stop_post_ok_in_subst [usubst]:
   "stop_post\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> = stop_post"
@@ -557,7 +564,7 @@ subsection \<open>Skip\<close>
 (* Paper Definition 42: \<in>\<^sub>a\<^sub>c y \<bullet> \<not> y.wait \<and> y.tr = s.tr *)
 definition skip_post :: "('t::trace, 'e) reactive_angelic_design" where
 [pred]: "skip_post = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
-  \<not> rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))))"
+  \<not> rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))))"
 
 (* Paper Definition 42. *)
 definition Skip_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Skip\<^sub>R\<^sub>A\<^sub>D") where
@@ -566,7 +573,7 @@ definition Skip_RAD :: "('t::trace, 'e) reactive_angelic_design" ("Skip\<^sub>R\
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
 lemma skip_post_p2ac:
   "skip_post = p2ac \<lceil>(\<lambda> (s, y).
-    \<not> rad_state.wait\<^sub>v y \<and> rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s)\<rceil>\<^sub>D"
+    \<not> rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s)\<rceil>\<^sub>D"
   by (simp add: skip_post_def ades_singleton_choice_def p2ac_def fun_eq_iff subst_app_def
       subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
       pred_auto; blast)
@@ -577,7 +584,7 @@ lemma skip_post_PBMH [simp]: "PBMH_ades skip_post = skip_post"
 lemma rad_wait_false_skip_post: "(skip_post \<^sub>f) = skip_post"
   by (simp add: skip_post_def ades_singleton_choice_def rad_wait_false_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma RA1_skip_post: "RA1 skip_post = skip_post"
   apply (simp add: RA1_def skip_post_def ades_singleton_choice_def
@@ -589,9 +596,16 @@ lemma RA1_skip_post: "RA1 skip_post = skip_post"
   done
 
 lemma RA2_skip_post: "RA2 skip_post = skip_post"
-  by (simp add: RA2_def skip_post_def ades_singleton_choice_def rad_normalise_choices_def
+  apply (simp add: RA2_def skip_post_def ades_singleton_choice_def rad_normalise_choices_def
       rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def;
-      pred_auto; force dest: minus_zero_eq[rotated])
+      pred_auto)
+  subgoal for t ac w r ta
+    by (frule (1) minus_zero_eq[rotated],
+        rule_tac x="rea_vars_ext False ta r" in bexI; simp)
+  subgoal for ac y
+    apply (cases y)
+    by force
+  done
 
 lemma skip_post_unrest_ok_in [unrest]: "$ok\<^sup>< \<sharp> skip_post"
   apply (simp add: unrest_lens skip_post_def ades_singleton_choice_def)
@@ -697,12 +711,12 @@ subsection \<open>Prefixing\<close>
 (* \<exists> y \<in> ac' \<bullet> (y.tr = s.tr \<and> a \<notin> y.ref) \<triangleleft> y.wait \<triangleright> y.tr = s.tr @ [a] *)
 definition prefix_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_post a = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
-  ((\<lambda> z. rad_state.tr\<^sub>v z =
-          rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-        a \<notin> rad_state.ref\<^sub>v z)
-      \<triangleleft> $rad_state.wait \<triangleright>
-      (\<lambda> z. rad_state.tr\<^sub>v z =
-        rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])) y))"
+  ((\<lambda> z. rad_tr\<^sub>v z =
+          rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+        a \<notin> rad_ref\<^sub>v z)
+      \<triangleleft> $rad_wait \<triangleright>
+      (\<lambda> z. rad_tr\<^sub>v z =
+        rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])) y))"
 
 (* Paper Definition 43 / Thesis Definition 124. *)
 definition PrefixSkip_RAD :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
@@ -711,11 +725,11 @@ definition PrefixSkip_RAD :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_de
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
 lemma prefix_post_p2ac:
   "prefix_post a = p2ac \<lceil>(\<lambda> (s, y).
-    if rad_state.wait\<^sub>v y
-    then rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and>
-      a \<notin> rad_state.ref\<^sub>v y
-    else rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s @ [a])\<rceil>\<^sub>D"
-  by (simp add: prefix_post_def expr_if_def rad_state.wait_def
+    if rad_wait\<^sub>v y
+    then rad_tr\<^sub>v y = rad_tr\<^sub>v s \<and>
+      a \<notin> rad_ref\<^sub>v y
+    else rad_tr\<^sub>v y = rad_tr\<^sub>v s @ [a])\<rceil>\<^sub>D"
+  by (simp add: prefix_post_def expr_if_def rad_wait_def
       p2ac_def fun_eq_iff subst_app_def
       subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
       pred_auto; blast)
@@ -726,10 +740,10 @@ lemma prefix_post_PBMH [simp]:
 
 lemma rad_wait_false_prefix_post: "((prefix_post a) \<^sub>f) = prefix_post a"
   by (simp add: prefix_post_def ades_singleton_choice_def
-      expr_if_def rad_state.wait_def
+      expr_if_def rad_wait_def
       rad_wait_false_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 (* The prefix postcondition only relates the traces of the initial
    and final states, so trace normalisation leaves it fixed. *)
@@ -738,14 +752,14 @@ proof -
   have disj_form:
     "prefix_post a = (\<lambda> (s0, ac').
       \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-        rad_state.wait\<^sub>v y \<and>
-        rad_state.tr\<^sub>v y =
-          rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-        a \<notin> rad_state.ref\<^sub>v y \<or>
-        \<not> rad_state.wait\<^sub>v y \<and>
-        rad_state.tr\<^sub>v y =
-          rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])"
-    by (simp add: prefix_post_def expr_if_def rad_state.wait_def
+        rad_wait\<^sub>v y \<and>
+        rad_tr\<^sub>v y =
+          rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+        a \<notin> rad_ref\<^sub>v y \<or>
+        \<not> rad_wait\<^sub>v y \<and>
+        rad_tr\<^sub>v y =
+          rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a])"
+    by (simp add: prefix_post_def expr_if_def rad_wait_def
         fun_eq_iff; pred_auto)
   have nil: "xs \<le> ys \<Longrightarrow> ys - xs = [] \<Longrightarrow> ys = xs" for xs ys
     using minus_zero_eq by (auto simp add: zero_list_def)
@@ -757,23 +771,23 @@ proof -
     apply (simp add: RA2_def rad_normalise_choices_def
         rad_trace_difference_def rad_zero_trace_def fun_eq_iff Let_def)
     apply pred_auto
-    subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+    subgoal for t ac w r tb
       by (frule (1) nil,
-          rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
-            wait\<^sub>v = True\<rparr>" in bexI; simp)
-    subgoal for ok tr ref wait more morea okv ac moreb refv waitv trv
+          rule_tac x="rea_vars_ext True tb r" in bexI; simp)
+    subgoal for t ac w r tb
       by (frule (1) snoc,
-          rule_tac x="\<lparr>rad_state.tr\<^sub>v = trv, ref\<^sub>v = refv,
-            wait\<^sub>v = False\<rparr>" in bexI; simp)
-    subgoal by (fastforce simp add: diff_cancel zero_list_def)
-    subgoal by (fastforce intro: prefixI
-        simp add: plus_list_def[symmetric] add_diff_cancel_left)
+          rule_tac x="rea_vars_ext False tb r" in bexI; simp)
+    subgoal for ac y
+      by (cases y) (fastforce simp add: diff_cancel zero_list_def)
+    subgoal for t ac y
+      by (cases y) (fastforce intro: prefixI
+          simp add: plus_list_def[symmetric] add_diff_cancel_left)
     done
 qed
 
 lemma prefix_post_unrest_ok [unrest]: "$ok\<^sup>> \<sharp> prefix_post a"
   apply (simp add: unrest_lens prefix_post_def
-      ades_singleton_choice_def expr_if_def rad_state.wait_def)
+      ades_singleton_choice_def expr_if_def rad_wait_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs)
   done
@@ -864,22 +878,22 @@ definition extchoice_post ::
    ('t, 'e) reactive_angelic_design" where
 [pred]: "extchoice_post P Q = (\<in>\<^sub>a\<^sub>c y. (\<lambda> (s0, ac1).
   (((\<lambda> z. P (s0, ac1) \<and> Q (s0, ac1))
-    \<triangleleft> $rad_state.tr = \<guillemotleft>rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<guillemotright> \<and>
-       $rad_state.wait \<triangleright>
+    \<triangleleft> $rad_tr = \<guillemotleft>rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<guillemotright> \<and>
+       $rad_wait \<triangleright>
     (\<lambda> z. P (s0, ac1) \<or> Q (s0, ac1))) y)))"
 
 lemma rad_wait_false_extchoice_post:
   "((extchoice_post P Q) \<^sub>f) = extchoice_post (P \<^sub>f) (Q \<^sub>f)"
-  by (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_state.wait_def
-      rad_state.tr_def SEXP_def rad_wait_false_def fun_eq_iff
+  by (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_wait_def
+      rad_tr_def SEXP_def rad_wait_false_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def Let_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def Let_def)
 
 lemma extchoice_post_ok_in_subst:
   "(extchoice_post P Q)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
    extchoice_post (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>) (Q\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
-  by (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_state.wait_def
-      rad_state.tr_def SEXP_def fun_eq_iff subst_app_def
+  by (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_wait_def
+      rad_tr_def SEXP_def fun_eq_iff subst_app_def
       subst_upd_def subst_id_def SEXP_def lens_defs des_vars.ok_def
       astate.s_def des_vars.more\<^sub>L_def des_more_ok_update_commute
       Let_def; pred_auto)
@@ -913,8 +927,8 @@ proof -
   show ?thesis
     apply (subst unrest_lens)
      apply simp
-    apply (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_state.wait_def
-      rad_state.tr_def SEXP_def Let_def lens_defs
+    apply (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_wait_def
+      rad_tr_def SEXP_def Let_def lens_defs
         des_vars.ok_def case_prod_beta)
     using put_P put_Q
     by (simp add: des_more_ok_update_commute)
@@ -936,7 +950,7 @@ lemma extchoice_RAD_mono:
   apply (rule RA_mono, rule A_mono)
   using assms
   apply (auto simp add: pred_refine_iff extchoice_post_def ades_singleton_choice_def
-      expr_if_def rad_state.wait_def rad_state.tr_def rad_wait_false_def design_def
+      expr_if_def rad_wait_def rad_tr_def rad_wait_false_def design_def
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs comp_def
       astate.s_def des_vars.more\<^sub>L_def des_vars.ok_def
       conj_pred_def disj_pred_def not_pred_def impl_pred_def
@@ -949,10 +963,10 @@ lemma extchoice_RAD_mono:
 lemma extchoice_post_stop:
   "extchoice_post X (RA2 (RA1 stop_post)) = \<in>\<^sub>a\<^sub>c(X)"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_stop_post)
-  apply (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_state.wait_def
-      rad_state.tr_def SEXP_def ades_singleton_choice_def
+  apply (simp add: extchoice_post_def ades_singleton_choice_def expr_if_def rad_wait_def
+      rad_tr_def SEXP_def ades_singleton_choice_def
       RA1_def stop_post_def rad_trace_extensions_def fun_eq_iff
-      Let_def lens_defs rad_state.wait_def astate.s_def
+      Let_def lens_defs rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def)
   by (pred_auto; blast)
 

@@ -88,10 +88,10 @@ proof -
       by (cases "astate.s\<^sub>v (des_vars.more a)";
           cases "des_vars.more a"; cases a;
           cases "des_vars.more b"; cases b;
-          auto simp add: lens_defs des_vars.ok_def rad_state.wait_def
+          auto simp add: lens_defs des_vars.ok_def rad_wait_def
             astate.s_def des_vars.more\<^sub>L_def conj_pred_def
             true_pred_def intro: order_trans;
-          rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False) y"
+          rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False) y"
             in bexI;
           auto)
     done

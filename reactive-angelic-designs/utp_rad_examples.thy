@@ -53,8 +53,8 @@ lemma Stop_Skip_angelic_choice_RA:
 (* Under the singleton angelic choice imposed by ac2p, a final state
    cannot both wait and terminate. *)
 lemma rad_ac2p_stop_skip_design:
-  "rad_ac2p (true \<turnstile> (stop_post \<and> skip_post)) = (true \<turnstile> false)"
-  by (simp add: rad_ac2p_def; pred_auto; blast)
+  "ac2p (true \<turnstile> (stop_post \<and> skip_post)) = (true \<turnstile> false)"
+  by pred_auto
 
 abbreviation top_R ("\<top>\<^sub>R") where "\<top>\<^sub>R \<equiv> \<^bold>R (true \<turnstile> false)"
 
@@ -62,7 +62,7 @@ abbreviation top_R ("\<top>\<^sub>R") where "\<top>\<^sub>R \<equiv> \<^bold>R (
    deadlock and termination into CSP yields the top of the reactive
    design lattice. *)
 lemma rad_ac2p_Stop_Skip:
-  "rad_ac2p (Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D Skip\<^sub>R\<^sub>A\<^sub>D) = \<top>\<^sub>R"
+  "ac2p (Stop\<^sub>R\<^sub>A\<^sub>D \<squnion>\<^sub>R\<^sub>A\<^sub>D Skip\<^sub>R\<^sub>A\<^sub>D) = \<top>\<^sub>R"
 proof -
   have SS_PBMH: "(stop_post \<and> skip_post) is PBMH_ades"
     by (rule PBMH_ades_conj_closure; simp add: Healthy_def')
@@ -113,10 +113,10 @@ proof -
       by (cases "astate.s\<^sub>v (des_vars.more a)";
           cases "des_vars.more a"; cases a;
           cases "des_vars.more b"; cases b;
-          auto simp add: lens_defs des_vars.ok_def rad_state.wait_def
+          auto simp add: lens_defs des_vars.ok_def rad_wait_def
             astate.s_def des_vars.more\<^sub>L_def conj_pred_def true_pred_def
             intro: order_trans;
-          rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False) y"
+          rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False) y"
             in bexI;
           auto)
     done
@@ -143,20 +143,20 @@ subsection \<open>Prefixed deadlock avoids divergence (Example 16)\<close>
 definition prefix_stop_post :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_stop_post a = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.wait\<^sub>v y \<and>
-    (rad_state.tr\<^sub>v y =
-       rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-     a \<notin> rad_state.ref\<^sub>v y \<or>
-     rad_state.tr\<^sub>v y =
-       rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a]))"
+    rad_wait\<^sub>v y \<and>
+    (rad_tr\<^sub>v y =
+       rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+     a \<notin> rad_ref\<^sub>v y \<or>
+     rad_tr\<^sub>v y =
+       rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) @ [a]))"
 
 (* The paper's final-state quantifier is the predicate mapping p2ac. *)
 lemma prefix_stop_post_p2ac:
   "prefix_stop_post a = p2ac \<lceil>(\<lambda> (s, y).
-    rad_state.wait\<^sub>v y \<and>
-    (rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and>
-       a \<notin> rad_state.ref\<^sub>v y \<or>
-     rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s @ [a]))\<rceil>\<^sub>D"
+    rad_wait\<^sub>v y \<and>
+    (rad_tr\<^sub>v y = rad_tr\<^sub>v s \<and>
+       a \<notin> rad_ref\<^sub>v y \<or>
+     rad_tr\<^sub>v y = rad_tr\<^sub>v s @ [a]))\<rceil>\<^sub>D"
   by (simp add: prefix_stop_post_def p2ac_def fun_eq_iff subst_app_def
       subst_ext_def SEXP_def lens_defs des_vars.more\<^sub>L_def;
       pred_auto; blast)
@@ -184,7 +184,7 @@ lemma prefix_continuation_stop:
       prefix_stop_post_def ades_singleton_choice_def
       ades_state_choice_def expr_if_def
       rad_trace_extensions_def fun_eq_iff Let_def
-      lens_defs rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def
+      lens_defs rad_wait_def astate.s_def des_vars.more\<^sub>L_def
       bex_nonempty_absorb)
   apply clarify
   subgoal for x0 y0
@@ -192,7 +192,7 @@ lemma prefix_continuation_stop:
      apply fastforce
     apply (elim bexE conjE disjE)
      apply (rule_tac x=y in bexI; fastforce)
-    apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False) y"
+    apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False) y"
         in bexI; fastforce)
     done
   done
@@ -298,7 +298,7 @@ proof -
     apply (simp add: RA1_def aseq_ades_def prefix_stop_post_def
         skip_post_def ades_singleton_choice_def ades_state_choice_def expr_if_def
         rad_trace_extensions_def fun_eq_iff Let_def
-        lens_defs rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def
+        lens_defs rad_wait_def astate.s_def des_vars.more\<^sub>L_def
         conj_pred_def true_pred_def ex_in_conv[symmetric])
     apply clarify
     subgoal for x0 y0
@@ -308,9 +308,9 @@ proof -
       apply (rule conjI)
        apply (rule_tac x=y in bexI; fastforce)
       apply (rule conjI)
-       apply (rule_tac x="rad_state.wait\<^sub>v_update (\<lambda>_. False)
-           (rad_state.tr\<^sub>v_update
-             (\<lambda>_. rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)))
+       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
+           (rad_tr\<^sub>v_update
+             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)))
              y)" in bexI)
         apply fastforce
        apply (rule IntI)
@@ -417,7 +417,7 @@ proof -
   also have "... = (RA \<circ> A) (true \<turnstile> prefix_post a)"
     apply (rule arg_cong[where f="RA \<circ> A"])
     apply (simp only: design_inf)
-    by (simp add: prefix_post_def expr_if_def rad_state.wait_def
+    by (simp add: prefix_post_def expr_if_def rad_wait_def
         SEXP_def lens_defs prefix_offer_post_def
         prefix_diverge_post_def design_def fun_eq_iff Let_def;
         pred_auto)
@@ -605,7 +605,7 @@ proof -
         (true \<turnstile>
           (prefix_offer_post b \<or> prefix_diverge_post b)))"
     apply (simp add: prefix_post_def prefix_offer_post_def
-        prefix_diverge_post_def design_def expr_if_def rad_state.wait_def
+        prefix_diverge_post_def design_def expr_if_def rad_wait_def
         SEXP_def lens_defs fun_eq_iff Let_def)
     using assms
     by (pred_auto; auto)
@@ -620,22 +620,22 @@ subsection \<open>Mapping examples (Examples 13-14)\<close>
 
 (* Paper Example 13: CSP Skip maps to the reactive angelic identity. *)
 lemma rad_p2ac_Skip_R:
-  "rad_p2ac (II\<^sub>C :: ('t::trace, 'e set) rp_hrel) = II_Rac"
+  "p2ac (II\<^sub>C :: ('t::trace, 'e set) rp_hrel) = II_Rac"
   by (rule rad_p2ac_II_C)
 
 definition prefix_offer_pair_post ::
   "'e \<Rightarrow> 'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
 [pred]: "prefix_offer_pair_post a b = (\<lambda> (s0, ac').
   \<exists> y \<in> achoices.ac\<^sub>v (des_vars.more ac').
-    rad_state.wait\<^sub>v y \<and>
-    rad_state.tr\<^sub>v y =
-      rad_state.tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
-    a \<notin> rad_state.ref\<^sub>v y \<and> b \<notin> rad_state.ref\<^sub>v y)"
+    rad_wait\<^sub>v y \<and>
+    rad_tr\<^sub>v y =
+      rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more s0)) \<and>
+    a \<notin> rad_ref\<^sub>v y \<and> b \<notin> rad_ref\<^sub>v y)"
 
 (* The singleton round trip in Paper Example 14. *)
 lemma rad_p2ac_ac2p_prefix_stop_pair:
   assumes "a \<noteq> b"
-  shows "(rad_p2ac \<circ> rad_ac2p)
+  shows "(p2ac \<circ> ac2p)
       (prefix_stop_post a \<and> prefix_stop_post b) =
     prefix_offer_pair_post a b"
   apply (simp only: rad_p2ac_ac2p)
@@ -793,7 +793,7 @@ proof -
     apply (rule arg_cong[where f=RA1])
     by pred_auto
   have prepend_inj:
-      "inj (rad_state.tr\<^sub>v_update ((+) (xs :: 'e list)) ::
+      "inj (rad_tr\<^sub>v_update ((+) (xs :: 'e list)) ::
         ('e list, 'e) rad_state \<Rightarrow> ('e list, 'e) rad_state)" for xs
     apply (rule injI)
     subgoal for x y
@@ -801,8 +801,8 @@ proof -
           rule left_cancel_monoid_class.add_left_imp_eq)
     done
   have prepend_eq:
-      "rad_state.tr\<^sub>v_update ((+) (xs :: 'e list)) x =
-       rad_state.tr\<^sub>v_update ((+) xs) y \<longleftrightarrow> x = y"
+      "rad_tr\<^sub>v_update ((+) (xs :: 'e list)) x =
+       rad_tr\<^sub>v_update ((+) xs) y \<longleftrightarrow> x = y"
       for xs and x y :: "('e list, 'e) rad_state"
     by (rule inj_eq[OF prepend_inj])
   note prepend_eq[simp]
@@ -840,10 +840,10 @@ proof -
     done
   have pair_p2ac:
       "prefix_offer_pair_post a b = p2ac \<lceil>(\<lambda> (s, y).
-        rad_state.wait\<^sub>v y \<and>
-        rad_state.tr\<^sub>v y = rad_state.tr\<^sub>v s \<and>
-        a \<notin> rad_state.ref\<^sub>v y \<and>
-        b \<notin> rad_state.ref\<^sub>v y)\<rceil>\<^sub>D"
+        rad_wait\<^sub>v y \<and>
+        rad_tr\<^sub>v y = rad_tr\<^sub>v s \<and>
+        a \<notin> rad_ref\<^sub>v y \<and>
+        b \<notin> rad_ref\<^sub>v y)\<rceil>\<^sub>D"
     by (simp add: prefix_offer_pair_post_def p2ac_def fun_eq_iff
         subst_app_def subst_ext_def SEXP_def lens_defs
         des_vars.more\<^sub>L_def; pred_auto; blast)
@@ -924,11 +924,11 @@ qed
 subsection \<open>A2 correspondence and external choice\<close>
 
 lemma rad_p2ac_ac2p_Stop_RAD:
-  "(rad_p2ac \<circ> rad_ac2p) Stop\<^sub>R\<^sub>A\<^sub>D = Stop\<^sub>R\<^sub>A\<^sub>D"
+  "(p2ac \<circ> ac2p) Stop\<^sub>R\<^sub>A\<^sub>D = Stop\<^sub>R\<^sub>A\<^sub>D"
   by (rule rad_p2ac_ac2p_RAD_A2[OF Stop_RAD_is_RAD Stop_RAD_is_A2])
 
 lemma rad_p2ac_ac2p_Skip_RAD:
-  "(rad_p2ac \<circ> rad_ac2p) Skip\<^sub>R\<^sub>A\<^sub>D = Skip\<^sub>R\<^sub>A\<^sub>D"
+  "(p2ac \<circ> ac2p) Skip\<^sub>R\<^sub>A\<^sub>D = Skip\<^sub>R\<^sub>A\<^sub>D"
   by (rule rad_p2ac_ac2p_RAD_A2[OF Skip_RAD_is_RAD Skip_RAD_is_A2])
 
 lemma extchoice_Stop_RAD_Stop_RAD:

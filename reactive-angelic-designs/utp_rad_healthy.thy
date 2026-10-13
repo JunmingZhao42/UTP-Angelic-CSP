@@ -9,7 +9,7 @@ subsection \<open>RA1: Trace extension\<close>
 (* Paper Definition 27. *)
 definition rad_trace_extensions :: "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state set" where
 "rad_trace_extensions x =
-  {z. rad_state.tr\<^sub>v x \<le> rad_state.tr\<^sub>v z}"
+  {z. rad_tr\<^sub>v x \<le> rad_tr\<^sub>v z}"
 
 (* Paper Definition 28. *)
 (* RA1(P)(x, A) = P(x, rad_trace_extension(x) \<inter> A) \<and> A' \<noteq> \<emptyset> *)
@@ -254,14 +254,14 @@ subsection \<open>RA2: Trace-history independence\<close>
 (* s \<oplus> {tr \<mapsto> 0} *)
 definition rad_zero_trace :: "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state" where
 "rad_zero_trace s0 =
-  rad_state.tr\<^sub>v_update (\<lambda>_. 0) s0"
+  rad_tr\<^sub>v_update (\<lambda>_. 0) s0"
 
 (* z \<oplus> {tr \<mapsto> z.tr - s.tr} *)
 definition rad_trace_difference ::
   "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state" where
 "rad_trace_difference s0 z =
-  rad_state.tr\<^sub>v_update
-    (\<lambda>_. rad_state.tr\<^sub>v z - rad_state.tr\<^sub>v s0) z"
+  rad_tr\<^sub>v_update
+    (\<lambda>_. rad_tr\<^sub>v z - rad_tr\<^sub>v s0) z"
 
 (* { z[(z.tr-s.tr) / tr] | z \<in> ac' \<and> s.tr \<le> z.tr } *)
 definition rad_normalise_choices ::
@@ -269,7 +269,7 @@ definition rad_normalise_choices ::
 "rad_normalise_choices s0 ac' =
   {rad_trace_difference s0 z | z.
     z \<in> ac' \<and>
-    rad_state.tr\<^sub>v s0 \<le> rad_state.tr\<^sub>v z}"
+    rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v z}"
 
 lemma rad_normalise_choices_mono:
   "choices \<subseteq> choices' \<Longrightarrow>
@@ -278,18 +278,18 @@ lemma rad_normalise_choices_mono:
   by (auto simp add: rad_normalise_choices_def)
 
 lemma rad_trace_update_self [simp]:
-  "rad_state.tr\<^sub>v_update (\<lambda>_. rad_state.tr\<^sub>v z) z = z"
+  "rad_tr\<^sub>v_update (\<lambda>_. rad_tr\<^sub>v z) z = z"
   by (cases z) simp
 
 (* Normalising is the inverse image of prepending the initial trace. *)
 lemma rad_normalise_choices_as_prepend:
   "rad_normalise_choices s0 X =
-   {m. rad_state.tr\<^sub>v_update (\<lambda>tr. rad_state.tr\<^sub>v s0 + tr) m \<in> X}"
+   {m. rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) m \<in> X}"
   apply (rule Set.set_eqI)
   apply (auto simp add: rad_normalise_choices_def
       rad_trace_difference_def comp_def diff_add_cancel_left'
       intro!: exI[where x =
-        "rad_state.tr\<^sub>v_update (\<lambda>tr. rad_state.tr\<^sub>v s0 + tr) x" for x])
+        "rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) x" for x])
   done
 
 lemma rad_trace_append_assoc:
@@ -551,7 +551,7 @@ subsection \<open>Wait-false substitution\<close>
 
 abbreviation rad_wait_lens where
 "rad_wait_lens \<equiv>
-  rad_state.wait ;\<^sub>L astate.s ;\<^sub>L des_vars.more\<^sub>L"
+  rad_wait ;\<^sub>L astate.s ;\<^sub>L des_vars.more\<^sub>L"
 
 (* P_f \<equiv> P[s\<oplus>(wait \<mapsto> false)/s] *)
 definition rad_wait_false ::
@@ -623,7 +623,7 @@ lemma rad_wait_atom_ok_in_subst [usubst]:
 lemma rad_wait_false_as_state_subst:
   "rad_wait_false P =
    ades_state_subst
-     (subst_upd subst_id (rad_state.wait ;\<^sub>L astate.s) (\<lambda>_. False)) P"
+     (subst_upd subst_id (rad_wait ;\<^sub>L astate.s) (\<lambda>_. False)) P"
   by (simp add: rad_wait_false_def subst_app_def subst_upd_def
       subst_id_def subst_aext_def fun_eq_iff lens_defs)
 
@@ -741,13 +741,13 @@ lemma RA1_wait_cond:
   "RA1 (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
    (RA1 P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA1 Q)"
   by (simp add: RA1_def expr_if_def fun_eq_iff Let_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma RA2_wait_cond:
   "RA2 (P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) =
    (RA2 P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 Q)"
   by (simp add: RA2_def expr_if_def fun_eq_iff Let_def lens_defs
-      rad_zero_trace_def rad_state.wait_def astate.s_def
+      rad_zero_trace_def rad_wait_def astate.s_def
       des_vars.more\<^sub>L_def)
 
 lemma II_Rac_design:
@@ -844,7 +844,7 @@ lemma RA3_wait_false_absorb: "RA3 P = (RA3 \<circ> rad_wait_false) P"
   subgoal for a b
     by (cases "astate.s\<^sub>v (des_vars.more a)";
         cases "des_vars.more a"; cases a;
-        simp add: lens_defs rad_state.wait_def astate.s_def
+        simp add: lens_defs rad_wait_def astate.s_def
           des_vars.more\<^sub>L_def)
   done
 
@@ -994,7 +994,7 @@ lemma RA_wait_false_ok_subst:
     by (cases "astate.s\<^sub>v (des_vars.more a)";
         cases "des_vars.more a"; cases a;
         cases "des_vars.more b"; cases b;
-        auto simp add: lens_defs des_vars.ok_def rad_state.wait_def astate.s_def
+        auto simp add: lens_defs des_vars.ok_def rad_wait_def astate.s_def
           des_vars.more\<^sub>L_def rad_trace_extensions_def
           rad_zero_trace_def rad_normalise_choices_def
           rad_trace_difference_def conj_commute conj_left_commute)
@@ -1250,13 +1250,13 @@ lemma RA1_not_ok_eval:
 
 lemma RA3_eval:
   "RA3 P (x, y) \<longleftrightarrow>
-   (if rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
+   (if rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
     then II_Rac (x, y) else P (x, y))"
   by (simp add: RA3_def expr_if_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma RA3_healthy_wait_eval:
-  assumes "P is RA3" "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
+  assumes "P is RA3" "rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
   shows "P (x, y) \<longleftrightarrow> II_Rac (x, y)"
 proof -
   have h: "RA3 P = P"

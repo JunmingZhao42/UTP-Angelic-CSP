@@ -69,14 +69,14 @@ lemma II_AP_eval:
 
 lemma RA3AP_eval:
   "RA3AP P (x, y) \<longleftrightarrow>
-   (if rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
+   (if rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
     then II_AP (x, y) else P (x, y))"
   by (simp add: RA3AP_def expr_if_def SEXP_def lens_defs
-      rad_state.wait_def astate.s_def des_vars.more\<^sub>L_def)
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma RA3AP_healthy_wait_eval:
   assumes "P is RA3AP"
-    "rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
+    "rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
   shows "P (x, y) \<longleftrightarrow> II_AP (x, y)"
 proof -
   have h: "RA3AP P = P"
@@ -106,7 +106,7 @@ lemma RA3AP_wait_false_absorb: "RA3AP P = (RA3AP \<circ> rad_wait_false) P"
   subgoal for a b
     by (cases "astate.s\<^sub>v (des_vars.more a)";
         cases "des_vars.more a"; cases a;
-        simp add: lens_defs rad_state.wait_def astate.s_def
+        simp add: lens_defs rad_wait_def astate.s_def
           des_vars.more\<^sub>L_def)
   done
 
@@ -508,19 +508,19 @@ definition AP_feasible ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> bool" where
 "AP_feasible P \<longleftrightarrow>
   (\<forall>s0. des_vars.ok\<^sub>v s0 \<and>
-      \<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))
+      \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))
     \<longrightarrow> (\<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out))"
 
 lemma AP_feasibleI:
   assumes "\<And>s0. \<lbrakk>des_vars.ok\<^sub>v s0;
-      \<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<rbrakk>
+      \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<rbrakk>
     \<Longrightarrow> \<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out"
   shows "AP_feasible P"
   using assms by (auto simp: AP_feasible_def)
 
 lemma AP_feasibleD:
   assumes "AP_feasible P" "des_vars.ok\<^sub>v s0"
-    "\<not> rad_state.wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))"
+    "\<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))"
   obtains out where "P (s0, out)" "des_vars.ok\<^sub>v out"
   using assms by (auto simp: AP_feasible_def)
 
