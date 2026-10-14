@@ -34,12 +34,11 @@ where
     rad_wait\<^sub>v z = (rad_wait\<^sub>v l \<or> rad_wait\<^sub>v r)"
 
 
-text \<open>This operator lifts full reactive merge observations and uses p2ac rather
-  than d2ac. The public operator applies RAD after parallel. For RAD and A2
-  operands, a RADm-healthy merge makes that completion redundant. This is the
-  only RAD parallel operator in this branch.\<close>
+text \<open>Parallel uses a lifted merge on complete reactive observations.
+  RAD and A2 operands yield a RAD-healthy result when the merge is RADm-healthy.
+  The ordinary correspondence uses p2ac rather than d2ac.\<close>
 
-subsection \<open>Why the AD completion cannot be reused directly\<close>
+subsection \<open>Empty choice sets\<close>
 
 lemma RAD_empty:
   assumes "P is RAD"
@@ -268,7 +267,7 @@ lemma RADm_unstarted:
 
 end
 
-subsection \<open>Choice-set lifting and raw correspondence\<close>
+subsection \<open>Choice-set lifting\<close>
 
 text \<open>Every pair of branch states must have a merged output in the final set.
   The ordinary merge supplies the control, trace, waiting and refusal policy.\<close>
@@ -323,34 +322,6 @@ proof -
     by (simp add: SymMerge_ades rad_lift_merge_def Let_def sym; blast)
 qed
 
-lemma rad_par_raw_p2ac:
-  fixes P Q :: "('t::trace, 'e set) rp_hrel"
-  shows "p2ac (P \<parallel>\<^bsub>M\<^esub> Q) =
-    (p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> p2ac Q)"
-  apply (rule ades_obs_ext)
-  apply (simp only: rad_p2ac_obs par_by_merge_eval
-      ades_par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
-  apply (simp only: des_vars.splits)
-  by (blast intro: exI[where x="{_}"])
-
-lemma rad_par_raw_A2:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is A2"
-proof -
-  have form: "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
-      p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
-    by (simp only: rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
-        rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
-  show ?thesis by (simp add: form Healthy_def')
-qed
-
-lemma rad_par_raw_ac2p:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "ac2p (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) = (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
-  by (metis rad_ac2p_p2ac_inverse' rad_par_raw_p2ac rad_p2ac_ac2p_RAD_A2' assms)
-
-subsection \<open>Reactive-design healthiness and completed parallel\<close>
-
 lemma rad_p2ac_RD1:
   "p2ac (RD1 P) = CSPA1 (p2ac P)"
   apply (rule ades_obs_ext)
@@ -378,69 +349,44 @@ lemma rad_p2ac_RD_closure:
   shows "p2ac P is RAD"
   by (simp only: Healthy_def' rad_p2ac_RD[symmetric] Healthy_if[OF assms])
 
+subsection \<open>RAD parallel by merge\<close>
+
 definition rad_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
     ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
   ("_ \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
-  "rad_par P M Q = RAD (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
-
-lemma rad_par_RAD:
-  "rad_par P M Q is RAD"
-  by (simp add: rad_par_def RAD_healthy)
+  "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q = (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
 
 lemma rad_par_p2ac:
-  "rad_par (p2ac P) M (p2ac Q) =
-    p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q))"
-  by (simp only: rad_par_def rad_par_raw_p2ac[symmetric]
-      rad_p2ac_RD)
+  fixes P Q :: "('t::trace, 'e set) rp_hrel"
+  shows "p2ac P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> p2ac Q = p2ac (P \<parallel>\<^bsub>M\<^esub> Q)"
+  unfolding rad_par_def
+  apply (rule ades_obs_ext)
+  apply (simp only: rad_p2ac_obs par_by_merge_eval
+      ades_par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
+  apply (simp only: des_vars.splits)
+  by (blast intro: exI[where x="{_}"])
 
 lemma rad_par_form:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_par P M Q =
-    p2ac (RD (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q))"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q = p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   using rad_par_p2ac[of "ac2p P" M "ac2p Q"]
   by (simp only: rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
       rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
 
 lemma rad_par_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "ac2p (rad_par P M Q) =
-    RD (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
+  shows "ac2p (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) = (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   by (simp only: rad_par_form[OF assms] rad_ac2p_p2ac_inverse')
 
 lemma rad_par_A2:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_par P M Q is A2"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is A2"
   by (simp add: rad_par_form[OF assms] Healthy_def')
 
-text \<open>Closure transfers from ordinary parallel: if it is RD-healthy, the raw
-  lifted parallel is already RAD-healthy. The RADm results below discharge
-  this obligation using a condition on the merge alone.\<close>
-
-lemma rad_par_raw_RAD:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    "(ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q) is RD"
-  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
-  using rad_p2ac_RD_closure[OF assms(5)]
-  by (simp only: rad_par_raw_p2ac
-      rad_p2ac_ac2p_RAD_A2'[OF assms(1,3)]
-      rad_p2ac_ac2p_RAD_A2'[OF assms(2,4)])
-
-lemma rad_par_ac2p_RD:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    "(ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q) is RD"
-  shows "ac2p (rad_par P M Q) =
-    (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
-  by (simp only: rad_par_ac2p[OF assms(1-4)] Healthy_if[OF assms(5)])
-
-subsection \<open>RAD Closure Without Completion\<close>
-
-text \<open>RAD and A2 operands map to ordinary RD predicates. A RADm-healthy
-  merge therefore makes lifted parallel RAD-healthy before completion.
-  RADm is sufficient; no necessity claim is made. The same merge is used on
-  both sides of each correspondence. No normality premise or excluded-output
-  witness is required.\<close>
+text \<open>Closure transfers from ordinary RD parallel through p2ac. RADm is
+  sufficient; no normality premise or excluded-output witness is required.\<close>
 
 lemma rad_ac2p_RD:
   assumes "P is RAD" "P is A2"
@@ -453,59 +399,31 @@ proof -
   then show ?thesis by (simp only: Healthy_def')
 qed
 
-lemma rad_par_raw_RADm [closure]:
+lemma rad_par_RAD [closure]:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) is RAD"
-  by (rule rad_par_raw_RAD[OF assms(1-4)];
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD"
+  unfolding rad_par_form[OF assms(1-4)]
+  by (rule rad_p2ac_RD_closure,
       rule RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
-
-lemma rad_par_eq_raw:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "rad_par P M Q = (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
-  by (simp only: rad_par_def Healthy_if[OF rad_par_raw_RADm[OF assms]])
-
-lemma rad_par_RADm_eq_raw:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-  shows "rad_par P (RADm M) Q = (P \<parallel>\<^bsub>rad_lift_merge (RADm M)\<^esub> Q)"
-  by (rule rad_par_eq_raw[OF assms RADm_healthy])
-
-lemma rad_par_ac2p_RADm:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "ac2p (rad_par P M Q) = (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
-  by (rule rad_par_ac2p_RD[OF assms(1-4)];
-      rule RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
-
-lemma rad_par_form_RADm:
-  assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is RADm"
-  shows "rad_par P M Q = p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
-  by (simp only: rad_par_form[OF assms(1-4)]
-      Healthy_if[OF RD_par_by_RADm[OF rad_ac2p_RD[OF assms(1,3)]
-        rad_ac2p_RD[OF assms(2,4)] assms(5)]])
-
-lemma rad_par_p2ac_RADm:
-  assumes "D is RD" "E is RD" "M is RADm"
-  shows "rad_par (p2ac D) M (p2ac E) = p2ac (D \<parallel>\<^bsub>M\<^esub> E)"
-  by (simp only: rad_par_p2ac Healthy_if[OF RD_par_by_RADm[OF assms]])
 
 subsection \<open>Algebra\<close>
 
 lemma rad_par_mono:
   assumes "P1 \<sqsubseteq> P2" "Q1 \<sqsubseteq> Q2"
-  shows "rad_par P1 M Q1 \<sqsubseteq> rad_par P2 M Q2"
+  shows "P1 \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q1 \<sqsubseteq> P2 \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q2"
   unfolding rad_par_def
-  by (rule RAD_mono; use assms in
-      \<open>auto simp: pred_refine_iff ades_par_by_merge_eval split: prod.splits; blast\<close>)
+  using assms
+  by (auto simp: pred_refine_iff ades_par_by_merge_eval split: prod.splits; blast)
 
 lemma rad_par_comm:
   assumes "rad_lift_merge M is SymMerge"
-  shows "rad_par P M Q = rad_par Q M P"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q = Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> P"
   unfolding rad_par_def
-  by (rule arg_cong[where f=RAD], rule par_by_merge_comm;
-      use assms in \<open>simp add: Healthy_def'\<close>)
+  by (rule par_by_merge_comm; use assms in \<open>simp add: Healthy_def'\<close>)
 
 lemma rad_par_comm_merge:
   assumes "M is SymMerge"
-  shows "rad_par P M Q = rad_par Q M P"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q = Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> P"
   by (rule rad_par_comm[OF rad_lift_merge_SymMerge[OF assms]])
 
 lemma rad_par_assoc_state:
@@ -514,25 +432,25 @@ lemma rad_par_assoc_state:
     and assoc: "\<And>x p q r z.
       (\<exists>u. merge_eval M x p q u \<and> merge_eval M x u r z) =
       (\<exists>u. merge_eval M x q r u \<and> merge_eval M x p u z)"
-  shows "rad_par (rad_par P M Q) M R = rad_par P M (rad_par Q M R)"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R = P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R)"
 proof -
   have ordinary: "((D \<parallel>\<^bsub>M\<^esub> E) \<parallel>\<^bsub>M\<^esub> F) = (D \<parallel>\<^bsub>M\<^esub> (E \<parallel>\<^bsub>M\<^esub> F))" for D E F
     by (rule ext; simp only: split_paired_all par_by_merge_eval; use assoc in blast)
-  have pq: "rad_par P M Q is RAD" "rad_par P M Q is A2"
-    by (simp_all add: rad_par_RAD rad_par_A2[OF assms(1,2,4,5)])
-  have qr: "rad_par Q M R is RAD" "rad_par Q M R is A2"
-    by (simp_all add: rad_par_RAD rad_par_A2[OF assms(2,3,5,6)])
+  have pq: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD" "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is A2"
+    by (simp_all add: rad_par_RAD[OF assms(1,2,4,5,7)] rad_par_A2[OF assms(1,2,4,5)])
+  have qr: "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is RAD" "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is A2"
+    by (simp_all add: rad_par_RAD[OF assms(2,3,5,6,7)] rad_par_A2[OF assms(2,3,5,6)])
   show ?thesis
-    by (simp only: rad_par_form_RADm[OF pq(1) assms(3) pq(2) assms(6,7)]
-        rad_par_form_RADm[OF assms(1) qr(1) assms(4) qr(2) assms(7)]
-        rad_par_ac2p_RADm[OF assms(1,2,4,5,7)]
-        rad_par_ac2p_RADm[OF assms(2,3,5,6,7)] ordinary)
+    by (simp only: rad_par_form[OF pq(1) assms(3) pq(2) assms(6)]
+        rad_par_form[OF assms(1) qr(1) assms(4) qr(2)]
+        rad_par_ac2p[OF assms(1,2,4,5)]
+        rad_par_ac2p[OF assms(2,3,5,6)] ordinary)
 qed
 
 lemma rad_par_assoc:
   assumes "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2"
     "M is RADm" "M is SymMerge" "AssocMerge M"
-  shows "rad_par (rad_par P M Q) M R = rad_par P M (rad_par Q M R)"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R = P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R)"
   by (rule rad_par_assoc_state[OF assms(1-7) AssocMerge_eval[OF assms(8,9)]])
 
 

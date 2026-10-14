@@ -116,28 +116,32 @@ lemma ap_RD_reverse_roundtrip_NDAP:
 subsection \<open>Parallel transported through RAD\<close>
 
 text \<open>This construction uses the RAD parallel operator without a new set lift.
-  Its ordinary correspondence retains RD after parallel.\<close>
+  Closure follows from healthy operands and a RADm-healthy merge.\<close>
 
 definition ap_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
    ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
   ("_ \<parallel>\<^sub>A\<^sub>P\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
-  "ap_par P M Q = H1 (rad_par (RA1 P) M (RA1 Q))"
+  "ap_par P M Q = H1 (RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> RA1 Q)"
 
 lemma ap_par_AP:
-  "ap_par P M Q is AP"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  shows "ap_par P M Q is AP"
   unfolding ap_par_def
-  by (rule H1_RAD_AP_closure[OF rad_par_RAD])
+  by (rule H1_RAD_AP_closure, rule rad_par_RAD;
+      simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_RA1:
-  "RA1 (ap_par P M Q) = rad_par (RA1 P) M (RA1 Q)"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  shows "RA1 (ap_par P M Q) = (RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> RA1 Q)"
   unfolding ap_par_def
-  by (rule RA1_H1_RAD_healthy[OF rad_par_RAD, simplified comp_apply])
+  by (rule RA1_H1_RAD_healthy[simplified comp_apply], rule rad_par_RAD;
+      simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_H1:
   assumes "P is RAD" "Q is RAD"
-  shows "ap_par (H1 P) M (H1 Q) = H1 (rad_par P M Q)"
+  shows "ap_par (H1 P) M (H1 Q) = H1 (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q)"
   by (simp only: ap_par_def
       RA1_H1_RAD_healthy[OF assms(1), simplified comp_apply]
       RA1_H1_RAD_healthy[OF assms(2), simplified comp_apply])
@@ -150,23 +154,24 @@ lemma ap_par_A2:
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_ac2p:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
   shows "ac2p (RA1 (ap_par P M Q)) =
-    RD (ac2p (RA1 P) \<parallel>\<^bsub>M\<^esub> ac2p (RA1 Q))"
-  unfolding ap_par_RA1
+    (ac2p (RA1 P) \<parallel>\<^bsub>M\<^esub> ac2p (RA1 Q))"
+  unfolding ap_par_RA1[OF assms]
   by (rule rad_par_ac2p;
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_p2ac:
   assumes "P is RD" "Q is RD"
   shows "ap_par (H1 (p2ac P)) M (H1 (p2ac Q)) =
-    H1 (p2ac (RD (P \<parallel>\<^bsub>M\<^esub> Q)))"
+    H1 (p2ac (P \<parallel>\<^bsub>M\<^esub> Q))"
   by (simp only: ap_par_H1[OF rad_p2ac_RD_closure[OF assms(1)]
         rad_p2ac_RD_closure[OF assms(2)]] rad_par_p2ac)
 
 lemma ap_par_roundtrip:
-  "H1 (RA1 (ap_par P M Q)) = ap_par P M Q"
-  by (subst ap_par_RA1; simp only: ap_par_def)
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  shows "H1 (RA1 (ap_par P M Q)) = ap_par P M Q"
+  by (subst ap_par_RA1[OF assms]; simp only: ap_par_def)
 
 lemma ap_par_normalise_operands:
   "ap_par (H1 (RA1 (AP P))) M (H1 (RA1 (AP Q))) =

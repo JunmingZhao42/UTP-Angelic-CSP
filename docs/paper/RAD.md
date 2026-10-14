@@ -303,11 +303,11 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 
 | Research result | Premises | Implementation |
 | --- | --- | --- |
-| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L276) |
-| RADm is a monotonic, idempotent transformer on ordinary reactive merges. | None | [`RADm`](../../reactive-angelic-designs/utp_rad_parallel.thy#L170), [`RADm_Monotonic`](../../reactive-angelic-designs/utp_rad_parallel.thy#L187), [`RADm_Idempotent`](../../reactive-angelic-designs/utp_rad_parallel.thy#L184) |
-| `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L370) |
-| `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L445) |
-| Raw lifted parallel is RAD-healthy; applying RAD afterwards is redundant. | `P`, `Q` both RAD and A2; `M is RADm` | [`rad_par_raw_RADm`](../../reactive-angelic-designs/utp_rad_parallel.thy#L456), [`rad_par_eq_raw`](../../reactive-angelic-designs/utp_rad_parallel.thy#L462) |
+| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L275) |
+| RADm is a monotonic, idempotent transformer on ordinary reactive merges. | None | [`RADm`](../../reactive-angelic-designs/utp_rad_parallel.thy#L169), [`RADm_Monotonic`](../../reactive-angelic-designs/utp_rad_parallel.thy#L186), [`RADm_Idempotent`](../../reactive-angelic-designs/utp_rad_parallel.thy#L183) |
+| `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L341) |
+| `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L391) |
+| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is RADm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L402) |
 
 The migration-only [representation comparison](../../reactive-angelic-designs/utp_rad_representation.thy) checks correspondence with the former custom record. Its encode/decode definitions are not used by the RAD implementation or by the proofs above.
 
