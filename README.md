@@ -17,73 +17,99 @@ The three sessions build on each other:
 AD, RAD and AP layer. This experimental work is included in the build.
 The reviewed development is on `main`.
 
-| Documentation | Contents |
-| --- | --- |
-| [Paper coverage](docs/PAPER_COVERAGE.md) | Coverage index, qualifications and links to the three layer guides |
-| [AD](docs/AD.md) · [RAD](docs/RAD.md) · [AP](docs/AP.md) | Definitions, formulas, exact premises and implementation links mapped to the paper and thesis |
-| [Baseline checks](docs/BASELINE.md) | Full-project and paper-only build checks |
-| [Parallel by merge](PARALLEL.md) | The AD/RAD/AP operators, merge healthiness, closure proofs and examples |
-| [Semantic notes](docs/SEMANTIC_NOTES.md) | Observation alphabets, operators and differences from the sources |
-| [Research boundary](docs/RESEARCH_BOUNDARY.md) | Paper baseline and parallel research scope |
+See the [documentation index](docs/README.md) for the paper guides, parallel
+notes, build checks and source correspondence review.
 
 ## Parallel by merge
 
 AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge
 and applies RAD. AP transports RAD parallel through RA1 and H1. Each layer
 has closure and mapping laws with explicit premises; AP transport can
-identify distinct divergent processes. See the [parallel guide](PARALLEL.md).
+identify distinct divergent processes. See the [parallel guide](docs/parallel/README.md).
 
 ## Build
 
 Use **Isabelle2025-2** and the dependency commits pinned in `deps/`.
 The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
-`Optics` and `Z_Toolkit` use compatibility forks recorded in `.gitmodules`.
+Optics uses the compatibility fork recorded in [.gitmodules](.gitmodules).
 
-From this branch's checkout, set the path to your Isabelle executable:
+### Setup
+
+From the repository root, set the executable and profile:
 
 ```bash
 export PROJECT_DIR="$PWD"
 export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
 export UTP_PROFILE="utp-2025-2"
+
+git submodule sync --recursive
+git submodule update --init --recursive
 ```
 
-For an existing clone, run `git submodule sync --recursive`, then
-`git submodule update --init --recursive`.
-Install the profile templates and build all three sessions:
+Install the profile templates:
 
 ```bash
 mkdir -p "$HOME/.isabelle/$UTP_PROFILE/etc"
 cp isabelle-profile/ROOTS "$HOME/.isabelle/$UTP_PROFILE/ROOTS"
 cp isabelle-profile/settings "$HOME/.isabelle/$UTP_PROFILE/etc/settings"
-
-ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build \
-  -b -o system_heaps=false UTP-Angelic-CSP
 ```
 
-Keep `PROJECT_DIR` exported when using this profile. Replace `-b` with `-n`
-for a freshness check without rebuilding.
+Keep `PROJECT_DIR` exported when using this profile.
+
+### Full build
+
+Build all three sessions, including the parallel development:
+
+```bash
+./scripts/fullbuild.sh
+```
+
+Pass `-n` for a freshness check: `./scripts/fullbuild.sh -n`.
+
+### Paper-only build
+
+Build the development indexed by the [paper guides](docs/paper/README.md),
+without the parallel theories or RAD representation comparison:
+
+```bash
+./scripts/paperbuild.sh
+```
+
+This uses the current checkout and submodules. It temporarily adjusts the paper
+imports outside the checkout, then removes that temporary directory.
 
 ## Edit
 
 Open jEdit:
 
 ```bash
-ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" jedit \
-  -n -u -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
-  "$PROJECT_DIR/Angelic_CSP.thy"
+./scripts/edit.sh
 ```
 
 Or start the VS Code language server:
 
 ```bash
-ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" vscode_server \
-  -n -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
-  -d "$PROJECT_DIR/deps" -d "$PROJECT_DIR" \
-  -o system_heaps=false
+./scripts/edit.sh vscode
 ```
 
-Both reuse the AD heap while keeping RAD/AP editable. To edit AD theories
-too, use `-A UTP-Reactive-Designs` instead.
+Both keep RAD/AP editable. To edit AD too:
+
+```bash
+./scripts/edit.sh jedit -A UTP-Reactive-Designs
+```
+
+The scripts use `ISABELLE` and `UTP_PROFILE` from setup and accept additional
+Isabelle options. They locate the repository automatically.
+
+To check the helpers themselves, run [test-build-scripts.sh](scripts/test-build-scripts.sh):
+
+```bash
+./scripts/test-build-scripts.sh
+```
+
+It uses a mock Isabelle command to check paper exclusions, unchanged proof files,
+cleanup, failure handling and editor routing. It does not build proofs or open
+an editor.
 
 ## Background
 

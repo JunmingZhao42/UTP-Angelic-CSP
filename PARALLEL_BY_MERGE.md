@@ -2,7 +2,7 @@
 
 > These notes retain the earlier UTP walkthrough and pointwise angelic
 > construction. That angelic implementation has been removed from this
-> branch. Use [Parallel by merge](PARALLEL.md) for the current
+> branch. Use [Parallel by merge](docs/parallel/README.md) for the current
 > conjunction-based operators and their assumptions.
 
 This note explains the main mathematical ideas in
@@ -14,7 +14,7 @@ and the angelic theories build on the generic construction.
 
 The former generic AD/RAD/AP operators and merge-healthiness constructors
 are historical. This branch now has one parallel operator per layer, using
-merge lifting and the completion described in [Parallel by merge](PARALLEL.md).
+merge lifting and the completion described in [Parallel by merge](docs/parallel/README.md).
 The older state-level construction below is also historical.
 
 The central idea is:

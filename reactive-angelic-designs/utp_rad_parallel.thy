@@ -381,6 +381,7 @@ lemma rad_p2ac_RD_closure:
 definition rad_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
     ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
+  ("_ \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
   "rad_par P M Q = RAD (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
 

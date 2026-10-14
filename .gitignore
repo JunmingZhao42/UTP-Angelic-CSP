@@ -1,43 +1,33 @@
-# macOS
+# OS and editor files
 .DS_Store
-
-# Editor backup and autosave files
 *~
 \#*\#
 .\#*
 *.swp
 *.swo
 
-# Local editor/project state
+# Local configuration and agent guidance
 .vscode/
+.mcp.json
+/.claude/
+/CLAUDE.md
+AGENTS.md
+project-plan.md
 
-# Isabelle build and generated output.
-# Normal heap images live under $HOME/.isabelle/$UTP_PROFILE, but ignore these
-# names in case a local build directory is created inside the repository.
+# Isabelle build output
 .isabelle/
 heaps/
 browser_info/
 generated/
 
-# Local Claude Code / MCP config (machine-specific absolute paths)
-.mcp.json
-.claude/settings.local.json
+# Local research and presentation material
+/audits/
+slides/
 
-# Temporary local scratch files
+# Temporary files and logs
 tmp/
 temp/
-project-plan.md
-AGENTS.md
 *.tmp
 *.bak
 *.orig
 *.log
-
-.claude/*
-
-# Local presentation material
-slides/
-
-# Local agent guidance and exploratory audits
-/CLAUDE.md
-/audits/

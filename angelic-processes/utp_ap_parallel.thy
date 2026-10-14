@@ -121,6 +121,7 @@ text \<open>This construction uses the RAD parallel operator without a new set l
 definition ap_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
    ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
+  ("_ \<parallel>\<^sub>A\<^sub>P\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
   "ap_par P M Q = H1 (rad_par (RA1 P) M (RA1 Q))"
 
