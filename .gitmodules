@@ -3,7 +3,7 @@
 	url = git@github.com:isabelle-utp/Abstract_Prog_Syntax.git
 [submodule "deps/UTP"]
 	path = deps/UTP
-	url = git@github.com:isabelle-utp/UTP.git
+	url = git@github.com:JunmingZhao42/UTP.git
 [submodule "deps/UTP-Designs"]
 	path = deps/UTP-Designs
 	url = git@github.com:isabelle-utp/UTP-Designs.git
