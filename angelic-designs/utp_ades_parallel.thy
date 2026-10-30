@@ -233,7 +233,7 @@ proof -
   show ?thesis
     apply (rule ades_obs_ext)
     apply (simp only: ades_par_eval[OF operands_H1]
-      ades_par_lifted_obs[OF assms] d2ac_healthy_obs[OF des_par_H_closure[OF designs_H]]
+      ades_par_lifted_obs[OF assms] d2ac_healthy_obs[OF des_par_H_closure[OF H_implies_H1[OF designs_H(1)] H_implies_H1[OF designs_H(2)]]]
       ordinary_parallel_obs ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(1)]]
       ac2p_healthy_obs[OF A_is_PBMH_ades[OF assms(2)]])
     by blast
@@ -255,14 +255,14 @@ proof -
         use assms(1,2) A_is_H[of P] A_is_H[of Q] in \<open>auto simp: Healthy_def'\<close>)+
   show ?thesis
     by (simp only: ades_par_d2ac_ac2p[OF assms]
-        ac2p_d2ac[OF des_par_H_closure[OF designs_H], simplified comp_apply])
+        ac2p_d2ac[OF des_par_H_closure[OF H_implies_H1[OF designs_H(1)] H_implies_H1[OF designs_H(2)]], simplified comp_apply])
 qed
 
 lemma ades_par_ac2p_d2ac:
   assumes "D is \<^bold>H" "E is \<^bold>H"
   shows "D \<parallel>\<^sub>D\<^bsub>j\<^esub> E = ac2p ((d2ac D) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (d2ac E))"
   by (simp only: ades_par_d2ac[OF assms]
-      ac2p_d2ac[OF des_par_H_closure[OF assms], simplified comp_apply])
+      ac2p_d2ac[OF des_par_H_closure[OF H_implies_H1[OF assms(1)] H_implies_H1[OF assms(2)]], simplified comp_apply])
 
 subsection \<open>Algebraic Properties\<close>
 
