@@ -2,7 +2,7 @@
 
 [Paper coverage](README.md) · [RAD](RAD.md) · [AP](AP.md)
 
-Paper §5 and Appendix A; thesis Chapter 4 and Appendix C. [Known correspondence corrections](../reviews/2026-10-14-source-correspondence.md) remain deferred.
+Paper §5 and Appendix A; thesis Chapter 4 and Appendix C. [Known correspondence corrections](https://github.com/JunmingZhao42/UTP-Angelic-CSP/issues/1) remain deferred.
 
 [Alphabet](#alphabet-and-notation) · [§5.1 Healthiness](#51-healthiness-conditions) · [§5.2 Composition](#52-sequential-composition) · [§5.3 Without angelic nondeterminism](#53-characterising-designs-without-angelic-nondeterminism) · [§5.4 To AD](#54-from-designs-to-angelic-designs) · [§5.5 From AD](#55-from-angelic-designs-to-designs) · [§5.6 Correspondence](#56-isomorphism-and-galois-connection) · [Appendix](#appendix-a-supporting-results) · [Theory files](#theory-files)
 
@@ -60,7 +60,7 @@ Alphabet lifting adds observation fields. [arel_to_ades](../../angelic-designs/u
 | T.4.5.1 | Sequential pre/postcondition calculation | PBMH-healthy left failure and success components | [angelic_rdesign_seq](../../angelic-designs/utp_ades_healthy.thy#L488), [angelic_design_seq_eq_simplified](../../angelic-designs/utp_ades_ops.thy#L348) |
 | §4.4 | Relation composition preserves PBMH | Both operands PBMH | [PBMH_aseq_closure](../../angelic-designs/utp_ades_healthy.thy#L125) |
 | T.4.5.3 | Design composition preserves A | Both operands A | [angelic_design_seq_A_closure](../../angelic-designs/utp_ades_healthy.thy#L1013) |
-| T.C.4.1 | Design composition preserves A2 | Both operands A2 | [angelic_design_seq_A2_closure](../../angelic-designs/utp_ades_healthy.thy#L1338) |
+| T.C.4.1 | Design composition preserves A2 | Both operands A2 | [angelic_design_seq_A2_closure](../../angelic-designs/utp_ades_healthy.thy#L1367) |
 | T.4.5.5–6 | Skip healthiness and left identity | None for healthiness; P is H for identity | [Skip_AD_is_A](../../angelic-designs/utp_ades_healthy.thy#L1035), [Skip_AD_seq_left_unit](../../angelic-designs/utp_ades_healthy.thy#L1038) |
 | T.4.5.8, qualified | Right identity iff normal | P is A | [Skip_AD_seq_right_unit_iff_normal](../../angelic-designs/utp_ades_healthy.thy#L1115) |
 | T.4.5.15 | Left demonic distribution | None | [angelic_design_seq_demonic](../../angelic-designs/utp_ades_ops.thy#L335) |
@@ -111,7 +111,7 @@ T6 and T8 require the additional A3 condition. [d2ac_ac2p_iff_A3](../../angelic-
 <details>
 <summary>Supplementary results</summary>
 
-For the additional mapping condition, start with [A3](../../angelic-designs/utp_ades_healthy.thy#L1419), [A3_healthy](../../angelic-designs/utp_ades_healthy.thy#L1441). Mapping closure and the qualified Galois law are in [d2ac_is_A](../../angelic-designs/utp_ades_designs.thy#L133), [d2ac_is_A2](../../angelic-designs/utp_ades_designs.thy#L136), [d2ac_is_A3](../../angelic-designs/utp_ades_designs.thy#L139), [ac2p_d2ac_galois](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
+For the additional mapping condition, start with [A3](../../angelic-designs/utp_ades_healthy.thy#L1448), [A3_healthy](../../angelic-designs/utp_ades_healthy.thy#L1480). Mapping closure and the qualified Galois law are in [d2ac_is_A](../../angelic-designs/utp_ades_designs.thy#L133), [d2ac_is_A2](../../angelic-designs/utp_ades_designs.thy#L136), [d2ac_is_A3](../../angelic-designs/utp_ades_designs.thy#L139), [ac2p_d2ac_galois](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
 
 </details>
 

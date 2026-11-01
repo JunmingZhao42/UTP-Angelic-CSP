@@ -12,18 +12,21 @@ The three sessions build on each other:
 | Reactive angelic designs (RAD) | `reactive-angelic-designs/` | `UTP-Reactive-Angelic-Designs` |
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
-[Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. The
-`research/parallel` branch keeps one parallel operator by lifted merge per
-AD, RAD and AP layer. This experimental work is included in the build.
+[Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. On `research/parallel2`,
+ordinary design parallel follows the raw state merge with design Skip, as the
+reactive-design merge does with reactive Skip: the merge constrains the output
+only when both branches terminate, and after divergence some merged state must
+still exist. The AD lifting and its ordinary-design correspondence proofs use
+this semantics; RAD/AP retain their separate reactive merge semantics.
 The reviewed development is on `main`.
 
 See the [documentation index](docs/README.md) for the paper guides, parallel
-notes, build checks and source correspondence review.
+notes and build checks.
 
 ## Parallel by merge
 
-AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge
-and applies RAD. AP transports RAD parallel through RA1 and H1. Each layer
+AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge,
+with no outer RAD wrapper. AP transports RAD parallel through RA1 and H1. Each layer
 has closure and mapping laws with explicit premises; AP transport can
 identify distinct divergent processes. See the [parallel guide](docs/parallel/README.md).
 
@@ -57,6 +60,13 @@ cp isabelle-profile/settings "$HOME/.isabelle/$UTP_PROFILE/etc/settings"
 Keep `PROJECT_DIR` exported when using this profile.
 
 ### Full build
+
+To build only the ordinary-design layer:
+
+```bash
+ISABELLE_IDENTIFIER="$UTP_PROFILE" "$ISABELLE" build -b -d deps \
+  -o system_heaps=false -o threads=4 UTP-Designs
+```
 
 Build all three sessions, including the parallel development:
 

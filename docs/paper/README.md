@@ -2,7 +2,7 @@
 
 [Documentation](../README.md) · [Parallel by merge](../parallel/README.md)
 
-The [source correspondence review](../reviews/2026-10-14-source-correspondence.md) records findings and recommended corrections. Those corrections remain deferred; this page indexes the existing correspondences rather than certifying exact agreement with every printed statement.
+Ten known corrections from the 14 October source review are tracked in [issue #1](https://github.com/JunmingZhao42/UTP-Angelic-CSP/issues/1) and remain deferred; this page indexes the existing correspondences rather than certifying exact agreement with every printed statement.
 
 | Topic | Paper | Main theorems | Appendix theorems |
 | --- | --- | --- | --- |
