@@ -31,3 +31,5 @@ temp/
 *.bak
 *.orig
 *.log
+*.json
+*.txt

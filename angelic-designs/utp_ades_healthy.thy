@@ -1320,6 +1320,35 @@ lemma A2_def':
 lemma PBMH_ades_A2 [simp]: "PBMH_ades (A2 P) = A2 P"
   by (simp only: A2_def' PBMH_ades_idem)
 
+lemma A_obs_A2:
+  assumes "P is A2"
+  shows "A P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not>b \<or> P (ades_obs True s0 False X) \<or>
+      (c \<and> X \<noteq> {} \<and> P (ades_obs True s0 True X)))"
+proof -
+  have PB: "PBMH_ades P = P"
+    using assms by (metis Healthy_def' PBMH_ades_A2)
+  show ?thesis
+    by (simp only: A_obs PBMH_ades_obs[symmetric] PB)
+qed
+
+lemma A_preserves_A2 [closure]:
+  assumes "P is A2"
+  shows "A P is A2"
+proof (rule Healthy_intro, rule ades_obs_ext)
+  fix b s0 c X
+  have obs: "P (ades_obs True s0 d Y) \<longleftrightarrow>
+    (P (ades_obs True s0 d {}) \<or> (\<exists>z\<in>Y. P (ades_obs True s0 d {z})))" for d Y
+    using A2_obs[of P True s0 d Y] by (simp only: Healthy_if[OF assms])
+  have up: "P (ades_obs True s0 True {}) \<Longrightarrow>
+    P (ades_obs True s0 True {z})" for z
+    using obs[of True "{z}"] by blast
+  show "A2 (A P) (ades_obs b s0 c X) = A P (ades_obs b s0 c X)"
+    apply (simp only: A2_obs A_obs_A2[OF assms])
+    using obs[of False X] obs[of True X] up
+    by blast
+qed
+
 lemma A2_false [simp]: "A2 false = false"
   by (simp add: A2_def fun_eq_iff; pred_auto)
 
@@ -1424,6 +1453,16 @@ lemma A3_is_H: "A3 P is \<^bold>H"
 
 text \<open>For a design, A3 adds empty-choice behaviour exactly when every
   singleton permits failure. Nonempty choice sets are unchanged.\<close>
+
+lemma A3_obs:
+  "A3 P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not>b \<or> P (ades_obs True s0 False X) \<or>
+     (X = {} \<and> (\<forall>z. P (ades_obs True s0 False {z}))) \<or>
+     (c \<and> P (ades_obs True s0 True X)))"
+  apply (simp add: A3_def A3_rel_def rdesign_def design_def pre_design_def post_design_def)
+  apply pred_auto
+  apply (simp_all add: des_more_ok_update_commute des_vars_collapse)
+  by auto
 
 lemma A3_obs_H:
   assumes "R is \<^bold>H"
