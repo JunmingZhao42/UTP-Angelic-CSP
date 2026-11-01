@@ -1,5 +1,13 @@
 # Generic AD parallel closure exploration
 
+> Installed on 2 November 2026 under new names: `generic_H1`, `generic_H2` and
+> `generic_H3` are D's `H1_par_by_merge`, `H2_par_by_merge` and
+> `H3_par_by_merge`; `generic_A_slices`, `generic_A2_atoms` and `generic_A3`
+> became `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`;
+> `normal_AD_A3` is `H1_H3_impl_A3`; `ADH1m`, `ADH2m`, `ADH3m` and `ADHM` are D's
+> `H1m`, `H2m`, `H3m` and `HDM`. The scratch below keeps the old names and no
+> longer loads. See the [AD guide](../../parallel/AD.md).
+
 Date: 2026-10-30. Scope: sufficient merge premises for healthiness of
 `P ∥[M] Q`, where `M :: 's ades_merge_rel` is arbitrary. All results below
 are proved in the isolated [scratch theory](scratch.thy).

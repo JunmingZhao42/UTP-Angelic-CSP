@@ -3,7 +3,11 @@
 [Overview](README.md) · [D](D.md) · [AD](AD.md) · [RAD](RAD.md) · [AP](AP.md)
 
 [utp_ades_parallel.thy](../../angelic-designs/utp_ades_parallel.thy)
-defines the sole AD operator, `ades_par`, written `P ∥AD[j] Q`.
+defines the sole AD operator, `ades_par`, written `P ∥AD[j] Q`. The theory
+first states conditions on an arbitrary merge under which parallel by merge
+preserves AD healthiness, then lifts a state merge to a merge that meets all
+of them, and finally defines `ades_par` and proves its laws. Lemmas are cited
+by name; all are in that theory unless a link says otherwise.
 
 ## Common notations
 
@@ -23,23 +27,104 @@ Branch and merged outputs pair a flag with a choice set, such as `(okL,SL)` and 
 | --- | --- |
 | `P`, `Q`, `R`| Angelic designs |
 | `D`, `E` | Ordinary designs |
+| `M :: 's ades_merge_rel` | AD merge: relates the prior and both branch outputs to an output |
 | `j :: 's merge`; `j(s0,sL,sR,sOut)` | State merge |
+| `P ∥[M] Q` | Generic parallel by merge |
 | `P ∥[merge_ades j] Q` | Lifted parallel |
 | `P ∥AD[j] Q` | AD parallel |
 | `D ∥D[j] E` | Ordinary-design parallel |
 
-## Lifting state merge
+## Merge observations and slices
 
-The construction converts a state merge into an angelic design merge. In the
-completed merge, every pair of
-branch states must have some merged state; coverage of the output set is
-required only when both branch observations terminate. This follows the
-ordinary design merge `merge_des j = HDM (merge_des_raw j) ;; II_D` (see the
-[D guide](D.md)).
+A *slice* `merge_slice M l r` fixes both branch outputs of `M`. What remains
+relates the prior to the output, so it is an AD relation and AD healthiness
+conditions apply to it. A merge is determined by its slices
+(`merge_slice_ext`), and parallel by merge is the union of the slices that the
+operands reach (`ades_par_by_merge_slices`):
 
-The AD prefix identifies the target layer; `ades_lift_merge` is the raw lift,
-while `merge_ades` is the completed merge. The recipe starts with
-`ades_lift_merge :: 's merge ⇒ 's ades_merge_rel`:
+```isabelle
+(P ∥[M] Q)(ok0,s0,okOut,SOut)
+  iff ∃okL SL okR SR.
+       P(ok0,s0,okL,SL)
+     ∧ Q(ok0,s0,okR,SR)
+     ∧ merge_slice M (okL,SL) (okR,SR) (ok0,s0,okOut,SOut)
+```
+
+## Merge healthiness
+
+`Xm` is the merge condition under which parallel by merge preserves `X`. The
+design conditions come from
+[`utp_des_parallel.thy`](../../deps/UTP-Designs/utp_des_parallel.thy), whose
+definitions allow the prior, branch and output alphabets of a merge to differ,
+so the same constants serve D and AD. The angelic conditions are new here.
+
+| Condition | Definition | Meaning, per started prior and branch pair |
+| --- | --- | --- |
+| `H1m` (D) | `M ∨ ¬ok0` | Not started: any output |
+| `H2m` (D) | `M ;; J` | Diverging with `SOut` allows terminating with `SOut` |
+| `H3m` (D) | `M ;; II_D` | If the merge may diverge at all, any output |
+| `HDM` (D) | `H1m ∘ H2m` | Both `H1m` and `H2m` |
+| `Am` | A's clauses on the output (below) | Every slice is A: output sets are upward closed, and termination with `{}` is allowed only where divergence with `{}` is |
+| `A2m` | `A2m_reduce ∘ A2m_atoms` | The two parts below |
+| `A2m_atoms` | — | Every slice whose branch choice sets are singletons is A2 |
+| `A2m_reduce` | — | An output allowed for `(SL, SR)` is allowed for every `({x}, {y})` with `x` from `SL` and `y` from `SR`; any state may be drawn from an empty set |
+
+Like `H1m`, `Am` is defined explicitly:
+
+```isabelle
+Am M ≡ (λ(m,z). let Z = ac z in
+          ¬ ok (prior m)
+        ∨ (∃Y⊆Z. M (m, (False, Y)))
+        ∨ (ok z ∧ Z ≠ {} ∧ (∃Y⊆Z. M (m, (True, Y)))))
+```
+
+Each disjunct is one clause of A's observation form (`A_obs`): not started;
+divergence with a subset of the output set; termination with a subset of a
+nonempty output set.
+
+`merge_health H` applies `H` to every slice. Each condition has a slice-wise
+form at the AD type: `H1m_merge_health`, `H2m_merge_health`,
+`H3m_merge_health`, `HDM_merge_health` and `Am_merge_health` prove
+`H1m M = merge_health H1 M` and likewise for H2, H3, **H** and A. There is no
+`A3m`: A3 closure follows from `H1m` and `H3m`. `A2m` is not "A2 on every slice", which the lifted
+merge fails; the two parts are the conditions the A2 rule needs. `Am` and `A2m`
+are idempotent and monotone (`Am_Idempotent`, `Am_Monotonic`, `A2m_Idempotent`,
+`A2m_Monotonic`), and `A2m_fixed` splits `M is A2m` into its two parts.
+
+## Parallel by merge preserves AD healthiness
+
+These rules hold for an arbitrary merge `M`. The H rules are D's, stated for
+merges whose alphabets differ.
+
+| Result | Operand premises | Merge premises | Lemma |
+| --- | --- | --- | --- |
+| H1 | `P is H1`, `Q is H1` | `M is H1m` | [`H1_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H2 | None | `M is H2m` | [`H2_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H3 | None | `M is H3m` | [`H3_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| A | `P is H1`, `Q is H1` | `M is Am` | `A_par_by_merge` |
+| A2 | `P is A2`, `Q is A2` | `M is A2m` | `A2_par_by_merge` |
+| A3 | `P is H1`, `Q is H1` | `M is H1m`, `M is H3m` | `A3_par_by_merge` |
+
+The A3 rule combines the H1 and H3 rules with
+[`H1_H3_impl_A3`](../../angelic-designs/utp_ades_healthy.thy): under H3, failure
+at one output admits every output, so failure at every singleton gives failure
+at the empty set. The A2 rule uses `ades_par_by_merge_singletons`: with A2
+operands and `A2m_reduce`, parallel by merge is determined by singleton branch
+outputs.
+
+These are sufficient conditions. Which premises are also necessary is open
+(PLAN Stage 1).
+
+## Lifting a state merge
+
+The construction converts a state merge into an AD merge. In the completed
+merge, every pair of branch states must have some merged state; coverage of the
+output set is required only when both branch observations terminate. This
+follows the ordinary design merge `merge_des j = HDM (merge_des_raw j) ;; II_D`
+(see the [D guide](D.md)).
+
+`ades_lift_merge` is the raw lift and `merge_ades` the completed merge. The raw
+lift is:
 
 ```isabelle
 ades_lift_merge(j)((ok0,s0), (okL,SL), (okR,SR), (okOut,SOut))
@@ -48,61 +133,15 @@ ades_lift_merge(j)((ok0,s0), (okL,SL), (okR,SR), (okOut,SOut))
     ∧ (∀sL∈SL. ∀sR∈SR. ∃sOut∈SOut. j(s0,sL,sR,sOut))
 ```
 
-The raw lift requires witnesses in its output choice set even when a branch
-diverges. The final composition with design skip releases the actual final
-choice set in that case, while retaining an intermediate witness.
-
-### Design merge healthiness
-
-[`ADH1m`](../../angelic-designs/utp_ades_parallel.thy#L54),
-[`ADH2m`](../../angelic-designs/utp_ades_parallel.thy#L57),
-[`ADH3m`](../../angelic-designs/utp_ades_parallel.thy#L64), and
-[`ADHM`](../../angelic-designs/utp_ades_parallel.thy#L70)
-each have type `'s ades_merge_rel ⇒ 's ades_merge_rel`:
+It requires witnesses in its output choice set even when a branch diverges.
+Completing with design skip releases the final choice set in that case, while
+retaining an intermediate witness:
 
 ```isabelle
-ADH1m M = M ∨ ¬ok0
-ADH2m M = M ;; J
-ADH3m M ≡ M ;; II_D
-ADHM M  = ADH1m (ADH2m M)
+merge_ades j ≡ H1m (ades_lift_merge j) ;; II_D
 ```
 
-These follow the ordinary-design definitions of
-[`H1m`](../../deps/UTP-Designs/utp_des_parallel.thy#L20) and
-[`H2m`](../../deps/UTP-Designs/utp_des_parallel.thy#L25), adapted to the AD merge
-types with an input state and output choice sets. Likewise, `ADHM` follows
-[`HDM`](../../deps/UTP-Designs/utp_des_parallel.thy#L35).
-
-`ADH1m` removes constraints when not started. `ADH2m` uses the ordinary design
-relation `J` to allow a false output flag to become true, preserving the choice
-set. These handle H1/H2 behaviour; they do not impose A1, A2, or A3.
-
-`ADH3m` expresses the ordinary H3 right-skip fixed-point property on the
-AD merge type: `M is ADH3m` means `M ;; II_D = M`. It is distinct from
-angelic A3. `ADH3m_idem` proves idempotence. `ADHM` continues to combine
-ADH1m and ADH2m; its definition does not include ADH3m.
-
-[`merge_ades`](../../angelic-designs/utp_ades_parallel.thy#L73) is defined by the
-raw lift followed by completion:
-
-```isabelle
-merge_ades j ≡ ADH1m (ades_lift_merge j) ;; II_D
-```
-
-The recipe preserves the previous semantics; its equivalence proof is recorded
-in the [recipe audit](../reviews/README.md#stage-1-ad-recipe-and-closure). The old
-`lift_merge` compatibility definition has been removed from the main theory.
-The lemmas `merge_ades_ADH1m`, `merge_ades_ADH2m`, and `merge_ades_ADHM` prove
-merge healthiness for every `j`. `merge_ades_completion` proves
-`merge_ades j ;; II_D = merge_ades j`.
-The equivalent healthiness statement, `merge_ades j is ADH3m`, is proved
-without premises by `merge_ades_ADH3m`.
-
-ADH2m still means composition with `J`: the new construction satisfies it
-because `II_D ;; J = II_D`. These merge properties are separate from the
-parallel-closure theorems and their operand premises below.
-
-By lemma [`merge_ades_obs`](../../angelic-designs/utp_ades_parallel.thy#L133), the transformed merge is:
+By `merge_ades_obs`, the completed merge is:
 
 ```isabelle
 merge_ades(j)((ok0,s0), (okL,SL), (okR,SR), (okOut,SOut))
@@ -119,119 +158,90 @@ merge_ades(j)((ok0,s0), (okL,SL), (okR,SR), (okOut,SOut))
 | Started, both branch flags true | Nonempty `SL`, `SR`; `okOut=True`; every branch-state pair has a witness in `SOut` |
 | Started, at least one branch flag false | Nonempty `SL`, `SR`; every branch-state pair has some merged state; no constraint on `okOut` or `SOut` |
 
-The branch choice sets remain nonempty, and every branch-state pair has a merged
-state, in both started cases. The output set can be empty when either branch
-admits nontermination.
+The output set can be empty when either branch admits nontermination.
 
-## Lifted parallel
+`merge_ades j` meets every merge condition, for every `j`: `merge_ades_is_H1m`,
+`merge_ades_is_H2m`, `merge_ades_is_HDM`, `merge_ades_is_H3m`,
+`merge_ades_is_Am` and `merge_ades_is_A2m`. `merge_ades_completion` gives the
+rewrite `merge_ades j ;; II_D = merge_ades j`. The recipe's equivalence with the
+earlier construction is recorded in the
+[stage log](../reviews/README.md#stage-1-ad-recipe-and-closure).
 
-`P ∥[merge_ades j] Q` uses the generic UTP
-[`par_by_merge`](../../deps/UTP/utp_concurrency.thy#L230) operator with `merge_ades j`.
-Its observation form follows from
-[`ades_par_by_merge_eval`](../../angelic-designs/utp_ades_parallel.thy#L143):
+## AD parallel
 
-```isabelle
-(P ∥[merge_ades j] Q)(ok0,s0,okOut,SOut)
-  iff ∃okL SL okR SR.
-       P(ok0,s0,okL,SL)
-     ∧ Q(ok0,s0,okR,SR)
-     ∧ merge_ades(j)((ok0,s0), (okL,SL), (okR,SR), (okOut,SOut))
-```
-
-Both operands share the initial observation. Each accepts a branch output,
-and the lifted merge relates those outputs to the final observation.
-
-The `A`, `A2`, and `A3` closure laws hold for arbitrary `j`:
-
-| Healthiness | Operand premises | Conclusion | Lemma  |
-| --- | --- | --- | --- |
-| `A` | `P is H1`, `Q is H1` | `(P ∥[merge_ades j] Q) is A` | [`ades_par_lifted_A_closure`](../../angelic-designs/utp_ades_parallel.thy#L149) |
-| `A2` | `P is A2`, `Q is A2` | `(P ∥[merge_ades j] Q) is A2` | [`ades_par_lifted_A2_closure`](../../angelic-designs/utp_ades_parallel.thy#L225) |
-| `A3` | `P is H1`, `Q is H1` | `(P ∥[merge_ades j] Q) is A3` | [`ades_par_lifted_A3_closure`](../../angelic-designs/utp_ades_parallel.thy#L238) |
-
-A3 now holds directly. If a started nonterminating output is accepted at any
-choice set, the same branch observations accept every output set, including
-the empty set. Thus the singleton-failure premise of A3 already implies its
-empty-set conclusion.
-
-A2 closure needs neither A nor H1 on the operands. A2 already guarantees that
-an accepted nonempty branch set contains an accepted singleton. The observation
-lemma `ades_par_lifted_obs_A2` keeps operand feasibility explicit when `ok0=False`;
-that condition is independent of the final choice set. The older
-`ades_par_lifted_obs` retains its A/A2 premises and simplifies this unstarted
-case using H1. The D/AD correspondence premises remain unchanged.
-
-## AD parallel by merge
-
-[`ades_par`](../../angelic-designs/utp_ades_parallel.thy#L257), written `P ∥AD[j] Q`,
-is defined by applying `A3` to the lifted parallel composition `P ∥[merge_ades j] Q`:
+`ades_par`, written `P ∥AD[j] Q`, applies `A3` to the lifted parallel
+composition:
 
 ```isabelle
 P ∥AD[j] Q = A3 (P ∥[merge_ades j] Q)
 ```
 
-For H1-healthy operands, A3 is redundant: [`ades_par_eq_lifted`](../../angelic-designs/utp_ades_parallel.thy#L262)
-proves `P ∥AD[j] Q = P ∥[merge_ades j] Q` for every `j`. The wrapper
-retains unconditional A3 closure for arbitrary operands.
+Closure of lifted parallel follows from the generic rules and the facts about
+`merge_ades j`, for every `j`:
 
-| Healthiness | Operand premises | Conclusion | Lemma |
+| Healthiness | Operand premises | Lifted lemma | AD lemma |
 | --- | --- | --- | --- |
-| `A` | `P is H1`, `Q is H1` | `(P ∥AD[j] Q) is A` | [`ades_par_A_closure`](../../angelic-designs/utp_ades_parallel.thy#L268) |
-| `A2` | `P is A2`, `Q is A2` | `(P ∥AD[j] Q) is A2` | [`ades_par_A2_closure`](../../angelic-designs/utp_ades_parallel.thy#L274) |
-| `A3` | None | `(P ∥AD[j] Q) is A3` | [`ades_par_A3_closure`](../../angelic-designs/utp_ades_parallel.thy#L280) |
+| A | `P is H1`, `Q is H1` | `ades_par_lifted_A_closure` | `ades_par_A_closure` |
+| A2 | `P is A2`, `Q is A2` | `ades_par_lifted_A2_closure` | `ades_par_A2_closure` |
+| A3 | `P is H1`, `Q is H1` (lifted); none (AD) | `ades_par_lifted_A3_closure` | `ades_par_A3_closure` |
 
-The wrapped A2 result uses `A3_preserves_A2`; it does not require the wrapper
-to be redundant, so no H1 premise is added.
+For H1-healthy operands, the A3 wrapper is redundant: `ades_par_eq_lifted`
+proves `P ∥AD[j] Q = P ∥[merge_ades j] Q`. The wrapper keeps A3 closure for
+arbitrary operands, and `A3_preserves_A2` carries A2 through it without an H1
+premise.
+
+A2 closure needs neither A nor H1 on the operands. `ades_par_lifted_obs_A2`
+evaluates lifted parallel for A2 operands through singleton branch outputs and
+keeps operand feasibility explicit when `ok0=False`; `ades_par_lifted_obs` uses
+A and A2 to simplify that case. `ades_par_obs_A2` and `ades_par_eval` give the
+corresponding forms for `ades_par`, and `ades_par_normalise_A` proves
+`P ∥AD[j] Q = A P ∥AD[j] A Q` for A2 operands.
 
 ## `ac2p`/`d2ac` mapping laws
 
-All four laws hold for any state merge `j`.
+All laws hold for any state merge `j`.
 
 | Operand premises | Equality | Lemma |
 | --- | --- | --- |
-| `P`, `Q` both `A`, `A2` | `ac2p (P ∥AD[j] Q) = (ac2p P) ∥D[j] (ac2p Q)` | [`ades_par_ac2p`](../../angelic-designs/utp_ades_parallel.thy#L344) |
-| `D`, `E` both `H` | `(d2ac D) ∥AD[j] (d2ac E) = d2ac (D ∥D[j] E)` | [`ades_par_d2ac`](../../angelic-designs/utp_ades_parallel.thy#L337) |
-| `P`, `Q` both `A`, `A2` | `P ∥AD[j] Q = d2ac ((ac2p P) ∥D[j] (ac2p Q))` | [`ades_par_d2ac_ac2p`](../../angelic-designs/utp_ades_parallel.thy#L319) |
-| `D`, `E` both `H` | `D ∥D[j] E = ac2p ((d2ac D) ∥AD[j] (d2ac E))` | [`ades_par_ac2p_d2ac`](../../angelic-designs/utp_ades_parallel.thy#L356) |
+| `P`, `Q` both `A`, `A2` | `ac2p (P ∥AD[j] Q) = (ac2p P) ∥D[j] (ac2p Q)` | `ades_par_ac2p` |
+| `D`, `E` both `H` | `(d2ac D) ∥AD[j] (d2ac E) = d2ac (D ∥D[j] E)` | `ades_par_d2ac` |
+| `P`, `Q` both `A`, `A2` | `P ∥AD[j] Q = d2ac ((ac2p P) ∥D[j] (ac2p Q))` | `ades_par_d2ac_ac2p` |
+| `D`, `E` both `H` | `D ∥D[j] E = ac2p ((d2ac D) ∥AD[j] (d2ac E))` | `ades_par_ac2p_d2ac` |
+| `P`, `Q` both `A`, `A2` | `ac2p (P ∥[merge_ades j] Q) = (ac2p P) ∥D[j] (ac2p Q)` | `ades_par_lifted_ac2p` |
+| `D`, `E` both `H` | `(d2ac D) ∥[merge_ades j] (d2ac E) = d2ac (D ∥D[j] E)` | `ades_par_lifted_d2ac` |
 
-## Algebraic properties
+## Algebraic laws
 
 | Property | Premises | Algebraic law | Lemma |
 | --- | --- | --- | --- |
-| Monotonicity | `P1 ⊑ P2`, `Q1 ⊑ Q2` | `(P1 ∥AD[j] Q1) ⊑ (P2 ∥AD[j] Q2)` | [`ades_par_mono`](../../angelic-designs/utp_ades_parallel.thy#L364) |
-| Commutativity | `j is SymMerge` | `P ∥AD[j] Q = Q ∥AD[j] P` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel.thy#L382) |
-| Associativity | `P`, `Q`, `R` all `A2`; `j is SymMerge`; `AssocMerge j`; `mergeable j` | `(P ∥AD[j] Q) ∥AD[j] R = P ∥AD[j] (Q ∥AD[j] R)` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel.thy#L394) |
+| Monotonicity | `P1 ⊑ P2`, `Q1 ⊑ Q2` | `(P1 ∥AD[j] Q1) ⊑ (P2 ∥AD[j] Q2)` | `ades_par_mono` |
+| Commutativity | `j is SymMerge` | `P ∥AD[j] Q = Q ∥AD[j] P` | `ades_par_comm` |
+| Associativity | `P`, `Q`, `R` all `A2`; `j is SymMerge`; `AssocMerge j`; `mergeable j` | `(P ∥AD[j] Q) ∥AD[j] R = P ∥AD[j] (Q ∥AD[j] R)` | `ades_par_assoc` |
 
 These are sufficient conditions; necessity has not been established.
 
 `merge_ades_SymMerge` proves that `j is SymMerge` implies
-`merge_ades j is SymMerge`. Commutativity therefore needs no operand healthiness.
+`merge_ades j is SymMerge`, so commutativity needs no operand healthiness.
 
-## Associativity premises
-
-[`ades_par_assoc`](../../angelic-designs/utp_ades_parallel.thy#L394)
-uses A2-healthy operands and the state-merge premises of
-[`des_par_assoc_state`](../../deps/UTP-Designs/utp_des_parallel.thy#L453):
+`ades_par_assoc` uses A2-healthy operands and the state-merge premises of
+[`des_par_assoc_state`](../../deps/UTP-Designs/utp_des_parallel.thy):
 `j is SymMerge`, `AssocMerge j` and
-[`mergeable`](../../deps/UTP/utp_concurrency.thy#L62) `j`.
-For A2 operands, `ades_par_normalise_A` proves
-`P ∥AD[j] Q = A P ∥AD[j] A Q` for every `j`, and `A_preserves_A2`
-preserves A2 under this normalisation. The proof then maps the normalised
-operands to designs with `ac2p` and `d2ac` and applies the design law.
-The correspondence lemmas retain their A/A2 premises. Associativity outside
-A2 and necessity of the merge premises have not been established. `D.md`
+[`mergeable`](../../deps/UTP/utp_concurrency.thy) `j`. The proof normalises
+the operands with `ades_par_normalise_A` (`A_preserves_A2` keeps them A2), maps
+them to designs with `ac2p` and `d2ac`, and applies the design law.
+Associativity outside A2 has not been established. The [D guide](D.md)
 explains the premises; mergeability prevents an intermediate terminating pair
 from becoming infeasible before it meets a divergent branch.
 
-## Nontermination and Chaos
+### Nontermination and Chaos
 
-[`ades_par_lifted_diverge`](../../angelic-designs/utp_ades_parallel.thy#L232)
-proves that accepting one nonterminating output permits every output flag and
-choice set at the same initial observation. A started lifted parallel admits
-all outputs when one branch supplies a nonterminating observation with a
-nonempty choice set, the other supplies any observation with a nonempty choice
-set, and every pair of their branch states has some merged state. The branch
-observations must exist even though the output guarantee is released.
+`ades_par_lifted_diverge` proves that accepting one nonterminating output
+permits every output flag and choice set at the same initial observation. A
+started lifted parallel admits all outputs when one branch supplies a
+nonterminating observation with a nonempty choice set, the other supplies any
+observation with a nonempty choice set, and every pair of their branch states
+has some merged state. The branch observations must exist even though the
+output guarantee is released.
 
 In particular, when `j` has some merged state at every initial state
 (`∀s0. ∃sL sR sOut. j(s0,sL,sR,sOut)`):
@@ -241,25 +251,14 @@ Chaos ∥[merge_ades j] Chaos = Chaos
 Chaos ∥AD[j] Chaos = Chaos
 ```
 
-These are [`ades_par_lifted_chaos`](../../angelic-designs/utp_ades_parallel.thy#L467)
-and [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel.thy#L486).
-Chaos is the predicate `true`, equivalently a design with false precondition.
-No A3 completion or mergeability premise is needed for the lifted Chaos law.
-
-## Lifted mapping laws
-
-Since A3 is redundant for healthy operands, the lifted operator has the same
-mapping laws without any additional restriction on `j`:
-
-| Operand premises | Equality | Lemma |
-| --- | --- | --- |
-| `P`, `Q` both A, A2 | `ac2p (P ∥[merge_ades j] Q) = (ac2p P) ∥D[j] (ac2p Q)` | [`ades_par_lifted_ac2p`](../../angelic-designs/utp_ades_parallel.thy#L445) |
-| `D`, `E` both H | `(d2ac D) ∥[merge_ades j] (d2ac E) = d2ac (D ∥D[j] E)` | [`ades_par_lifted_d2ac`](../../angelic-designs/utp_ades_parallel.thy#L452) |
+These are `ades_par_lifted_chaos` and `ades_par_chaos`. Chaos is the predicate
+`true`, equivalently a design with false precondition. No A3 completion or
+mergeability premise is needed for the lifted Chaos law.
 
 ## Skip merge example
 
 The skip state merge requires `sOut = s0`. For H1-healthy operands,
-[`ades_par_skip_eval`](../../angelic-designs/utp_ades_parallel.thy#L496) gives:
+`ades_par_skip_eval` gives:
 
 ```text
 (P ∥AD[skipₘ] Q)(ok0,s0,okOut,SOut)
@@ -274,8 +273,8 @@ output is admitted, including the empty set, regardless of the state-space size.
 
 | Property | Premises | Lemma |
 | --- | --- | --- |
-| Commutativity | None | [`ades_par_skip_comm`](../../angelic-designs/utp_ades_parallel.thy#L507) |
-| Associativity | `P`, `Q`, `R` all A2 | [`ades_par_skip_assoc`](../../angelic-designs/utp_ades_parallel.thy#L511) |
+| Commutativity | None | `ades_par_skip_comm` |
+| Associativity | `P`, `Q`, `R` all A2 | `ades_par_skip_assoc` |
 
 The skip merge is symmetric, rotation invariant and mergeable, so no additional merge
 premise is needed in the specialised associativity theorem.

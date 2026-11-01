@@ -111,7 +111,7 @@ T6 and T8 require the additional A3 condition. [d2ac_ac2p_iff_A3](../../angelic-
 <details>
 <summary>Supplementary results</summary>
 
-For the additional mapping condition, start with [A3](../../angelic-designs/utp_ades_healthy.thy#L1448), [A3_healthy](../../angelic-designs/utp_ades_healthy.thy#L1480). Mapping closure and the qualified Galois law are in [d2ac_is_A](../../angelic-designs/utp_ades_designs.thy#L133), [d2ac_is_A2](../../angelic-designs/utp_ades_designs.thy#L136), [d2ac_is_A3](../../angelic-designs/utp_ades_designs.thy#L139), [ac2p_d2ac_galois](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
+For the additional mapping condition, start with [A3](../../angelic-designs/utp_ades_healthy.thy#L1448), [A3_healthy](../../angelic-designs/utp_ades_healthy.thy#L1504). Mapping closure and the qualified Galois law are in [d2ac_is_A](../../angelic-designs/utp_ades_designs.thy#L133), [d2ac_is_A2](../../angelic-designs/utp_ades_designs.thy#L136), [d2ac_is_A3](../../angelic-designs/utp_ades_designs.thy#L139), [ac2p_d2ac_galois](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
 
 </details>
 

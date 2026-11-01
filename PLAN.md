@@ -5,9 +5,9 @@ and RD/RAD round-trip correspondence on their stated healthy domains.
 For general angelic operands these require A/A2 for AD and RAD/A2 for RAD;
 correspondence outside A2 remains open.
 
-**Current stage: Stage 1.** The AD recipe equivalence and merge-healthiness
-lemmas are installed. The remaining Stage 1 tasks are listed below; Stage 0b
-work remains deferred.
+**Current stage: Stage 1.** The AD recipe, its merge healthiness and the
+generic AD closure interface are installed. The remaining Stage 1 tasks are
+listed below; Stage 0b work remains deferred.
 
 ## Route and proof obligations
 
@@ -16,7 +16,7 @@ state alphabets. The selected recipes are:
 
 | Pair | Route | Status |
 | --- | --- | --- |
-| D/AD | D: `M_D j = H1m (merge_des_raw j) ;; II_D`. AD: `merge_ades j ≡ ADH1m (ades_lift_merge j) ;; II_D`. | Both installed; equivalence with the previous AD construction is recorded in the Stage 1 recipe audit. |
+| D/AD | D: `M_D j = H1m (merge_des_raw j) ;; II_D`. AD: `merge_ades j ≡ H1m (ades_lift_merge j) ;; II_D`. | Both installed; equivalence with the previous AD construction is recorded in the Stage 1 recipe audit. |
 | RD/RAD | `j → rdes_lift_merge j → M_R(rdes_lift_merge j) →` transport completed merge to flat alphabet `→` RAD lifting. | RD construction installed; transport and specialised RAD correspondence/closure pending. |
 
 Keep the proof obligations separate:
@@ -83,8 +83,14 @@ These tasks are publication requirements, not prerequisites for local mechanisat
 - [ ] Commit the RD WIP in the `UTP-Reactive-Designs` fork; move the tests to a separate session.
   As of 30 October, the WIP theories (`utp_rdes_parallel_lift`, `_laws`, `_assoc`,
   `_assoc_tests`) were recorded clean in PIDE and the `UTP-Reactive-Designs` batch build passed.
-- [ ] Commit the AD WIP and docs; record the three submodule pointers.
+- [ ] Commit the AD WIP and docs; record the three submodule pointers. The
+  Stage 1 AD theories are committed (`5e76186`).
+- [x] Commit the generalised merge conditions in the `UTP-Designs` fork
+  (`6ffe0f8`, 2 November 2026) and record its pointer. Not pushed yet: a fresh
+  clone cannot fetch that pointer until it is.
 - [ ] Decide where generic par-by-merge lemmas live; relocation does not block Stage 5.
+  The design merge conditions and their H1–H3 closure rules already live in
+  `UTP-Designs`, typed for merges whose alphabets differ.
 - [ ] Before publishing, add a proportionate reproducibility check (CI) for proof
   replay, doc links and submodule availability. None is tracked yet.
 - [ ] Maintenance, unscheduled: clear build warnings, and switch definitions from
@@ -155,6 +161,12 @@ Evidence: [Stage 0c closure and validation](docs/reviews/README.md#stage-0c-desi
 Outcome: an equivalent AD construction from `j`, with merge-healthiness and
 parallel-closure results presented separately.
 
+Names changed on 2 November 2026: `ADH1m`, `ADH2m`, `ADH3m` and `ADHM` are now
+D's `H1m`, `H2m`, `H3m` and `HDM`, generalised to merges whose alphabets
+differ, and `merge_ades_ADHxm` became `merge_ades_is_Hxm`. Finished items below
+keep the names they were done under. The [AD guide](docs/parallel/AD.md#merge-healthiness)
+states the naming rule.
+
 - [x] Recheck the recipe in scratch and define
   `merge_ades j ≡ ADH1m (ades_lift_merge j) ;; II_D`.
   Equality with the old `ADHM (lift_merge j)` construction was proved for every
@@ -182,27 +194,32 @@ parallel-closure results presented separately.
   the D/AD correspondence premises remain unchanged. Associativity outside A2
   and necessity of the merge premises remain open.
   [Proof and validation](docs/reviews/README.md#stage-1-ad-recipe-and-closure).
-- [ ] Choose the generic AD closure interface for an arbitrary merge `M`, install
-  it, and derive the existing lifted closures from it. Two validated scratch
-  explorations are not installed:
+- [x] Choose the generic AD closure interface for an arbitrary merge `M`, install
+  it, and derive the existing lifted closures from it (2 November 2026). D's
+  `H1m`, `H2m`, `H3m`, `HDM` and their `H1/H2/H3_par_by_merge` rules now allow
+  merges whose alphabets differ, and AD uses them directly. AD adds `Am`
+  (A on every slice, defined explicitly), `A2m ≡ A2m_reduce ∘ A2m_atoms`, the rules
+  `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`, and
+  `merge_ades_is_Am` and `merge_ades_is_A2m`; the lifted closures are now
+  corollaries. The theory follows D's section order. Scratch origin:
   [generic closure rules](docs/reviews/2026-10-30-ad-generic-closure-exploration/README.md)
-  (`generic_H1`, `generic_H2`, `generic_H3`, `generic_A_slices`,
-  `generic_A2_atoms`, `generic_A3`, `normal_AD_A3`) and
-  [merge transformers](docs/reviews/2026-10-30-ad-merge-healthiness/README.md)
-  `AM`, `ATM`, `BRM` and `A2M M ≡ BRM (ATM M)` (provisional names).
-- [ ] Necessity of the AM/A2M closure rules. Only left-to-right is proved; these
-  candidate equivalences are **unproved**:
+  and [merge transformers](docs/reviews/2026-10-30-ad-merge-healthiness/README.md).
+  [Validation](docs/reviews/README.md#stage-1-generic-ad-closure-interface).
+- [ ] Necessity of the `Am`/`A2m` closure rules. Only left-to-right is proved;
+  these candidate equivalences are **unproved**:
 
   ```isabelle
-  (M is AM) ⟷ (∀P Q. (P is H1) ∧ (Q is H1) ⟶ ((P ∥[M] Q) is A))
-  (M is A2M) ⟷ (∀P Q. (P is A2) ∧ (Q is A2) ⟶ ((P ∥[M] Q) is A2))
+  (M is Am) ⟷ (∀P Q. (P is H1) ∧ (Q is H1) ⟶ ((P ∥[M] Q) is A))
+  (M is A2m) ⟷ (∀P Q. (P is A2) ∧ (Q is A2) ⟶ ((P ∥[M] Q) is A2))
   ```
 
   Prove the converses or give a checked counterexample. Do not add premises
-  (ADH1m, H1, …) and present the restricted converse as the original claim.
-- [ ] Commutation and preservation between `AM`, `A2M` and the ADH merge
-  conditions. Healthy examples do not show that an arbitrary composition of
-  these transformers is idempotent.
+  (H1m, H1, …) and present the restricted converse as the original claim.
+  Decided on 1–2 November 2026: `H1m`, `H2m` and `H3m` stay as the premises of
+  their rules; weaker premises were not adopted.
+- [ ] Commutation and preservation between `Am`, `A2m` and `H1m`, `H2m`, `H3m`.
+  Healthy examples do not show that an arbitrary composition of these
+  transformers is idempotent.
 - [ ] Install the AD Miracle zero laws. These scratch proofs were checked on
   16 October 2026, before the 28 October AD merge change; recheck them first:
 

@@ -15,11 +15,14 @@ ISABELLE=/Applications/Isabelle2025-2.app/bin/isabelle UTP_PROFILE=utp-2025-2 \
 
 ## Open explorations
 
-Validated scratch work, not installed, that open PLAN Stage 1 items depend on:
+Scratch work behind open PLAN Stage 1 items (necessity and commutation of the
+merge conditions). Both were installed on 2 November 2026 under new names; the
+scratch files keep the old names and no longer load against the current theory.
 
 - [Generic AD closure rules](2026-10-30-ad-generic-closure-exploration/README.md)
   for an arbitrary merge `M`.
-- [AD merge transformers](2026-10-30-ad-merge-healthiness/README.md) `AM` and `A2M`.
+- [AD merge transformers](2026-10-30-ad-merge-healthiness/README.md), now `Am`
+  and `A2m`.
 
 ## Stage 0a: baseline audit
 
@@ -84,3 +87,27 @@ Validated scratch work, not installed, that open PLAN Stage 1 items depend on:
   Theorem statements are unchanged.
 - **ADH3m:** `ADH3m M ≡ M ;; II_D`, with unconditional `ADH3m_idem` and
   `merge_ades_ADH3m`. It is distinct from angelic A3.
+
+## Stage 1: generic AD closure interface
+
+2 November 2026, on top of `5e76186`. Names above this entry are the old ones.
+
+- **Shared design conditions:** D's `H1m`, `H2m`, `H3m` and `HDM`, and the
+  `H1/H2/H3/H_par_by_merge` rules, now allow merges whose prior, branch and
+  output alphabets differ. AD dropped `ADH1m`, `ADH2m`, `ADH3m`, `ADHM` and their
+  seven lemmas and uses D's; `merge_ades_ADHxm` became `merge_ades_is_Hxm`.
+- **Angelic conditions and rules:** `merge_slice`, `merge_health`, `Am`, `A2m`
+  (`A2m_atoms`, `A2m_reduce`), `A_par_by_merge`, `A2_par_by_merge`,
+  `A3_par_by_merge`, `merge_ades_is_Am` and `merge_ades_is_A2m`, ported from the
+  two 30 October explorations. The lifted closures are now corollaries. New
+  helpers: `H3_obs` in the AD core and `H1_H3_impl_A3` in AD healthiness.
+- **Slice-wise forms:** `Am` is defined explicitly, like `H1m`.
+  `H1m_merge_health`, `H2m_merge_health`, `H3m_merge_health`,
+  `HDM_merge_health` and `Am_merge_health` show that each condition applies H1,
+  H2, H3, **H** or A to every slice of an AD merge.
+- **Layout:** `utp_ades_parallel.thy` follows D's order: merge observations,
+  merge healthiness, generic closure, lifting, AD parallel, correspondence,
+  algebraic laws, skip example. Downstream theories needed no change.
+- **Checks:** PIDE reported zero errors for D's parallel theory and all five AD
+  theories. The UTP-Designs and RD heaps were rebuilt with the change, and the
+  full build then passed for AD, RAD and CSP (2 min 24 s, two threads).

@@ -34,7 +34,7 @@ notation rather than literal Isabelle record syntax.
 
 ## Lifting state merge
 
-[`merge_des_raw`](../../deps/UTP-Designs/utp_des_parallel.thy#L273)
+[`merge_des_raw`](../../deps/UTP-Designs/utp_des_parallel.thy)
 `:: 's merge ⇒ 's des_merge` lifts the state merge and sets the output flag:
 
 ```text
@@ -47,11 +47,11 @@ the final merge below releases it when either branch flag is false.
 
 ### Design merge healthiness
 
-[`H1m`](../../deps/UTP-Designs/utp_des_parallel.thy#L20),
-[`H2m`](../../deps/UTP-Designs/utp_des_parallel.thy#L25),
-[`H3m`](../../deps/UTP-Designs/utp_des_parallel.thy#L30), and
-[`HDM`](../../deps/UTP-Designs/utp_des_parallel.thy#L35)
-each have type `'s des_merge ⇒ 's des_merge`:
+[`H1m`, `H2m`, `H3m` and `HDM`](../../deps/UTP-Designs/utp_des_parallel.thy)
+allow the prior, branch and output alphabets of a merge to differ: `H1m` needs
+a design observation as prior, and `H2m` and `H3m` need one as output. Here
+they act on `'s des_merge`; the [AD guide](AD.md) uses the same constants, as
+do the closure rules `H1_par_by_merge`, `H2_par_by_merge` and `H3_par_by_merge`.
 
 ```text
 H1m M = M ∨ ¬ok0
@@ -67,7 +67,7 @@ monotone and idempotent. H3 itself is typed for design relations, whose
 input is a single design observation rather than a merge-input triple.
 `HDM` still combines only H1m and H2m.
 
-[`merge_des`](../../deps/UTP-Designs/utp_des_parallel.thy#L286)
+[`merge_des`](../../deps/UTP-Designs/utp_des_parallel.thy)
 follows the reactive-design merge `M_R(M) = N_R(M) ;; II_R`: the healthy raw
 lift is followed by the design skip `II_D = (true ⊢r II)`:
 
@@ -78,7 +78,7 @@ merge_des j = HDM (merge_des_raw j) ;; II_D
 `II_D` accepts any output after a nonterminating intermediate observation and
 copies a terminating one. Since `J ;; II_D = II_D`, the skip absorbs the `H2m`
 part of `HDM`.
-[`merge_des_alt_def`](../../deps/UTP-Designs/utp_des_parallel.thy#L291) proves:
+[`merge_des_alt_def`](../../deps/UTP-Designs/utp_des_parallel.thy) proves:
 
 ```text
 merge_des j = H1m (merge_des_raw j) ;; II_D
@@ -86,7 +86,7 @@ merge_des j = H1m (merge_des_raw j) ;; II_D
 
 Composing with `H1m` before or after `;; II_D` gives the same merge.
 
-[`merge_des_expand`](../../deps/UTP-Designs/utp_des_parallel.thy#L324)
+[`merge_des_expand`](../../deps/UTP-Designs/utp_des_parallel.thy)
 unfolds the merge:
 
 ```text
@@ -97,14 +97,14 @@ merge_des(j)((ok0,s0), (okL,sL), (okR,sR), (okOut,sOut))
 
 | Merge input | Constraint on the merged output | Lemma |
 | --- | --- | --- |
-| `ok0=False` | None | [`merge_des_expand`](../../deps/UTP-Designs/utp_des_parallel.thy#L324) |
-| `ok0=True`, both branch flags true | `okOut=True` and `j(s0,sL,sR,sOut)` | [`merge_des_expand_terminate`](../../deps/UTP-Designs/utp_des_parallel.thy#L336) |
-| `ok0=True`, at least one branch flag false | Output unconstrained; some `y` with `j(s0,sL,sR,y)` must exist | [`merge_des_expand_diverge`](../../deps/UTP-Designs/utp_des_parallel.thy#L346) |
+| `ok0=False` | None | [`merge_des_expand`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| `ok0=True`, both branch flags true | `okOut=True` and `j(s0,sL,sR,sOut)` | [`merge_des_expand_terminate`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| `ok0=True`, at least one branch flag false | Output unconstrained; some `y` with `j(s0,sL,sR,y)` must exist | [`merge_des_expand_diverge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 The divergent row matches the reactive merge, which retains only the existence
 of a merged trace that the final trace extends.
 
-[`merge_des_is_HDM`](../../deps/UTP-Designs/utp_des_parallel.thy#L295)
+[`merge_des_is_HDM`](../../deps/UTP-Designs/utp_des_parallel.thy)
 proves that `merge_des j is HDM` for every `j`, using `HDM_seq` and the
 existing facts that `II_D` is normal
 ([`skip_d_is_H1_H3`](../../deps/UTP-Designs/utp_des_healths.thy#L772)) and
@@ -114,7 +114,7 @@ No mergeability premise is required.
 
 ## Ordinary design parallel by merge
 
-[`des_par`](../../deps/UTP-Designs/utp_des_parallel.thy#L355) is an
+[`des_par`](../../deps/UTP-Designs/utp_des_parallel.thy) is an
 abbreviation, as reactive-design parallel `P ∥R[M] Q ≡ P ∥[M_R(M)] Q` is:
 
 ```text
@@ -126,7 +126,7 @@ Generic parallel-by-merge lemmas therefore apply to it without unfolding.
 Both branches share the initial observation. The outer existential quantifiers
 select one accepted observation from each branch; the merge then relates these
 to the output. By
-[`des_par_expand`](../../deps/UTP-Designs/utp_des_parallel.thy#L364):
+[`des_par_expand`](../../deps/UTP-Designs/utp_des_parallel.thy):
 
 ```text
 (P ∥D[j] Q)(ok0,s0,okOut,sOut)
@@ -154,20 +154,20 @@ The following rules apply to an arbitrary design merge `M`:
 
 | Healthiness | Premises | Conclusion | Lemma |
 | --- | --- | --- | --- |
-| H1 | `P`, `Q` both H1; `M is H1m` | `(P ∥[M] Q) is H1` | [`H1_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy#L238) |
-| H2 | `M is H2m`; no operand premises | `(P ∥[M] Q) is H2` | [`H2_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy#L244) |
-| H | `P`, `Q` both H1; `M is HDM` | `(P ∥[M] Q) is H` | [`H_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy#L258) |
-| H3 | `M is H3m`; no operand premises | `(P ∥[M] Q) is H3` | [`H3_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy#L251) |
+| H1 | `P`, `Q` both H1; `M is H1m` | `(P ∥[M] Q) is H1` | [`H1_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H2 | `M is H2m`; no operand premises | `(P ∥[M] Q) is H2` | [`H2_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H | `P`, `Q` both H1; `M is HDM` | `(P ∥[M] Q) is H` | [`H_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H3 | `M is H3m`; no operand premises | `(P ∥[M] Q) is H3` | [`H3_par_by_merge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 The constructed merge satisfies both `merge_des j is HDM` and
-[`merge_des_is_H3m`](../../deps/UTP-Designs/utp_des_parallel.thy#L299):
+[`merge_des_is_H3m`](../../deps/UTP-Designs/utp_des_parallel.thy):
 `merge_des j is H3m`, equivalently `merge_des j ;; II_D = merge_des j`. Hence:
 
 | Healthiness | Premises | Conclusion | Lemma |
 | --- | --- | --- | --- |
-| H | `P`, `Q` both H1; arbitrary `j` | `(P ∥D[j] Q) is H` | [`des_par_H_closure`](../../deps/UTP-Designs/utp_des_parallel.thy#L379) |
-| H3 | No operand premises; arbitrary `j` | `(P ∥D[j] Q) is H3` | [`des_par_H3_closure`](../../deps/UTP-Designs/utp_des_parallel.thy#L384) |
-| N | `P`, `Q` both H1; arbitrary `j` | `(P ∥D[j] Q) is N` | [`des_par_N_closure`](../../deps/UTP-Designs/utp_des_parallel.thy#L388) |
+| H | `P`, `Q` both H1; arbitrary `j` | `(P ∥D[j] Q) is H` | [`des_par_H_closure`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| H3 | No operand premises; arbitrary `j` | `(P ∥D[j] Q) is H3` | [`des_par_H3_closure`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| N | `P`, `Q` both H1; arbitrary `j` | `(P ∥D[j] Q) is N` | [`des_par_N_closure`](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 Here `N X ≡ H1 (H3 X)`. None of these closure laws requires mergeability;
 normality alone does not establish associativity.
@@ -181,13 +181,13 @@ This is locally Chaos; it need not hold at other initial states.
 
 | Premises at `s0` | Conclusion for every `okOut`, `sOut` | Lemma |
 | --- | --- | --- |
-| `P(True,s0,okL,sL)`, `Q(True,s0,okR,sR)`, `¬(okL ∧ okR)`, `j(s0,sL,sR,y)` | `(P ∥D[j] Q)(True,s0,okOut,sOut)` | [`des_par_diverge`](../../deps/UTP-Designs/utp_des_parallel.thy#L402) |
+| `P(True,s0,okL,sL)`, `Q(True,s0,okR,sR)`, `¬(okL ∧ okR)`, `j(s0,sL,sR,y)` | `(P ∥D[j] Q)(True,s0,okOut,sOut)` | [`des_par_diverge`](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 This law requires no healthiness premises. Even if the same branch also admits
 termination, its nonterminating observation suffices.
 
 Chaos supplies a divergent observation at every state. By
-[`des_par_expand`](../../deps/UTP-Designs/utp_des_parallel.thy#L364), composing
+[`des_par_expand`](../../deps/UTP-Designs/utp_des_parallel.thy), composing
 with Chaos therefore accepts every output wherever the other operand has an
 observation whose state `j` can merge with some state. An infeasible operand has
 no such observation. Hence Chaos with Chaos is Chaos whenever `j` has a merged
@@ -196,9 +196,9 @@ when `j` is [`mergeable`](../../deps/UTP/utp_concurrency.thy#L62), that is, `∀
 
 | Property | Premises | Equality | Lemma |
 | --- | --- | --- | --- |
-| Chaos with Chaos | `∀s0. ∃sL sR y. j(s0,sL,sR,y)` | `Chaos ∥D[j] Chaos = Chaos` | [`des_par_chaos_chaos`](../../deps/UTP-Designs/utp_des_parallel.thy#L409) |
-| Chaos zero | `P is H4`; `mergeable j` | `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos` | [`des_par_chaos`](../../deps/UTP-Designs/utp_des_parallel.thy#L416) |
-| Miracle zero | `P is H1`; arbitrary `j` | `P ∥D[j] Miracle = Miracle ∥D[j] P = Miracle` | [`des_par_miracle`](../../deps/UTP-Designs/utp_des_parallel.thy#L432) |
+| Chaos with Chaos | `∀s0. ∃sL sR y. j(s0,sL,sR,y)` | `Chaos ∥D[j] Chaos = Chaos` | [`des_par_chaos_chaos`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Chaos zero | `P is H4`; `mergeable j` | `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos` | [`des_par_chaos`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Miracle zero | `P is H1`; arbitrary `j` | `P ∥D[j] Miracle = Miracle ∥D[j] P = Miracle` | [`des_par_miracle`](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 Neither Chaos-zero premise can simply be dropped. Miracle is H1 but not H4, and
 `Chaos ∥D[j] Miracle = Miracle`: Miracle supplies no started observation, so
@@ -215,16 +215,16 @@ pair, `Chaos ∥D[j] Chaos` rejects every started observation at `s0`.
 
 ## Commutativity
 
-[`des_par_comm`](../../deps/UTP-Designs/utp_des_parallel.thy#L446) proves
+[`des_par_comm`](../../deps/UTP-Designs/utp_des_parallel.thy) proves
 `P ∥D[j] Q = Q ∥D[j] P` when `j is SymMerge`, with no operand premises. It
 applies the generic `par_by_merge_comm` to the lifted merge, which is symmetric
-by [`merge_des_SymMerge`](../../deps/UTP-Designs/utp_des_parallel.thy#L304):
+by [`merge_des_SymMerge`](../../deps/UTP-Designs/utp_des_parallel.thy):
 swapping the branches only exchanges `okL ∧ okR` and the arguments of `j`,
 `HDM` preserves `SymMerge`, and `II_D` runs after the merge.
 
 ## Associativity
 
-[`des_par_assoc_state`](../../deps/UTP-Designs/utp_des_parallel.thy#L453)
+[`des_par_assoc_state`](../../deps/UTP-Designs/utp_des_parallel.thy)
 proves:
 
 ```text
@@ -266,16 +266,16 @@ independently of `merge_des_raw`.
 
 | Topic | Result and premises | Source |
 | --- | --- | --- |
-| Idempotence and monotonicity | `H1m`, `H2m`, and `HDM` are idempotent and monotone; H1m and H2m commute | [Idempotence and monotonicity](../../deps/UTP-Designs/utp_des_parallel.thy#L38) |
-| Fixed points | `M is HDM ↔ (M is H1m ∧ M is H2m)` | [`HDM_fixed_iff`](../../deps/UTP-Designs/utp_des_parallel.thy#L94) |
-| Disjunction | All three healthiness functions distribute over disjunction | [Disjunction and conjunction](../../deps/UTP-Designs/utp_des_parallel.thy#L109) |
-| Conjunction | H1m distributes unconditionally; H2m and HDM distribution is proved for H2m-healthy operands and fails in general | [`H2m_conj`](../../deps/UTP-Designs/utp_des_parallel.thy#L127), [`HDM_conj`](../../deps/UTP-Designs/utp_des_parallel.thy#L137), [counterexamples](../../deps/UTP-Designs/utp_des_parallel.thy#L142) |
-| Healthy combinations | For each of H1m, H2m, and HDM, disjunction and conjunction of healthy merges remain healthy | [Closure lemmas](../../deps/UTP-Designs/utp_des_parallel.thy#L160) |
-| Symmetry | Each healthiness function preserves `SymMerge` | [Symmetry](../../deps/UTP-Designs/utp_des_parallel.thy#L190) |
-| Sequential closure | H1m needs `M is H1m` and an H1 continuation; H2m needs only an H2 continuation; HDM needs only `M is H1m` and an H continuation | [Sequential composition](../../deps/UTP-Designs/utp_des_parallel.thy#L207) |
+| Idempotence and monotonicity | `H1m`, `H2m`, and `HDM` are idempotent and monotone; H1m and H2m commute | [Idempotence and monotonicity](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Fixed points | `M is HDM ↔ (M is H1m ∧ M is H2m)` | [`HDM_fixed_iff`](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Disjunction | All three healthiness functions distribute over disjunction | [Disjunction and conjunction](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Conjunction | H1m distributes unconditionally; H2m and HDM distribution is proved for H2m-healthy operands and fails in general | [`H2m_conj`](../../deps/UTP-Designs/utp_des_parallel.thy), [`HDM_conj`](../../deps/UTP-Designs/utp_des_parallel.thy), [counterexamples](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Healthy combinations | For each of H1m, H2m, and HDM, disjunction and conjunction of healthy merges remain healthy | [Closure lemmas](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Symmetry | Each healthiness function preserves `SymMerge` | [Symmetry](../../deps/UTP-Designs/utp_des_parallel.thy) |
+| Sequential closure | H1m needs `M is H1m` and an H1 continuation; H2m needs only an H2 continuation; HDM needs only `M is H1m` and an H continuation | [Sequential composition](../../deps/UTP-Designs/utp_des_parallel.thy) |
 
 The file contains no parallel identity theorem. The symmetry lemmas feed
-[`merge_des_SymMerge`](../../deps/UTP-Designs/utp_des_parallel.thy#L304), which gives `des_par_comm`.
+[`merge_des_SymMerge`](../../deps/UTP-Designs/utp_des_parallel.thy), which gives `des_par_comm`.
 
 ## AD correspondence
 

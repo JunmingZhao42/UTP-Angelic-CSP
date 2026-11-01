@@ -1464,6 +1464,30 @@ lemma A3_obs:
   apply (simp_all add: des_more_ok_update_commute des_vars_collapse)
   by auto
 
+text \<open>An H1 and H3 relation is A3. Under H3, failure at one output admits every
+  output, so failure at every singleton gives failure at the empty set.\<close>
+
+lemma H1_H3_impl_A3:
+  assumes "P is H1" "P is H3"
+  shows "P is A3"
+proof (rule Healthy_intro, rule ades_obs_ext)
+  fix b s0 c Z
+  have h3: "P (ades_obs b s0 c Z) \<longleftrightarrow>
+    ((\<exists>Y. P (ades_obs b s0 False Y)) \<or> (c \<and> P (ades_obs b s0 True Z)))"
+    for b s0 c Z
+    using H3_obs[of P b s0 c Z] by (simp only: Healthy_if[OF assms(2)])
+  have allfail: "(\<forall>z. P (ades_obs True s0 False {z})) \<Longrightarrow>
+    P (ades_obs True s0 False {})"
+    using h3[of True s0 False "{}"] by fastforce
+  show "A3 P (ades_obs b s0 c Z) = P (ades_obs b s0 c Z)"
+    apply (cases b)
+    subgoal using h3[of True s0 c Z] allfail
+      by (cases c; simp add: A3_obs; blast)
+    subgoal using assms(1)[unfolded H1_healthy_obs_iff]
+      by (simp add: A3_obs)
+    done
+qed
+
 lemma A3_obs_H:
   assumes "R is \<^bold>H"
   shows "A3 R (ades_obs b s0 c X) \<longleftrightarrow>

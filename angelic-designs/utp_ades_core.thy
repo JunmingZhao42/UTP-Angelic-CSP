@@ -119,6 +119,13 @@ lemma H2_obs:
     (P (ades_obs b s0 False X) \<or> (c \<and> P (ades_obs b s0 True X)))"
   by (simp add: H2_split; pred_auto)
 
+lemma H3_obs:
+  "H3 P (ades_obs b s0 c X) \<longleftrightarrow>
+    ((\<exists>Y. P (ades_obs b s0 False Y)) \<or> (c \<and> P (ades_obs b s0 True X)))"
+  apply (simp add: H3_def skip_d_def rdesign_def design_def)
+  apply pred_auto
+  by (metis (full_types))
+
 lemma H1_healthy_obs_iff:
   fixes P :: "'s angelic_design"
   shows "P is H1 \<longleftrightarrow> (\<forall>s0 c X. P (ades_obs False s0 c X))"
