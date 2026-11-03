@@ -72,8 +72,11 @@ follows the reactive-design merge `M_R(M) = N_R(M) ;; II_R`: the healthy raw
 lift is followed by the design skip `II_D = (true ⊢r II)`:
 
 ```text
-merge_des j = HDM (merge_des_raw j) ;; II_D
+merge_des j ≡ H3m (HDM (merge_des_raw j))
 ```
+
+The definition applies H3m explicitly; unfolding it gives
+`HDM (merge_des_raw j) ;; II_D`.
 
 `II_D` accepts any output after a nonterminating intermediate observation and
 copies a terminating one. Since `J ;; II_D = II_D`, the skip absorbs the `H2m`
@@ -144,7 +147,7 @@ This is why Miracle remains absorbing.
 ### Healthiness closure
 
 At the generic concurrency level,
-[`par_by_merge_seq_add`](../../deps/UTP/utp_concurrency.thy#L291) gives
+[`par_by_merge_seq_add`](../../deps/UTP/utp_concurrency.thy#L307) gives
 `(P ∥[M] Q) ;; K = P ∥[M ;; K] Q`. Substituting `M ;; K = M`
 immediately gives `(P ∥[M] Q) ;; K = P ∥[M] Q`, without any design-specific
 premises. No separate completion lemma is needed.
@@ -243,6 +246,10 @@ It requires three premises on the state merge:
 leaves it unchanged. With symmetry it gives the relational associativity the
 proof uses, `(∃v. j(s0,a,b,v) ∧ j(s0,v,c,z)) ↔ (∃v. j(s0,b,c,v) ∧ j(s0,a,v,z))`.
 Associative merges that are not symmetric, such as "left wins", are not covered.
+
+The proof obtains this state-merge equation from `par_by_merge_assoc` and
+`par_by_merge_assoc_iff`, then uses the same generic criterion for the lifted
+design merge. Only the design-specific lifting argument is proved locally.
 
 The initial state `s0` stays fixed throughout both nested merges. The theorem
 requires no operand healthiness. Mergeability permits
