@@ -88,9 +88,10 @@ These tasks are publication requirements, not prerequisites for local mechanisat
 - [x] Commit the generalised merge conditions in the `UTP-Designs` fork
   (`6ffe0f8`, 2 November 2026) and record its pointer. Not pushed yet: a fresh
   clone cannot fetch that pointer until it is.
-- [ ] Decide where generic par-by-merge lemmas live; relocation does not block Stage 5.
-  The design merge conditions and their H1–H3 closure rules already live in
-  `UTP-Designs`, typed for merges whose alphabets differ.
+- [x] Place generic par-by-merge evaluation, choice-distribution, symmetry and
+  associativity laws in UTP's `utp_concurrency.thy` (3 November 2026), with
+  different prior and output alphabets where applicable. The design merge
+  conditions and H1–H3 closure rules remain in `UTP-Designs`.
 - [ ] Before publishing, add a proportionate reproducibility check (CI) for proof
   replay, doc links and submodule availability. None is tracked yet.
 - [ ] Maintenance, unscheduled: clear build warnings, and switch definitions from
@@ -159,7 +160,8 @@ Evidence: [Stage 0c closure and validation](docs/reviews/README.md#stage-0c-desi
 ## Stage 1 — AD recipe and closure · current
 
 Outcome: an equivalent AD construction from `j`, with merge-healthiness and
-parallel-closure results presented separately.
+parallel-closure results presented separately. The generic closure requirement
+is complete; necessity and transformer compatibility are optional research.
 
 Names changed on 2 November 2026: `ADH1m`, `ADH2m`, `ADH3m` and `ADHM` are now
 D's `H1m`, `H2m`, `H3m` and `HDM`, generalised to merges whose alphabets
@@ -172,7 +174,8 @@ states the naming rule.
   Equality with the old `ADHM (lift_merge j)` construction was proved for every
   `j`; the recipe audit preserves that proof, `stage1_alt` in its
   [scratch](docs/reviews/2026-10-30-stage-1-recipe/scratch.thy), after removal of the old interface.
-  Keep `merge_ades_obs` and the existing outer `A3` wrapper of `ades_par` unchanged.
+  The outer `A3` wrapper was subsequently removed: `ades_par` now uses
+  `merge_ades` directly, with H1 premises for A3 closure.
 - [x] Retain `ADH2m M = M ;; J`. Install unconditional `merge_ades_ADH1m`,
   `merge_ades_ADH2m`, `merge_ades_ADHM`, and `merge_ades_completion`.
   ADH2m follows from `II_D ;; J = II_D`; skip additionally releases the final
@@ -182,34 +185,42 @@ states the naming rule.
   on the AD merge alphabet, not A1/A2/A3. Record which merge properties hold
   for every `j` and which require a state-merge premise; preserve the exact
   operand premises of each closure and D/AD correspondence theorem.
-- [x] Strengthen `ades_par_lifted_A2_closure` and `ades_par_A2_closure` to only
+- [x] Strengthen `ades_par_A2_closure` to only
   `P is A2` and `Q is A2`, without a premise on `j`. The general observation
   lemma retains unstarted operand feasibility; correspondence still requires
   A/A2. [Proof and validation](docs/reviews/README.md#stage-1-ad-recipe-and-closure).
 - [x] Add `merge_ades_SymMerge`; let `ades_par_comm` assume `j is SymMerge`,
   with no operand premises.
-- [x] Explore associativity: strengthen `ades_par_assoc` to A2 on all three
+- [x] Explore associativity: prove `ades_par_assoc` for H1- and A2-healthy
   operands, retaining `j is SymMerge`, `AssocMerge j`, and `mergeable j`.
-  `ades_par_normalise_A` justifies the transfer through A-normalised operands;
+  `ades_par_normalise_A` uses H1 and A2 to justify transfer through A-normalised operands;
   the D/AD correspondence premises remain unchanged. Associativity outside A2
   and necessity of the merge premises remain open.
   [Proof and validation](docs/reviews/README.md#stage-1-ad-recipe-and-closure).
 - [x] Choose the generic AD closure interface for an arbitrary merge `M`, install
   it, and derive the existing lifted closures from it (2 November 2026). D's
   `H1m`, `H2m`, `H3m`, `HDM` and their `H1/H2/H3_par_by_merge` rules now allow
-  merges whose alphabets differ, and AD uses them directly. AD adds `Am`
-  (A on every slice, defined explicitly), `A2m ≡ A2m_reduce ∘ A2m_atoms`, the rules
-  `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`, and
-  `merge_ades_is_Am` and `merge_ades_is_A2m`; the lifted closures are now
+  merges whose alphabets differ, and AD uses them directly. AD adds `A0m`,
+  `A1m` and `A2m` (defined explicitly), the rules `A0_par_by_merge`,
+  `A1_par_by_merge`, `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`,
+  and `merge_ades_is_A0m`, `merge_ades_is_A1m` and `merge_ades_is_A2m`; the lifted closures are now
   corollaries. The theory follows D's section order. Scratch origin:
   [generic closure rules](docs/reviews/2026-10-30-ad-generic-closure-exploration/README.md)
   and [merge transformers](docs/reviews/2026-10-30-ad-merge-healthiness/README.md).
   [Validation](docs/reviews/README.md#stage-1-generic-ad-closure-interface).
-- [ ] Necessity of the `Am`/`A2m` closure rules. Only left-to-right is proved;
-  these candidate equivalences are **unproved**:
+- [x] Simplify the generic closure support (3 November 2026): retain
+  all five AD closure rules; remove `merge_health`, `merge_slice` and their
+  supporting lemmas, and use merge observations directly. Retain the three angelic
+  transformers' monotonicity and idempotence results with direct proofs.
+  Closure statements, merge definitions and operand premises are unchanged.
+  See the [cleanup log](docs/reviews/README.md#stage-1-generic-ad-closure-cleanup).
+- [ ] Optional research, outside the closure requirement: necessity of the
+  `A0m`/`A1m`/`A2m` closure rules. Only left-to-right is
+  proved; these candidate equivalences are **unproved**:
 
   ```isabelle
-  (M is Am) ⟷ (∀P Q. (P is H1) ∧ (Q is H1) ⟶ ((P ∥[M] Q) is A))
+  (M is A0m) ⟷ (∀P Q. (P ∥[M] Q) is A0)
+  (M is A1m) ⟷ (∀P Q. (P is H1) ∧ (Q is H1) ⟶ ((P ∥[M] Q) is A1))
   (M is A2m) ⟷ (∀P Q. (P is A2) ∧ (Q is A2) ⟶ ((P ∥[M] Q) is A2))
   ```
 
@@ -217,24 +228,21 @@ states the naming rule.
   (H1m, H1, …) and present the restricted converse as the original claim.
   Decided on 1–2 November 2026: `H1m`, `H2m` and `H3m` stay as the premises of
   their rules; weaker premises were not adopted.
-- [ ] Commutation and preservation between `Am`, `A2m` and `H1m`, `H2m`, `H3m`.
-  Healthy examples do not show that an arbitrary composition of these
-  transformers is idempotent.
-- [ ] Install the AD Miracle zero laws. These scratch proofs were checked on
-  16 October 2026, before the 28 October AD merge change; recheck them first:
-
-  ```isabelle
-  lemma ad_chaos_miracle:
-    "(true \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> \<top>\<^sub>D :: 's angelic_design) = \<top>\<^sub>D"
-    by (simp add: ades_par_def A3_def ades_par_by_merge_eval
-        top_d_not_ok; pred_auto)
-
-  lemma ad_miracle_chaos:
-    "(\<top>\<^sub>D \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> true :: 's angelic_design) = \<top>\<^sub>D"
-    by (simp add: ades_par_def A3_def ades_par_by_merge_eval
-        top_d_not_ok; pred_auto)
-  ```
-- [ ] Deduplicate `par_by_merge_eval`, `SymMerge_eval`, `AssocMerge_iff_eval`; move them with `par_by_merge_assoc_iff` and `par_by_merge_SUP_*`.
+- [x] Settle unconditional pairwise commutation of `H1m`, `H2m`, `H3m`,
+  `HDM`, `A0m`, `A1m` and `A2m`: 15 commuting pairs and 6 pairs with proved
+  counterexamples. See the [results](docs/parallel/AD.md#commutation-of-merge-healthiness).
+- [ ] Optional research: conditional commutation and one-way preservation
+  between the merge transformers. Unconditional pairwise results do not settle
+  these questions or idempotence of arbitrary noncommuting compositions.
+- [x] Install `ades_par_miracle` for H1 operands and arbitrary state merge `j`.
+  Both directions reuse the generic design law `par_by_merge_miracle`, with `merge_ades_is_H1m`.
+  The lifted D law `des_par_miracle` reuses the same generic results.
+- [x] Move and generalise the generic associativity criteria into
+  `utp_concurrency.thy`, together with `par_by_merge_eval`, `SymMerge_eval`,
+  and `par_by_merge_SUP_*`; add `par_by_merge_assoc`.
+  RD and RAD reuse the shared results; AD uses them directly at its merge
+  type and no longer duplicates evaluation or symmetry lemmas.
+  See the [stage log](docs/reviews/README.md#stage-1-shared-generic-parallel-laws).
 - [ ] Record the two completion orders, their empty-set rationale, and their correspondence scope as an ADR.
   AD completes after lifting, keeping the empty-set behaviour H1 and A3 need. RAD
   lifts the transported completed RD merge: RA1 excludes `{}` (`RAD_empty`), and

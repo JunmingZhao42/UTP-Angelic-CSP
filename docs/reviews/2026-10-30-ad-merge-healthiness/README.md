@@ -1,9 +1,11 @@
 # AD merge premises as healthiness transformers
 
-> Installed on 2 November 2026 under new names: `AM` is `Am`, `ATM` is
-> `A2m_atoms`, `BRM` is `A2m_reduce` and `A2M` is `A2m`; `atom_branch` and
-> `selects` became `singleton_output` and `selects_singleton`. The scratch below
-> keeps the old names and no longer loads. See the [AD guide](../../parallel/AD.md).
+> Installed on 2 November 2026: `AM` was subsequently split into `A0m` and
+> `A1m`; `A2M` is now `A2m`. The current interface provides sufficient closure;
+> necessity and compatibility are optional research, outside the closure requirement.
+> `A2m` is now one explicit definition, so `ATM`, `BRM`, `atom_branch` and
+> `selects` have no installed counterparts. The scratch below keeps the old
+> names and no longer loads. See the [AD guide](../../parallel/AD.md).
 
 The generic A and A2 closure premises can be expressed exactly as fixed points of monotone, idempotent transformers on `'s ades_merge_rel`. The names below are provisional scratch names. No production theory or existing healthiness definition was changed.
 

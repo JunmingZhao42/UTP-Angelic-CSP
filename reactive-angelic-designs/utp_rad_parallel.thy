@@ -319,7 +319,7 @@ proof -
   have sym: "merge_eval M x p q z = merge_eval M x q p z" for x p q z
     using assms by (simp add: SymMerge_eval)
   show ?thesis
-    by (simp add: SymMerge_ades rad_lift_merge_def Let_def sym; blast)
+    by (simp add: utp_concurrency.SymMerge_eval rad_lift_merge_def Let_def sym; blast)
 qed
 
 lemma rad_p2ac_RD1:
@@ -364,7 +364,7 @@ lemma rad_par_p2ac:
   unfolding rad_par_def
   apply (rule ades_obs_ext)
   apply (simp only: rad_p2ac_obs par_by_merge_eval
-      ades_par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
+      utp_concurrency.par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
   apply (simp only: des_vars.splits)
   by (blast intro: exI[where x="{_}"])
 
@@ -413,7 +413,7 @@ lemma rad_par_mono:
   shows "P1 \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q1 \<sqsubseteq> P2 \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q2"
   unfolding rad_par_def
   using assms
-  by (auto simp: pred_refine_iff ades_par_by_merge_eval split: prod.splits; blast)
+  by (auto simp: pred_refine_iff utp_concurrency.par_by_merge_eval split: prod.splits; blast)
 
 lemma rad_par_comm:
   assumes "rad_lift_merge M is SymMerge"

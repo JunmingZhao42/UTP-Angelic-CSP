@@ -2,31 +2,49 @@
 
 [Documentation](../README.md) · [Paper guides](../paper/README.md)
 
-On `research/parallel2`, ordinary and angelic design parallel constrain the final
-state by the state merge only when both branches terminate. After a divergence the
-branch states must still have some merged state, as in the RD merge. The
-[D guide](D.md) and [AD guide](AD.md) describe the matching liftings and their
-proved correspondence. RAD/AP retain their separate reactive merge semantics.
+- [D](D.md): ordinary designs, `P ∥D[j] Q`.
+- [AD](AD.md): angelic designs, `P ∥AD[j] Q`.
+- [RAD](RAD.md): reactive angelic designs, `P ∥RAD[M] Q`.
+- [AP](AP.md): angelic processes, `P ∥AP[M] Q`.
+- [Related work](related-work.md): divergence, infeasibility and comparisons with other models.
 
-[Related work](related-work.md) compares this lifting with published
-ordinary-design, Circus, CSP, CCS and refinement-calculus semantics, and explains
-why parallel by merge cannot make Chaos absorb Miracle.
+## Shared notation
 
-This branch has one parallel operator by lifted merge per layer. Each guide lists
-closure, algebra and ordinary-layer correspondence laws with their premises.
+`P,Q,R` are operands; `j` is a state merge and `M` an observation merge.
+`P is H` means `H P = P`. In mathematical formulas, the prior is `(ok,s)`;
+branch observations use subscripts `L,R`, and the merged output uses primes.
+AD outputs contain choice sets `acL,acR,ac'`, rather than individual states.
 
-Read D for ordinary merge lifting and its laws, then AD → RAD → AP for the
-angelic layers. AD introduces choice sets; RAD adds reactive observations, and
-AP transports the RAD operator.
+`j(s,sL,sR,s')` abbreviates `merge_eval j s sL sR s'`.
+`mergeable j` means `∀s sL sR. ∃s'. j(s,sL,sR,s')`.
+Isabelle uses `ok0,s0` where the unadorned names would resolve to lens constants.
+The guides use readable observation tuples rather than literal record syntax.
 
-| Layer | Guide | Operator |
-| --- | --- | --- |
-| Ordinary designs (D) | [D parallel](D.md) | `P ∥D[j] Q`: raw state merge followed by design Skip, as in the RD merge. |
-| Angelic designs (AD) | [AD parallel](AD.md) | `P ∥AD[j] Q`: state merge lifting; the A3 wrapper is redundant for H1-healthy operands. |
-| Reactive angelic designs (RAD) | [RAD parallel](RAD.md) | `P ∥RAD[M] Q`: parallel using a lifted reactive observation merge. |
-| Angelic processes (AP) | [AP parallel](AP.md) | `P ∥AP[M] Q`: RAD parallel transported through RA1 and H1. |
+## Generic concurrency laws
 
-AD maps to ordinary-design parallel. RAD/AP map to flat reactive-design
-parallel. RAD/AP closure requires healthy operands and a RADm-healthy merge.
-AP transport identifies some distinct divergent
-processes; it does not preserve every distinction of direct AP semantics.
+[utp_concurrency.thy](../../deps/UTP/utp_concurrency.thy) defines [par_by_merge](../../deps/UTP/utp_concurrency.thy#L229), written `P ∥[M] Q`:
+
+```text
+(P ∥[M] Q)(x,out) ↔ ∃p q. P(x,p) ∧ Q(x,q) ∧ M(x,p,q,out)
+```
+
+[par_by_merge_eval](../../deps/UTP/utp_concurrency.thy#L279) gives this evaluation.
+[par_by_merge_Sup_distl](../../deps/UTP/utp_concurrency.thy#L283) and [par_by_merge_Sup_distr](../../deps/UTP/utp_concurrency.thy#L287) distribute over demonic
+choice; false is absorbing, and [par_by_merge_true](../../deps/UTP/utp_concurrency.thy#L295) characterises a true merge.
+
+[par_by_merge_comm](../../deps/UTP/utp_concurrency.thy#L330) requires `M is SymMerge`.
+[par_by_merge_cyclic](../../deps/UTP/utp_concurrency.thy#L374) requires `AssocMerge M` and gives
+
+```text
+(P ∥[M] Q) ∥[M] R = (Q ∥[M] R) ∥[M] P.
+```
+
+Thus [par_by_merge_assoc](../../deps/UTP/utp_concurrency.thy#L391) needs both symmetry and [AssocMerge](../../deps/UTP/utp_concurrency.thy#L213).
+Alternatively, [par_by_merge_assoc_iff](../../deps/UTP/utp_concurrency.thy#L349) characterises associativity on all
+relations by equality of the two merge folds. Branch and merged outputs must
+share an alphabet for nesting; the prior alphabet may differ.
+
+These laws have no operand-healthiness premises. Specialised operators must
+establish them for their actual merge or transfer a law on their healthy operands.
+D/AD correspondence is in [AD](AD.md#ac2pd2ac-mapping-laws);
+RAD/AP use flat RD with [R3c](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L202), not an established D-to-RD correspondence.
