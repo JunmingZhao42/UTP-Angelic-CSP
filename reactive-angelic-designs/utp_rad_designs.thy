@@ -10,6 +10,12 @@ subsection \<open>CSPA1\<close>
 definition CSPA1 :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
 [pred]: "CSPA1 P = (P \<or> RA1 (\<not> ok\<^sup><))"
 
+lemma CSPA1_obs:
+  "CSPA1 P (ades_obs ok0 s0 ok' X) =
+    (P (ades_obs ok0 s0 ok' X) \<or>
+      (\<not> ok0 \<and> rad_trace_extensions s0 \<inter> X \<noteq> {}))"
+  by (simp add: CSPA1_def RA1_not_ok_eval; pred_auto)
+
 lemma CSPA1_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> CSPA1 P \<sqsubseteq> CSPA1 Q"
   by (simp add: CSPA1_def, pred_auto)
@@ -257,6 +263,37 @@ method rad_closure uses add =
   (rule RAD_design_closure,
    (rule design_is_H1_H2; pred_auto),
    (simp add: rad_wait_false_distrib add))
+
+subsubsection \<open>Empty choice sets\<close>
+
+lemma RAD_empty:
+  "P is RAD \<Longrightarrow> \<not> P (ades_obs ok0 s0 ok' {})"
+proof -
+  assume assms: "P is RAD"
+  show ?thesis
+  by (subst Healthy_if[OF assms, symmetric]; simp add: RAD_def RA_def RA1_obs)
+qed
+
+lemma rad_d2ac_not_RAD:
+  "\<not> (d2ac D is RAD)"
+proof
+  assume "d2ac D is RAD"
+  then have "\<not> d2ac D (ades_obs False s0 True {})" for s0
+    by (rule RAD_empty)
+  then show False
+    by (simp add: d2ac_def; pred_auto)
+qed
+
+lemma A3_not_RAD:
+  fixes P :: "('t::trace, 'e) reactive_angelic_design"
+  shows "\<not> (A3 P is RAD)"
+proof
+  assume "A3 P is RAD"
+  then have "\<not> A3 P (ades_obs False s0 True {})" for s0
+    by (rule RAD_empty)
+  then show False
+    by (simp add: A3_def; pred_auto)
+qed
 
 lemma H2_CSPA1_commute: "H2 (CSPA1 P) = CSPA1 (H2 P)"
 proof -

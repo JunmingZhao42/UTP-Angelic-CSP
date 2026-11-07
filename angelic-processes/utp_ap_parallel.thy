@@ -116,7 +116,7 @@ lemma ap_RD_reverse_roundtrip_NDAP:
 subsection \<open>Parallel transported through RAD\<close>
 
 text \<open>This construction uses the RAD parallel operator without a new set lift.
-  Closure follows from healthy operands and a RADm-healthy merge.\<close>
+  Closure follows from healthy operands and an ORDm-healthy merge.\<close>
 
 definition ap_par ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e set) rp merge \<Rightarrow>
@@ -126,14 +126,14 @@ where
   "ap_par P M Q = H1 (RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> RA1 Q)"
 
 lemma ap_par_AP:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is ORDm"
   shows "ap_par P M Q is AP"
   unfolding ap_par_def
   by (rule H1_RAD_AP_closure, rule rad_par_RAD;
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_RA1:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is ORDm"
   shows "RA1 (ap_par P M Q) = (RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> RA1 Q)"
   unfolding ap_par_def
   by (rule RA1_H1_RAD_healthy[simplified comp_apply], rule rad_par_RAD;
@@ -154,7 +154,7 @@ lemma ap_par_A2:
       simp add: assms RA1_AP_RAD_closure RA1_A2_closure)
 
 lemma ap_par_ac2p:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is ORDm"
   shows "ac2p (RA1 (ap_par P M Q)) =
     (ac2p (RA1 P) \<parallel>\<^bsub>M\<^esub> ac2p (RA1 Q))"
   unfolding ap_par_RA1[OF assms]
@@ -169,7 +169,7 @@ lemma ap_par_p2ac:
         rad_p2ac_RD_closure[OF assms(2)]] rad_par_p2ac)
 
 lemma ap_par_roundtrip:
-  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is RADm"
+  assumes "P is AP" "Q is AP" "P is A2" "Q is A2" "M is ORDm"
   shows "H1 (RA1 (ap_par P M Q)) = ap_par P M Q"
   by (subst ap_par_RA1[OF assms]; simp only: ap_par_def)
 

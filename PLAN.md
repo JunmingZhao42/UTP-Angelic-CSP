@@ -133,7 +133,7 @@ full-project batch build (31 October 2026).
   `des_par_H3_closure`. H3 itself expects a design input, so the merge
   property uses the corresponding transformer on the merge alphabet.
 - [x] Weaken the generic design rule `H_par_by_merge` to premises
-  `P is H1`, `Q is H1`, and `M is HDM`. H1 follows from
+  `P is H1`, `Q is H1`, and `M is HDm`. H1 follows from
   `H1_par_by_merge`; `H2_par_by_merge` needs no operand premise.
   Derive the corresponding weakening of `des_par_H_closure` to H1 operands.
 - [x] Combine H1 and H3 closure to prove normal-design (`N`) closure of
@@ -165,7 +165,8 @@ is complete; necessity and transformer compatibility are optional research.
 
 Names changed on 2 November 2026: `ADH1m`, `ADH2m`, `ADH3m` and `ADHM` are now
 D's `H1m`, `H2m`, `H3m` and `HDM`, generalised to merges whose alphabets
-differ, and `merge_ades_ADHxm` became `merge_ades_is_Hxm`. Finished items below
+differ, and `merge_ades_ADHxm` became `merge_ades_is_Hxm`. `HDM` was renamed
+`HDm` on 7 November 2026. Finished items below
 keep the names they were done under. The [AD guide](docs/parallel/AD.md#merge-healthiness)
 states the naming rule.
 
@@ -199,11 +200,11 @@ states the naming rule.
   [Proof and validation](docs/reviews/README.md#stage-1-ad-recipe-and-closure).
 - [x] Choose the generic AD closure interface for an arbitrary merge `M`, install
   it, and derive the existing lifted closures from it (2 November 2026). D's
-  `H1m`, `H2m`, `H3m`, `HDM` and their `H1/H2/H3_par_by_merge` rules now allow
+  `H1m`, `H2m`, `H3m`, `HDm` and their `H1/H2/H3_par_by_merge` rules now allow
   merges whose alphabets differ, and AD uses them directly. AD adds `A0m`,
-  `A1m` and `A2m` (defined explicitly), the rules `A0_par_by_merge`,
+  `A1m`, their combined `ADm`, and `A2m`, with the rules `A0_par_by_merge`,
   `A1_par_by_merge`, `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`,
-  and `merge_ades_is_A0m`, `merge_ades_is_A1m` and `merge_ades_is_A2m`; the lifted closures are now
+  and `merge_ades_is_A0m`, `merge_ades_is_A1m`, `merge_ades_is_ADm` and `merge_ades_is_A2m`; the lifted closures are now
   corollaries. The theory follows D's section order. Scratch origin:
   [generic closure rules](docs/reviews/2026-10-30-ad-generic-closure-exploration/README.md)
   and [merge transformers](docs/reviews/2026-10-30-ad-merge-healthiness/README.md).
@@ -229,7 +230,7 @@ states the naming rule.
   Decided on 1–2 November 2026: `H1m`, `H2m` and `H3m` stay as the premises of
   their rules; weaker premises were not adopted.
 - [x] Settle unconditional pairwise commutation of `H1m`, `H2m`, `H3m`,
-  `HDM`, `A0m`, `A1m` and `A2m`: 15 commuting pairs and 6 pairs with proved
+  `HDm`, `A0m`, `A1m` and `A2m`: 15 commuting pairs and 6 pairs with proved
   counterexamples. See the [results](docs/parallel/AD.md#commutation-of-merge-healthiness).
 - [ ] Optional research: conditional commutation and one-way preservation
   between the merge transformers. Unconditional pairwise results do not settle
@@ -370,7 +371,7 @@ with the transport. A second completion construction is not a prerequisite.
 
 ### 5c — healthy closure and available laws
 
-- [ ] First try `RADm` healthiness of the transported merge and reuse `rad_par_RAD`.
+- [ ] First try `ORDm` healthiness of the transported merge and reuse `rad_par_RAD`.
   If unavailable, investigate direct RD closure through 5a and
   `rdes_lift_parallel_NSRD`, then `rad_par_form` and `rad_p2ac_RD_closure`.
 - [ ] Establish A2 closure with `rad_par_A2`; preserve RAD/A2 operand premises
@@ -378,7 +379,7 @@ with the transport. A second completion construction is not a prerequisite.
 - [ ] After closure, transfer qualified Chaos and Miracle laws and commutativity,
   including constants and every feasibility, operand and merge premise.
 
-Failure of the sufficient `RADm` condition alone does not refute the construction.
+Failure of the sufficient `ORDm` condition alone does not refute the construction.
 Neither closure route is established yet. Neither gives a round trip outside A2.
 
 ### 5d — conditional associativity transfer
@@ -394,7 +395,7 @@ does not block other RAD/AP laws or Stage 6.
 
 - [ ] Specialise the existing parameterised `ap_par` to the transported completed
   merge after 5a–c, retaining the generic definition and explicit AP/A2 premises.
-  Reuse theorems when `RADm` is established, or transfer closure using 5c.
+  Reuse theorems when `ORDm` is established, or transfer closure using 5c.
 - [ ] Transfer associativity only when 5d is available; otherwise mark it open.
 - [ ] Update the guides and retire superseded historical notes.
 - [ ] Optional: establish the D/RD/AD/RAD square at unit state.
@@ -439,7 +440,7 @@ RD alphabet; they are not alphabet liftings.
   condition on `j`. Associativity and Chaos zero keep their own premises.
 - RDM constrains the seed, not the completed merge, and `N_R` builds control
   behaviour, so the obligation is not `M is N_R`. RDM of the seed does not by
-  itself give `RADm` of the transported completion.
+  itself give `ORDm` of the transported completion.
 - `rad_par_p2ac`, `(p2ac P) ∥RAD[M] (p2ac Q) = p2ac (P ∥[M] Q)`, has no premises.
   It neither completes `M` nor identifies it with `rdes_lift_merge j`.
 - The healthy round trip between flat RD and RAD ∩ A2 uses `rad_ac2p_p2ac_inverse`,

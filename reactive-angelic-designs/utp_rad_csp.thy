@@ -21,6 +21,12 @@ lemma rad_p2ac_design_nonempty:
   by (simp only: comp_apply
       p2ac_design_nonempty)
 
+lemma rad_p2ac_obs:
+  "p2ac P (ades_obs ok0 s0 ok' Z) =
+    (\<exists>s'\<in>Z. P (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>,
+                   \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
+  by (simp add: p2ac_def)
+
 lemma rad_ac2p_disj: "ac2p (P \<or> Q) = (ac2p P \<or> ac2p Q)"
   by (simp add: ac2p_disj)
 
@@ -379,5 +385,48 @@ proof -
 qed
 
 lemmas rad_p2ac_ac2p_RAD_A2' = rad_p2ac_ac2p_RAD_A2[simplified comp_apply]
+
+subsection \<open>Reactive design healthiness\<close>
+
+lemma rad_p2ac_RD1:
+  "p2ac (RD1 P) = CSPA1 (p2ac P)"
+  apply (rule ades_obs_ext)
+  subgoal for b s c X
+    by (cases b; cases c;
+        auto simp: p2ac_def CSPA1_obs RD1_def rad_trace_extensions_def
+          expr_defs lens_defs alpha_defs disj_pred_def conj_pred_def)
+  done
+
+lemma rad_p2ac_RD2:
+  "p2ac (RD2 P) = CSPA2 (p2ac P)"
+  apply (rule ades_obs_ext)
+  apply (simp add: rad_p2ac_obs CSPA2_def RD2_def H2_obs H2_split)
+  by (auto simp: expr_defs lens_defs des_vars.ok_def p2ac_def
+        disj_pred_def conj_pred_def)
+
+lemma rad_p2ac_RD:
+  "p2ac (RD P) = RAD (p2ac P)"
+  unfolding RD_alt_def RD2_RH_commute RD1_RH_commute
+  by (simp only: rad_p2ac_R' rad_p2ac_RD1 rad_p2ac_RD2 RAD_def comp_apply
+      Healthy_if[OF rad_p2ac_PBMH_ades])
+
+lemma rad_p2ac_RD_closure:
+  "P is RD \<Longrightarrow> p2ac P is RAD"
+proof -
+  assume assms: "P is RD"
+  show ?thesis
+  by (simp only: Healthy_def' rad_p2ac_RD[symmetric] Healthy_if[OF assms])
+qed
+
+lemma rad_ac2p_RD:
+  "\<lbrakk> P is RAD; P is A2 \<rbrakk> \<Longrightarrow> ac2p P is RD"
+proof -
+  assume assms: "P is RAD" "P is A2"
+  have "p2ac (RD (ac2p P)) = P"
+    by (simp only: rad_p2ac_RD rad_p2ac_ac2p_RAD_A2'[OF assms] Healthy_if[OF assms(1)])
+  then have "RD (ac2p P) = ac2p P"
+    by (metis rad_ac2p_p2ac_inverse')
+  then show ?thesis by (simp only: Healthy_def')
+qed
 
 end

@@ -12,18 +12,18 @@ the final observation after divergence but retain branch and merge feasibility.
 Completed RD parallel additionally requires a merged witness whose trace is
 a prefix of the final trace, through the completed
 [merge_rd](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L132).
-The exact initial-trace criterion and additional RD zero laws remain in the
-local, uncommitted RD exploration; they are not part of the pinned dependency.
+The pinned [rdes_parallel_Chaos_iff](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L495)
+gives the exact Chaos criterion for SRD operands and an RDM input merge.
 
 Every generic parallel selects an observation from both operands. If one
 operand has no started observation, changing the merge cannot supply it.
 Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L494) and
-[ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L541) laws. Universal Chaos absorption on a carrier containing
+[ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L595) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 
 The local RAD lift is different from completed RD parallel: it can retain
 final refusal constraints after divergence
-([RAD](RAD.md#basic-merge), [RADm_post_ref_example](../../reactive-angelic-designs/utp_rad_parallel.thy#L559)).
+([RAD](RAD.md#basic-merge), [ORDm_post_ref_example](../../reactive-angelic-designs/utp_rad_parallel.thy#L385)).
 
 ## UTP sources
 

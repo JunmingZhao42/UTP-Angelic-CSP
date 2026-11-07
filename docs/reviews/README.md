@@ -397,3 +397,16 @@ laws with their premises, correspondence and semantic limits. Removed repeated
 walkthroughs, proof narratives and tables; corrected the stale AD Miracle status.
 Documentation links, incoming heading anchors, 70 parallel declaration references
 and whitespace checks passed. No theories changed or Isabelle checks rerun.
+
+## Combined AD merge healthiness and merge names
+
+7 November 2026. Added `ADm ≡ A0m ∘ A1m`, proved its fixed-point law,
+idempotence and monotonicity, and used it for generic and lifted AD closure.
+Renamed the Design condition `HDM` to `HDm` and the ordinary RD condition
+`RADm` to `ORDm` in the affected theories and guides.
+
+Focused PIDE checks passed for Design parallel (588 commands), AD parallel
+(746), ordinary RD parallel laws (518), the RD lift (284) and RAD parallel
+(392), with no errors or unfinished commands in the checked contexts.
+Documentation links and whitespace checks passed. The rename-only AP snapshot
+and a batch build were not rerun.

@@ -20,11 +20,11 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | --- | --- | --- | --- |
 | <a id="d27"></a>**D27** / D108 | Trace-extending final states | — | [rad_trace_extensions](../../reactive-angelic-designs/utp_rad_healthy.thy#L10) |
 | <a id="d28"></a>**D28** / D109 | RA1 trace-extension healthiness | — | [RA1](../../reactive-angelic-designs/utp_rad_healthy.thy#L16) |
-| <a id="t9"></a>**T9** / T.5.2.1 | RA1 absorbs A0 | None | [RA1_A0_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L146) |
-| <a id="d29"></a>**D29** / D110 | RA2 trace normalization | — | [RA2](../../reactive-angelic-designs/utp_rad_healthy.thy#L301) |
-| <a id="d30"></a>**D30** / D111 | Reactive identity | — | [II_Rac](../../reactive-angelic-designs/utp_rad_healthy.thy#L513) |
-| <a id="d31"></a>**D31** / D112 | RA3 waiting behaviour | — | [RA3](../../reactive-angelic-designs/utp_rad_healthy.thy#L736) |
-| <a id="d32"></a>**D32** / D113 | Combined reactive healthiness | — | [RA](../../reactive-angelic-designs/utp_rad_healthy.thy#L861) |
+| <a id="t9"></a>**T9** / T.5.2.1 | RA1 absorbs A0 | None | [RA1_A0_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L152) |
+| <a id="d29"></a>**D29** / D110 | RA2 trace normalization | — | [RA2](../../reactive-angelic-designs/utp_rad_healthy.thy#L307) |
+| <a id="d30"></a>**D30** / D111 | Reactive identity | — | [II_Rac](../../reactive-angelic-designs/utp_rad_healthy.thy#L519) |
+| <a id="d31"></a>**D31** / D112 | RA3 waiting behaviour | — | [RA3](../../reactive-angelic-designs/utp_rad_healthy.thy#L742) |
+| <a id="d32"></a>**D32** / D113 | Combined reactive healthiness | — | [RA](../../reactive-angelic-designs/utp_rad_healthy.thy#L867) |
 | <a id="ex11"></a>**Ex11** | RA1 and PBMH disagree on empty choices | — | [RA1_PBMH_ades_ac_empty_example](../../reactive-angelic-designs/utp_rad_examples.thy#L15) |
 
 <details>
@@ -33,7 +33,7 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | T.5.2.2–3, 6–7, 12–13 | RA1/RA2/RA3 distribution | See component declarations | [utp_rad_healthy](../../reactive-angelic-designs/utp_rad_healthy.thy) |
-| T.5.2.15 | PBMH absorption around RA3 | None | [PBMH_ades_RA3_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L815) |
+| T.5.2.15 | PBMH absorption around RA3 | None | [PBMH_ades_RA3_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L821) |
 
 </details>
 
@@ -42,20 +42,20 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | <a id="d33"></a>**D33** / D114 | CSPA1 healthiness | — | [CSPA1](../../reactive-angelic-designs/utp_rad_designs.thy#L10) |
-| <a id="t10"></a>**T10** | RA1 after CSPA1 agrees with RA1 after H1 | None | [RA1_CSPA1](../../reactive-angelic-designs/utp_rad_designs.thy#L34) |
-| <a id="d34"></a>**D34** / D115 | CSPA2 healthiness | — | [CSPA2](../../reactive-angelic-designs/utp_rad_designs.thy#L60) |
-| <a id="d35"></a>**D35** / D116 | RAD healthiness | — | [RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L86) |
-| <a id="t11"></a>**T11** / T.5.2.20 | RAD design normal form | None; healthy specialization requires RAD | [RAD_design_form](../../reactive-angelic-designs/utp_rad_designs.thy#L118), [RAD_design_form'](../../reactive-angelic-designs/utp_rad_designs.thy#L138) |
+| <a id="t10"></a>**T10** | RA1 after CSPA1 agrees with RA1 after H1 | None | [RA1_CSPA1](../../reactive-angelic-designs/utp_rad_designs.thy#L40) |
+| <a id="d34"></a>**D34** / D115 | CSPA2 healthiness | — | [CSPA2](../../reactive-angelic-designs/utp_rad_designs.thy#L66) |
+| <a id="d35"></a>**D35** / D116 | RAD healthiness | — | [RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L92) |
+| <a id="t11"></a>**T11** / T.5.2.20 | RAD design normal form | None; healthy specialization requires RAD | [RAD_design_form](../../reactive-angelic-designs/utp_rad_designs.thy#L124), [RAD_design_form'](../../reactive-angelic-designs/utp_rad_designs.thy#L144) |
 
 <details>
 <summary>Supplementary results</summary>
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.5.2.18 | CSPA1 after RA1 agrees with RA1 after H1 | None | [CSPA1_RA1](../../reactive-angelic-designs/utp_rad_designs.thy#L40) |
-| T.5.2.21 | RAD implies upward closure | P is RAD | [RAD_is_PBMH_ades](../../reactive-angelic-designs/utp_rad_designs.thy#L107) |
-| T.G.4.5 | Re-extraction preserves the design normal form | Projected design form | [RA_design_form_idem](../../reactive-angelic-designs/utp_rad_healthy.thy#L1144) |
-| T.G.5.1 | CSPA1 idempotence | None | [CSPA1_Idempotent](../../reactive-angelic-designs/utp_rad_designs.thy#L24) |
+| T.5.2.18 | CSPA1 after RA1 agrees with RA1 after H1 | None | [CSPA1_RA1](../../reactive-angelic-designs/utp_rad_designs.thy#L46) |
+| T.5.2.21 | RAD implies upward closure | P is RAD | [RAD_is_PBMH_ades](../../reactive-angelic-designs/utp_rad_designs.thy#L113) |
+| T.G.4.5 | Re-extraction preserves the design normal form | Projected design form | [RA_design_form_idem](../../reactive-angelic-designs/utp_rad_healthy.thy#L1150) |
+| T.G.5.1 | CSPA1 idempotence | None | [CSPA1_Idempotent](../../reactive-angelic-designs/utp_rad_designs.thy#L30) |
 
 </details>
 
@@ -65,8 +65,8 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t12"></a>**T12** / T.5.3.1 | ac2p carries RA to ordinary reactive healthiness | P is PBMH_ades | [rad_ac2p_RA](../../reactive-angelic-designs/utp_rad_csp.thy#L102) |
-| <a id="t13"></a>**T13** / T.5.3.2 | ac2p of the reactive design normal form | Projected failure/success components | [rad_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L111) |
+| <a id="t12"></a>**T12** / T.5.3.1 | ac2p carries RA to ordinary reactive healthiness | P is PBMH_ades | [rad_ac2p_RA](../../reactive-angelic-designs/utp_rad_csp.thy#L108) |
+| <a id="t13"></a>**T13** / T.5.3.2 | ac2p of the reactive design normal form | Projected failure/success components | [rad_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L117) |
 | <a id="d36"></a>**D36** / D122 | Singleton-choice binder | — | [ades_singleton_choice](../../angelic-designs/utp_ades_healthy.thy#L1169), [ac_singleton_choice](../../angelic-designs/utp_ades_healthy.thy#L1153) |
 | <a id="ex12"></a>**Ex12** | Choice of differently prefixed deadlocks; a ≠ b for CSP comparison | — | [Prefix_Stop_Stop_angelic_choice](../../reactive-angelic-designs/utp_rad_examples.thy#L433), [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L488) |
 | <a id="l5"></a>**L5** | Ordinary CSP comparison of different prefixed deadlocks | a ≠ b; list traces | [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L488) |
@@ -76,8 +76,8 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.G.7.1–2 | ac2p maps trace healthiness | P is PBMH_ades | [rad_ac2p_RA1](../../reactive-angelic-designs/utp_rad_csp.thy#L43), [rad_ac2p_RA1_RA2](../../reactive-angelic-designs/utp_rad_csp.thy#L55) |
-| T.G.7.3 | ac2p maps waiting healthiness | None | [rad_ac2p_RA3](../../reactive-angelic-designs/utp_rad_csp.thy#L87) |
+| T.G.7.1–2 | ac2p maps trace healthiness | P is PBMH_ades | [rad_ac2p_RA1](../../reactive-angelic-designs/utp_rad_csp.thy#L49), [rad_ac2p_RA1_RA2](../../reactive-angelic-designs/utp_rad_csp.thy#L61) |
+| T.G.7.3 | ac2p maps waiting healthiness | None | [rad_ac2p_RA3](../../reactive-angelic-designs/utp_rad_csp.thy#L93) |
 
 </details>
 
@@ -85,14 +85,14 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t14"></a>**T14** / T.5.3.3 | p2ac carries ordinary reactive healthiness to RA | None | [rad_p2ac_R](../../reactive-angelic-designs/utp_rad_csp.thy#L209) |
-| <a id="t15"></a>**T15** / T.5.3.4 | p2ac of an ordinary reactive design | Projected failure/success components | [rad_p2ac_R_design](../../reactive-angelic-designs/utp_rad_csp.thy#L268) |
+| <a id="t14"></a>**T14** / T.5.3.3 | p2ac carries ordinary reactive healthiness to RA | None | [rad_p2ac_R](../../reactive-angelic-designs/utp_rad_csp.thy#L215) |
+| <a id="t15"></a>**T15** / T.5.3.4 | p2ac of an ordinary reactive design | Projected failure/success components | [rad_p2ac_R_design](../../reactive-angelic-designs/utp_rad_csp.thy#L274) |
 | <a id="ex13"></a>**Ex13** | Ordinary reactive identity maps to II_Rac | — | [rad_p2ac_Skip_R](../../reactive-angelic-designs/utp_rad_examples.thy#L622) |
-| <a id="t16"></a>**T16** / T.5.3.5 | Ordinary reactive predicate round trip | None | [rad_ac2p_p2ac_inverse](../../reactive-angelic-designs/utp_rad_csp.thy#L278) |
-| <a id="l6"></a>**L6** | Existential form of the reverse round trip | None | [rad_p2ac_ac2p](../../reactive-angelic-designs/utp_rad_csp.thy#L284) |
+| <a id="t16"></a>**T16** / T.5.3.5 | Ordinary reactive predicate round trip | None | [rad_ac2p_p2ac_inverse](../../reactive-angelic-designs/utp_rad_csp.thy#L284) |
+| <a id="l6"></a>**L6** | Existential form of the reverse round trip | None | [rad_p2ac_ac2p](../../reactive-angelic-designs/utp_rad_csp.thy#L290) |
 | <a id="ex14"></a>**Ex14** | Two-prefix postcondition round trip; a ≠ b | — | [rad_p2ac_ac2p_prefix_stop_pair](../../reactive-angelic-designs/utp_rad_examples.thy#L636) |
-| <a id="t17"></a>**T17** / T.5.3.6 | Reverse round-trip refinement | P is PBMH_ades | [rad_p2ac_ac2p_refine](../../reactive-angelic-designs/utp_rad_csp.thy#L301) |
-| <a id="t18"></a>**T18** / T.5.3.7 | Exact round trip of the reactive design form | F(P), T(P) both A2 | [rad_p2ac_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L319) |
+| <a id="t17"></a>**T17** / T.5.3.6 | Reverse round-trip refinement | P is PBMH_ades | [rad_p2ac_ac2p_refine](../../reactive-angelic-designs/utp_rad_csp.thy#L307) |
+| <a id="t18"></a>**T18** / T.5.3.7 | Exact round trip of the reactive design form | F(P), T(P) both A2 | [rad_p2ac_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L325) |
 
 In T18, `F(P)` and `T(P)` set initial waiting false and final `ok′` false/true respectively.
 
@@ -101,11 +101,11 @@ In T18, `F(P)` and `T(P)` set initial waiting false and final `ok′` false/true
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.G.7.8–10 | p2ac maps ordinary reactive components | None | [rad_p2ac_R1](../../reactive-angelic-designs/utp_rad_csp.thy#L167), [rad_p2ac_R1_R2](../../reactive-angelic-designs/utp_rad_csp.thy#L176), [rad_p2ac_R3](../../reactive-angelic-designs/utp_rad_csp.thy#L196) |
-| L.G.7.2 | p2ac maps reactive identity | None | [rad_p2ac_II_C](../../reactive-angelic-designs/utp_rad_csp.thy#L187) |
-| L.G.7.11 | A2 reverse round trip with nonempty choices | P is A2 | [rad_p2ac_ac2p_A2](../../reactive-angelic-designs/utp_rad_csp.thy#L312) |
+| T.G.7.8–10 | p2ac maps ordinary reactive components | None | [rad_p2ac_R1](../../reactive-angelic-designs/utp_rad_csp.thy#L173), [rad_p2ac_R1_R2](../../reactive-angelic-designs/utp_rad_csp.thy#L182), [rad_p2ac_R3](../../reactive-angelic-designs/utp_rad_csp.thy#L202) |
+| L.G.7.2 | p2ac maps reactive identity | None | [rad_p2ac_II_C](../../reactive-angelic-designs/utp_rad_csp.thy#L193) |
+| L.G.7.11 | A2 reverse round trip with nonempty choices | P is A2 | [rad_p2ac_ac2p_A2](../../reactive-angelic-designs/utp_rad_csp.thy#L318) |
 
-Additional round-trip support: [rad_p2ac_ac2p_A2_form](../../reactive-angelic-designs/utp_rad_csp.thy#L293) retains the nonempty-choice factor; [rad_p2ac_ac2p_RAD_A2](../../reactive-angelic-designs/utp_rad_csp.thy#L369) gives equality for RAD/A2 inputs. Routine operator closure and component algebra are in the theory files below.
+Additional round-trip support: [rad_p2ac_ac2p_A2_form](../../reactive-angelic-designs/utp_rad_csp.thy#L299) retains the nonempty-choice factor; [rad_p2ac_ac2p_RAD_A2](../../reactive-angelic-designs/utp_rad_csp.thy#L375) gives equality for RAD/A2 inputs. Routine operator closure and component algebra are in the theory files below.
 
 </details>
 
@@ -262,22 +262,22 @@ T35 tests failure only at started observations; see [theorem35_counterexample](.
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t66"></a>**T66** / T.5.2.11 | PBMH absorption around RA2 | None | [PBMH_ades_RA2_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L482) |
-| <a id="t67"></a>**T67** | RA after A agrees with RA after PBMH | P is H | [RA_A](../../reactive-angelic-designs/utp_rad_healthy.thy#L926) |
-| <a id="t68"></a>**T68** / T.5.2.16 | RA1 and RA3 commute | None; printed correction | [RA1_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L825) |
-| <a id="t69"></a>**T69** / T.5.2.17 | RA2 and RA3 commute | None | [RA2_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L829) |
-| <a id="t70"></a>**T70** / T.5.2.5 | PBMH absorption around RA1 | None | [PBMH_ades_RA1_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L174) |
-| <a id="t71"></a>**T71** / T.5.2.10 | RA1 and RA2 commute | None | [RA1_RA2_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L407) |
+| <a id="t66"></a>**T66** / T.5.2.11 | PBMH absorption around RA2 | None | [PBMH_ades_RA2_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L488) |
+| <a id="t67"></a>**T67** | RA after A agrees with RA after PBMH | P is H | [RA_A](../../reactive-angelic-designs/utp_rad_healthy.thy#L932) |
+| <a id="t68"></a>**T68** / T.5.2.16 | RA1 and RA3 commute | None; printed correction | [RA1_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L831) |
+| <a id="t69"></a>**T69** / T.5.2.17 | RA2 and RA3 commute | None | [RA2_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L835) |
+| <a id="t70"></a>**T70** / T.5.2.5 | PBMH absorption around RA1 | None | [PBMH_ades_RA1_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L180) |
+| <a id="t71"></a>**T71** / T.5.2.10 | RA1 and RA2 commute | None | [RA1_RA2_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L413) |
 
 T67 requires H-healthiness. T68 states the commutation established by the source proof, whose printed equation repeats one side.
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="l19"></a>**L19** | RA3 absorbs initial-wait-false substitution | None | [RA3_wait_false_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L840) |
-| <a id="l20"></a>**L20** | Failure projection of the reactive design form | Projected design form | [RA_design_wf_ok_false](../../reactive-angelic-designs/utp_rad_healthy.thy#L1010) |
-| <a id="l21"></a>**L21** | Success projection of the reactive design form | Projected design form | [RA_design_wf_ok_true](../../reactive-angelic-designs/utp_rad_healthy.thy#L1038) |
-| <a id="l22"></a>**L22** | Normalize a reactive design postcondition | Design form | [RA_design_post](../../reactive-angelic-designs/utp_rad_healthy.thy#L1055) |
-| <a id="l23"></a>**L23** | Normalize a reactive design precondition | Design form | [RA1_design_pre](../../reactive-angelic-designs/utp_rad_healthy.thy#L130) |
+| <a id="l19"></a>**L19** | RA3 absorbs initial-wait-false substitution | None | [RA3_wait_false_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L846) |
+| <a id="l20"></a>**L20** | Failure projection of the reactive design form | Projected design form | [RA_design_wf_ok_false](../../reactive-angelic-designs/utp_rad_healthy.thy#L1016) |
+| <a id="l21"></a>**L21** | Success projection of the reactive design form | Projected design form | [RA_design_wf_ok_true](../../reactive-angelic-designs/utp_rad_healthy.thy#L1044) |
+| <a id="l22"></a>**L22** | Normalize a reactive design postcondition | Design form | [RA_design_post](../../reactive-angelic-designs/utp_rad_healthy.thy#L1061) |
+| <a id="l23"></a>**L23** | Normalize a reactive design precondition | Design form | [RA1_design_pre](../../reactive-angelic-designs/utp_rad_healthy.thy#L136) |
 
 ## Theory files
 
@@ -303,11 +303,11 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 
 | Research result | Premises | Implementation |
 | --- | --- | --- |
-| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L275) |
-| RADm is a monotonic, idempotent transformer on ordinary reactive merges. | None | [`RADm`](../../reactive-angelic-designs/utp_rad_parallel.thy#L169), [`RADm_Monotonic`](../../reactive-angelic-designs/utp_rad_parallel.thy#L186), [`RADm_Idempotent`](../../reactive-angelic-designs/utp_rad_parallel.thy#L183) |
-| `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L341) |
-| `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L391) |
-| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is RADm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L402) |
+| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L34) |
+| ORDm is a monotonic, idempotent transformer on ordinary reactive merges. | None | [`ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L27), [`ORDm_Monotonic`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L101), [`ORDm_Idempotent`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L98) |
+| `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L407) |
+| `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L421) |
+| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L127) |
 
 The migration-only [representation comparison](../../reactive-angelic-designs/utp_rad_representation.thy) checks correspondence with the former custom record. Its encode/decode definitions are not used by the RAD implementation or by the proofs above.
 
