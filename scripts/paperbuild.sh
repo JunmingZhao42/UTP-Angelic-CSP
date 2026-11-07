@@ -10,14 +10,14 @@ for directory in . angelic-designs reactive-angelic-designs angelic-processes; d
   mkdir -p "$paper_dir/$directory"
   for source in "$repo/$directory"/*.thy; do
     case "${source##*/}" in
-      utp_ades_parallel.thy|utp_rad_parallel.thy|utp_ap_parallel.thy|utp_rad_representation.thy)
+      utp_ades_parallel.thy|utp_rad_parallel.thy|utp_ap_parallel.thy)
         continue ;;
     esac
     cp "$source" "$paper_dir/$directory/"
   done
 done
 
-sed -E '/^[[:space:]]+(utp_ades_parallel|utp_rad_parallel|utp_rad_representation|"angelic-processes\/utp_ap_parallel")$/d' \
+sed -E '/^[[:space:]]+(utp_ades_parallel|utp_rad_parallel|"angelic-processes\/utp_ap_parallel")$/d' \
   "$repo/ROOT" > "$paper_dir/ROOT"
 
 for entry in angelic-designs/utp_ades.thy reactive-angelic-designs/utp_rad.thy Angelic_CSP.thy; do

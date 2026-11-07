@@ -79,7 +79,7 @@ Pass `-n` for a freshness check: `./scripts/fullbuild.sh -n`.
 ### Paper-only build
 
 Build the development indexed by the [paper guides](docs/paper/README.md),
-without the parallel theories or RAD representation comparison:
+without the parallel theories:
 
 ```bash
 ./scripts/paperbuild.sh

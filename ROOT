@@ -22,7 +22,6 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
     utp_rad_examples
     utp_rad_nd
     utp_rad
-    utp_rad_representation
 
 session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]
