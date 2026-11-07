@@ -33,7 +33,7 @@ lemma ades_par_by_merge_obs:
 subsection \<open>Merge Healthiness\<close>
 
 text \<open>The condition Xm gives X closure under parallel by merge. H1m, H2m, H3m
-  and HDM come from the design theory. A closure uses A0m and A1m;
+  and HDm come from the design theory. A closure uses ADm;
   A3 closure follows from H1m and H3m.\<close>
 
 subsubsection \<open>A0m and A1m\<close>
@@ -68,6 +68,55 @@ lemma A0m_Monotonic [closure]: "Monotonic A0m"
 
 lemma A1m_Monotonic [closure]: "Monotonic A1m"
   by (rule MonotonicI) (auto simp: pred_refine_iff A1m_def Let_def)
+
+subsubsection \<open>ADm\<close>
+
+(* ADm combines A0m and A1m; A2m is a separate merge condition. *)
+definition ADm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  "ADm \<equiv> A0m \<circ> A1m"
+
+lemma ADm_A0m: "ADm M is A0m"
+  by (simp add: Healthy_def' ADm_def
+      A0m_Idempotent[unfolded Idempotent_def, rule_format])
+
+lemma ADm_A1m: "ADm M is A1m"
+  unfolding Healthy_def' ADm_def
+  apply (rule ades_merge_ext)
+  subgoal for ok0 s0 okL acL okR acR ok' ac'
+    by (cases ok0; cases ok'; cases "ac' = {}";
+        auto simp: A0m_def A1m_def Let_def; blast)
+  done
+
+lemma ADm_healthy_iff:
+  "(M is ADm) \<longleftrightarrow> ((M is A0m) \<and> (M is A1m))"
+proof
+  assume h: "M is ADm"
+  show "(M is A0m) \<and> (M is A1m)"
+    using h ADm_A0m[of M] ADm_A1m[of M]
+    by (simp add: Healthy_def')
+next
+  assume both: "(M is A0m) \<and> (M is A1m)"
+  show "M is ADm"
+    using both by (simp add: Healthy_def' ADm_def)
+qed
+
+lemma ADm_idem: "ADm (ADm M) = ADm M"
+  using ADm_A0m[of M] ADm_A1m[of M]
+  by (simp add: ADm_def Healthy_def')
+
+lemma ADm_healthy [closure]: "ADm M is ADm"
+  by (simp add: Healthy_def' ADm_idem)
+
+lemma ADm_Idempotent [closure]: "Idempotent ADm"
+  by (simp add: Idempotent_def ADm_idem)
+
+lemma ADm_Monotonic [closure]: "Monotonic ADm"
+  unfolding ADm_def
+  by (rule Monotonic_comp[OF A0m_Monotonic A1m_Monotonic])
+
+lemma ADm_mono:
+  "M \<sqsubseteq> N \<Longrightarrow> ADm M \<sqsubseteq> ADm N"
+  using ADm_Monotonic by (auto simp: Monotonic_refine)
 
 subsubsection \<open>A2m\<close>
 
@@ -145,10 +194,10 @@ lemma H3m_A1m_commute:
   "H3m (A1m M) = A1m (H3m M)"
   by (rule ades_merge_ext; auto simp: H3m_ades_obs[simplified] A1m_def Let_def; blast)
 
-lemma HDM_angelic_commute:
-  "HDM (A0m M) = A0m (HDM M)"
-  "HDM (A1m M) = A1m (HDM M)"
-  by (simp add: HDM_def H1m_AD_commute H2m_A0m_commute H2m_A1m_commute)+
+lemma HDm_angelic_commute:
+  "HDm (A0m M) = A0m (HDm M)"
+  "HDm (A1m M) = A1m (HDm M)"
+  by (simp add: HDm_def H1m_AD_commute H2m_A0m_commute H2m_A1m_commute)+
 
 subsection \<open>Generic AD Parallel Laws\<close>
 
@@ -207,13 +256,15 @@ qed
 
 lemma A_par_by_merge [closure]:
   fixes M :: "'s ades_merge_rel"
-  assumes "P is H1" "Q is H1" "M is A0m" "M is A1m"
+  assumes "P is H1" "Q is H1" "M is ADm"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is A"
 proof -
+  have A0: "M is A0m" and A1: "M is A1m"
+    using assms(3) by (auto simp: ADm_healthy_iff)
   have "(P \<parallel>\<^bsub>M\<^esub> Q) is A0"
-    by (rule A0_par_by_merge[OF assms(3)])
+    by (rule A0_par_by_merge[OF A0])
   moreover have "(P \<parallel>\<^bsub>M\<^esub> Q) is A1"
-    by (rule A1_par_by_merge[OF assms(1,2,4)])
+    by (rule A1_par_by_merge[OF assms(1,2) A1])
   ultimately show ?thesis
     by (simp add: Healthy_def' A_def)
 qed
@@ -333,8 +384,8 @@ lemma merge_ades_is_H1m [closure]: "merge_ades j is H1m"
 lemma merge_ades_is_H2m [closure]: "merge_ades j is H2m"
   by (simp add: Healthy_def' H2m_def merge_ades_def H3m_def seqr_assoc skip_d_absorb_J_1)
 
-lemma merge_ades_is_HDM [closure]: "merge_ades j is HDM"
-  by (rule HDM_intro[OF merge_ades_is_H1m merge_ades_is_H2m])
+lemma merge_ades_is_HDm [closure]: "merge_ades j is HDm"
+  by (rule HDm_intro[OF merge_ades_is_H1m merge_ades_is_H2m])
 
 lemma merge_ades_is_H3m [closure]: "merge_ades j is H3m"
   by (simp add: Healthy_def' merge_ades_def H3m_idem)
@@ -348,6 +399,9 @@ lemma merge_ades_is_A1m [closure]: "merge_ades j is A1m"
   unfolding Healthy_def'
   by (rule ades_merge_ext)
      (auto simp: A1m_def merge_ades_obs[simplified] Let_def; blast)
+
+lemma merge_ades_is_ADm [closure]: "merge_ades j is ADm"
+  by (simp add: ADm_healthy_iff merge_ades_is_A0m merge_ades_is_A1m)
 
 lemma merge_ades_is_A2m [closure]: "merge_ades j is A2m"
   unfolding Healthy_def'
@@ -438,7 +492,7 @@ lemma ades_par_A_closure [closure]:
   assumes "P is H1" "Q is H1"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is A"
   unfolding ades_par_def
-  by (rule A_par_by_merge[OF assms merge_ades_is_A0m merge_ades_is_A1m])
+  by (rule A_par_by_merge[OF assms merge_ades_is_ADm])
 
 lemma ades_par_A2_closure [closure]:
   assumes "P is A2" "Q is A2"

@@ -12,7 +12,7 @@ P ∥AP[M] Q = H1 (RA1 P ∥RAD[M] RA1 Q)
 | Result of `P ∥AP[M] Q` | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
 | [A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | Both AP+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | None | [ap_par_A2](../../angelic-processes/utp_ap_parallel.thy#L149) |
-| [AP](../../angelic-processes/utp_ap_healthy.thy#L173) | Both AP+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | `M is RADm` | [ap_par_AP](../../angelic-processes/utp_ap_parallel.thy#L128) |
+| [AP](../../angelic-processes/utp_ap_healthy.thy#L173) | Both AP+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | `M is ORDm` | [ap_par_AP](../../angelic-processes/utp_ap_parallel.thy#L128) |
 
 ## ac2p/p2ac mapping laws
 
@@ -20,8 +20,8 @@ Write `F(P) = ac2p (RA1 P)` and `G(D) = H1 (p2ac D)`.
 
 | Operand premises | Merge premise | Equality | Lemma |
 | --- | --- | --- | --- |
-| `P,Q` both AP and A2 | `M is RADm` | `RA1 (P ∥AP[M] Q) = RA1 P ∥RAD[M] RA1 Q` | [ap_par_RA1](../../angelic-processes/utp_ap_parallel.thy#L135) |
-| `P,Q` both AP and A2 | `M is RADm` | `F(P ∥AP[M] Q) = F(P) ∥[M] F(Q)` | [ap_par_ac2p](../../angelic-processes/utp_ap_parallel.thy#L156) |
+| `P,Q` both AP and A2 | `M is ORDm` | `RA1 (P ∥AP[M] Q) = RA1 P ∥RAD[M] RA1 Q` | [ap_par_RA1](../../angelic-processes/utp_ap_parallel.thy#L135) |
+| `P,Q` both AP and A2 | `M is ORDm` | `F(P ∥AP[M] Q) = F(P) ∥[M] F(Q)` | [ap_par_ac2p](../../angelic-processes/utp_ap_parallel.thy#L156) |
 | `D,E` both RD | None | `G(D) ∥AP[M] G(E) = G(D ∥[M] E)` | [ap_par_p2ac](../../angelic-processes/utp_ap_parallel.thy#L164) |
 | `P,Q` both RAD | None | `H1 P ∥AP[M] H1 Q = H1 (P ∥RAD[M] Q)` | [ap_par_H1](../../angelic-processes/utp_ap_parallel.thy#L142) |
 

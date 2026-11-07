@@ -112,7 +112,7 @@ lemma legacy_raw_parallel_agrees:
   "legacy_view (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) =
    (legacy_view P \<parallel>\<^bsub>legacy_lift_merge M\<^esub> legacy_view Q)"
   apply (rule ades_obs_ext)
-  apply (simp only: legacy_view_obs utp_concurrency.par_by_merge_eval choices_ex legacy_choices_ex
+  apply (simp only: legacy_view_obs par_by_merge_eval choices_ex legacy_choices_ex
       legacy_merge_agrees[simplified])
   done
 

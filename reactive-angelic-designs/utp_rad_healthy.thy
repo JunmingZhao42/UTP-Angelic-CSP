@@ -25,6 +25,12 @@ definition RA1 ::
       y' = des_vars.more_update (\<lambda>_. y_choices') y
   in P (x, y') \<and> A' \<noteq> {})"
 
+lemma RA1_obs:
+  "RA1 P (ades_obs b s0 c X) =
+    (P (ades_obs b s0 c (rad_trace_extensions s0 \<inter> X)) \<and>
+      rad_trace_extensions s0 \<inter> X \<noteq> {})"
+  by (simp add: RA1_def Let_def)
+
 lemma rad_trace_extensions_refl [simp]:
   "z \<in> rad_trace_extensions z"
   by (simp add: rad_trace_extensions_def)
