@@ -122,7 +122,7 @@ under [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10)+[A2](../../angelic-de
 Chaos is `true`; Miracle is `A false = ¬ok`.
 A one-sided AD Chaos-zero law for an arbitrary feasible operand is not installed.
 For `skipₘ`, commutativity is unconditional and associativity needs [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10)+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218)
-operands ([ades_par_skip_comm](../../angelic-designs/utp_ades_parallel.thy#L613), [ades_par_skip_assoc](../../angelic-designs/utp_ades_parallel.thy#L617)).
+operands ([ades_par_skip_comm](../../angelic-designs/utp_ades_parallel.thy#L635), [ades_par_skip_assoc](../../angelic-designs/utp_ades_parallel.thy#L639)).
 
 ## Generic parallel laws
 

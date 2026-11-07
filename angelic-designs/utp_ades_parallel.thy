@@ -569,21 +569,13 @@ lemma ades_par_assoc:
       and merge: "j is SymMerge" "AssocMerge j" "mergeable j"
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
 proof -
-  have represent:
-    "S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T = d2ac (ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T))"
-    and project:
-    "ac2p (A (S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T)) = ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T)"
+  have represent: "S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T = d2ac (ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T))"
+    and project: "ac2p (A (S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T)) = ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T)"
     if "S is A2" "T is A2" "S is H1" "T is H1" for S T
-  proof -
-    have healthy: "A S is A" "A T is A" "A S is A2" "A T is A2"
-      using that by (simp_all add: Healthy_def' A_idem A_preserves_A2[unfolded Healthy_def'])
-    show "S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T = d2ac (ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T))"
-      by (simp only: ades_par_normalise_A[OF that] ades_par_d2ac_ac2p[OF healthy])
-    show "ac2p (A (S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T)) = ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T)"
-      using Healthy_if[OF ades_par_A_closure[OF that(3,4)]]
-        ades_par_normalise_A[OF that] ades_par_ac2p[OF healthy]
-      by auto
-  qed
+    using ades_par_d2ac_ac2p[of "A S" "A T" j] ades_par_ac2p[of "A S" "A T" j]
+      ades_par_normalise_A[OF that, of j] Healthy_if[OF ades_par_A_closure[OF that(3,4)]]
+      A_preserves_A2[OF that(1)] A_preserves_A2[OF that(2)]
+    by (simp_all add: Healthy_def' A_idem)
   have pq: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is H1"
     and qr: "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) is H1"
     using ades_par_A_closure[OF h1(1,2)] ades_par_A_closure[OF h1(2,3)]
@@ -592,6 +584,36 @@ proof -
     by (simp only: represent[OF ades_par_A2_closure[OF operands(1,2)] operands(3) pq h1(3)]
         represent[OF operands(1) ades_par_A2_closure[OF operands(2,3)] h1(1) qr]
         project[OF operands(1,2) h1(1,2)] project[OF operands(2,3) h1(2,3)] des_par_assoc[OF merge])
+qed
+
+(* NDAD operands remove the mergeability premise from the AD law. *)
+lemma ades_par_assoc_nondiv:
+  fixes j :: "'s merge"
+  assumes operands: "P is A2" "Q is A2" "R is A2"
+      and h1: "P is H1" "Q is H1" "R is H1"
+      and nondiv: "P is NDAD" "Q is NDAD" "R is NDAD"
+      and merge: "j is SymMerge" "AssocMerge j"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+proof -
+  have represent: "S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T = d2ac (ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T))"
+    and project: "ac2p (A (S \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> T)) = ac2p (A S) \<parallel>\<^sub>D\<^bsub>j\<^esub> ac2p (A T)"
+    if "S is A2" "T is A2" "S is H1" "T is H1" for S T
+    using ades_par_d2ac_ac2p[of "A S" "A T" j] ades_par_ac2p[of "A S" "A T" j]
+      ades_par_normalise_A[OF that, of j] Healthy_if[OF ades_par_A_closure[OF that(3,4)]]
+      A_preserves_A2[OF that(1)] A_preserves_A2[OF that(2)]
+    by (simp_all add: Healthy_def' A_idem)
+  have pq: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is H1"
+    and qr: "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) is H1"
+    using ades_par_A_closure[OF h1(1,2)] ades_par_A_closure[OF h1(2,3)]
+    by (simp_all add: A_healthy_components_iff)
+  have ndd: "ac2p (A T) is NDD" if "T is NDAD" for T :: "'s angelic_design"
+    using that unfolding NDD_healthy_iff preD_true_iff NDAD_healthy_obs_iff
+    by (auto simp: ac2p_def A_PBMH_ades A_obs StateII_def)
+  show ?thesis
+    by (simp only: represent[OF ades_par_A2_closure[OF operands(1,2)] operands(3) pq h1(3)]
+        represent[OF operands(1) ades_par_A2_closure[OF operands(2,3)] h1(1) qr]
+        project[OF operands(1,2) h1(1,2)] project[OF operands(2,3) h1(2,3)]
+        des_par_assoc_nondiv[OF merge nondiv[THEN ndd]])
 qed
 
 subsubsection \<open>Example: Skip Merge\<close>
