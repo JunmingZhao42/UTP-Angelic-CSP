@@ -21,7 +21,7 @@ They also apply to AD merges, whose prior and output alphabets differ.
 
 ## Generic Miracle zero laws
 
-[par_by_merge_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L293) applies to arbitrary Design or AD merges:
+[par_by_merge_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L319) applies to arbitrary Design or AD merges:
 
 ```text
 P is H1 ∧ M is H1m ⟹
@@ -32,8 +32,8 @@ Miracle is `¬ok`: it supplies no started branch observation.
 
 ## State-merge lifting
 
-[merge_des_raw](../../deps/UTP-Designs/utp_des_parallel.thy#L310) lifts the state merge; [merge_des](../../deps/UTP-Designs/utp_des_parallel.thy#L322) completes it, and
-[des_par](../../deps/UTP-Designs/utp_des_parallel.thy#L393) defines the parallel operator:
+[merge_des_raw](../../deps/UTP-Designs/utp_des_parallel.thy#L336) lifts the state merge; [merge_des](../../deps/UTP-Designs/utp_des_parallel.thy#L348) completes it, and
+[des_par](../../deps/UTP-Designs/utp_des_parallel.thy#L439) defines the parallel operator:
 
 ```text
 merge_des_raw j ((ok,s),(okL,sL),(okR,sR),(ok',s')) =
@@ -43,7 +43,7 @@ merge_des j ≡ H3m (HDM (merge_des_raw j))
 P ∥D[j] Q ≡ P ∥[merge_des j] Q
 ```
 
-By [merge_des_expand](../../deps/UTP-Designs/utp_des_parallel.thy#L339), the completed merge accepts exactly
+By [merge_des_expand](../../deps/UTP-Designs/utp_des_parallel.thy#L365), the completed merge accepts exactly
 
 ```text
 ¬ok ∨ ((∃u. j(s,sL,sR,u)) ∧
@@ -51,13 +51,13 @@ By [merge_des_expand](../../deps/UTP-Designs/utp_des_parallel.thy#L339), the com
 ```
 
 Divergence releases the final observation but retains merge feasibility.
-[merge_des_alt_def](../../deps/UTP-Designs/utp_des_parallel.thy#L327) gives `H1m (merge_des_raw j) ;; II_D`.
+[merge_des_alt_def](../../deps/UTP-Designs/utp_des_parallel.thy#L353) gives `H1m (merge_des_raw j) ;; II_D`.
 For every `j`:
 
 | Healthiness of `merge_des j` | Lemma |
 | --- | --- |
-| [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36), hence [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) and [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [merge_des_is_HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L370) |
-| [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [merge_des_is_H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L374) |
+| [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36), hence [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) and [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [merge_des_is_HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L408) |
+| [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [merge_des_is_H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L412) |
 
 ## Healthiness closure
 
@@ -65,34 +65,39 @@ For generic `P ∥[M] Q`:
 
 | Result | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
-| [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) | [H1_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L259) |
-| [H2](../../deps/UTP-Designs/utp_des_healths.thy#L194) | None | [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [H2_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L266) |
-| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [H3_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L274) |
-| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36) | [H_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L282) |
+| [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) | [H1_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L285) |
+| [H2](../../deps/UTP-Designs/utp_des_healths.thy#L194) | None | [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [H2_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L292) |
+| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [H3_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L298) |
+| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36) | [H_par_by_merge](../../deps/UTP-Designs/utp_des_parallel.thy#L304) |
 
 For the completed merge, no mergeability premise is needed:
 
 | Result of `P ∥D[j] Q` | Operand premises | Lemma |
 | --- | --- | --- |
-| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [des_par_H3_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L424) |
-| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_H_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L419) |
-| [N](../../deps/UTP-Designs/utp_des_healths.thy#L676) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_N_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L428) |
+| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [des_par_H3_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L474) |
+| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_H_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L465) |
+| [N](../../deps/UTP-Designs/utp_des_healths.thy#L676) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_N_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L478) |
 
 ## Algebra and zero laws
 
-- [des_par_comm](../../deps/UTP-Designs/utp_des_parallel.thy#L479): commutativity when `j is SymMerge`; no operand premises.
-- [des_par_assoc_state](../../deps/UTP-Designs/utp_des_parallel.thy#L486): associativity when `j is SymMerge`,
+- [des_par_comm](../../deps/UTP-Designs/utp_des_parallel.thy#L543): commutativity when `j is SymMerge`; no operand premises.
+- [des_par_assoc](../../deps/UTP-Designs/utp_des_parallel.thy#L549): associativity when `j is SymMerge`,
   `AssocMerge j` and `mergeable j`; no operand premises.
-- [des_par_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L455): `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos`
+- [des_par_assoc_nondiv](../../deps/UTP-Designs/utp_des_parallel.thy#L580): associativity when `j is SymMerge` and
+  `AssocMerge j`, for operands with `pre_D P = true`, which never diverge from a started
+  observation. Completion then has no effect, so associativity follows from the uncompleted
+  merge ([HDM_merge_des_raw_AssocMerge](../../deps/UTP-Designs/utp_des_parallel.thy#L424)) by
+  [par_by_merge_assoc_on](../../deps/UTP/utp_concurrency.thy#L397), after establishing the guarded fold equality locally; no `mergeable` premise is needed.
+- [des_par_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L519): `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos`
   when `P is H4` and `mergeable j`.
-- [des_par_chaos_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L448): Chaos with Chaos is Chaos under the weaker
+- [des_par_chaos_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L508): Chaos with Chaos is Chaos under the weaker
   premise `∀s. ∃sL sR u. j(s,sL,sR,u)`.
-- [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L471): Miracle absorbs on both sides when `P is H1`,
+- [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L535): Miracle absorbs on both sides when `P is H1`,
   for arbitrary `j`.
 
 Here Chaos is `true`; [H4](../../deps/UTP-Designs/utp_des_healths.thy#L839) means `P ;; true = true`.
 A divergent branch still needs an accepted observation from the other operand
-and a merge witness ([des_par_diverge](../../deps/UTP-Designs/utp_des_parallel.thy#L441)).
+and a merge witness ([des_par_diverge](../../deps/UTP-Designs/utp_des_parallel.thy#L495)).
 
 Associativity uses the [generic laws](README.md#generic-concurrency-laws).
 Mergeability prevents an intermediate terminating pair from becoming infeasible
