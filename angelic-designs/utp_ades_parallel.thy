@@ -591,7 +591,7 @@ proof -
   show ?thesis
     by (simp only: represent[OF ades_par_A2_closure[OF operands(1,2)] operands(3) pq h1(3)]
         represent[OF operands(1) ades_par_A2_closure[OF operands(2,3)] h1(1) qr]
-        project[OF operands(1,2) h1(1,2)] project[OF operands(2,3) h1(2,3)] des_par_assoc_state[OF merge])
+        project[OF operands(1,2) h1(1,2)] project[OF operands(2,3) h1(2,3)] des_par_assoc[OF merge])
 qed
 
 subsubsection \<open>Example: Skip Merge\<close>

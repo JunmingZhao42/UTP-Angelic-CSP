@@ -22,24 +22,24 @@ The guides use readable observation tuples rather than literal record syntax.
 
 ## Generic concurrency laws
 
-[utp_concurrency.thy](../../deps/UTP/utp_concurrency.thy) defines [par_by_merge](../../deps/UTP/utp_concurrency.thy#L229), written `P ∥[M] Q`:
+[utp_concurrency.thy](../../deps/UTP/utp_concurrency.thy) defines [par_by_merge](../../deps/UTP/utp_concurrency.thy#L231), written `P ∥[M] Q`:
 
 ```text
 (P ∥[M] Q)(x,out) ↔ ∃p q. P(x,p) ∧ Q(x,q) ∧ M(x,p,q,out)
 ```
 
-[par_by_merge_eval](../../deps/UTP/utp_concurrency.thy#L279) gives this evaluation.
-[par_by_merge_Sup_distl](../../deps/UTP/utp_concurrency.thy#L283) and [par_by_merge_Sup_distr](../../deps/UTP/utp_concurrency.thy#L287) distribute over demonic
-choice; false is absorbing, and [par_by_merge_true](../../deps/UTP/utp_concurrency.thy#L295) characterises a true merge.
+[par_by_merge_eval](../../deps/UTP/utp_concurrency.thy#L282) gives this evaluation.
+[par_by_merge_Sup_distl](../../deps/UTP/utp_concurrency.thy#L286) and [par_by_merge_Sup_distr](../../deps/UTP/utp_concurrency.thy#L290) distribute over demonic
+choice; false is absorbing, and [par_by_merge_true](../../deps/UTP/utp_concurrency.thy#L298) characterises a true merge.
 
-[par_by_merge_comm](../../deps/UTP/utp_concurrency.thy#L330) requires `M is SymMerge`.
-[par_by_merge_cyclic](../../deps/UTP/utp_concurrency.thy#L374) requires `AssocMerge M` and gives
+[par_by_merge_comm](../../deps/UTP/utp_concurrency.thy#L334) requires `M is SymMerge`.
+[par_by_merge_cyclic](../../deps/UTP/utp_concurrency.thy#L383) requires `AssocMerge M` and gives
 
 ```text
 (P ∥[M] Q) ∥[M] R = (Q ∥[M] R) ∥[M] P.
 ```
 
-Thus [par_by_merge_assoc](../../deps/UTP/utp_concurrency.thy#L391) needs both symmetry and [AssocMerge](../../deps/UTP/utp_concurrency.thy#L213).
+Thus [par_by_merge_assoc](../../deps/UTP/utp_concurrency.thy#L389) needs both symmetry and [AssocMerge](../../deps/UTP/utp_concurrency.thy#L215).
 Alternatively, [par_by_merge_assoc_iff](../../deps/UTP/utp_concurrency.thy#L349) characterises associativity on all
 relations by equality of the two merge folds. Branch and merged outputs must
 share an alphabet for nesting; the prior alphabet may differ.

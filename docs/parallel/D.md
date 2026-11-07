@@ -33,7 +33,7 @@ Miracle is `¬ok`: it supplies no started branch observation.
 ## State-merge lifting
 
 [merge_des_raw](../../deps/UTP-Designs/utp_des_parallel.thy#L310) lifts the state merge; [merge_des](../../deps/UTP-Designs/utp_des_parallel.thy#L322) completes it, and
-[des_par](../../deps/UTP-Designs/utp_des_parallel.thy#L393) defines the parallel operator:
+[des_par](../../deps/UTP-Designs/utp_des_parallel.thy#L416) defines the parallel operator:
 
 ```text
 merge_des_raw j ((ok,s),(okL,sL),(okR,sR),(ok',s')) =
@@ -56,8 +56,8 @@ For every `j`:
 
 | Healthiness of `merge_des j` | Lemma |
 | --- | --- |
-| [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36), hence [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) and [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [merge_des_is_HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L370) |
-| [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [merge_des_is_H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L374) |
+| [HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L36), hence [H1m](../../deps/UTP-Designs/utp_des_parallel.thy#L18) and [H2m](../../deps/UTP-Designs/utp_des_parallel.thy#L24) | [merge_des_is_HDM](../../deps/UTP-Designs/utp_des_parallel.thy#L383) |
+| [H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L30) | [merge_des_is_H3m](../../deps/UTP-Designs/utp_des_parallel.thy#L387) |
 
 ## Healthiness closure
 
@@ -74,25 +74,32 @@ For the completed merge, no mergeability premise is needed:
 
 | Result of `P ∥D[j] Q` | Operand premises | Lemma |
 | --- | --- | --- |
-| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [des_par_H3_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L424) |
-| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_H_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L419) |
-| [N](../../deps/UTP-Designs/utp_des_healths.thy#L676) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_N_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L428) |
+| [H3](../../deps/UTP-Designs/utp_des_healths.thy#L554) | None | [des_par_H3_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L447) |
+| [H](../../deps/UTP-Designs/utp_des_healths.thy#L328) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_H_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L442) |
+| [N](../../deps/UTP-Designs/utp_des_healths.thy#L676) | Both [H1](../../deps/UTP-Designs/utp_des_healths.thy#L10) | [des_par_N_closure](../../deps/UTP-Designs/utp_des_parallel.thy#L451) |
 
 ## Algebra and zero laws
 
-- [des_par_comm](../../deps/UTP-Designs/utp_des_parallel.thy#L479): commutativity when `j is SymMerge`; no operand premises.
-- [des_par_assoc_state](../../deps/UTP-Designs/utp_des_parallel.thy#L486): associativity when `j is SymMerge`,
+- [des_par_comm](../../deps/UTP-Designs/utp_des_parallel.thy#L502): commutativity when `j is SymMerge`; no operand premises.
+- [des_par_assoc](../../deps/UTP-Designs/utp_des_parallel.thy#L509): associativity when `j is SymMerge`,
   `AssocMerge j` and `mergeable j`; no operand premises.
-- [des_par_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L455): `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos`
+- [des_par_assoc_nondiv](../../deps/UTP-Designs/utp_des_parallel.thy#L538): associativity when `j is SymMerge`,
+  `AssocMerge j`, and the operands are [NDD](../../deps/UTP-Designs/utp_des_healths.thy#L853)-healthy
+  (`P is NDD`, `Q is NDD`, `R is NDD`). By
+  [NDD_healthy_iff](../../deps/UTP-Designs/utp_des_healths.thy#L856), each operand premise is
+  equivalent to its `pre_D` being `true`. The proof uses associativity of the uncompleted merge
+  ([HDM_merge_des_raw_AssocMerge](../../deps/UTP-Designs/utp_des_parallel.thy#L401)) and
+  [par_by_merge_assoc_on](../../deps/UTP/utp_concurrency.thy#L397); no `mergeable` premise is needed.
+- [des_par_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L478): `P ∥D[j] Chaos = Chaos ∥D[j] P = Chaos`
   when `P is H4` and `mergeable j`.
-- [des_par_chaos_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L448): Chaos with Chaos is Chaos under the weaker
+- [des_par_chaos_chaos](../../deps/UTP-Designs/utp_des_parallel.thy#L471): Chaos with Chaos is Chaos under the weaker
   premise `∀s. ∃sL sR u. j(s,sL,sR,u)`.
-- [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L471): Miracle absorbs on both sides when `P is H1`,
+- [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L494): Miracle absorbs on both sides when `P is H1`,
   for arbitrary `j`.
 
 Here Chaos is `true`; [H4](../../deps/UTP-Designs/utp_des_healths.thy#L839) means `P ;; true = true`.
 A divergent branch still needs an accepted observation from the other operand
-and a merge witness ([des_par_diverge](../../deps/UTP-Designs/utp_des_parallel.thy#L441)).
+and a merge witness ([des_par_diverge](../../deps/UTP-Designs/utp_des_parallel.thy#L464)).
 
 Associativity uses the [generic laws](README.md#generic-concurrency-laws).
 Mergeability prevents an intermediate terminating pair from becoming infeasible

@@ -75,7 +75,7 @@ so AD's d2ac/A3 completion does not supply RAD closure
 - [rad_par_assoc_state](../../reactive-angelic-designs/utp_rad_parallel.thy#L429): alternatively accepts the pointwise two-fold
   associativity equation on `M`.
 
-[RADm_SymMerge](../../reactive-angelic-designs/utp_rad_parallel.thy#L257) preserves symmetry. Preservation of [AssocMerge](../../deps/UTP/utp_concurrency.thy#L213) by [RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L169) is
+[RADm_SymMerge](../../reactive-angelic-designs/utp_rad_parallel.thy#L257) preserves symmetry. Preservation of [AssocMerge](../../deps/UTP/utp_concurrency.thy#L215) by [RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L169) is
 not proved: associativity must hold for the healthy merge actually supplied.
 
 ## Basic merge

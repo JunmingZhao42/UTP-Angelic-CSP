@@ -17,7 +17,7 @@ local, uncommitted RD exploration; they are not part of the pinned dependency.
 
 Every generic parallel selects an observation from both operands. If one
 operand has no started observation, changing the merge cannot supply it.
-Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L471) and
+Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L494) and
 [ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L541) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 

@@ -16,7 +16,7 @@ D15 and L3 are the PBMH background from paper §4.1; D16 introduces the alphabet
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d15"></a>**D15** / D88 | Upward closure of final choices | — | [PBMH](../../angelic-designs/utp_ades_core.thy#L146), [PBMH_ades](../../angelic-designs/utp_ades_healthy.thy#L189) |
+| <a id="d15"></a>**D15** / D88 | Upward closure of final choices | — | [PBMH](../../angelic-designs/utp_ades_core.thy#L153), [PBMH_ades](../../angelic-designs/utp_ades_healthy.thy#L189) |
 | <a id="l3"></a>**L3** | Upward closure of the empty-choice predicate | None | [PBMH_ac_empty](../../angelic-designs/utp_ades_healthy.thy#L35) |
 | <a id="d16"></a>**D16** / D85 | Angelic design alphabet | — | [utp_ades_core.thy](../../angelic-designs/utp_ades_core.thy) |
 
