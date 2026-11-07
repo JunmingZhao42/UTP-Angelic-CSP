@@ -9,10 +9,10 @@
 	url = git@github.com:JunmingZhao42/UTP-Designs.git
 [submodule "deps/UTP-Reactive"]
 	path = deps/UTP-Reactive
-	url = git@github.com:isabelle-utp/UTP-Reactive.git
+	url = git@github.com:JunmingZhao42/UTP-Reactive.git
 [submodule "deps/UTP-Reactive-Designs"]
 	path = deps/UTP-Reactive-Designs
-	url = git@github.com:isabelle-utp/UTP-Reactive-Designs.git
+	url = git@github.com:JunmingZhao42/UTP-Reactive-Designs.git
 [submodule "deps/Shallow-Expressions"]
 	path = deps/Shallow-Expressions
 	url = git@github.com:isabelle-utp/Shallow-Expressions.git
