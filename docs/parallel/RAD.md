@@ -104,6 +104,3 @@ seed while running when both branch traces extend the prior trace
 [ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L27) does not remove every output constraint after divergence:
 [ORDm_post_ref_example](../../reactive-angelic-designs/utp_rad_parallel.thy#L371) retains a final refusal constraint even with
 `ok' = False`. This differs from completed RD parallel.
-
-Representation correspondence with the former records is checked in
-[utp_rad_representation.thy](../../reactive-angelic-designs/utp_rad_representation.thy).

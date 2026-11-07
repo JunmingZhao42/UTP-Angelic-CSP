@@ -21,14 +21,14 @@ if [[ "$ISABELLE_IDENTIFIER" == build-script-test-paper ]]; then
     for source in "$TEST_REPO/$directory"/*.thy; do
       name=${source##*/}
       case "$name" in
-        utp_ades_parallel.thy|utp_rad_parallel.thy|utp_ap_parallel.thy|utp_rad_representation.thy)
+        utp_ades_parallel.thy|utp_rad_parallel.thy|utp_ap_parallel.thy)
           [[ ! -e "$PROJECT_DIR/$directory/$name" ]] ;;
         utp_ades.thy|utp_rad.thy|Angelic_CSP.thy) ;;
         *) cmp "$source" "$PROJECT_DIR/$directory/$name" ;;
       esac
     done
   done
-  if grep -Eq 'utp_(ades_parallel|rad_parallel|ap_parallel|rad_representation)' \
+  if grep -Eq 'utp_(ades_parallel|rad_parallel|ap_parallel)' \
     "$PROJECT_DIR/ROOT" "$PROJECT_DIR/angelic-designs/utp_ades.thy" \
     "$PROJECT_DIR/reactive-angelic-designs/utp_rad.thy" "$PROJECT_DIR/Angelic_CSP.thy"; then
     exit 1

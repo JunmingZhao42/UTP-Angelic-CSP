@@ -295,7 +295,7 @@ T67 requires H-healthiness. T68 states the commutation established by the source
 The native `rad_state` is `('t, 'e set) rea_vars_ext`: library fields hold waiting and trace, and the extension tail holds refusals. The outer design supplies `ok`, so `ac2p`, `p2ac` and `d2ac` apply directly without an observation adapter.
 
 <details>
-<summary>Parallel research and representation comparison</summary>
+<summary>Parallel research</summary>
 
 <a id="parallel-research"></a>
 
@@ -308,7 +308,5 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 | `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L407) |
 | `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L421) |
 | Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L127) |
-
-The migration-only [representation comparison](../../reactive-angelic-designs/utp_rad_representation.thy) checks correspondence with the former custom record. Its encode/decode definitions are not used by the RAD implementation or by the proofs above.
 
 </details>
