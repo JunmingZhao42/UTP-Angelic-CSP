@@ -490,3 +490,16 @@ combined time fell from 7.97 to 0.91 seconds. The installed theory passed PIDE
 (1172 commands), with zero errors, warnings, bad or unfinished commands. No full
 build or unrelated downstream replay was run. Changes remain uncommitted and
 the existing index is unchanged.
+
+## Direct basic RAD merge
+
+8 November 2026. Defined
+[rad_basic_merge](../../reactive-angelic-designs/utp_rad_parallel.thy#L540)
+directly on RAD observations and proved all seven component merge conditions,
+then [rad_basic_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L634).
+The definition and proofs do not use RD lifting or RADm completion.
+
+Focused PIDE checking passed for RAD parallel (1240 commands), with zero
+errors, warnings, bad or unfinished commands. Documentation links and
+whitespace checks passed. No downstream replay or batch build was run.
+The additions remain unstaged and uncommitted; the existing index is unchanged.

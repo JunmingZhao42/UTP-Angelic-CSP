@@ -533,9 +533,108 @@ lemma rad_par_by_merge_RAD [closure]:
   by (auto intro: rad_par_by_merge_RA1 rad_par_by_merge_RA2 rad_par_by_merge_RA3
       rad_par_by_merge_CSPA1 rad_par_by_merge_CSPA2 PBMH_ades_par_by_merge)
 
-text \<open>Parallel uses a lifted merge on complete reactive observations.
-  RAD and A2 operands yield a RAD-healthy result when the merge is ORDm-healthy.
-  The ordinary correspondence uses p2ac rather than d2ac.\<close>
+subsection \<open>Basic RAD merge\<close>
+
+(* Waiting uses II_Rac; unstarted observations admit trace extensions.
+   Active observations synchronise trace contributions and disjoin waiting flags; refusals are unrestricted. *)
+definition rad_basic_merge :: "('t::trace, 'e) rad_merge_rel" where
+  "rad_basic_merge \<equiv> (\<lambda>(m,z).
+    let x = mrg_prior\<^sub>v m; p = mrg_left\<^sub>v m; q = mrg_right\<^sub>v m;
+        s0 = astate.s\<^sub>v (des_vars.more x);
+        acL = achoices.ac\<^sub>v (des_vars.more p);
+        acR = achoices.ac\<^sub>v (des_vars.more q);
+        ac' = achoices.ac\<^sub>v (des_vars.more z)
+    in acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+      (if rad_wait\<^sub>v s0 then II_Rac (x,z)
+       else if \<not> des_vars.ok\<^sub>v x then rad_trace_extensions s0 \<inter> ac' \<noteq> {}
+       else ((des_vars.ok\<^sub>v p \<and> des_vars.ok\<^sub>v q) \<longrightarrow> des_vars.ok\<^sub>v z) \<and>
+         (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+           rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s' \<and>
+           rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sL - rad_tr\<^sub>v s0 \<and>
+           rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sR - rad_tr\<^sub>v s0 \<and>
+           rad_wait\<^sub>v s' = (rad_wait\<^sub>v sL \<or> rad_wait\<^sub>v sR))))"
+
+lemma rad_basic_merge_obs:
+  "ades_merge_obs rad_basic_merge ok0 s0 okL acL okR acR ok' ac' =
+    (acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+      (if rad_wait\<^sub>v s0 then II_Rac (ades_obs ok0 s0 ok' ac')
+       else if \<not> ok0 then rad_trace_extensions s0 \<inter> ac' \<noteq> {}
+       else ((okL \<and> okR) \<longrightarrow> ok') \<and>
+         (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+           rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s' \<and>
+           rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sL - rad_tr\<^sub>v s0 \<and>
+           rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sR - rad_tr\<^sub>v s0 \<and>
+           rad_wait\<^sub>v s' = (rad_wait\<^sub>v sL \<or> rad_wait\<^sub>v sR))))"
+  by (simp add: rad_basic_merge_def Let_def)
+
+lemma rad_basic_merge_RA1m [closure]: "rad_basic_merge is RA1m"
+  unfolding Healthy_def'
+  by (rule ades_merge_ext;
+      auto simp: RA1m_obs[simplified] rad_basic_merge_obs[simplified]
+        II_Rac_eval rad_trace_extensions_def; blast)
+
+lemma rad_basic_merge_RA2m [closure]:
+  "(rad_basic_merge :: ('t::trace, 'e) rad_merge_rel) is RA2m"
+proof -
+  have normalise:
+    "(\<exists>s'\<in>rad_normalise_choices s0 ac'.
+       rad_tr\<^sub>v s' = rad_tr\<^sub>v sL - rad_tr\<^sub>v s0 \<and>
+       rad_tr\<^sub>v s' = rad_tr\<^sub>v sR - rad_tr\<^sub>v s0 \<and>
+       rad_wait\<^sub>v s' = (rad_wait\<^sub>v sL \<or> rad_wait\<^sub>v sR)) =
+     (\<exists>s'\<in>ac'.
+       rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s' \<and>
+       rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sL - rad_tr\<^sub>v s0 \<and>
+       rad_tr\<^sub>v s' - rad_tr\<^sub>v s0 = rad_tr\<^sub>v sR - rad_tr\<^sub>v s0 \<and>
+       rad_wait\<^sub>v s' = (rad_wait\<^sub>v sL \<or> rad_wait\<^sub>v sR))"
+    for s0 sL sR :: "('t::trace, 'e) rad_state" and ac'
+    by (auto simp: rad_normalise_choices_def rad_trace_difference_def)
+  show ?thesis
+    unfolding Healthy_def'
+    apply (rule ades_merge_ext)
+    apply (simp add: RA2m_obs[simplified] rad_basic_merge_obs[simplified]
+        II_Rac_eval rad_zero_trace_extensions rad_zero_trace_in_normalise
+        rad_normalise_choices_nonempty)
+    apply (simp add: rad_zero_trace_def rad_trace_difference_def normalise)
+    by (auto simp: rad_trace_extensions_def)
+qed
+
+lemma rad_basic_merge_RA3m [closure]: "rad_basic_merge is RA3m"
+  unfolding Healthy_def'
+  by (rule ades_merge_ext; simp add: RA3m_obs[simplified] rad_basic_merge_obs[simplified])
+
+lemma rad_basic_merge_CSPA1m [closure]: "rad_basic_merge is CSPA1m"
+  unfolding Healthy_def'
+  by (rule ades_merge_ext;
+      auto simp: CSPA1m_obs[simplified] rad_basic_merge_obs[simplified] II_Rac_eval)
+
+lemma rad_basic_merge_CSPA2m [closure]: "rad_basic_merge is CSPA2m"
+  unfolding Healthy_def'
+  by (rule ades_merge_ext;
+      auto simp: H2m_ades_obs[simplified] rad_basic_merge_obs[simplified] II_Rac_eval)
+
+lemma rad_basic_merge_PBMHm [closure]:
+  "(rad_basic_merge :: ('t::trace, 'e) rad_merge_rel) is PBMHm"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  subgoal for ok0 s0 okL acL okR acR ok' ac'
+    by (cases "rad_wait\<^sub>v s0"; cases ok0;
+        simp add: PBMHm_obs[simplified] rad_basic_merge_obs[simplified]
+          II_Rac_eval rad_trace_extensions_def; blast)
+  done
+
+lemma rad_basic_merge_RABm [closure]:
+  "(rad_basic_merge :: ('t::trace, 'e) rad_merge_rel) is RABm"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  subgoal for ok0 s0 okL acL okR acR ok' ac'
+    by (cases "rad_wait\<^sub>v s0"; cases ok0;
+        simp add: RABm_obs[simplified] rad_basic_merge_obs[simplified]; blast)
+  done
+
+lemma rad_basic_merge_RADm [closure]: "rad_basic_merge is RADm"
+  by (simp add: RADm_healthy_iff rad_basic_merge_RA1m rad_basic_merge_RA2m
+      rad_basic_merge_RA3m rad_basic_merge_CSPA1m rad_basic_merge_CSPA2m
+      rad_basic_merge_PBMHm rad_basic_merge_RABm)
 
 subsection \<open>Choice-set lifting\<close>
 

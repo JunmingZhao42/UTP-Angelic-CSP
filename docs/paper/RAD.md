@@ -303,11 +303,11 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 
 | Research result | Premises | Implementation |
 | --- | --- | --- |
-| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L545) |
+| Lift an ordinary reactive merge using nonempty branch choices and `∀left ∀right ∃output` coverage. | None | [`rad_lift_merge`](../../reactive-angelic-designs/utp_rad_parallel.thy#L644) |
 | ORDm is a monotonic, idempotent transformer on ordinary reactive merges. | None | [`ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L27), [`ORDm_Monotonic`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L101), [`ORDm_Idempotent`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L98) |
 | `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L407) |
 | `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L421) |
 | Parallel by an arbitrary RAD merge is RAD-healthy. | `P`, `Q` both RAD; `M is RADm` | [`rad_par_by_merge_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L527) |
-| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L638) |
+| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L737) |
 
 </details>
