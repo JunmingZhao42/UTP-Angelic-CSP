@@ -535,3 +535,9 @@ D, AD, RD and RAD parallel theories passed focused PIDE checks with zero errors,
 bad, failed, canceled or unfinished commands; existing RD warnings remain.
 No full build or unrelated downstream replay was run. The edit remains unstaged
 and uncommitted, and the existing index is unchanged.
+
+## Establish lifted RAD merge healthiness
+
+9 November 2026. Established component and combined healthiness of the ordinary
+merge lift and derived RAD parallel closure without A2. Focused PIDE checks
+passed for AD and RAD parallel; no full build or unrelated replay was run.

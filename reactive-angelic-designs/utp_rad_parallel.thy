@@ -673,9 +673,174 @@ proof -
         rad_lift_merge_obs[simplified] sym; blast)
 qed
 
+subsubsection \<open>ORDm lift facts\<close>
+
+lemma rad_lift_merge_CSPA2m:
+  assumes "M is RD2"
+  shows "rad_lift_merge M is CSPA2m"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp only: H2m_ades_obs rad_lift_merge_obs)
+  using RD2_ok_up[OF assms]
+  apply auto
+  by blast
+
+lemma ORDm_div_eval:
+  assumes "M is ORDm" "\<not> b" "s' \<in> rad_trace_extensions s0"
+  shows "merge_eval M \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr> p q
+    \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>"
+proof -
+  have "merge_eval M \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr> p q
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> =
+    merge_eval (ORDm M) \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr> p q
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>"
+    using assms(1) by (simp add: Healthy_def')
+  also have "... = (rea_vars.tr\<^sub>v \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr> \<le>
+      rea_vars.tr\<^sub>v \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>)"
+    using assms(2) by (simp add: ORDm_unstarted)
+  finally show ?thesis
+    using assms(3) by (metis rad_tr_record rad_trace_extensions_def mem_Collect_eq)
+qed
+
+lemma ORDm_ext_eval:
+  assumes "M is ORDm"
+    and "merge_eval M \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr> p q
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>"
+  shows "s' \<in> rad_trace_extensions s0"
+proof -
+  have h: "M is R1m" by (rule ORDm_R1m[OF assms(1)])
+  have growth: "merge_eval M x p q z \<Longrightarrow>
+      rea_vars.tr\<^sub>v x \<le> rea_vars.tr\<^sub>v z" for x p q z
+    using h by (metis Healthy_def' R1m_merge_eval)
+  show ?thesis using growth assms(2)
+    by (metis rad_tr_record rad_trace_extensions_def mem_Collect_eq)
+qed
+
+lemma R2m_rad_eval:
+  assumes "M is R2m"
+  shows "merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> =
+    (s' \<in> rad_trace_extensions s0 \<and>
+     merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = rad_zero_trace s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = rad_trace_difference s0 sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = rad_trace_difference s0 sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = rad_trace_difference s0 s'\<rparr>)"
+proof -
+  have "merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> =
+    merge_eval (R2m M)
+      \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>"
+    using assms by (simp add: Healthy_def')
+  also have "... = (s' \<in> rad_trace_extensions s0 \<and>
+     merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = rad_zero_trace s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = rad_trace_difference s0 sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = rad_trace_difference s0 sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = rad_trace_difference s0 s'\<rparr>)"
+    by (cases s0; cases sL; cases sR; cases s';
+        simp add: R2m_merge_eval rad_zero_trace_def
+          rad_trace_difference_def rad_trace_extensions_def)
+  finally show ?thesis .
+qed
+
+subsection \<open>Lifted merge healthiness\<close>
+
+lemma R2m_choice_normalise:
+  assumes "M is R2m"
+  shows "(\<exists>s'\<in>Z. merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>) =
+    (\<exists>z\<in>rad_normalise_choices s0 Z. merge_eval M
+      \<lparr>ok\<^sub>v = b, \<dots> = rad_zero_trace s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = rad_trace_difference s0 sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = rad_trace_difference s0 sR\<rparr>
+      \<lparr>ok\<^sub>v = c, \<dots> = z\<rparr>)"
+  by (subst R2m_rad_eval[OF assms];
+      auto simp: rad_normalise_choices_def rad_trace_extensions_def)
+
+lemma rad_lift_merge_RA1m:
+  assumes "M is ORDm"
+  shows "rad_lift_merge M is RA1m"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp add: RA1m_obs[simplified] rad_lift_merge_obs[simplified])
+  using ORDm_ext_eval[OF assms] by blast
+
+lemma rad_lift_merge_RA2m:
+  assumes "M is R2m"
+  shows "rad_lift_merge M is RA2m"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp only: RA2m_obs rad_lift_merge_obs)
+  apply (subst (2) R2m_choice_normalise[OF assms])
+  apply simp
+  by fast
+
+lemma rad_lift_merge_CSPA1m:
+  assumes "M is ORDm"
+  shows "rad_lift_merge M is CSPA1m"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp add: CSPA1m_obs[simplified] rad_lift_merge_obs[simplified])
+  using ORDm_div_eval[OF assms] by blast
+
+lemma rad_lift_merge_RA3m:
+  assumes "M is ORDm"
+  shows "rad_lift_merge M is RA3m"
+proof -
+  have div: "merge_eval M \<lparr>ok\<^sub>v = False, \<dots> = s0\<rparr> p q
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> = (s' \<in> rad_trace_extensions s0)" for s0 p q c s'
+    using ORDm_div_eval[OF assms, where b=False, simplified]
+      ORDm_ext_eval[OF assms, where b=False]
+    by blast
+  have h: "M is R3cm" using assms by (simp add: ORDm_healthy_iff)
+  have waiting: "merge_eval M \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> p q
+      \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> = (c \<and> s' = s0)"
+    if "rad_wait\<^sub>v s0" for s0 p q c s'
+    by (subst Healthy_if[OF h, symmetric]; simp add: R3cm_eval that)
+  show ?thesis
+    unfolding Healthy_def'
+    apply (rule ades_merge_ext)
+    subgoal for ok0 s0 okL X okR Y ok' Z
+      apply (cases "rad_wait\<^sub>v s0"; cases ok0)
+      apply (simp_all add: RA3m_obs[simplified] rad_lift_merge_obs[simplified]
+          II_Rac_eval waiting div)
+      apply blast
+      apply (simp add: rad_trace_extensions_def)
+      by blast
+    done
+qed
+
+lemma rad_lift_merge_PBMHm [closure]:
+  "rad_lift_merge M is PBMHm"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp add: PBMHm_obs[simplified] rad_lift_merge_obs[simplified])
+  by blast
+
 lemma rad_lift_merge_RABm [closure]:
   "rad_lift_merge M is RABm"
   by (simp add: Healthy_def' rad_lift_merge_def RABm_idem)
+
+lemma rad_lift_merge_RADm:
+  assumes "M is ORDm"
+  shows "rad_lift_merge M is RADm"
+  using assms unfolding RADm_healthy_iff
+  by (auto simp: ORDm_healthy_iff intro: rad_lift_merge_RA1m rad_lift_merge_RA2m
+      rad_lift_merge_RA3m rad_lift_merge_CSPA1m rad_lift_merge_PBMHm
+      rad_lift_merge_RABm rad_lift_merge_CSPA2m)
 
 subsection \<open>RAD parallel by merge\<close>
 
@@ -684,7 +849,7 @@ definition rad_par ::
     ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
   ("_ \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>_\<^esub> _" [85,0,86] 85)
 where
-  "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q = (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
+  "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q \<equiv> (P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q)"
 
 lemma rad_par_p2ac:
   fixes P Q :: "('t::trace, 'e set) rp_hrel"
@@ -725,19 +890,11 @@ proof -
   by (simp add: rad_par_form[OF assms] Healthy_def')
 qed
 
-text \<open>Closure transfers from ordinary RD parallel through p2ac. ORDm is
-  sufficient; no normality premise or excluded-output witness is required.\<close>
-
 lemma rad_par_RAD [closure]:
-  "\<lbrakk> P is RAD; Q is RAD; P is A2; Q is A2; M is ORDm \<rbrakk> \<Longrightarrow>
-    (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD"
-proof -
-  assume assms: "P is RAD" "Q is RAD" "P is A2" "Q is A2" "M is ORDm"
-  show ?thesis
-  unfolding rad_par_form[OF assms(1-4)]
-    by (rule rad_p2ac_RD_closure,
-        rule RD_par_by_ORDm[OF rad_ac2p_RD[OF assms(1,3)] rad_ac2p_RD[OF assms(2,4)] assms(5)])
-qed
+  assumes "P is RAD" "Q is RAD" "M is ORDm"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD"
+  unfolding rad_par_def
+  by (rule rad_par_by_merge_RAD[OF assms(1,2) rad_lift_merge_RADm[OF assms(3)]])
 
 subsection \<open>Algebra\<close>
 
@@ -792,9 +949,9 @@ proof -
   have ordinary: "((D \<parallel>\<^bsub>M\<^esub> E) \<parallel>\<^bsub>M\<^esub> F) = (D \<parallel>\<^bsub>M\<^esub> (E \<parallel>\<^bsub>M\<^esub> F))" for D E F
     using par_by_merge_assoc_iff[of M] assoc by blast
   have pq: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD" "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(1,2,4,5,7)] rad_par_A2[OF assms(1,2,4,5)])
+    by (simp_all add: rad_par_RAD[OF assms(1,2,7)] rad_par_A2[OF assms(1,2,4,5)])
   have qr: "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is RAD" "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(2,3,5,6,7)] rad_par_A2[OF assms(2,3,5,6)])
+    by (simp_all add: rad_par_RAD[OF assms(2,3,7)] rad_par_A2[OF assms(2,3,5,6)])
   show ?thesis
     by (simp only: rad_par_form[OF pq(1) assms(3) pq(2) assms(6)]
         rad_par_form[OF assms(1) qr(1) assms(4) qr(2)]
@@ -842,9 +999,9 @@ proof -
       ac2p P \<parallel>\<^bsub>?M\<^esub> (ac2p Q \<parallel>\<^bsub>?M\<^esub> ac2p R)"
     by (rule rdes_lift_parallel_assoc_nondiv[OF assms(7,8) rd nondiv])
   have pq: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> Q) is RAD" "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> Q) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(1,2,4,5) M] rad_par_A2[OF assms(1,2,4,5)])
+    by (simp_all add: rad_par_RAD[OF assms(1,2) M] rad_par_A2[OF assms(1,2,4,5)])
   have qr: "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> R) is RAD" "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> R) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(2,3,5,6) M] rad_par_A2[OF assms(2,3,5,6)])
+    by (simp_all add: rad_par_RAD[OF assms(2,3) M] rad_par_A2[OF assms(2,3,5,6)])
   show ?thesis
     by (simp only: rad_par_form[OF pq(1) assms(3) pq(2) assms(6)]
         rad_par_form[OF assms(1) qr(1) assms(4) qr(2)]
@@ -858,6 +1015,10 @@ subsection \<open>Merge induced by j\<close>
 (* Lift the completed ordinary RD merge from j to RAD choice sets. *)
 definition merge_rad :: "('t::trace \<times> 'e set) merge \<Rightarrow> ('t, 'e) rad_merge_rel" where
   "merge_rad j \<equiv> rad_lift_merge (merge_rdes j)"
+
+lemma merge_rad_RADm [closure]:
+  "merge_rad j is RADm"
+  by (simp add: merge_rad_def rad_lift_merge_RADm merge_rdes_ORDm)
 
 lemma merge_rad_p2ac:
   fixes P Q :: "('t::trace, 'e set) rp_hrel"

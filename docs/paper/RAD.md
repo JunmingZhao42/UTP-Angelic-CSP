@@ -308,6 +308,7 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 | `p2ac(RD D) = RAD(p2ac D)`. | None | [`rad_p2ac_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L407) |
 | `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L421) |
 | Parallel by an arbitrary RAD merge is RAD-healthy. | `P`, `Q` both RAD; `M is RADm` | [`rad_par_by_merge_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L527) |
-| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD and A2; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L731) |
+| The ordinary lift is RADm-healthy. | `M is ORDm` | [`rad_lift_merge_RADm`](../../reactive-angelic-designs/utp_rad_parallel.thy#L837) |
+| Parallel with the lifted merge is RAD-healthy. | `P`, `Q` both RAD; `M is ORDm` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel.thy#L893) |
 
 </details>
