@@ -641,24 +641,11 @@ subsection \<open>Choice-set lifting\<close>
 text \<open>Every pair of branch states must have a merged output in the final set.
   The ordinary merge supplies the control, trace, waiting and refusal policy.\<close>
 
+(* Lift ordinary reactive observations to nonempty branch choice sets. *)
 definition rad_lift_merge ::
   "('t::trace, 'e set) rp merge \<Rightarrow> ('t, 'e) rad_merge_rel"
 where
-  "rad_lift_merge M = (\<lambda>(m,z).
-    let x = mrg_prior\<^sub>v m;
-        p = mrg_left\<^sub>v m;
-        q = mrg_right\<^sub>v m;
-        X = achoices.ac\<^sub>v (des_vars.more p);
-        Y = achoices.ac\<^sub>v (des_vars.more q);
-        Z = achoices.ac\<^sub>v (des_vars.more z);
-        s0 = astate.s\<^sub>v (des_vars.more x)
-    in X \<noteq> {} \<and> Y \<noteq> {} \<and>
-      (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>Z.
-        merge_eval M
-          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v x, \<dots> = s0\<rparr>)
-          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v p, \<dots> = sL\<rparr>)
-          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v q, \<dots> = sR\<rparr>)
-          (\<lparr>ok\<^sub>v = des_vars.ok\<^sub>v z, \<dots> = s'\<rparr>)))"
+  "rad_lift_merge \<equiv> RABm \<circ> choice_lift_merge"
 
 lemma rad_lift_merge_obs:
   "ades_merge_obs (rad_lift_merge M) ok0 s0 okL X okR Y ok' Z =
@@ -667,11 +654,13 @@ lemma rad_lift_merge_obs:
         (\<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)
         (\<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>)
         (\<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)))"
-  by (simp add: rad_lift_merge_def Let_def)
+  by (simp add: rad_lift_merge_def RABm_choice_lift_merge_obs[simplified])
 
 lemma rad_lift_merge_mono:
   "M \<sqsubseteq> N \<Longrightarrow> rad_lift_merge M \<sqsubseteq> rad_lift_merge N"
-  by (auto simp: pred_refine_iff rad_lift_merge_def Let_def split: prod.splits; blast)
+  unfolding rad_lift_merge_def comp_apply
+  by (rule pred_ref_monoD[OF RABm_Monotonic];
+      auto simp: pred_refine_iff choice_lift_merge_def Let_def split: prod.splits; blast)
 
 lemma rad_lift_merge_SymMerge:
   "M is SymMerge \<Longrightarrow> rad_lift_merge M is SymMerge"
@@ -680,8 +669,13 @@ proof -
   have sym: "merge_eval M x p q z = merge_eval M x q p z" for x p q z
     using assms by (simp add: SymMerge_eval)
   show ?thesis
-    by (simp add: SymMerge_eval rad_lift_merge_def Let_def sym; blast)
+    by (simp add: SymMerge_eval des_vars.splits astate.splits achoices.splits
+        rad_lift_merge_obs[simplified] sym; blast)
 qed
+
+lemma rad_lift_merge_RABm [closure]:
+  "rad_lift_merge M is RABm"
+  by (simp add: Healthy_def' rad_lift_merge_def RABm_idem)
 
 subsection \<open>RAD parallel by merge\<close>
 

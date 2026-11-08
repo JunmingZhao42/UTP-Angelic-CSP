@@ -418,6 +418,38 @@ text \<open>Use @{thm [source] par_by_merge_comm} for symmetric merges and
   @{thm [source] par_by_merge_assoc} for symmetric AssocMerge merges.
   These laws need no operand healthiness or mergeability premise.\<close>
 
+subsection \<open>Choice-set lifting\<close>
+
+(* choice_lift_merge M ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. M((ok,s),(okL,sL),(okR,sR),(ok',s'))). *)
+definition choice_lift_merge :: "'s des_merge \<Rightarrow> 's ades_merge_rel" where
+  "choice_lift_merge M \<equiv> (\<lambda>(m,z).
+    let x = mrg_prior\<^sub>v m; p = mrg_left\<^sub>v m; q = mrg_right\<^sub>v m;
+        s0 = astate.s\<^sub>v (des_vars.more x);
+        acL = achoices.ac\<^sub>v (des_vars.more p);
+        acR = achoices.ac\<^sub>v (des_vars.more q);
+        ac' = achoices.ac\<^sub>v (des_vars.more z)
+    in \<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+      merge_eval M
+        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v x, \<dots> = s0\<rparr>
+        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v p, \<dots> = sL\<rparr>
+        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v q, \<dots> = sR\<rparr>
+        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v z, \<dots> = s'\<rparr>)"
+
+lemma choice_lift_merge_obs:
+  "ades_merge_obs (choice_lift_merge M) ok0 s0 okL acL okR acR ok' ac' =
+    (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+      merge_eval M \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
+        \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
+  by (simp add: choice_lift_merge_def Let_def)
+
+lemma RABm_choice_lift_merge_obs:
+  "ades_merge_obs (RABm (choice_lift_merge M)) ok0 s0 okL acL okR acR ok' ac' =
+    (acL \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+      merge_eval M \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
+        \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
+  by (simp add: RABm_obs[simplified] choice_lift_merge_obs[simplified]; blast)
+
 subsection \<open>Lifting okL State Merge\<close>
 
 subsubsection \<open>Construction\<close>
@@ -429,21 +461,17 @@ text \<open>The raw lift requires a witness in the output set for every branch-s
      acL \<noteq> {} \<and> acR \<noteq> {} \<and> ok' = (okL \<and> okR) \<and>
      (\<forall>sL \<in> acL. \<forall>sR \<in> acR. \<exists>s' \<in> ac'. j(s, sL, sR, s')) *)
 definition ades_lift_merge :: "'s merge \<Rightarrow> 's ades_merge_rel" where
-  [pred]: "ades_lift_merge j \<equiv> (\<lambda>(m,out).
-    let s0 = astate.s\<^sub>v (des_vars.more (mrg_prior\<^sub>v m));
-        acL = achoices.ac\<^sub>v (des_vars.more (mrg_left\<^sub>v m));
-        acR = achoices.ac\<^sub>v (des_vars.more (mrg_right\<^sub>v m));
-        ac' = achoices.ac\<^sub>v (des_vars.more out)
-    in acL \<noteq> {} \<and> acR \<noteq> {} \<and>
-       des_vars.ok\<^sub>v out =
-         (des_vars.ok\<^sub>v (mrg_left\<^sub>v m) \<and> des_vars.ok\<^sub>v (mrg_right\<^sub>v m)) \<and>
-       (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s'))"
+  [pred]: "ades_lift_merge \<equiv> RABm \<circ> choice_lift_merge \<circ> merge_des_raw"
 
 lemma ades_lift_merge_obs:
   "ades_merge_obs (ades_lift_merge j) ok0 s0 okL acL okR acR ok' ac' \<longleftrightarrow>
     (acL \<noteq> {} \<and> acR \<noteq> {} \<and> ok' = (okL \<and> okR) \<and>
      (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s'))"
-  by (auto simp: ades_lift_merge_def Let_def)
+  by (simp add: ades_lift_merge_def RABm_choice_lift_merge_obs[simplified]
+      merge_des_raw_def; blast)
+
+lemma ades_lift_merge_RABm [closure]: "ades_lift_merge j is RABm"
+  by (simp add: Healthy_def' ades_lift_merge_def RABm_idem)
 
 definition merge_ades :: "'s merge \<Rightarrow> 's ades_merge_rel" where
   "merge_ades j \<equiv> H3m (H1m (ades_lift_merge j))"
@@ -468,8 +496,10 @@ lemma merge_ades_unfold:
         (des_vars.ok\<^sub>v (mrg_left\<^sub>v m) \<and> des_vars.ok\<^sub>v (mrg_right\<^sub>v m)
           \<longrightarrow> (des_vars.ok\<^sub>v out \<and>
         (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')))))"
-  by (simp add: merge_ades_def H3m_def ades_lift_merge_def H1m_def Let_def;
-      pred_auto; metis UNIV_I ex_in_conv)
+  apply (rule ades_merge_ext)
+  apply (simp add: merge_ades_def H3m_ades_obs[simplified] H1m_def
+      ades_lift_merge_obs[simplified] Let_def disj_pred_def expr_defs lens_defs alpha_defs)
+  by (blast intro: exI[where x=UNIV])
 
 lemma merge_ades_obs:
   "ades_merge_obs (merge_ades j) ok0 s0 okL acL okR acR ok' ac' \<longleftrightarrow>

@@ -503,3 +503,35 @@ Focused PIDE checking passed for RAD parallel (1240 commands), with zero
 errors, warnings, bad or unfinished commands. Documentation links and
 whitespace checks passed. No downstream replay or batch build was run.
 The additions remain unstaged and uncommitted; the existing index is unchanged.
+
+## Raw AD lift branch healthiness
+
+8 November 2026. Added
+[ades_lift_merge_RABm](../../angelic-designs/utp_ades_parallel.thy#L473)
+for arbitrary `j`, keeping the lift definitions unchanged. Focused PIDE checking
+passed for AD parallel (872 commands), with zero errors, warnings, bad or
+unfinished commands. Documentation-link and whitespace checks passed.
+No downstream replay or batch build was run; the addition remains uncommitted.
+
+## Share AD and RAD choice-set lifting
+
+9 November 2026. Added
+[choice_lift_merge](../../angelic-designs/utp_ades_parallel.thy#L425) and factored
+both existing lifts through it and RABm. AD also reuses `merge_des_raw` for its
+termination flags. Existing observation equations and theorem statements are
+unchanged. AD parallel (882 commands) and RAD parallel (1168 commands) passed
+PIDE with zero errors, warnings, bad or unfinished commands. Three focused
+comparisons reduced median checking time from 2.33 to 0.35 seconds for the AD
+construction, including the new shared lemmas, and from 0.64 to 0.21 seconds for
+the RAD lift. No full build or unrelated downstream replay was run. Changes
+remain uncommitted and the existing index is unchanged.
+
+## Simplify the raw design merge
+
+9 November 2026. Rewrote
+[merge_des_raw](../../deps/UTP-Designs/utp_des_parallel.thy#L310) using
+`merge_eval` and meta-equality, preserving its semantics and leaving RABm unchanged.
+D, AD, RD and RAD parallel theories passed focused PIDE checks with zero errors,
+bad, failed, canceled or unfinished commands; existing RD warnings remain.
+No full build or unrelated downstream replay was run. The edit remains unstaged
+and uncommitted, and the existing index is unchanged.
