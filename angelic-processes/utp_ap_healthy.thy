@@ -193,7 +193,7 @@ proof -
     by (simp only: comp_apply RA3AP_wait_false_absorb[simplified comp_apply,
           of "A (H1 (H2 P))"]
         rad_wait_false_A_commute[simplified comp_apply]
-        rad_wait_false_H1_H2_commute[simplified comp_apply])
+        rad_wait_false_H1_CSPA2_commute[unfolded CSPA2_def, simplified comp_apply])
   also have "... = (RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> H2) (P \<^sub>f)"
     by (simp only: comp_apply RA2_RA3AP_commute[simplified comp_apply])
   finally show ?thesis

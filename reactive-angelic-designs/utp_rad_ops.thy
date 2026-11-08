@@ -6,6 +6,27 @@ begin
 
 subsection \<open>Angelic Choice\<close>
 
+lemma RA_A_angelic_choice:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes "P is PBMH_ades" "Q is PBMH_ades"
+      "P is \<^bold>H" "Q is \<^bold>H"
+  shows
+    "(RA \<circ> A) P \<squnion> (RA \<circ> A) Q =
+     (RA \<circ> A) (P \<squnion> Q)"
+proof -
+  have choice_PBMH: "(P \<squnion> Q) is PBMH_ades"
+    using PBMH_ades_conj_closure[OF assms(1,2)]
+    by (simp only: angelic_design_angelic)
+  have choice_design: "(P \<squnion> Q) is \<^bold>H"
+    using Inf_H1_H2_closed[of "{P, Q}"] assms(3,4)
+    by simp
+  show ?thesis
+    by (simp only: RA_A_absorb[OF assms(1) assms(3)]
+        RA_A_absorb[OF assms(2) assms(4)]
+        RA_A_absorb[OF choice_PBMH choice_design],
+        simp only: conj_pred_def[symmetric] RA_conj)
+qed
+
 (* Paper Definition 37. *)
 abbreviation achoice_RAD ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design"
@@ -96,6 +117,10 @@ proof -
 qed
 
 subsection \<open>Demonic Choice\<close>
+
+lemma RA_A_demonic_choice:
+  "(RA \<circ> A) P \<sqinter> (RA \<circ> A) Q = (RA \<circ> A) (P \<sqinter> Q)"
+  by (simp only: angelic_design_demonic comp_apply A_disj RA_disj)
 
 (* Paper Definition 38. *)
 abbreviation dchoice_RAD ::

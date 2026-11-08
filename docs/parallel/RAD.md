@@ -51,7 +51,7 @@ The components commute and are monotone and idempotent.
 | Result of `P ∥RAD[M] Q` | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
 | [A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | Both RAD+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | None | [rad_par_A2](../../reactive-angelic-designs/utp_rad_parallel.thy#L115) |
-| [RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L92) | Both RAD+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | `M is ORDm` | [rad_par_RAD](../../reactive-angelic-designs/utp_rad_parallel.thy#L127) |
+| [RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L301) | Both RAD+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) | `M is ORDm` | [rad_par_RAD](../../reactive-angelic-designs/utp_rad_parallel.thy#L127) |
 
 The corresponding ordinary rule is [RD_par_by_ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L399).
 Here RD is the flat reactive-design theory using [R3c](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L202).
@@ -67,10 +67,10 @@ Here RD is the flat reactive-design theory using [R3c](../../deps/UTP-Reactive-D
 
 [rad_ac2p_RD](../../reactive-angelic-designs/utp_rad_csp.thy#L421) maps RAD+A2 to RD;
 [rad_p2ac_RD](../../reactive-angelic-designs/utp_rad_csp.thy#L407) relates RD and RAD healthiness.
-RAD rejects empty output sets ([RAD_empty](../../reactive-angelic-designs/utp_rad_designs.thy#L269)),
+RAD rejects empty output sets ([RAD_empty](../../reactive-angelic-designs/utp_rad_designs.thy#L534)),
 so AD's d2ac/A3 completion does not supply RAD closure
-([rad_d2ac_not_RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L277),
-[A3_not_RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L287)).
+([rad_d2ac_not_RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L542),
+[A3_not_RAD](../../reactive-angelic-designs/utp_rad_designs.thy#L552)).
 
 ## Algebraic properties
 

@@ -9,6 +9,67 @@ theory utp_rad_seq
   imports utp_rad_ops
 begin
 
+subsection \<open>Healthiness and angelic composition\<close>
+
+(* Thesis Lemma L.G.1.29: an aborted first process followed by anything
+   yields the aborted behaviour. *)
+lemma RA1_not_ok_aseq_absorb:
+  "(RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D RA1 true) = RA1 (\<not> ok\<^sup><)"
+  apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
+  apply pred_auto
+   apply (blast dest: rad_trace_extensions_trans)
+  apply (blast intro: rad_trace_extensions_refl)
+  done
+
+(* Thesis Lemma L.G.1.16: composition preserves RA1 healthiness. *)
+lemma RA1_aseq_absorb:
+  "RA1 (RA1 P ;;\<^sub>A\<^sub>D RA1 Q) = (RA1 P ;;\<^sub>A\<^sub>D RA1 Q)"
+  apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
+  apply (simp add: rad_trace_extensions_Int_Collect
+      rad_trace_extensions_inter_absorb cong: conj_cong)
+  apply (auto dest: rad_trace_extensions_trans)
+  done
+
+lemma rad_trace_append_assoc:
+  "(\<lambda>x. t + (u + x)) = ((+) (t + u))" for t :: "'t::trace"
+  by (auto simp add: fun_eq_iff add.assoc)
+
+(* Thesis Theorem T.G.2.4: RA2 distributes through full-alphabet angelic
+   composition when the right operand is already RA2-normalised. *)
+lemma RA2_aseq_distrib:
+  "RA2 (P ;;\<^sub>A\<^sub>D RA2 Q) = (RA2 P ;;\<^sub>A\<^sub>D RA2 Q)"
+  by (simp add: RA2_def aseq_ades_def Let_def fun_eq_iff comp_def
+      rad_normalise_choices_as_prepend[unfolded rad_trace_prepend_def] rad_zero_trace_def
+      rad_trace_append_assoc)
+
+(* A reusable form of the RA2 transport used by reactive sequential
+   composition: commute RA1 and RA2 on both operands in one step. *)
+lemma RA2_RA1_aseq_distrib:
+  "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
+   (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+proof -
+  have "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
+      (RA2 (RA1 P) ;;\<^sub>A\<^sub>D RA2 (RA1 Q))"
+    by (rule RA2_aseq_distrib)
+  also have "... =
+      (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+    by (simp only: RA1_RA2_commute'[symmetric])
+  finally show ?thesis .
+qed
+
+lemma RA2_aseq_fixed:
+  assumes "RA2 Y = Y"
+  shows "RA2 (X ;;\<^sub>A\<^sub>D Y) = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+proof -
+  have "RA2 (X ;;\<^sub>A\<^sub>D Y) = RA2 (X ;;\<^sub>A\<^sub>D RA2 Y)"
+    by (simp only: assms)
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>D RA2 Y)"
+    by (rule RA2_aseq_distrib)
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+    by (simp only: assms)
+  finally show ?thesis .
+qed
+
 subsection \<open>Basic laws and CSP correspondence\<close>
 
 (* Thesis Theorem T.4.5.15. *)

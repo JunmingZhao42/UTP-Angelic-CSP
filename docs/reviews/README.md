@@ -410,3 +410,15 @@ Focused PIDE checks passed for Design parallel (588 commands), AD parallel
 (392), with no errors or unfinished commands in the checked contexts.
 Documentation links and whitespace checks passed. The rename-only AP snapshot
 and a batch build were not rerun.
+
+## Reorganise RAD healthiness and use paper names
+
+8 November 2026. Moved CSPA1 into RAD healthiness alongside CSPA2, moved
+design forms, composition laws, choice laws and Example 11 into their owning
+theories, and removed two unreferenced lemmas. RAD-facing statements now
+use CSPA2; declaration links were updated.
+
+PIDE passed the affected RAD theories and AP healthiness, RAD correspondence,
+operators and nondivergence callers with no errors, bad or unfinished commands.
+Documentation-link and whitespace checks passed. AP parallel and examples
+were not replayed, and no batch build was run.

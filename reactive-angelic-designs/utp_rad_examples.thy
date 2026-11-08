@@ -11,6 +11,30 @@ begin
 
 subsection \<open>RA1 and PBMH do not commute (Example 11)\<close>
 
+(* Paper Example 11.  RA1 and PBMH_ades do not commute in general;
+   PBMH_ades is the lifting of the paper's PBMH through the outer design
+   record. *)
+definition rad_ac_empty :: "('t::trace, 'e) reactive_angelic_design" where
+[pred]: "rad_ac_empty \<equiv> (\<lambda> (x, z).
+  achoices.ac\<^sub>v (des_vars.more z) = {})"
+
+lemma PBMH_ades_ac_empty [simp]: "PBMH_ades rad_ac_empty = true"
+  by (simp add: PBMH_ades_def rad_ac_empty_def; pred_auto)
+
+lemma RA1_ac_empty [simp]: "RA1 rad_ac_empty = false"
+  by (simp add: RA1_def rad_ac_empty_def fun_eq_iff; pred_auto)
+
+lemma RA1_PBMH_ades_ac_empty: "RA1 (PBMH_ades rad_ac_empty) = RA1 true"
+  by simp
+
+lemma PBMH_ades_RA1_ac_empty: "PBMH_ades (RA1 rad_ac_empty) = false"
+  by (simp add: PBMH_ades_def; pred_auto)
+
+lemma RA1_PBMH_ades_not_commute:
+  "RA1 (PBMH_ades rad_ac_empty) \<noteq> PBMH_ades (RA1 rad_ac_empty)"
+  by (simp only: RA1_PBMH_ades_ac_empty PBMH_ades_RA1_ac_empty;
+      simp add: RA1_def rad_trace_extensions_def fun_eq_iff; pred_auto)
+
 (* Paper Example 11: the two compositions disagree on ac = {}. *)
 lemma RA1_PBMH_ades_ac_empty_example:
   "RA1 (PBMH_ades rad_ac_empty) = RA1 true \<and>
