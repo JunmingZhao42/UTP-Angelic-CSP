@@ -935,49 +935,44 @@ lemma rad_par_assoc_state:
      P is A2;
      Q is A2;
      R is A2;
-     M is ORDm;
      \<And>x p q r z.
       (\<exists>u. merge_eval M x p q u \<and> merge_eval M x u r z) =
       (\<exists>u. merge_eval M x q r u \<and> merge_eval M x p u z) \<rbrakk> \<Longrightarrow>
     (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R = P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R)"
 proof -
-  assume assms: "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2" "M is ORDm"
+  assume assms: "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2"
     "\<And>x p q r z.
       (\<exists>u. merge_eval M x p q u \<and> merge_eval M x u r z) =
       (\<exists>u. merge_eval M x q r u \<and> merge_eval M x p u z)"
-  note assoc = assms(8)
+  note assoc = assms(7)
   have ordinary: "((D \<parallel>\<^bsub>M\<^esub> E) \<parallel>\<^bsub>M\<^esub> F) = (D \<parallel>\<^bsub>M\<^esub> (E \<parallel>\<^bsub>M\<^esub> F))" for D E F
     using par_by_merge_assoc_iff[of M] assoc by blast
-  have pq: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is RAD" "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(1,2,7)] rad_par_A2[OF assms(1,2,4,5)])
-  have qr: "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is RAD" "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(2,3,7)] rad_par_A2[OF assms(2,3,5,6)])
   show ?thesis
-    by (simp only: rad_par_form[OF pq(1) assms(3) pq(2) assms(6)]
-        rad_par_form[OF assms(1) qr(1) assms(4) qr(2)]
-        rad_par_ac2p[OF assms(1,2,4,5)]
-        rad_par_ac2p[OF assms(2,3,5,6)] ordinary)
+    using arg_cong[OF ordinary[of "ac2p P" "ac2p Q" "ac2p R"], of p2ac]
+    by (simp only: rad_par_p2ac[symmetric]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(1,4)]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(2,5)]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(3,6)])
 qed
 
 lemma rad_par_assoc:
-  "\<lbrakk> P is RAD; Q is RAD; R is RAD; P is A2; Q is A2; R is A2; M is ORDm; M is SymMerge;
+  "\<lbrakk> P is RAD; Q is RAD; R is RAD; P is A2; Q is A2; R is A2; M is SymMerge;
      AssocMerge M \<rbrakk> \<Longrightarrow>
     (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R = P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>M\<^esub> R)"
 proof -
-  assume assms: "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2" "M is ORDm"
+  assume assms: "P is RAD" "Q is RAD" "R is RAD" "P is A2" "Q is A2" "R is A2"
     "M is SymMerge" "AssocMerge M"
   have ordinary: "\<forall>D E F.
     (D \<parallel>\<^bsub>M\<^esub> E) \<parallel>\<^bsub>M\<^esub> F =
     D \<parallel>\<^bsub>M\<^esub> (E \<parallel>\<^bsub>M\<^esub> F)"
-    using par_by_merge_assoc[OF assms(8,9)] by blast
+    using par_by_merge_assoc[OF assms(7,8)] by blast
   show ?thesis
-    by (rule rad_par_assoc_state[OF assms(1-7)];
+    by (rule rad_par_assoc_state[OF assms(1-6)];
         use ordinary par_by_merge_assoc_iff[of M] in blast)
 qed
 
-text \<open>The lifted RD merge is associative only for operands whose RD
-  images never diverge from an active prior; the law transfers through
-  @{const ac2p}.\<close>
+text \<open>The following law transfers associativity from nondivergent RD images
+  through @{const p2ac}.\<close>
 
 lemma rad_par_lift_assoc:
   "\<lbrakk> P is RAD; Q is RAD; R is RAD; P is A2; Q is A2; R is A2; j is SymMerge;
@@ -990,7 +985,6 @@ proof -
     "AssocMerge j" "pre\<^sub>R (ac2p P) = true\<^sub>r" "pre\<^sub>R (ac2p Q) = true\<^sub>r"
     "pre\<^sub>R (ac2p R) = true\<^sub>r"
   let ?M = "merge_rdes j"
-  have M: "?M is ORDm" by (rule merge_rdes_ORDm)
   have rd: "ac2p P is RD" "ac2p Q is RD" "ac2p R is RD"
     using rad_ac2p_RD assms(1-6) by blast+
   have nondiv: "ac2p P is NDRD" "ac2p Q is NDRD" "ac2p R is NDRD"
@@ -998,17 +992,13 @@ proof -
   have ordinary: "(ac2p P \<parallel>\<^bsub>?M\<^esub> ac2p Q) \<parallel>\<^bsub>?M\<^esub> ac2p R =
       ac2p P \<parallel>\<^bsub>?M\<^esub> (ac2p Q \<parallel>\<^bsub>?M\<^esub> ac2p R)"
     by (rule rdes_lift_parallel_assoc_nondiv[OF assms(7,8) rd nondiv])
-  have pq: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> Q) is RAD" "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> Q) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(1,2) M] rad_par_A2[OF assms(1,2,4,5)])
-  have qr: "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> R) is RAD" "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>?M\<^esub> R) is A2"
-    by (simp_all add: rad_par_RAD[OF assms(2,3) M] rad_par_A2[OF assms(2,3,5,6)])
   show ?thesis
-    by (simp only: rad_par_form[OF pq(1) assms(3) pq(2) assms(6)]
-        rad_par_form[OF assms(1) qr(1) assms(4) qr(2)]
-        rad_par_ac2p[OF assms(1,2,4,5)]
-        rad_par_ac2p[OF assms(2,3,5,6)] ordinary)
+    using arg_cong[OF ordinary, of p2ac]
+    by (simp only: rad_par_p2ac[symmetric]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(1,4)]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(2,5)]
+        rad_p2ac_ac2p_RAD_A2'[OF assms(3,6)])
 qed
-
 
 subsection \<open>Merge induced by j\<close>
 

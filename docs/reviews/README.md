@@ -541,3 +541,9 @@ and uncommitted, and the existing index is unchanged.
 9 November 2026. Established component and combined healthiness of the ordinary
 merge lift and derived RAD parallel closure without A2. Focused PIDE checks
 passed for AD and RAD parallel; no full build or unrelated replay was run.
+
+## Transfer RAD associativity through p2ac
+
+9 November 2026. Removed ORDm from the generic RAD associativity premises and
+simplified the lifted transfer through p2ac. The final RAD parallel theory
+passed focused PIDE checks; no full build was run.

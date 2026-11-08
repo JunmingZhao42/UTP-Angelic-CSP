@@ -104,7 +104,7 @@ rad_lift_merge M ((ok,s),(okL,acL),(okR,acR),(ok',ac')) ↔
 P ∥RAD[M] Q ≡ P ∥[rad_lift_merge M] Q
 ```
 
-[merge_rad](../../reactive-angelic-designs/utp_rad_parallel.thy#L1016) names the
+[merge_rad](../../reactive-angelic-designs/utp_rad_parallel.thy#L1006) names the
 instance `rad_lift_merge (merge_rdes j)` for
 `j :: ('t × 'e set) merge`. The generic lift and parallel operator accept
 any ordinary merge `M`.
@@ -120,7 +120,7 @@ The lift applies the ordinary merge directly, including its divergence constrain
 | Result | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
 | `rad_lift_merge M is RADm` | None | `M is ORDm` | [rad_lift_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L837) |
-| `merge_rad j is RADm` | None | None | [merge_rad_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L1019) |
+| `merge_rad j is RADm` | None | None | [merge_rad_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L1009) |
 | `(P ∥RAD[M] Q) is RAD` | Both RAD | `M is ORDm` | [rad_par_RAD](../../reactive-angelic-designs/utp_rad_parallel.thy#L893) |
 | `(P ∥RAD[M] Q) is A2` | Both RAD and A2 | None | [rad_par_A2](../../reactive-angelic-designs/utp_rad_parallel.thy#L884) |
 
@@ -129,7 +129,7 @@ The lift applies the ordinary merge directly, including its divergence constrain
 | Operand premises | Merge premise | Equality | Lemma |
 | --- | --- | --- | --- |
 | None | None | `p2ac D ∥RAD[M] p2ac E = p2ac (D ∥[M] E)` | [rad_par_p2ac](../../reactive-angelic-designs/utp_rad_parallel.thy#L854) |
-| None | None | `p2ac D ∥[merge_rad j] p2ac E = p2ac (D ∥RD[j] E)` | [merge_rad_p2ac](../../reactive-angelic-designs/utp_rad_parallel.thy#L1023) |
+| None | None | `p2ac D ∥[merge_rad j] p2ac E = p2ac (D ∥RD[j] E)` | [merge_rad_p2ac](../../reactive-angelic-designs/utp_rad_parallel.thy#L1013) |
 | `P,Q` both RAD and A2 | None | `P ∥RAD[M] Q = p2ac (ac2p P ∥[M] ac2p Q)` | [rad_par_form](../../reactive-angelic-designs/utp_rad_parallel.thy#L864) |
 | `P,Q` both RAD and A2 | None | `ac2p (P ∥RAD[M] Q) = ac2p P ∥[M] ac2p Q` | [rad_par_ac2p](../../reactive-angelic-designs/utp_rad_parallel.thy#L875) |
 
@@ -144,17 +144,17 @@ so AD's d2ac/A3 completion does not supply RAD closure
 
 - [rad_par_mono](../../reactive-angelic-designs/utp_rad_parallel.thy#L901): monotone in both operands.
 - [rad_par_comm_merge](../../reactive-angelic-designs/utp_rad_parallel.thy#L922): commutative when `M is SymMerge`.
-- [rad_par_assoc](../../reactive-angelic-designs/utp_rad_parallel.thy#L962): associative for RAD+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) operands when `M is ORDm`,
+- [rad_par_assoc](../../reactive-angelic-designs/utp_rad_parallel.thy#L958): associative for RAD+[A2](../../angelic-designs/utp_ades_healthy.thy#L1218) operands when
   `M is SymMerge` and `AssocMerge M`.
 - [rad_par_assoc_state](../../reactive-angelic-designs/utp_rad_parallel.thy#L931): alternatively accepts the pointwise two-fold
   associativity equation on `M`.
-- [rad_par_lift_assoc](../../reactive-angelic-designs/utp_rad_parallel.thy#L982): with `M = merge_rdes j`, associative
+- [rad_par_lift_assoc](../../reactive-angelic-designs/utp_rad_parallel.thy#L977): with `M = merge_rdes j`, associative
   for RAD+A2 operands whose RD images satisfy `pre_R (ac2p P) = true_r`, when
   `j is SymMerge` and `AssocMerge j`. The lifted merge is not `AssocMerge`.
   [NDRD_healthy_iff](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
   turns the true preconditions into premises for
   [rdes_lift_parallel_assoc_nondiv](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L201),
-  which transfers through `ac2p`.
+  which transfers through `p2ac`.
 
 [ORDm_SymMerge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L275) preserves symmetry.
 [ORDm_AssocMerge_RD2](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L351)
