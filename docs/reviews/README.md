@@ -422,3 +422,13 @@ PIDE passed the affected RAD theories and AP healthiness, RAD correspondence,
 operators and nondivergence callers with no errors, bad or unfinished commands.
 Documentation-link and whitespace checks passed. AP parallel and examples
 were not replayed, and no batch build was run.
+
+## Share choice-set merge healthiness in AD
+
+8 November 2026. Moved PBMHm, RABm and their general laws into AD parallel;
+PBMH closure is now `PBMH_ades_par_by_merge`. Updated the AD guide and
+related declaration links.
+
+Focused PIDE checking passed for AD parallel (862 commands), with no errors,
+warnings, bad or unfinished commands. Documentation-link and whitespace
+checks passed. No batch build was run.

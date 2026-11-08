@@ -18,7 +18,7 @@ gives the exact Chaos criterion for SRD operands and an RDM input merge.
 Every generic parallel selects an observation from both operands. If one
 operand has no started observation, changing the merge cannot supply it.
 Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L494) and
-[ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L595) laws. Universal Chaos absorption on a carrier containing
+[ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L700) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 
 The local RAD lift is different from completed RD parallel: it can retain

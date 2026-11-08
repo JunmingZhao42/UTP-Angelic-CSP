@@ -153,6 +153,91 @@ lemma A2m_Monotonic [closure]: "Monotonic A2m"
   by (rule MonotonicI)
      (auto simp: pred_refine_iff A2m_def Let_def split: if_splits; meson)
 
+subsubsection \<open>Choice-set closure\<close>
+
+(* Close acceptance upwards in the final choice set. *)
+definition PBMHm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  "PBMHm M \<equiv> (\<lambda>(m,z).
+    \<exists>Z \<subseteq> achoices.ac\<^sub>v (des_vars.more z).
+      Z \<noteq> {} \<and> M (m, ades_output (des_vars.ok\<^sub>v z) Z))"
+
+(* Close acceptance downwards in both nonempty branch choice sets. *)
+definition RABm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  "RABm M \<equiv> (\<lambda>(m,z).
+    let p = mrg_left\<^sub>v m; q = mrg_right\<^sub>v m;
+        X = achoices.ac\<^sub>v (des_vars.more p); Y = achoices.ac\<^sub>v (des_vars.more q)
+    in X \<noteq> {} \<and> Y \<noteq> {} \<and> (\<exists>X' Y'. X \<subseteq> X' \<and> Y \<subseteq> Y' \<and>
+      M (m\<lparr>mrg_left\<^sub>v := ades_output (des_vars.ok\<^sub>v p) X',
+           mrg_right\<^sub>v := ades_output (des_vars.ok\<^sub>v q) Y'\<rparr>, z)))"
+
+(* m = ((ok,s),(okL,acL),(okR,acR)).
+   PBMHm M(m,(ok',ac')) =
+     (\<exists>X \<subseteq> ac'. X \<noteq> {} \<and> M(m,(ok',X))). *)
+lemma PBMHm_obs:
+  "ades_merge_obs (PBMHm M) ok0 s0 okL X okR Y ok' Z =
+    (\<exists>Z' \<subseteq> Z. Z' \<noteq> {} \<and> ades_merge_obs M ok0 s0 okL X okR Y ok' Z')"
+  by (simp add: PBMHm_def Let_def)
+
+(* RABm M((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+     (\<exists>X Y. acL \<subseteq> X \<and> acR \<subseteq> Y \<and> M((ok,s),(okL,X),(okR,Y),(ok',ac'))). *)
+lemma RABm_obs:
+  "ades_merge_obs (RABm M) ok0 s0 okL X okR Y ok' Z =
+    (X \<noteq> {} \<and> Y \<noteq> {} \<and>
+      (\<exists>X' Y'. X \<subseteq> X' \<and> Y \<subseteq> Y' \<and> ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z))"
+  by (simp add: RABm_def Let_def)
+
+lemma PBMHm_idem: "PBMHm (PBMHm M) = PBMHm M"
+  apply (rule ades_merge_ext)
+  apply (simp add: PBMHm_obs[simplified])
+  by blast
+
+lemma RABm_idem: "RABm (RABm M) = RABm M"
+  apply (rule ades_merge_ext)
+  apply (simp add: RABm_obs[simplified])
+  by (blast intro: subset_trans)
+
+lemma PBMHm_Idempotent [closure]: "Idempotent PBMHm"
+  by (simp add: Idempotent_def PBMHm_idem)
+
+lemma PBMHm_Monotonic [closure]: "Monotonic PBMHm"
+  by (rule MonotonicI; auto simp: pred_refine_iff PBMHm_def Let_def split: prod.splits if_splits; blast)
+
+lemma RABm_Idempotent [closure]: "Idempotent RABm"
+  by (simp add: Idempotent_def RABm_idem)
+
+lemma RABm_Monotonic [closure]: "Monotonic RABm"
+  by (rule MonotonicI; auto simp: pred_refine_iff RABm_def Let_def split: prod.splits if_splits; blast)
+
+lemma RABm_restrict:
+  assumes "M is RABm" "X' \<subseteq> X" "Y' \<subseteq> Y" "X' \<noteq> {}" "Y' \<noteq> {}"
+    "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
+  shows "ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z"
+proof -
+  have w: "\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ades_merge_obs M ok0 s0 okL U okR V ok' Z"
+    using assms(6)
+    by (subst (asm) Healthy_if[OF assms(1), symmetric]; simp add: RABm_obs[simplified])
+  show ?thesis
+    apply (subst Healthy_if[OF assms(1), symmetric])
+    apply (simp add: RABm_obs[simplified] assms(4,5))
+    using w assms(2,3)
+    apply (simp only: case_prod_conv)
+    by (meson subset_trans)
+qed
+
+lemma PBMHm_up:
+  assumes "M is PBMHm" "Z \<subseteq> Z'" "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
+  shows "ades_merge_obs M ok0 s0 okL X okR Y ok' Z'"
+proof -
+  have w: "\<exists>W \<subseteq> Z. W \<noteq> {} \<and> ades_merge_obs M ok0 s0 okL X okR Y ok' W"
+    using assms(3)
+    by (subst (asm) Healthy_if[OF assms(1), symmetric]; simp add: PBMHm_obs[simplified])
+  show ?thesis
+    apply (subst Healthy_if[OF assms(1), symmetric])
+    apply (simp add: PBMHm_obs[simplified])
+    using w assms(2) by (blast intro: subset_trans)
+qed
+
 subsubsection \<open>Commutation\<close>
 
 lemma H1m_AD_commute:
@@ -166,6 +251,8 @@ lemma H1m_A2m_commute:
       simp add: A2m_obs[simplified] H1m_def; pred_simp;
       simp add: A2m_obs[simplified])
 
+(* H2m is called CSPA2m on the RAD alphabet.
+   H2m M(m,(ok',ac')) = M(m,(ok',ac')) \<or> (ok' \<and> M(m,(False,ac'))). *)
 lemma H2m_ades_obs:
   "ades_merge_obs (H2m M) ok0 s0 okL acL okR acR ok' ac' \<longleftrightarrow>
    ades_merge_obs M ok0 s0 okL acL okR acR ok' ac' \<or>
@@ -199,6 +286,15 @@ lemma HDm_angelic_commute:
   "HDm (A1m M) = A1m (HDm M)"
   by (simp add: HDm_def H1m_AD_commute H2m_A0m_commute H2m_A1m_commute)+
 
+lemma PBMHm_RABm_commute: "PBMHm (RABm M) = RABm (PBMHm M)"
+  by (rule ades_merge_ext; simp add: PBMHm_obs[simplified] RABm_obs[simplified]; blast)
+
+lemma PBMHm_H2m_commute: "PBMHm (H2m M) = H2m (PBMHm M)"
+  by (rule ades_merge_ext; auto simp: PBMHm_obs[simplified] H2m_ades_obs[simplified] ; blast)
+
+lemma RABm_H2m_commute: "RABm (H2m M) = H2m (RABm M)"
+  by (rule ades_merge_ext; auto simp: RABm_obs[simplified] H2m_ades_obs[simplified] ; blast)
+
 subsection \<open>Generic AD Parallel Laws\<close>
 
 subsubsection \<open>Healthiness Closure\<close>
@@ -206,6 +302,15 @@ subsubsection \<open>Healthiness Closure\<close>
 text \<open>The design rules @{thm [source] H1_par_by_merge}, @{thm [source] H2_par_by_merge}
   and @{thm [source] H3_par_by_merge} apply to AD relations directly. The rules below
   cover A, A2 and A3.\<close>
+
+lemma PBMH_ades_par_by_merge [closure]:
+  fixes M :: "'s ades_merge_rel"
+  assumes "M is PBMHm"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is PBMH_ades"
+  unfolding Healthy_def'
+  apply (rule ades_obs_ext)
+  apply (simp only: PBMH_ades_obs ades_par_by_merge_obs)
+  using PBMHm_up[OF assms] by blast
 
 lemma A0_par_by_merge [closure]:
   fixes M :: "'s ades_merge_rel"
