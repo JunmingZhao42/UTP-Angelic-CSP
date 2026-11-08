@@ -68,8 +68,8 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | <a id="t12"></a>**T12** / T.5.3.1 | ac2p carries RA to ordinary reactive healthiness | P is PBMH_ades | [rad_ac2p_RA](../../reactive-angelic-designs/utp_rad_csp.thy#L108) |
 | <a id="t13"></a>**T13** / T.5.3.2 | ac2p of the reactive design normal form | Projected failure/success components | [rad_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L117) |
 | <a id="d36"></a>**D36** / D122 | Singleton-choice binder | — | [ades_singleton_choice](../../angelic-designs/utp_ades_healthy.thy#L1169), [ac_singleton_choice](../../angelic-designs/utp_ades_healthy.thy#L1153) |
-| <a id="ex12"></a>**Ex12** | Choice of differently prefixed deadlocks; a ≠ b for CSP comparison | — | [Prefix_Stop_Stop_angelic_choice](../../reactive-angelic-designs/utp_rad_examples.thy#L433), [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L488) |
-| <a id="l5"></a>**L5** | Ordinary CSP comparison of different prefixed deadlocks | a ≠ b; list traces | [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L488) |
+| <a id="ex12"></a>**Ex12** | Choice of differently prefixed deadlocks; a ≠ b for CSP comparison | — | [Prefix_Stop_Stop_angelic_choice](../../reactive-angelic-designs/utp_rad_examples.thy#L431), [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L486) |
+| <a id="l5"></a>**L5** | Ordinary CSP comparison of different prefixed deadlocks | a ≠ b; list traces | [Prefix_Stop_Stop_R](../../reactive-angelic-designs/utp_rad_examples.thy#L486) |
 
 <details>
 <summary>Supplementary results</summary>
@@ -87,10 +87,10 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | --- | --- | --- | --- |
 | <a id="t14"></a>**T14** / T.5.3.3 | p2ac carries ordinary reactive healthiness to RA | None | [rad_p2ac_R](../../reactive-angelic-designs/utp_rad_csp.thy#L215) |
 | <a id="t15"></a>**T15** / T.5.3.4 | p2ac of an ordinary reactive design | Projected failure/success components | [rad_p2ac_R_design](../../reactive-angelic-designs/utp_rad_csp.thy#L274) |
-| <a id="ex13"></a>**Ex13** | Ordinary reactive identity maps to II_Rac | — | [rad_p2ac_Skip_R](../../reactive-angelic-designs/utp_rad_examples.thy#L622) |
+| <a id="ex13"></a>**Ex13** | Ordinary reactive identity maps to II_Rac | — | [rad_p2ac_Skip_R](../../reactive-angelic-designs/utp_rad_examples.thy#L620) |
 | <a id="t16"></a>**T16** / T.5.3.5 | Ordinary reactive predicate round trip | None | [rad_ac2p_p2ac_inverse](../../reactive-angelic-designs/utp_rad_csp.thy#L284) |
 | <a id="l6"></a>**L6** | Existential form of the reverse round trip | None | [rad_p2ac_ac2p](../../reactive-angelic-designs/utp_rad_csp.thy#L290) |
-| <a id="ex14"></a>**Ex14** | Two-prefix postcondition round trip; a ≠ b | — | [rad_p2ac_ac2p_prefix_stop_pair](../../reactive-angelic-designs/utp_rad_examples.thy#L636) |
+| <a id="ex14"></a>**Ex14** | Two-prefix postcondition round trip; a ≠ b | — | [rad_p2ac_ac2p_prefix_stop_pair](../../reactive-angelic-designs/utp_rad_examples.thy#L634) |
 | <a id="t17"></a>**T17** / T.5.3.6 | Reverse round-trip refinement | P is PBMH_ades | [rad_p2ac_ac2p_refine](../../reactive-angelic-designs/utp_rad_csp.thy#L307) |
 | <a id="t18"></a>**T18** / T.5.3.7 | Exact round trip of the reactive design form | F(P), T(P) both A2 | [rad_p2ac_ac2p_RA_design](../../reactive-angelic-designs/utp_rad_csp.thy#L325) |
 
@@ -200,8 +200,8 @@ Additional round-trip support: [rad_p2ac_ac2p_A2_form](../../reactive-angelic-de
 | <a id="d43"></a>**D43** / D124 | Primitive event prefix | — | [PrefixSkip_RAD](../../reactive-angelic-designs/utp_rad_ops.thy#L722) |
 | <a id="t31"></a>**T31** / T.5.4.26 | Angelic choice with primitive prefix | P is RAD; list traces | [PrefixSkip_RAD_angelic_choice](../../reactive-angelic-designs/utp_rad_ops.thy#L835) |
 | <a id="ex16"></a>**Ex16** / Ex33 | Prefixed deadlock avoids divergence through termination | — | [Prefix_Stop_Skip_seq_Chaos](../../reactive-angelic-designs/utp_rad_examples.thy#L272) |
-| <a id="ex17"></a>**Ex17** / Ex34 | Termination avoids divergence after the same prefix | — | [Prefix_Skip_Chaos_angelic_choice](../../reactive-angelic-designs/utp_rad_examples.thy#L380) |
-| <a id="ex18"></a>**Ex18** | Different events preserve RAD trace history; a ≠ b | — | [Prefix_Skip_Chaos_different_events](../../reactive-angelic-designs/utp_rad_examples.thy#L593) |
+| <a id="ex17"></a>**Ex17** / Ex34 | Termination avoids divergence after the same prefix | — | [Prefix_Skip_Chaos_angelic_choice](../../reactive-angelic-designs/utp_rad_examples.thy#L378) |
+| <a id="ex18"></a>**Ex18** | Different events preserve RAD trace history; a ≠ b | — | [Prefix_Skip_Chaos_different_events](../../reactive-angelic-designs/utp_rad_examples.thy#L591) |
 
 <details>
 <summary>Supplementary results</summary>
@@ -221,7 +221,7 @@ Additional round-trip support: [rad_p2ac_ac2p_A2_form](../../reactive-angelic-de
 | <a id="d44"></a>**D44** / D125 | External choice | — | [extchoice_RAD](../../reactive-angelic-designs/utp_rad_ops.thy#L902) |
 | <a id="t32"></a>**T32** / T.5.4.30 | External choice with Stop | P is RAD | [extchoice_RAD_Stop](../../reactive-angelic-designs/utp_rad_ops.thy#L976) |
 | <a id="t33"></a>**T33** / T.5.4.31 | Stop is an external-choice unit | P is RAD and A2 | [extchoice_RAD_Stop_unit](../../reactive-angelic-designs/utp_rad_ops.thy#L1006) |
-| <a id="ex19"></a>**Ex19** | External choice with Stop prevents a divergent event choice | — | [Prefix_Chaos_Chaos_extchoice_Stop](../../reactive-angelic-designs/utp_rad_examples.thy#L673) |
+| <a id="ex19"></a>**Ex19** | External choice with Stop prevents a divergent event choice | — | [Prefix_Chaos_Chaos_extchoice_Stop](../../reactive-angelic-designs/utp_rad_examples.thy#L671) |
 
 <details>
 <summary>Supplementary results</summary>
@@ -241,8 +241,8 @@ Additional round-trip support: [rad_p2ac_ac2p_A2_form](../../reactive-angelic-de
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | <a id="d45"></a>**D45** / D126 | Non-divergence transformer | — | [NDRAD](../../reactive-angelic-designs/utp_rad_nd.thy#L9) |
-| <a id="ex20"></a>**Ex20** | NDRAD maps Chaos to Choice | — | [NDRAD_Chaos_example](../../reactive-angelic-designs/utp_rad_examples.thy#L521) |
-| <a id="ex21"></a>**Ex21** | Primitive prefix is already non-divergent | — | [NDRAD_Prefix_Skip](../../reactive-angelic-designs/utp_rad_examples.thy#L526) |
+| <a id="ex20"></a>**Ex20** | NDRAD maps Chaos to Choice | — | [NDRAD_Chaos_example](../../reactive-angelic-designs/utp_rad_examples.thy#L519) |
+| <a id="ex21"></a>**Ex21** | Primitive prefix is already non-divergent | — | [NDRAD_Prefix_Skip](../../reactive-angelic-designs/utp_rad_examples.thy#L524) |
 | <a id="t34"></a>**T34** / T.5.5.2 | Non-divergent design normal form | P is RAD | [NDRAD_design_form](../../reactive-angelic-designs/utp_rad_nd.thy#L34) |
 | <a id="t35"></a>**T35** / T.5.5.3 | Non-divergence fixed points | P is RAD; failure test guarded by initial ok | [NDRAD_fixed_point](../../reactive-angelic-designs/utp_rad_nd.thy#L43) |
 

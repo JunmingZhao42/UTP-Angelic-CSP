@@ -308,10 +308,8 @@ proof -
       apply (rule conjI)
        apply (rule_tac x=y in bexI; fastforce)
       apply (rule conjI)
-       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
-           (rad_tr\<^sub>v_update
-             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)))
-             y)" in bexI)
+       apply (rule_tac x="rea_vars_ext False
+           (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0))) {}" in bexI)
         apply fastforce
        apply (rule IntI)
         apply fastforce

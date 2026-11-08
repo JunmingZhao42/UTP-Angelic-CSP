@@ -7,11 +7,9 @@ begin
 subsection \<open>Alphabet (Paper Definition 26)\<close>
 
 text \<open>
-  A reactive angelic design retains the outer design observations @{term ok}
-  and @{term "ok\<^sup>>"}.  Its initial state @{term s} and every state offered
-  in the final angelic choice @{term ac} contain a trace, a refusal set, and a
-  waiting flag.  Thus this record is the inner observation state, rather than
-  a replacement for the complete reactive-process alphabet.
+  A reactive angelic design has outer termination flags @{term ok} and @{term "ok\<^sup>>"}.
+  Its initial state @{term s} and each state in the final choice set @{term "ac\<^sup>>"}
+  contain a trace, a refusal set and a waiting flag.
 \<close>
 
 (* Paper Definition 26, with the trace generalised from event lists to
@@ -53,17 +51,25 @@ lemma rad_state_cases [case_names state, cases type: rea_vars_ext]:
   obtains w t r where "x = rea_vars_ext w t r"
   by (induct x rule: rea_vars.ext_induct) auto
 
-lemma rad_state_full_selectors [simp]:
-  "rad_tr\<^sub>v (des_vars.more x) = rea_vars.tr\<^sub>v x"
-  "rad_wait\<^sub>v (des_vars.more x) = rea_vars.wait\<^sub>v x"
-  "rad_ref\<^sub>v (des_vars.more x) = rea_vars.more x"
-  by (cases x; simp)+
+lemma rad_tr_record:
+  fixes s :: "('t::trace, 'e) rea_vars_ext"
+  shows "rea_vars.tr\<^sub>v \<lparr>ok\<^sub>v = b, \<dots> = s\<rparr> = rad_tr\<^sub>v s"
+  by (cases b; cases s; simp)
 
-lemma rad_state_started_selectors [simp]:
-  "rea_vars.tr\<^sub>v \<lparr>ok\<^sub>v = True, \<dots> = x\<rparr> = rad_tr\<^sub>v x"
-  "rea_vars.wait\<^sub>v \<lparr>ok\<^sub>v = True, \<dots> = x\<rparr> = rad_wait\<^sub>v x"
-  "rea_vars.more \<lparr>ok\<^sub>v = True, \<dots> = x\<rparr> = rad_ref\<^sub>v x"
-  by (cases x; simp)+
+lemma rad_wait_record:
+  fixes s :: "('t::trace, 'e) rea_vars_ext"
+  shows "rea_vars.wait\<^sub>v \<lparr>ok\<^sub>v = b, \<dots> = s\<rparr> = rad_wait\<^sub>v s"
+  by (cases b; cases s; simp)
+
+lemma rad_ref_record:
+  fixes s :: "('t::trace, 'e) rea_vars_ext"
+  shows "rea_vars.more \<lparr>ok\<^sub>v = b, \<dots> = s\<rparr> = rad_ref\<^sub>v s"
+  by (cases b; cases s; simp)
+
+(* The False cases are reflexive after unfolding the accessor abbreviations. *)
+declare rad_tr_record[where b=True, simp]
+        rad_wait_record[where b=True, simp]
+        rad_ref_record[where b=True, simp]
 
 lemma rad_state_rebuild [simp]:
   "\<lparr>ok\<^sub>v = b, \<dots> = rad_tr\<^sub>v_update f x\<rparr> =

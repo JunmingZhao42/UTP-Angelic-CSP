@@ -680,14 +680,10 @@ lemma prefix_handover_diverge:
     apply (elim bexE)
     subgoal for y
       apply (rule conjI)
-       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
-           (rad_tr\<^sub>v_update
-             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-             y)" in bexI; fastforce)
-      by (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
-          (rad_tr\<^sub>v_update
-            (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-            y)" in exI; fastforce)
+       apply (rule_tac x="rea_vars_ext False
+           (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a]) {}" in bexI; fastforce)
+      by (rule_tac x="rea_vars_ext False
+           (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a]) {}" in exI; fastforce)
     done
   done
 
@@ -717,14 +713,10 @@ lemma prefix_continuation_chaos:
        by (rule_tac x=y in exI; fastforce)
     subgoal for y
       apply (rule conjI)
-       apply (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
-           (rad_tr\<^sub>v_update
-             (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-             y)" in bexI; fastforce)
-      by (rule_tac x="rad_wait\<^sub>v_update (\<lambda>_. False)
-          (rad_tr\<^sub>v_update
-            (\<lambda>_. rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a])
-            y)" in exI; fastforce)
+       apply (rule_tac x="rea_vars_ext False
+           (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a]) {}" in bexI; fastforce)
+      by (rule_tac x="rea_vars_ext False
+           (rad_tr\<^sub>v (astate.s\<^sub>v (des_vars.more x0)) @ [a]) {}" in exI; fastforce)
     done
   done
 
