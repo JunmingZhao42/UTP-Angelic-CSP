@@ -444,3 +444,49 @@ Focused PIDE checking passed for AP RAD, operators, ND and parallel, with
 no errors, bad or unfinished commands. The existing warnings in operators
 and ND remain. Documentation-link and whitespace checks passed. No AP
 examples replay or batch build was run.
+
+## Generic RAD merge closure
+
+8 November 2026. Added sufficient conditions on arbitrary RAD merges and proved
+`rad_par_by_merge_RAD` for all RAD operands. An ORDm-healthy ordinary merge
+satisfies the conditions after `rad_lift_merge`; `merge_rad j` does so without
+a premise on `j`. Updated the RAD guides and plan.
+
+Focused PIDE checking of `utp_rad_parallel` settled all 1302 commands with no
+errors, warnings or unfinished commands. Documentation links and whitespace
+checks passed. No batch build or AP replay was run.
+
+## Generic RA parallel closure
+
+8 November 2026. Added RAm as the composition of RA2m, RA3m and RABm,
+with its fixed-point characterisation, idempotence and monotonicity. Added
+`rad_par_by_merge_RA`: two RA-healthy operands and an RAm-healthy merge
+yield an RA-healthy parallel. Updated the RAD guide and declaration links.
+
+Focused PIDE checking passed for RAD parallel (1128 commands), with no
+errors, warnings, bad or unfinished commands. Documentation-link and
+whitespace checks passed. No downstream replay or batch build was run.
+
+## Simplify RA2 parallel closure
+
+8 November 2026. Shortened
+[rad_par_by_merge_RA2](../../reactive-angelic-designs/utp_rad_parallel.thy#L436)
+from 100 to 66 lines by proving the two implications directly and removing
+local aliases for existing lemmas. Its statement and premises are unchanged.
+Three repeated isolated PIDE checks gave median proof-command timings of
+0.83 seconds before and 0.46 seconds after. RAD parallel passed PIDE
+(1230 commands), with zero errors, warnings, bad or unfinished commands.
+Documentation-link and whitespace checks passed. No full build or downstream
+replay was run; changes remain uncommitted and the existing index is unchanged.
+
+## Simplify the remaining RAD closure proofs
+
+8 November 2026. Simplified
+[rad_par_by_merge_RA1](../../reactive-angelic-designs/utp_rad_parallel.thy#L397),
+the CSPA1, RA3 and RA closure proofs, and the basic merge's PBMHm and RABm proofs,
+removing 40 lines without changing statements or premises. Each retained proof
+had a lower median PIDE command time across three comparisons; the median
+combined time fell from 7.97 to 0.91 seconds. The installed theory passed PIDE
+(1172 commands), with zero errors, warnings, bad or unfinished commands. No full
+build or unrelated downstream replay was run. Changes remain uncommitted and
+the existing index is unchanged.

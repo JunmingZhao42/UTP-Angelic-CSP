@@ -17,7 +17,7 @@ complete observations.
 The merges constructed from `j` are [merge_des](../../deps/UTP-Designs/utp_des_parallel.thy#L322),
 [merge_ades](../../angelic-designs/utp_ades_parallel.thy#L448),
 [merge_rdes](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L34), and
-[merge_rad](../../reactive-angelic-designs/utp_rad_parallel.thy#L255).
+[merge_rad](../../reactive-angelic-designs/utp_rad_parallel.thy#L766).
 `P is H` means `H P = P`. In mathematical formulas, the prior is `(ok,s)`;
 branch observations use subscripts `L,R`, and the merged output uses primes.
 AD outputs contain choice sets `acL,acR,ac'`, rather than individual states.

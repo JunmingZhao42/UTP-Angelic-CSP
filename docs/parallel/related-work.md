@@ -21,9 +21,9 @@ Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Des
 [ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L700) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 
-The local RAD lift is different from completed RD parallel: it can retain
-final refusal constraints after divergence
-([RAD](RAD.md#basic-merge), [ORDm_post_ref_example](../../reactive-angelic-designs/utp_rad_parallel.thy#L385)).
+The [RAD choice-set lift](RAD.md#reactive-merge-lifting) applies the supplied
+ordinary merge directly. Reactive skip completion belongs to the selected
+ordinary merge construction; see [RD lifting](RD.md#lifted-merge-and-laws).
 
 ## UTP sources
 

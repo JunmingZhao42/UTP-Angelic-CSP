@@ -36,6 +36,7 @@ closes it downwards in both nonempty branch sets. Both are monotone and
 idempotent. They [commute with each other](../../angelic-designs/utp_ades_parallel.thy#L281)
 and with H2m ([PBMHm_H2m_commute](../../angelic-designs/utp_ades_parallel.thy#L292),
 [RABm_H2m_commute](../../angelic-designs/utp_ades_parallel.thy#L295)).
+[RAD](RAD.md#generic-rad-merge-healthiness) also uses these conditions.
 
 For an arbitrary `M :: 's ades_merge_rel`:
 
