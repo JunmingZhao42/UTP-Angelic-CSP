@@ -5,9 +5,16 @@ and RD/RAD round-trip correspondence on their stated healthy domains.
 For general angelic operands these require A/A2 for AD and RAD/A2 for RAD;
 correspondence outside A2 remains open.
 
-**Current stage: Stage 1.** The AD recipe, its merge healthiness and the
-generic AD closure interface are installed. The remaining Stage 1 tasks are
-listed below; Stage 0b work remains deferred.
+**Current focus: ordinary RD/RAD parallel.** The D/AD developments are retained.
+The ordinary RD lifting is ORDm-healthy, and RAD lifts that same completed
+ordinary merge to choice sets. The flat RD/RAD mapping, healthy closure and
+scoped associativity are installed. The stateful development retains a
+unit-state comparison with upstream `M_R`; the isabelle-utp core theory is
+unchanged.
+The [ordinary RD guide](docs/parallel/RD.md) records the current interface; the
+[stateful RD guide](docs/parallel/RD-stateful.md) retains the earlier results.
+Stage 0b publication and the remaining Stage 1 and Stage 2 tasks are separate
+from the flat RD/RAD correspondence.
 
 ## Route and proof obligations
 
@@ -17,7 +24,8 @@ state alphabets. The selected recipes are:
 | Pair | Route | Status |
 | --- | --- | --- |
 | D/AD | D: `M_D j = H1m (merge_des_raw j) ;; II_D`. AD: `merge_ades j ≡ H1m (ades_lift_merge j) ;; II_D`. | Both installed; equivalence with the previous AD construction is recorded in the Stage 1 recipe audit. |
-| RD/RAD | `j → rdes_lift_merge j → M_R(rdes_lift_merge j) →` transport completed merge to flat alphabet `→` RAD lifting. | RD construction installed; transport and specialised RAD correspondence/closure pending. |
+| RD/RAD | `j → merge_rdes j → ∥RD[j]`; `merge_rad j = rad_lift_merge (merge_rdes j)` gives the RAD merge. | Exact `p2ac` correspondence, RD/RAD closure and associativity for nondivergent operands are proved. |
+| Upstream RD at unit state | `j → unit_state_rd_merge j → M_R(unit_state_rd_merge j)`. | `rdes_lift_parallel_unit_state_eq` compares ordinary `∥RD[j]` with this upstream instance; no further stateful bridge is needed for flat RAD. |
 
 Keep the proof obligations separate:
 
@@ -40,19 +48,18 @@ generic criterion is available, keep the specialised theorem and record the gap.
 | 0a | Complete | Validated project baseline; evidence recorded. |
 | 0b | Partly complete, deferred | Publication and organisation; not a local proof prerequisite. |
 | 0c | Complete | D closure validated and its guide updated. Independent of Stage 1. |
-| 1 | **Current** | AD recipe, merge healthiness and closure presentation. |
-| 2 | Pending | D/RD law parity; independent of the RAD bridge. |
-| 3 | Optional | D → RD embedding; not needed for RAD. |
-| 4 | Research | Restricted associativity; only 5d depends on a positive result. |
-| 5a | Pending | Unit-state alphabet and healthiness bridge. |
-| 5b | After 5a | Transport the completed RD merge and prove specialised correspondence. |
-| 5c | After 5b | Healthy closure and transfer of available laws. |
-| 5d | Conditional | Associativity transfer; needs 5c and a matching Stage 4 result. |
-| 6 | After 5c | AP specialisation and documentation; associativity waits for 5d. |
+| 1 | Partly complete | AD recipe, merge healthiness and closure presentation. |
+| 2 | Pending | D/RD law parity; ordinary RD associativity for nondivergent operands is proved. |
+| 3 | Dropped | D → RD embedding; not pursued. |
+| 4 | Optional research | Broader RD associativity for divergent operands; the nondivergent law is proved. |
+| 5a | Complete | Flat RD/RAD correspondence through `p2ac` and `ac2p`. |
+| 5b | Complete | Lifted merge healthiness and RD/RAD closure. |
+| 5c | Partial | Commutativity and scoped associativity proved; qualified Chaos and Miracle laws remain to assess. |
+| 5d | Optional research | Transfer a broader Stage 4 associativity result if one is pursued. |
+| 6 | Pending | AP specialisation can use 5a–b; broader associativity depends on 5d. |
 
-RAD order: **0a → 5a → 5b → 5c → 6**. Stages 1–4 are separate work;
-Stage 1 does not start the RAD bridge. Stage 5c can transfer existing laws
-without waiting for Stage 2; additional laws can follow later.
+The flat RAD correspondence and closure in 5a–b are available to Stage 6.
+The remaining laws in 5c and broader associativity in 5d are separate tasks.
 
 For each mechanisation stage, record fresh PIDE and batch evidence separately,
 complete a clean build, and update `docs/parallel`. Keep one D | RD | AD | RAD
@@ -80,9 +87,13 @@ These tasks are publication requirements, not prerequisites for local mechanisat
   including fresh fetches and matching tree IDs.
 - [x] Point UTP-Designs at its fork, sync configuration, set `main` tracking,
   and clean redundant local/fork branches while retaining the recovery tag.
-- [ ] Commit the RD WIP in the `UTP-Reactive-Designs` fork; move the tests to a separate session.
-  As of 30 October, the WIP theories (`utp_rdes_parallel_lift`, `_laws`, `_assoc`,
-  `_assoc_tests`) were recorded clean in PIDE and the `UTP-Reactive-Designs` batch build passed.
+- [ ] Commit the RD WIP in the `UTP-Reactive-Designs` fork.
+  As of 30 October, the lifting, generic laws, associativity and counterexample
+  theories were recorded clean in PIDE and the `UTP-Reactive-Designs` batch build passed.
+- [x] Remove the unneeded associativity counterexample theory and its validation
+  session (4 November 2026). The general stateful lifted associativity proofs
+  were subsequently removed with the unused lift; see the
+  [current scope](docs/parallel/RD-stateful.md#conditional-algebra-and-deferred-work).
 - [ ] Commit the AD WIP and docs; record the three submodule pointers. The
   Stage 1 AD theories are committed (`5e76186`).
 - [x] Commit the generalised merge conditions in the `UTP-Designs` fork
@@ -105,7 +116,7 @@ recording. Upstream `bad-main` and `pred` remain: GitHub denied write access.
 ## Stage 0c — D parallel closure and doc fixes · complete
 
 Gaps from the 30 October 2026 review of `utp_des_parallel.thy` and its guides.
-None blocks Stage 1 or the RAD bridge.
+None blocks Stage 1 or the flat RD/RAD correspondence.
 
 Work from generic concurrency to design merges, then specialise to the
 constructed merge. The closure results below are installed, PIDE-checked, and validated by a
@@ -157,7 +168,7 @@ full-project batch build (31 October 2026).
 
 Evidence: [Stage 0c closure and validation](docs/reviews/README.md#stage-0c-design-parallel-closure).
 
-## Stage 1 — AD recipe and closure · current
+## Stage 1 — AD recipe and closure · partly complete
 
 Outcome: an equivalent AD construction from `j`, with merge-healthiness and
 parallel-closure results presented separately. The generic closure requirement
@@ -202,7 +213,7 @@ states the naming rule.
   it, and derive the existing lifted closures from it (2 November 2026). D's
   `H1m`, `H2m`, `H3m`, `HDm` and their `H1/H2/H3_par_by_merge` rules now allow
   merges whose alphabets differ, and AD uses them directly. AD adds `A0m`,
-  `A1m`, their combined `ADm`, and `A2m`, with the rules `A0_par_by_merge`,
+  `A1m`, their combined condition `ADm`, and the separate `A2m`, with the rules `A0_par_by_merge`,
   `A1_par_by_merge`, `A_par_by_merge`, `A2_par_by_merge` and `A3_par_by_merge`,
   and `merge_ades_is_A0m`, `merge_ades_is_A1m`, `merge_ades_is_ADm` and `merge_ades_is_A2m`; the lifted closures are now
   corollaries. The theory follows D's section order. Scratch origin:
@@ -246,7 +257,7 @@ states the naming rule.
   See the [stage log](docs/reviews/README.md#stage-1-shared-generic-parallel-laws).
 - [ ] Record the two completion orders, their empty-set rationale, and their correspondence scope as an ADR.
   AD completes after lifting, keeping the empty-set behaviour H1 and A3 need. RAD
-  lifts the transported completed RD merge: RA1 excludes `{}` (`RAD_empty`), and
+  lifts the completed ordinary RD merge: RA1 excludes `{}` (`RAD_empty`), and
   CSPA1 supplies unstarted behaviour with a trace-feasible choice. Both are chosen
   constructions; empty-set behaviour alone does not force them.
 - [x] Remove the old `lift_merge` compatibility definition and its observation
@@ -266,10 +277,31 @@ This completes the requested definition/merge-healthiness slice, not all of Stag
 
 ## Stage 2 — D/RD law parity · pending
 
-Outcome: a D | RD law table with exact premises and proved/refuted/open status.
-This stage does not block the RAD alphabet bridge.
+- [x] Restructure the local lifting for ordinary RD: ORDm healthiness, direct
+  RD closure, symmetry and associativity under conditions on j. Preserve the
+  earlier stateful results in a separate theory. See the [ordinary RD guide](docs/parallel/RD.md#lifted-merge-and-laws).
 
-Retain the existing `des_par_assoc_state` and conditional `rdes_parallel_assoc`
+Outcome: a D | RD law table with exact premises and proved/refuted/open status.
+This stage does not block the flat RD/RAD correspondence.
+
+- [x] Organise the local RD laws and lifting theories around generic merge
+  healthiness and closure, then the lifted merge and its laws. Reuse upstream
+  definitions and closure rules; retain the isabelle-utp core, imports and session
+  structure. Definitions, theorem statements and proofs are unchanged.
+  See the [stateful RD guide](docs/parallel/RD-stateful.md) and
+  [validation](docs/reviews/README.md#organise-rd-parallel-extensions).
+- [x] Complete the generic actual-merge healthiness interface in
+  `utp_srdes_parallel_laws`: SRDM packages the upstream sufficient conditions,
+  with fixed-point equivalence, idempotence, monotonicity, conjunction/disjunction
+  closure and symmetry preservation. Direct parallel has SRD closure under
+  SRDM and NSRD closure with RD3; upstream RDM and the merge construction retain
+  their meanings. See the [generic interface](docs/parallel/RD-stateful.md#generic-merge-healthiness-and-closure).
+- [x] Prove `M is RDM ⟹ M_R(M) is SRDM` and derive lifted SRD/NSRD
+  closure through the generic actual-merge rules. No additional premise on `j`
+  is required; upstream completion semantics are unchanged. See the
+  [completion bridge](docs/parallel/RD-stateful.md#upstream-rd-merge-construction).
+
+Retain the existing `des_par_assoc` and conditional `rdes_parallel_assoc`
 with their exact premises. A common completion theorem belongs in Stage 4;
 it is not required to use either existing result.
 
@@ -284,166 +316,126 @@ it is not required to use either existing result.
   initial trace. Accepting empty increments alone is insufficient; the witness is
   distinct from the actual final output. Preserve the existing
   `Chaos ∥R[M] Miracle = Miracle` law under `M is RDM`.
-- [ ] Rename/split `rdes_parallel_initial_eval`; add `BasicMerge_not_completion`
-  (scratch-checked, not installed) to the tests.
 - [ ] Record each agreed D | RD row with exact premises and its status: proved,
   refuted at that scope, or open. Unresolved associativity research belongs in Stage 4
   and does not block other rows or Stage 5.
 
-- [ ] Lifted RD associativity in terms of `j`, the counterpart of
-  `des_par_assoc_state`. Prove that `j is SymMerge` and `AssocMerge j` transfer
-  to `rdes_lift_merge j`. Determine whether a mergeability-style condition on
-  `j` implies `RDM_completion (rdes_lift_merge j)`; D's `mergeable j` plays the
-  same role for its inner `II_D`. Open question, not a claim.
-- [ ] Lifted RD Chaos zero law with premises on `j`, specialising the RD Chaos
-  item above via `rdes_parallel_Chaos_iff` and `rdes_lift_merge_eval`.
-  `utp_rdes_parallel_lift.thy` currently proves neither law.
+- [x] Prove `rdes_lift_parallel_assoc_nondiv` for RD and NDRD operands when
+  `j is SymMerge` and `AssocMerge j`. A general stateful lifted law was removed
+  with the unused stateful lift; broader ordinary laws belong in Stage 4.
+- [ ] A unit-state lifted RD Chaos zero law with premises on `j`, specialising
+  the RD Chaos item above via `rdes_parallel_Chaos_iff` and
+  `unit_state_rd_merge_eval`, remains open.
 - [x] Fix the `merge_rd_eval` anchor (L23) and the AD anchors in
   `docs/parallel/rd-parallel-divergence.md` (fixed 1 November 2026; the note is
   now folded into [related work](docs/parallel/related-work.md)).
 
-Treat `BasicMerge_not_completion` as a failure of the sufficient completion premise,
-not as nonassociativity: `RDM_completion_not_necessary` already separates these claims.
+## Stage 3 — D → RD embedding · dropped
 
-## Stage 3 — D → RD embedding · optional
+Dropped on 5 November 2026: the project does not pursue a D–RD
+correspondence. Upstream's reactive-design and instantaneous-design material
+is unaffected.
 
-Target: `⌈D⌉ ∥R[rd_lift_state j] ⌈E⌉ = ⌈D ∥D[j] E⌉`.
+## Stage 4 — broader RD associativity · optional research
 
-- [ ] Install the scratch-checked `rd_lift_state j` and `rd_lift_state_RDM`;
-  define an embedding `⌈·⌉` of designs as instantaneous reactive designs.
-- [ ] Extend the scratch-checked `merge_rd_lift_state_eval` to waiting branch inputs.
+`ORDm_parallel_assoc` proves associativity for arbitrary operands when the
+input merge is RD2-healthy, symmetric and associative. For the constructed
+`merge_rdes j`, `rdes_lift_parallel_assoc_nondiv` proves associativity
+when `j is SymMerge` and `AssocMerge j` and all three operands are RD and
+NDRD. Completion can extend a divergent intermediate trace, so this does not
+establish the law for arbitrary RD operands.
 
-The scratch results here and in Stage 2 are not installed, and their proof
-artefacts may need recreating. Recheck them before installation.
+The stateful `rdes_parallel_assoc` requires associativity of the completed
+merge. `BasicMerge_completed_not_AssocMerge` refutes that sufficient premise
+for BasicMerge; it does not refute associativity of parallel on healthy operands.
 
-## Stage 4 — RD associativity · research
+- [ ] Decide whether a broader ordinary RD law is needed. If so, specify an
+  operand class `S`, prove the required closure and completion compatibility,
+  and establish a scoped theorem or counterexample. Prefix-closed operands are
+  one candidate, not an established result.
+- [ ] If a generic theorem for completed `N ;; K` merges is useful, check
+  existing Circus results and require compatibility for the actual intermediate
+  results. The proved D and nondivergent RD laws do not depend on this theorem.
 
-Outcome: a scoped theorem, counterexample, or documented obstruction within an
-agreed timebox. Only Stage 5d needs a positive result from this stage.
+`SRD_Continuous`, `RD3_Continuous` and `NSRD_Continuous` are available for
+stateful research. An NSRD decomposition argument remains to be developed if
+that route is pursued.
 
-- [ ] Check whether utp-main proved Circus parallel associativity; reuse it if so.
-- [ ] Search for a `BasicMerge` counterexample on SRD via `rdes_parallel_assoc_SRD_iff`.
-- [ ] Investigate a generic associativity theorem for `N ;; K` merges, with explicit
-  raw associativity, symmetry and completion-compatibility premises over an operand
-  set `S`. Require closure of `S` under raw parallel, or compatibility for the exact
-  intermediate results. Original operand membership or completed-output normality
-  alone is insufficient.
-- [ ] Test this route on a defined, suitably closed `S` (conjecture: prefix-closed operands).
-  An SRD counterexample leaves restricted classes open; name the class each result covers.
-- [ ] Only after the generic theorem is useful, consider recovering existing D/RD
-  proofs through it. The D route still needs the unproved intermediate result
-  `AssocMerge (H1m (merge_des_raw j))` under the intended premises; D associativity
-  itself is already proved and need not wait for this refactoring.
-- [ ] End the timebox with a scoped theorem, counterexample, or explicit unresolved obstruction.
+## Stage 5 — RAD from ordinary RD parallel
 
-`SRD_Continuous`, `RD3_Continuous` and `NSRD_Continuous` already exist and are imported.
-An NSRD generator/decomposition argument remains to be developed if needed.
+Take `M = merge_rdes j` with `j :: ('t × 'e set) merge`. Ordinary
+`P ∥RD[j] Q` uses `M` directly; `merge_rad j = rad_lift_merge M` names its
+RAD choice-set lift. The ordinary RD and RAD laws below establish their correspondence and
+closure. The [unit-state RD comparison](docs/parallel/RD.md#correspondence-with-upstream-rd-parallel)
+is a separate check against upstream stateful parallel.
 
-## Stage 5 — RAD from the completed RD merge
+### 5a — flat RD/RAD correspondence · complete
 
-Outcome: specialise the existing generic RAD parallel to the completed RD merge
-constructed from `j`, with correspondence and healthy closure proved separately.
-See the [RD/RAD reference](#rdrad-reference) for existing results and limits.
+- [x] `rad_par_p2ac` holds for any ordinary merge `M`.
+  `merge_rad_p2ac` states the selected instance:
+  `p2ac P ∥[merge_rad j] p2ac Q = p2ac (P ∥RD[j] Q)`.
+- [x] `rad_par_form` and `rad_par_ac2p` give the reverse representation for
+  RAD and A2 operands; `rad_ac2p_RD` maps these operands to ordinary RD.
+  The reverse round trip outside A2 remains open.
 
-### 5a — alphabet and healthiness bridge
+### 5b — lifted merge and healthy closure · complete
 
-- [ ] Define the unit-state alphabet map and its inverse, preserving `ok`, `wait`,
-  `tr` and `ref`; remove only `st = ()`.
-- [ ] Prove preservation of sequential composition and generic parallel-by-merge,
-  including all merge observations.
-- [ ] Prove transport of reactive skip (`II_R` to `II_C`).
-- [ ] Prove equivalence of SRD healthiness at unit state with flat RD healthiness.
+- [x] `merge_rdes_ORDm` holds without a premise on `j`, and
+  `rdes_lift_parallel_RD` gives ordinary RD closure.
+- [x] `rad_par_A2` gives A2 closure for RAD/A2 operands. The generic
+  `rad_par_by_merge_RAD` rule uses `M is RADm`. The seven component merge
+  transformers are monotonic, idempotent and pairwise commuting. The ORDm
+  lift is RADm-healthy, so `rad_par_RAD` gives RAD closure for all RAD operands.
+  See the [component rules](docs/parallel/RAD.md#component-parallel-closure).
 
-Stop at this bridge before introducing new parallel definitions. Stage 3's
-instantaneous-design embedding is a separate task.
+### 5c — algebraic laws · partly complete
 
-### 5b — completed merge and correspondence
+- [x] `rad_par_comm_merge` gives commutativity when `M is SymMerge`;
+  `merge_rdes_SymMerge` supplies this from `j is SymMerge`.
+- [x] `rad_par_assoc` gives associativity for RAD/A2 operands and a symmetric,
+  associative `M`. For the constructed merge, `rad_par_lift_assoc` gives
+  associativity when `j is SymMerge`, `AssocMerge j`, all three operands are
+  RAD and A2, and their ordinary RD images have `pre_R = true_r`.
+- [ ] Assess whether the selected operator needs qualified Chaos and Miracle
+  laws; retain the exact operand, merge and feasibility premises in any result.
 
-- [ ] Transport `M_R(rdes_lift_merge j)` through 5a, with
-  `j :: ('t × unit × 'e set) merge`. Keep trace/refusal policy in `j`; its type
-  excludes `ok` and `wait`.
-- [ ] Instantiate `rad_par` and `rad_par_p2ac` with the transported completed merge;
-  prove correspondence with the specialised stateful RD operator.
-- [ ] Use `rad_par_form` for the converse representation on RAD/A2 operands.
+### 5d — broader associativity · optional research
 
-A flat `N_C`, `M_C` formula is optional: introduce it only after proving equality
-with the transport. A second completion construction is not a prerequisite.
+- [ ] If Stage 4 establishes a broader ordinary RD law, transfer it through
+  `rad_par_form` at the corresponding RAD/A2 operand scope.
 
-### 5c — healthy closure and available laws
-
-- [ ] First try `ORDm` healthiness of the transported merge and reuse `rad_par_RAD`.
-  If unavailable, investigate direct RD closure through 5a and
-  `rdes_lift_parallel_NSRD`, then `rad_par_form` and `rad_p2ac_RD_closure`.
-- [ ] Establish A2 closure with `rad_par_A2`; preserve RAD/A2 operand premises
-  and CSPA1 behaviour.
-- [ ] After closure, transfer qualified Chaos and Miracle laws and commutativity,
-  including constants and every feasibility, operand and merge premise.
-
-Failure of the sufficient `ORDm` condition alone does not refute the construction.
-Neither closure route is established yet. Neither gives a round trip outside A2.
-
-### 5d — conditional associativity transfer
-
-- [ ] Transfer associativity only at the operand/merge scope proved in Stage 4
-  and transported through 5a. For a restricted `S`, identify the corresponding
-  RAD operands and establish the needed closure.
-
-Requires 5c and a matching positive Stage 4 result. An open associativity question
-does not block other RAD/AP laws or Stage 6.
+Stage 5d is not a prerequisite for AP specialisation.
 
 ## Stage 6 — AP and documentation
 
-- [ ] Specialise the existing parameterised `ap_par` to the transported completed
-  merge after 5a–c, retaining the generic definition and explicit AP/A2 premises.
-  Reuse theorems when `ORDm` is established, or transfer closure using 5c.
-- [ ] Transfer associativity only when 5d is available; otherwise mark it open.
+- [ ] Specialise the existing parameterised `ap_par` to
+  `M = merge_rdes j`, retaining its generic definition and explicit
+  AP/A2 premises. Use `merge_rdes_ORDm` for the merge premise.
+- [ ] Transfer associativity at the scope available from 5c; pursue a broader
+  law only if 5d supplies one.
 - [ ] Update the guides and retire superseded historical notes.
-- [ ] Optional: establish the D/RD/AD/RAD square at unit state.
 
 ## Remaining decisions
 
 - Stage 0b: where generic par-by-merge lemmas should live.
-- Stage 4: operand class, closure requirements and research timebox.
-- Stage 5b: whether a flat `N_C`, `M_C` formula is useful after transport.
+- Stage 4: whether associativity beyond NDRD operands is needed.
+- Stage 5c: whether qualified Chaos and Miracle laws are needed for the selected merge.
 
-The shared `j` interface and completion orders are selected. Fork publication of
-UTP and UTP-Designs is verified. A stateful RAD remains a separate extension;
-the selected route uses the unit-state bridge to current flat RAD.
+The shared `j` interface and completion orders are selected. The upstream
+unit-state comparison is proved for ordinary RD and is not a prerequisite for
+the flat RAD construction.
 
 ## RD/RAD reference
 
-Installed results that Stage 5 builds on. The RAD parallel laws are in the
-[RAD guide](docs/parallel/RAD.md), and the main RAD/RD mappings are in the
-[RAD paper guide](docs/paper/RAD.md).
+The [ordinary RD guide](docs/parallel/RD.md) records the constructed merge and
+its laws. The [RAD guide](docs/parallel/RAD.md) records the choice-set lifting,
+closure and mapping laws. The [stateful RD guide](docs/parallel/RD-stateful.md)
+records the separate upstream comparison.
 
-The specialised stateful RD operator is generic parallel with a completed merge:
-
-```isabelle
-P ∥R[rdes_lift_merge j] Q = P ∥[M_R(rdes_lift_merge j)] Q
-```
-
-Here `j :: ('t × 's × 'a) merge` relates trace contributions, program state and
-remaining observations, without `ok` or `wait`. `N_R` and `M_R` act on the same
-RD alphabet; they are not alphabet liftings.
-
-| Merge expression | Guaranteed property | Premise |
-| --- | --- | --- |
-| `rdes_lift_merge j` | RDM (`rdes_lift_merge_RDM`) | None on `j` |
-| `N_R(M)` | R1m, R3hm, RD1m | None on `M` |
-| `N_R(M)` | R2m | `M is R2m`, implied by `M is RDM` |
-| `M_R(M)` | RD3, hence RD2 | None on `M` |
-
-- `SRD_par_by_merge`: SRD operands and a merge that is R1m, R2m, R3hm, RD1m and
-  RD2 give an SRD result, for the merge used directly.
-- `par_rdes_NSRD`: SRD operands and `M is RDM` give `(P ∥R[M] Q) is NSRD`.
-  `rdes_lift_parallel_NSRD` instantiates it with `rdes_lift_merge j`, with no
-  condition on `j`. Associativity and Chaos zero keep their own premises.
-- RDM constrains the seed, not the completed merge, and `N_R` builds control
-  behaviour, so the obligation is not `M is N_R`. RDM of the seed does not by
-  itself give `ORDm` of the transported completion.
-- `rad_par_p2ac`, `(p2ac P) ∥RAD[M] (p2ac Q) = p2ac (P ∥[M] Q)`, has no premises.
-  It neither completes `M` nor identifies it with `rdes_lift_merge j`.
-- The healthy round trip between flat RD and RAD ∩ A2 uses `rad_ac2p_p2ac_inverse`,
-  `rad_p2ac_ac2p_RAD_A2`, `rad_p2ac_RD_closure`, `A2_p2ac` and `rad_ac2p_RD`;
-  `rad_p2ac_RD1` and `rad_p2ac_RD2` carry RD1/RD2 (the paper's CSP1/CSP2) to
-  CSPA1/CSPA2. Keep these encoding identities separate from healthy closure.
+- `rad_par_p2ac` does not complete `M`; `merge_rad_p2ac` instantiates it
+  with the completed `merge_rdes j` in 5a.
+- The healthy round trip between flat RD and RAD ∩ A2 uses
+  `rad_ac2p_p2ac_inverse`, `rad_p2ac_ac2p_RAD_A2`,
+  `rad_p2ac_RD_closure`, `A2_p2ac` and `rad_ac2p_RD`.
+  `rad_p2ac_RD1` and `rad_p2ac_RD2` carry RD1/RD2 (the paper's
+  CSP1/CSP2) to CSPA1/CSPA2.

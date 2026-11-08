@@ -139,9 +139,8 @@ through the unit-state alphabet map. It has no premises on `P`, `Q` or `j`.
 The extension observation remains available, including for refusals; only
 the separate program state is fixed to `()`.
 
-The completed merge is not associative in general. Completion lets a diverged
-intermediate result extend its trace, so it may then synchronise with traces
-that its branches did not perform. For RD operands,
+Completion can extend a diverged intermediate result's trace, so it may then
+synchronise with traces that its branches did not perform. For RD operands,
 [NDRD_healthy_iff](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
 equates `P is NDRD` with `pre_R P = true_r`. Such operands never diverge
 from an active prior, so completion has no effect on them and associativity
@@ -151,5 +150,6 @@ shows both steps locally. Associativity for a
 wider class, such as prefix-closed operands, is open.
 
 Except for associativity, the algebraic laws hold for arbitrary relational
-operands. The specialised RAD correspondence remains deferred. The upstream
+operands. [RAD parallel](RAD.md) lifts this completed
+ordinary merge and gives the flat RD/RAD correspondence. The upstream
 completion premises and the unit-state instance are recorded in [Stateful RD](RD-stateful.md).

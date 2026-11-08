@@ -111,13 +111,17 @@ additional choice-set conditions.
 
 ## Validation and next step
 
-The [PIDE snapshot](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/pide-scratch.json) records zero errors, warnings,
+Raw validation evidence is retained locally under
+`audits/reviews/2026-10-30-ad-generic-closure-exploration/` and is not distributed
+with the repository.
+
+The PIDE snapshot records zero errors, warnings,
 bad, failed, canceled, running, or unprocessed commands. No `sorry`, `oops`,
 or proof-search commands remain in the final scratch source.
 
 The isolated batch build passed (exit 0; 15 seconds elapsed). Batch evidence
-is separate: [log](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/batch.log), [result](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/batch-result.json), and the isolated
-[session ROOT](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/ROOT.txt). It checks the scratch theory on the existing
+is separate: log, result, and the isolated
+session ROOT. It checks the scratch theory on the existing
 UTP-Angelic-Designs heap, without adding a session to the project ROOT.
 
 During exploration, a broad automation call stalled and prevented updates in
@@ -133,5 +137,5 @@ idempotent merge transformers for every proposed Boolean condition is a
 separate question; it is not claimed by this exploration.
 
 Existing files and staged changes are preserved, as recorded by the
-[baseline](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/before.json) and [preservation check](../../../audits/reviews/2026-10-30-ad-generic-closure-exploration/evidence/preservation.json).
+baseline and preservation check.
 Nothing was committed.

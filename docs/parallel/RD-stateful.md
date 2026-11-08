@@ -131,5 +131,5 @@ The divergence rules require an active prior observation.
 Associativity of the completed stateful operator is outside the current scope.
 
 The [plan](../../PLAN.md#stage-2--drd-law-parity--pending) tracks remaining RD
-laws. The [RAD bridge](../../PLAN.md#stage-5--rad-from-the-completed-rd-merge)
-is deferred; it is not part of this organisation.
+laws. [RAD parallel](RAD.md) uses ordinary RD directly; this stateful
+comparison is separate from its construction.

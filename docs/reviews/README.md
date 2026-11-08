@@ -93,7 +93,7 @@ scratch files keep the old names and no longer load against the current theory.
 
 2 November 2026, on top of `5e76186`. Names above this entry are the old ones.
 
-- **Shared design conditions:** D's `H1m`, `H2m`, `H3m` and `HDM`, and the
+- **Shared design conditions:** D's `H1m`, `H2m`, `H3m` and `HDm`, and the
   `H1/H2/H3/H_par_by_merge` rules, now allow merges whose prior, branch and
   output alphabets differ. AD dropped `ADH1m`, `ADH2m`, `ADH3m`, `ADHM` and their
   seven lemmas and uses D's; `merge_ades_ADHxm` became `merge_ades_is_Hxm`.
@@ -112,7 +112,7 @@ scratch files keep the old names and no longer load against the current theory.
   `ades_par_by_merge_singletons` were folded into `A2_par_by_merge` and
   `ades_par_lifted_obs_A2` as local facts.
   `H1m_merge_health`, `H2m_merge_health`, `H3m_merge_health`,
-  `HDM_merge_health`, `A0m_merge_health` and `A1m_merge_health` show that each
+  `HDm_merge_health`, `A0m_merge_health` and `A1m_merge_health` show that each
   condition applies H1, H2, H3, **H**, A0 or A1 to every slice of an AD merge.
 - **A split:** `Am` was replaced by `A0m` and `A1m`, defined explicitly.
   `A0_par_by_merge` needs no operand premise and `A1_par_by_merge` needs H1
@@ -315,7 +315,7 @@ RAD replay or RD counterexample-theory replay was run.
 
 3 November 2026.
 
-Changed `merge_des` to apply `H3m` explicitly to the HDM-healthy raw lift.
+Changed `merge_des` to apply `H3m` explicitly to the HDm-healthy raw lift.
 The semantics are unchanged; the alternative-definition and symmetry proofs
 unfold H3m, and H3m closure now follows from idempotence. Updated the D guide.
 The D parallel theory passed focused PIDE checking (460 commands); documentation
@@ -370,7 +370,7 @@ or RD/RAD replay was run for this structural cleanup.
 
 ## Pairwise merge-healthiness commutation
 
-3 November 2026. Settled all 21 unordered pairs among H1m, H2m, H3m, HDM,
+3 November 2026. Settled all 21 unordered pairs among H1m, H2m, H3m, HDm,
 A0m, A1m and A2m on arbitrary AD merges: 15 commute and 6 have proved
 counterexamples. Added the H-only equations to UTP Designs and the AD equations
 and existential counterexamples to AD parallel. The witnesses use unit or
@@ -398,6 +398,225 @@ walkthroughs, proof narratives and tables; corrected the stale AD Miracle status
 Documentation links, incoming heading anchors, 70 parallel declaration references
 and whitespace checks passed. No theories changed or Isabelle checks rerun.
 
+## Organise RD parallel extensions
+
+4 November 2026. Grouped the local RD laws into merge healthiness, generic
+closure, evaluation, commutativity and zero laws. The lifting theory now follows
+construction, evaluation, healthiness and symmetry, completed-merge evaluation,
+then parallel closure and laws. The 24 named declarations, including their
+statements and proofs, are unchanged. The core theory still matches the
+isabelle-utp upstream file inspected for this work; imports, session structure,
+associativity theories and RAD theories are unchanged.
+
+Added the [RD guide](../parallel/RD-stateful.md), moved the RD reference out of the plan,
+and refreshed pre-existing stale RAD documentation line anchors. Focused PIDE
+checking passed for the laws theory (234 commands) and lifting theory (80
+commands), with zero errors, warnings, bad, failed or unfinished commands.
+Documentation-link and whitespace checks passed. No batch build, associativity
+test replay or RAD/AP replay was run.
+
+## Separate RD associativity counterexamples
+
+4 November 2026. Renamed the counterexample theory to
+`utp_rdes_parallel_assoc_counterexamples` and moved it under the RD submodule's
+`validation/` directory in the `UTP-Reactive-Designs-Validation` child session.
+The main RD session now registers the associativity theory directly. Only the
+moved theory's section title, theory name and import changed; all statements
+and proofs are unchanged. Updated the [RD guide](../parallel/RD-stateful.md) and plan.
+
+Focused PIDE checking passed for the associativity theory (268 commands) and
+renamed counterexamples (168 commands), with zero errors, warnings, bad, failed
+or unfinished commands. The no-build session check resolved the new session
+and reported that dependency heaps and the validation session need building;
+no batch build or RAD/AP replay was run. Documentation links and whitespace
+checks passed.
+
+## Lifted RD associativity
+
+4 November 2026. Added raw-associativity transfer for the lifted merge and
+sufficient waiting-state and divergence-feasibility conditions directly on
+`j`. The conditions imply completion compatibility; together with symmetry
+and raw associativity they prove completed RD parallel associative for all
+relational operands. Added a generic completion introduction rule and a
+validation counterexample showing that symmetry, raw associativity and
+`mergeable j` alone do not suffice, even on SRD operands. The RD guide at the
+time recorded the quantified conditions and their scope.
+
+The upstream core, lifting definition and all 39 existing declarations in
+the three edited theories are unchanged. Focused PIDE checks passed for the
+generic associativity theory (432 commands), lifting theory (262 commands)
+and validation counterexamples (246 commands), with zero errors, warnings,
+bad, failed or unfinished commands. Documentation links and whitespace checks
+passed. No batch build or RAD/AP replay was run.
+
+## Necessity of the lifted RD compatibility conditions
+
+4 November 2026. Proved that neither added compatibility condition is
+necessary for associativity, even when the state merge is total, symmetric
+and raw-associative. A single merge violates both conditions while its
+completed RD parallel is associative on all relational operands. Added the
+result to the validation counterexamples and corrected the then-current RD guide
+and plan to distinguish this sufficient proof route from a necessary criterion.
+
+The main RD theories and all existing counterexamples are unchanged. Focused
+PIDE checking passed for the validation theory (366 commands), with zero
+errors, warnings, bad, failed or unfinished commands. Documentation links and
+whitespace checks passed. No batch build or RAD/AP replay was run.
+
+## Lifted RD associativity by absorption
+
+4 November 2026. Replaced the two compatibility premises in the main lifted
+associativity theorem with absorption of observation relaxation after an inner
+merge. Proved that the previous premises imply absorption, and retained their
+result as a corollary. The generic proof moves inner completion to the final
+output and preserves upstream semantics. The RD guide at the time stated the
+quantified condition and its sufficient scope.
+
+Focused PIDE checks passed for the generic associativity theory (482 commands)
+and lifting theory (526 commands), with zero errors, warnings, bad, failed or
+unfinished commands. The upstream core, lifting definition, validation theory,
+session registration and RAD sources are unchanged. No counterexamples were
+added or replayed; no batch build or RAD/AP replay was run.
+
+## Remove RD associativity counterexamples
+
+4 November 2026. Removed `utp_rdes_parallel_assoc_counterexamples.thy` and its
+validation session at the user's request. Updated the RD guide and plan to
+remove references and the pending addition to that theory. The main
+associativity theories and proofs are unchanged. Dependency searches found no
+remaining theory imports; documentation links and whitespace checks passed.
+No proof replay or batch build was run.
+
+## RD generic actual-merge healthiness
+
+4 November 2026. Added SRDM to `utp_rdes_parallel_laws` as a package of the
+upstream sufficient conditions on the actual merge in generic parallel.
+Proved its component equivalence, idempotence, monotonicity, disjunction and
+conjunction closure, and symmetry preservation. Added direct RD3, SRD and
+NSRD parallel closure rules. Organised the theory around component healthiness,
+generic closure, then the upstream merge construction and completed-operator
+laws. The [RD guide](../parallel/RD-stateful.md#generic-merge-healthiness-and-closure)
+records the premises and distinguishes SRDM from the existing RDM input condition.
+
+Focused PIDE checking passed for the changed laws theory (482 commands), with
+zero errors, warnings, bad, failed or unfinished commands. Existing lemma
+statements and proofs, upstream sources, associativity and lifting theories,
+session registration and RAD sources are unchanged. Documentation links and
+whitespace checks passed. Downstream theories were unloaded before editing;
+no downstream replay or batch build was run.
+
+## Paper-scoped RD parallel guide
+
+4 November 2026. Focused [RD](../parallel/RD.md) on ordinary reactive designs
+with R1, R2, R3c, RD1 and RD2, retaining simple closure tables and the owning-file
+column. Moved the broader reference to [Stateful RD](../parallel/RD-stateful.md)
+and updated existing links. Documentation links and whitespace checks passed;
+no theories changed or proofs replayed.
+
+## Ordinary RD state-merge lifting
+
+4 November 2026. Reworked `utp_rdes_parallel_lift` for ordinary reactive
+observations. The raw lift combines branch control flags and merges traces and
+extension observations; ORDm supplies ordinary RD healthiness. Proved evaluation,
+merge healthiness, monotonicity, symmetry, associativity and direct RD parallel
+closure. Parallel associativity needs only symmetry and AssocMerge of j.
+
+Moved the existing ordinary merge-healthiness block from RAD parallel to the
+RD laws theory and updated the RAD import. Preserved the earlier stateful
+lifting and proofs in `utp_srdes_parallel_lift`, with srdes-prefixed names.
+Updated the [ordinary guide](../parallel/RD.md#lifted-merge-and-laws), stateful
+guide and references. Upstream sources and the specialised RAD bridge are unchanged.
+
+Focused PIDE checks passed for laws (706 commands), ordinary lifting (202),
+preserved stateful lifting (526) and the affected RAD parallel theory (370),
+with zero errors, warnings, bad, failed or unfinished commands. Documentation
+links and whitespace checks passed. The no-build session check resolved the
+registered theories and reported that UTP-Designs, UTP-Reactive and
+UTP-Reactive-Designs need building. No batch build or AP replay was run.
+
+## Separate ordinary and stateful RD laws
+
+4 November 2026. Organised `utp_rdes_parallel_laws` around ordinary RD merge
+definitions, component properties, commutation, combined healthiness,
+combination and symmetry laws, then generic parallel closure. Moved the local
+stateful conditions, normality and completed-operator laws into
+`utp_srdes_parallel_laws`; updated the stateful associativity import and session
+registration. Removed duplicate R2m combination proofs and reused reversed
+commutation facts through aliases. Generalised
+[RD2_merge_conj](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L250)
+to ordinary reactive observations, including stateful instances. The combined
+transformer was then named `RADm`; it is now `ORDm`.
+
+Focused PIDE checks passed for ordinary laws (310 commands), stateful laws
+(406), stateful associativity (482), ordinary lifting (202), stateful lifting
+(526) and RAD parallel (370), with zero errors, warnings, bad, failed or
+unfinished commands. Upstream sources and both lifting sources are unchanged.
+Documentation links and whitespace checks passed. No batch build or AP replay
+was run.
+
+## Reusable stateful RD Chaos-zero rules
+
+4 November 2026. Organised the Chaos-zero subsection around its generic Chaos
+facts, reusable divergent-output evaluation and introduction rules, prior-trace
+feasibility, then the exact criterion. The final criterion reuses these rules;
+its premises and conclusion are unchanged. The [stateful RD guide](../parallel/RD-stateful.md#conditional-algebra-and-deferred-work)
+records the helpers and their scope. Focused PIDE checking passed for the changed
+theory (402 commands), with zero errors, warnings, bad, failed or unfinished
+commands. Documentation links and whitespace checks passed. No downstream replay
+or batch build was run.
+
+## Generic ordinary RD merge associativity
+
+4 November 2026. Added associativity preservation for R2m and R3cm, and for
+RD1m under R1m. The combined ORDm rule takes `AssocMerge (RD2 M)`; its
+corollary takes `M is RD2` and `AssocMerge M`. Added the corresponding
+parallel law, and moved the existing cyclic evaluation lemma from the lifted
+file into the generic laws file. See the [ordinary RD guide](../parallel/RD.md#generic-merge-associativity)
+for exact premises.
+
+Focused PIDE checks passed for ordinary laws (456 commands) and ordinary
+lifting (198), with zero errors, warnings, bad, failed or unfinished commands.
+Upstream semantics and the stateful laws file are unchanged. No broad
+downstream replay or batch build was run.
+
+## Stateful RD completion bridge and lifted closure
+
+4 November 2026. Proved `M is RDM ⟹ M_R(M) is SRDM`, using preservation
+of R2m by right completion and commutation of RD3 with RD1m and R3hm.
+Derived constructed and lifted SRD/NSRD closure through the generic actual-merge
+rules. The lifted rules require only SRD operands, with no additional premise
+on `j`. See the [stateful RD guide](../parallel/RD-stateful.md#upstream-rd-merge-construction).
+
+Focused PIDE checks passed for stateful laws (578 commands), stateful lifting
+(536) and its associativity dependency (478), with zero errors, warnings, bad,
+failed or unfinished commands. Upstream sources, ordinary RD, RAD, session
+configuration, existing theorem statements and the lifting definition are
+unchanged. Documentation links and whitespace checks passed. No batch build
+or RAD/AP replay was run.
+
+## Flatten the ordinary RD parallel laws theory
+
+4 November 2026. Removed the enclosing context and its unused record-splitting
+declaration from `utp_rdes_parallel_laws`. Every definition, theorem statement
+and proof is unchanged. Focused PIDE checking passed all 426 commands with
+zero errors, warnings, bad or unfinished commands. Updated declaration links.
+No downstream replay or batch build was run.
+
+## Narrow the RD unit-state bridge
+
+7 November 2026. Removed `utp_srdes_parallel_lift` and its ROOT entry. The
+bridge now defines only `unit_state_rd_merge j` on `st = ()`, proves it is RDM,
+and identifies ordinary `∥RD[j]` with upstream
+`∥R[unit_state_rd_merge j]`. The unused general stateful lift laws were
+removed. Updated the [stateful RD guide](../parallel/RD-stateful.md#lifted-merge),
+the [ordinary RD guide](../parallel/RD.md#correspondence-with-upstream-rd-parallel)
+and the plan.
+
+Focused PIDE checks passed for ordinary lifting (314 commands), stateful laws
+(556) and the unit-state bridge (130), with zero errors, warnings or unfinished
+commands. The affected guides and plan passed link checking. No batch build or
+RAD replay was run.
+
 ## Combined AD merge healthiness and merge names
 
 7 November 2026. Added `ADm ≡ A0m ∘ A1m`, proved its fixed-point law,
@@ -411,40 +630,6 @@ Focused PIDE checks passed for Design parallel (588 commands), AD parallel
 Documentation links and whitespace checks passed. The rename-only AP snapshot
 and a batch build were not rerun.
 
-## Reorganise RAD healthiness and use paper names
-
-8 November 2026. Moved CSPA1 into RAD healthiness alongside CSPA2, moved
-design forms, composition laws, choice laws and Example 11 into their owning
-theories, and removed two unreferenced lemmas. RAD-facing statements now
-use CSPA2; declaration links were updated.
-
-PIDE passed the affected RAD theories and AP healthiness, RAD correspondence,
-operators and nondivergence callers with no errors, bad or unfinished commands.
-Documentation-link and whitespace checks passed. AP parallel and examples
-were not replayed, and no batch build was run.
-
-## Share choice-set merge healthiness in AD
-
-8 November 2026. Moved PBMHm, RABm and their general laws into AD parallel;
-PBMH closure is now `PBMH_ades_par_by_merge`. Updated the AD guide and
-related declaration links.
-
-Focused PIDE checking passed for AD parallel (862 commands), with no errors,
-warnings, bad or unfinished commands. Documentation-link and whitespace
-checks passed. No batch build was run.
-
-## Move AP correspondence laws out of parallel
-
-8 November 2026. Moved ordinary reactive-design correspondence into AP RAD,
-Chaos laws into AP operators, and non-divergence results into AP ND.
-Renamed `ap_rad_roundtrip_NDAP` to `H1_RA1_NDAP_AP_healthy` and used explicit
-premises and conclusions for the two NDAP laws. Updated declaration links.
-
-Focused PIDE checking passed for AP RAD, operators, ND and parallel, with
-no errors, bad or unfinished commands. The existing warnings in operators
-and ND remain. Documentation-link and whitespace checks passed. No AP
-examples replay or batch build was run.
-
 ## Generic RAD merge closure
 
 8 November 2026. Added sufficient conditions on arbitrary RAD merges and proved
@@ -456,6 +641,68 @@ Focused PIDE checking of `utp_rad_parallel` settled all 1302 commands with no
 errors, warnings or unfinished commands. Documentation links and whitespace
 checks passed. No batch build or AP replay was run.
 
+## Place RAD support lemmas in their owning theories
+
+8 November 2026. Moved 27 support lemmas and the trace-prepending operation out
+of RAD parallel into RAD core, healthiness and designs, plus the D and ordinary
+RD parallel theories. Preserved statements, premises and proofs, and updated
+related declaration links.
+
+Focused PIDE checks passed for all six edited theories and their prerequisites,
+with zero errors, bad, failed or unfinished commands. The three existing warnings
+in `utp_rad_healthy` are unchanged. Documentation links and whitespace checks
+passed. No batch build or AP replay was run.
+
+## Place H2 and RD2 evaluation with healthiness
+
+8 November 2026. Moved [H2_merge_eval](../../deps/UTP-Designs/utp_des_healths.thy#L238)
+into design healthiness and [RD2_ok_up](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L379)
+into reactive-design healthiness. Statements and proofs are unchanged. PIDE
+passed the edited D and ordinary RD healthiness and parallel theories with no
+errors, warnings or unfinished commands. Updated declaration links;
+documentation and whitespace checks passed. No RAD or AP replay or batch build
+was run.
+
+## Simplify RAD parallel and share choice-set merge conditions
+
+8 November 2026. Moved PBMHm, RABm and their general laws into AD parallel;
+PBMH closure is now `PBMH_ades_par_by_merge`. Inlined the two single-use
+RAD wrappers, removed the absorbed RA1m factor from RADm, and simplified
+associativity transport through p2ac. The generic associativity rules no
+longer require ORDm; the lifted rule retains its nondivergence premises.
+
+PIDE passed AD parallel (862 commands), RAD parallel (1020), and the RAD
+core, healthiness, designs and CSP prerequisites with no errors, bad or
+unfinished commands. The three existing warnings in each of RAD healthiness
+and CSP are unchanged. Declaration-link and whitespace checks passed.
+No AP replay or batch build was run; all changes remain uncommitted.
+
+## Simplify RA2 trace normalisation support
+
+8 November 2026. Renamed the trace-prepending operation to
+[rad_trace_prepend](../../reactive-angelic-designs/utp_rad_healthy.thy#L263),
+moved the RA2 definition before its supporting lemmas, and removed five
+standalone helpers. The RA2 parallel-closure proof now normalises observations
+directly; the subset argument is local to
+[RA2m_PBMHm_commute](../../reactive-angelic-designs/utp_rad_parallel.thy#L220).
+
+Focused PIDE checks passed for RAD healthiness (1436 commands), designs (464),
+CSP (514), and parallel (1054), with zero errors, bad or unfinished commands.
+The existing three warnings in healthiness and three in CSP remain.
+No full build or AP replay was run. Changes remain uncommitted.
+
+## Reorganise RAD healthiness and use paper names
+
+8 November 2026. Moved CSPA1 into RAD healthiness alongside CSPA2, moved
+design forms, composition laws, choice laws and Example 11 into their owning
+theories, and removed two unreferenced lemmas. RAD-facing statements and
+merge conditions now use CSPA2 and CSPA2m; declaration links were updated.
+
+PIDE passed the affected RAD theories and AP healthiness, RAD correspondence,
+operators and nondivergence callers with no errors, bad or unfinished commands.
+Documentation-link and whitespace checks passed. AP parallel and examples
+were not replayed, and no batch build was run. All changes remain uncommitted.
+
 ## Generic RA parallel closure
 
 8 November 2026. Added RAm as the composition of RA2m, RA3m and RABm,
@@ -466,6 +713,28 @@ yield an RA-healthy parallel. Updated the RAD guide and declaration links.
 Focused PIDE checking passed for RAD parallel (1128 commands), with no
 errors, warnings, bad or unfinished commands. Documentation-link and
 whitespace checks passed. No downstream replay or batch build was run.
+
+## Direct basic RAD merge
+
+8 November 2026. Defined
+[rad_basic_merge](../../reactive-angelic-designs/utp_rad_parallel.thy#L540)
+directly on RAD observations and proved all seven component merge conditions,
+then [rad_basic_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L634).
+The definition and proofs do not use RD lifting or RADm completion.
+
+Focused PIDE checking passed for RAD parallel (1240 commands), with zero
+errors, warnings, bad or unfinished commands. Documentation links and
+whitespace checks passed. No downstream replay or batch build was run.
+The additions remain unstaged and uncommitted; the existing index is unchanged.
+
+## Raw AD lift branch healthiness
+
+8 November 2026. Added
+[ades_lift_merge_RABm](../../angelic-designs/utp_ades_parallel.thy#L473)
+for arbitrary `j`, keeping the lift definitions unchanged. Focused PIDE checking
+passed for AD parallel (872 commands), with zero errors, warnings, bad or
+unfinished commands. Documentation-link and whitespace checks passed.
+No downstream replay or batch build was run; the addition remains uncommitted.
 
 ## Simplify RA2 parallel closure
 
@@ -490,28 +759,6 @@ combined time fell from 7.97 to 0.91 seconds. The installed theory passed PIDE
 (1172 commands), with zero errors, warnings, bad or unfinished commands. No full
 build or unrelated downstream replay was run. Changes remain uncommitted and
 the existing index is unchanged.
-
-## Direct basic RAD merge
-
-8 November 2026. Defined
-[rad_basic_merge](../../reactive-angelic-designs/utp_rad_parallel.thy#L540)
-directly on RAD observations and proved all seven component merge conditions,
-then [rad_basic_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L634).
-The definition and proofs do not use RD lifting or RADm completion.
-
-Focused PIDE checking passed for RAD parallel (1240 commands), with zero
-errors, warnings, bad or unfinished commands. Documentation links and
-whitespace checks passed. No downstream replay or batch build was run.
-The additions remain unstaged and uncommitted; the existing index is unchanged.
-
-## Raw AD lift branch healthiness
-
-8 November 2026. Added
-[ades_lift_merge_RABm](../../angelic-designs/utp_ades_parallel.thy#L473)
-for arbitrary `j`, keeping the lift definitions unchanged. Focused PIDE checking
-passed for AD parallel (872 commands), with zero errors, warnings, bad or
-unfinished commands. Documentation-link and whitespace checks passed.
-No downstream replay or batch build was run; the addition remains uncommitted.
 
 ## Share AD and RAD choice-set lifting
 
@@ -547,3 +794,13 @@ passed for AD and RAD parallel; no full build or unrelated replay was run.
 9 November 2026. Removed ORDm from the generic RAD associativity premises and
 simplified the lifted transfer through p2ac. The final RAD parallel theory
 passed focused PIDE checks; no full build was run.
+
+## Prepare parallel history for PR review
+
+9 November 2026. Folded dependency follow-ups into their owning commits and
+organised the remaining RAD work into six commits. Exact commit snapshots were
+checked with focused PIDE, including the moved stateful RD proofs, plus
+documentation-link and whitespace checks. Removed links to ignored local audit
+files from two historical review notes. No full build or unrelated downstream
+replay was run. Dependency forks were published before the parent branch, with
+exact remote leases and submodule fetchability checks.

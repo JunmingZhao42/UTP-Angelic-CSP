@@ -51,11 +51,15 @@ This investigation does not prove that AM and A2M commute, or that either preser
 
 ## Evidence
 
+Raw validation evidence is retained locally under
+`audits/reviews/2026-10-30-ad-merge-healthiness/` and is not distributed
+with the repository.
+
 - [Scratch source](scratch.thy), importing the previous generic-closure scratch. The file is an evidence copy, not a production theory.
-- [PIDE state](../../../audits/reviews/2026-10-30-ad-merge-healthiness/pide.json): zero errors, warnings, unfinished or failed commands; 325 commands finished.
-- [Isolated batch log](../../../audits/reviews/2026-10-30-ad-merge-healthiness/batch.log) and [session ROOT](../../../audits/reviews/2026-10-30-ad-merge-healthiness/ROOT.txt): passed with exit code 0, 15 seconds total; the new theory took 1.000 seconds cumulative processing time. This is separate from PIDE evidence.
-- [Validation record](../../../audits/reviews/2026-10-30-ad-merge-healthiness/validation.json): batch exit code, source preservation and absence of proof placeholders or search commands.
-- [Source hashes](../../../audits/reviews/2026-10-30-ad-merge-healthiness/source-hashes.json): project theory hashes recorded for the batch check; no project `.thy` file was edited by this investigation.
+- PIDE state: zero errors, warnings, unfinished or failed commands; 325 commands finished.
+- Isolated batch log and session ROOT: passed with exit code 0, 15 seconds total; the new theory took 1.000 seconds cumulative processing time. This is separate from PIDE evidence.
+- Validation record: batch exit code, source preservation and absence of proof placeholders or search commands.
+- Source hashes: project theory hashes recorded for the batch check; no project `.thy` file was edited by this investigation.
 
 The isolated session uses the current `UTP-Angelic-Designs` heap. It is not a fresh build of the full project. The proof source contains no `sorry`, `oops`, or retained proof-search commands.
 
