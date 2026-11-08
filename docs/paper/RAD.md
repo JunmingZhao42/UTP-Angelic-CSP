@@ -19,12 +19,12 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | <a id="d27"></a>**D27** / D108 | Trace-extending final states | — | [rad_trace_extensions](../../reactive-angelic-designs/utp_rad_healthy.thy#L10) |
-| <a id="d28"></a>**D28** / D109 | RA1 trace-extension healthiness | — | [RA1](../../reactive-angelic-designs/utp_rad_healthy.thy#L16) |
-| <a id="t9"></a>**T9** / T.5.2.1 | RA1 absorbs A0 | None | [RA1_A0_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L152) |
-| <a id="d29"></a>**D29** / D110 | RA2 trace normalization | — | [RA2](../../reactive-angelic-designs/utp_rad_healthy.thy#L307) |
-| <a id="d30"></a>**D30** / D111 | Reactive identity | — | [II_Rac](../../reactive-angelic-designs/utp_rad_healthy.thy#L519) |
-| <a id="d31"></a>**D31** / D112 | RA3 waiting behaviour | — | [RA3](../../reactive-angelic-designs/utp_rad_healthy.thy#L742) |
-| <a id="d32"></a>**D32** / D113 | Combined reactive healthiness | — | [RA](../../reactive-angelic-designs/utp_rad_healthy.thy#L867) |
+| <a id="d28"></a>**D28** / D109 | RA1 trace-extension healthiness | — | [RA1](../../reactive-angelic-designs/utp_rad_healthy.thy#L17) |
+| <a id="t9"></a>**T9** / T.5.2.1 | RA1 absorbs A0 | None | [RA1_A0_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L153) |
+| <a id="d29"></a>**D29** / D110 | RA2 trace normalization | — | [RA2](../../reactive-angelic-designs/utp_rad_healthy.thy#L308) |
+| <a id="d30"></a>**D30** / D111 | Reactive identity | — | [II_Rac](../../reactive-angelic-designs/utp_rad_healthy.thy#L520) |
+| <a id="d31"></a>**D31** / D112 | RA3 waiting behaviour | — | [RA3](../../reactive-angelic-designs/utp_rad_healthy.thy#L743) |
+| <a id="d32"></a>**D32** / D113 | Combined reactive healthiness | — | [RA](../../reactive-angelic-designs/utp_rad_healthy.thy#L868) |
 | <a id="ex11"></a>**Ex11** | RA1 and PBMH disagree on empty choices | — | [RA1_PBMH_ades_ac_empty_example](../../reactive-angelic-designs/utp_rad_examples.thy#L15) |
 
 <details>
@@ -33,7 +33,7 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | T.5.2.2–3, 6–7, 12–13 | RA1/RA2/RA3 distribution | See component declarations | [utp_rad_healthy](../../reactive-angelic-designs/utp_rad_healthy.thy) |
-| T.5.2.15 | PBMH absorption around RA3 | None | [PBMH_ades_RA3_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L821) |
+| T.5.2.15 | PBMH absorption around RA3 | None | [PBMH_ades_RA3_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L822) |
 
 </details>
 
@@ -54,7 +54,7 @@ AD’s inner state gains waiting, trace and refusal observations. General result
 | --- | --- | --- | --- |
 | T.5.2.18 | CSPA1 after RA1 agrees with RA1 after H1 | None | [CSPA1_RA1](../../reactive-angelic-designs/utp_rad_designs.thy#L46) |
 | T.5.2.21 | RAD implies upward closure | P is RAD | [RAD_is_PBMH_ades](../../reactive-angelic-designs/utp_rad_designs.thy#L113) |
-| T.G.4.5 | Re-extraction preserves the design normal form | Projected design form | [RA_design_form_idem](../../reactive-angelic-designs/utp_rad_healthy.thy#L1150) |
+| T.G.4.5 | Re-extraction preserves the design normal form | Projected design form | [RA_design_form_idem](../../reactive-angelic-designs/utp_rad_healthy.thy#L1151) |
 | T.G.5.1 | CSPA1 idempotence | None | [CSPA1_Idempotent](../../reactive-angelic-designs/utp_rad_designs.thy#L30) |
 
 </details>
@@ -262,22 +262,22 @@ T35 tests failure only at started observations; see [theorem35_counterexample](.
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t66"></a>**T66** / T.5.2.11 | PBMH absorption around RA2 | None | [PBMH_ades_RA2_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L488) |
-| <a id="t67"></a>**T67** | RA after A agrees with RA after PBMH | P is H | [RA_A](../../reactive-angelic-designs/utp_rad_healthy.thy#L932) |
-| <a id="t68"></a>**T68** / T.5.2.16 | RA1 and RA3 commute | None; printed correction | [RA1_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L831) |
-| <a id="t69"></a>**T69** / T.5.2.17 | RA2 and RA3 commute | None | [RA2_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L835) |
-| <a id="t70"></a>**T70** / T.5.2.5 | PBMH absorption around RA1 | None | [PBMH_ades_RA1_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L180) |
-| <a id="t71"></a>**T71** / T.5.2.10 | RA1 and RA2 commute | None | [RA1_RA2_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L413) |
+| <a id="t66"></a>**T66** / T.5.2.11 | PBMH absorption around RA2 | None | [PBMH_ades_RA2_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L489) |
+| <a id="t67"></a>**T67** | RA after A agrees with RA after PBMH | P is H | [RA_A](../../reactive-angelic-designs/utp_rad_healthy.thy#L933) |
+| <a id="t68"></a>**T68** / T.5.2.16 | RA1 and RA3 commute | None; printed correction | [RA1_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L832) |
+| <a id="t69"></a>**T69** / T.5.2.17 | RA2 and RA3 commute | None | [RA2_RA3_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L836) |
+| <a id="t70"></a>**T70** / T.5.2.5 | PBMH absorption around RA1 | None | [PBMH_ades_RA1_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L181) |
+| <a id="t71"></a>**T71** / T.5.2.10 | RA1 and RA2 commute | None | [RA1_RA2_commute](../../reactive-angelic-designs/utp_rad_healthy.thy#L414) |
 
 T67 requires H-healthiness. T68 states the commutation established by the source proof, whose printed equation repeats one side.
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="l19"></a>**L19** | RA3 absorbs initial-wait-false substitution | None | [RA3_wait_false_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L846) |
-| <a id="l20"></a>**L20** | Failure projection of the reactive design form | Projected design form | [RA_design_wf_ok_false](../../reactive-angelic-designs/utp_rad_healthy.thy#L1016) |
-| <a id="l21"></a>**L21** | Success projection of the reactive design form | Projected design form | [RA_design_wf_ok_true](../../reactive-angelic-designs/utp_rad_healthy.thy#L1044) |
-| <a id="l22"></a>**L22** | Normalize a reactive design postcondition | Design form | [RA_design_post](../../reactive-angelic-designs/utp_rad_healthy.thy#L1061) |
-| <a id="l23"></a>**L23** | Normalize a reactive design precondition | Design form | [RA1_design_pre](../../reactive-angelic-designs/utp_rad_healthy.thy#L136) |
+| <a id="l19"></a>**L19** | RA3 absorbs initial-wait-false substitution | None | [RA3_wait_false_absorb](../../reactive-angelic-designs/utp_rad_healthy.thy#L847) |
+| <a id="l20"></a>**L20** | Failure projection of the reactive design form | Projected design form | [RA_design_wf_ok_false](../../reactive-angelic-designs/utp_rad_healthy.thy#L1017) |
+| <a id="l21"></a>**L21** | Success projection of the reactive design form | Projected design form | [RA_design_wf_ok_true](../../reactive-angelic-designs/utp_rad_healthy.thy#L1045) |
+| <a id="l22"></a>**L22** | Normalize a reactive design postcondition | Design form | [RA_design_post](../../reactive-angelic-designs/utp_rad_healthy.thy#L1062) |
+| <a id="l23"></a>**L23** | Normalize a reactive design precondition | Design form | [RA1_design_pre](../../reactive-angelic-designs/utp_rad_healthy.thy#L137) |
 
 ## Theory files
 

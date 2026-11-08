@@ -36,6 +36,6 @@ Write `F(P) = ac2p (RA1 P)` and `G(D) = H1 (p2ac D)`.
 [ap_par_mono](../../angelic-processes/utp_ap_parallel.thy#L189) gives monotonicity. [ap_par_comm](../../angelic-processes/utp_ap_parallel.thy#L196) gives commutativity when
 `rad_lift_merge M is SymMerge`. No AP associativity theorem is installed.
 
-The [RA1](../../reactive-angelic-designs/utp_rad_healthy.thy#L16) transport can identify distinct divergent processes:
+The [RA1](../../reactive-angelic-designs/utp_rad_healthy.thy#L17) transport can identify distinct divergent processes:
 [Chaos_AP_neq_ChaosCSP](../../angelic-processes/utp_ap_parallel.thy#L64) and [Chaos_AP_same_RAD](../../angelic-processes/utp_ap_parallel.thy#L74) exhibit this, and
 [ap_par_Chaos](../../angelic-processes/utp_ap_parallel.thy#L182) shows their parallel images agree.
