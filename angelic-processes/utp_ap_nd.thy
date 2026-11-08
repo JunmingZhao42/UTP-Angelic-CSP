@@ -207,4 +207,16 @@ proof -
     by (simp only: comp_apply NDRAD_def RAD_angelic_choice)
 qed
 
+lemma H1_RA1_NDAP_AP_healthy:
+  assumes "P is AP" "P is NDAP"
+  shows "H1 (RA1 P) = P"
+  using H1_RA1_NDAP_AP[of P]
+  by (simp only: comp_apply Healthy_if[OF assms(1)] Healthy_if[OF assms(2)])
+
+lemma ap_RD_reverse_roundtrip_NDAP:
+  assumes "P is AP" "P is A2" "P is NDAP"
+  shows "H1 (p2ac (ac2p (RA1 P))) = P"
+  by (simp only: ap_RD_reverse_roundtrip[OF assms(1,2)]
+        H1_RA1_NDAP_AP_healthy[OF assms(1,3)])
+
 end

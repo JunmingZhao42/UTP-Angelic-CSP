@@ -297,6 +297,42 @@ theorem RA1_ChaosCSP_AP:
   by (simp only: H1_Chaos_RAD[symmetric] Chaos_RAD_RAD
       RA1_H1_RAD[simplified comp_apply])
 
+text \<open>Chaos shows why the AP round trip through RAD needs a premise.\<close>
+
+lemma Chaos_AP_RA1:
+  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+    Chaos\<^sub>R\<^sub>A\<^sub>D"
+  by (simp only: Chaos_AP_def RA1_AP_RAD[simplified comp_apply]
+      design_false_pre Chaos_RAD_RAD)
+
+lemma Chaos_AP_roundtrip:
+  "H1 (RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design)) =
+    ChaosCSP\<^sub>A\<^sub>P"
+  by (simp only: Chaos_AP_RA1 H1_Chaos_RAD)
+
+lemma Chaos_AP_empty:
+  "\<not> rad_wait\<^sub>v s0 \<Longrightarrow> Chaos\<^sub>A\<^sub>P (ades_obs True s0 True {})"
+  by (simp add: Chaos_AP_design; pred_auto)
+
+lemma ChaosCSP_AP_empty:
+  "\<not> ChaosCSP\<^sub>A\<^sub>P (ades_obs True s0 True {})"
+  by (simp add: ChaosCSP_AP_design RA1_obs; pred_auto)
+
+lemma Chaos_AP_neq_ChaosCSP:
+  "(Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) \<noteq> ChaosCSP\<^sub>A\<^sub>P"
+proof
+  let ?s0 = "(rea_vars_ext (False) (0) ({})) :: ('t, 'e) rad_state"
+  assume eq: "(Chaos\<^sub>A\<^sub>P :: ('t, 'e) reactive_angelic_design) = ChaosCSP\<^sub>A\<^sub>P"
+  have "Chaos\<^sub>A\<^sub>P (ades_obs True ?s0 True {})"
+    by (rule Chaos_AP_empty; simp)
+  then show False using eq ChaosCSP_AP_empty[of ?s0] by simp
+qed
+
+lemma Chaos_AP_same_RAD:
+  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+    RA1 ChaosCSP\<^sub>A\<^sub>P"
+  by (simp only: Chaos_AP_RA1 RA1_ChaosCSP_AP)
+
 subsection \<open>Choice\<close>
 
 (* Paper Definition 54. *)

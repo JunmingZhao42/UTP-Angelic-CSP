@@ -432,3 +432,15 @@ related declaration links.
 Focused PIDE checking passed for AD parallel (862 commands), with no errors,
 warnings, bad or unfinished commands. Documentation-link and whitespace
 checks passed. No batch build was run.
+
+## Move AP correspondence laws out of parallel
+
+8 November 2026. Moved ordinary reactive-design correspondence into AP RAD,
+Chaos laws into AP operators, and non-divergence results into AP ND.
+Renamed `ap_rad_roundtrip_NDAP` to `H1_RA1_NDAP_AP_healthy` and used explicit
+premises and conclusions for the two NDAP laws. Updated declaration links.
+
+Focused PIDE checking passed for AP RAD, operators, ND and parallel, with
+no errors, bad or unfinished commands. The existing warnings in operators
+and ND remain. Documentation-link and whitespace checks passed. No AP
+examples replay or batch build was run.

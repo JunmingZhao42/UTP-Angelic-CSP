@@ -241,4 +241,72 @@ proof -
     by (simp only: RA1_design_post[symmetric] RA_true_design)
 qed
 
+subsection \<open>Ordinary Reactive-Design Correspondence\<close>
+
+text \<open>The ordinary-to-AP map is H1 after p2ac. The AP-to-ordinary map is
+  ac2p after RA1. The reverse round trip is generally a refinement.\<close>
+
+lemma rad_p2ac_not_AP:
+  "\<not> (p2ac D is AP)"
+proof
+  assume "p2ac D is AP"
+  then have "p2ac D (ades_obs False s0 True {})" for s0
+    by (rule AP_healthy_not_ok_eval; simp)
+  then show False by (simp add: rad_p2ac_obs)
+qed
+
+lemma ap_rad_roundtrip_refine:
+  "P is AP \<Longrightarrow> P \<sqsubseteq> H1 (RA1 P)"
+proof -
+  assume assms: "P is AP"
+  show ?thesis
+  using H1_RA1_AP_refine[of P]
+    by (simp only: comp_apply Healthy_if[OF assms])
+qed
+
+lemma ap_ac2p_via_RA1:
+  "P is AP \<Longrightarrow> ac2p (RA1 P) = R1 (ac2p P)"
+proof -
+  assume assms: "P is AP"
+  show ?thesis
+  by (rule rad_ac2p_RA1[OF AP_is_PBMH_ades[OF assms], simplified comp_apply])
+qed
+
+lemma H1_A2_closure:
+  "P is A2 \<Longrightarrow> H1 P is A2"
+proof -
+  assume assms: "P is A2"
+  show ?thesis
+  apply (rule Healthy_intro, rule ades_obs_ext)
+    apply (simp only: A2_obs H1_obs)
+    using A2_obs[of P, simplified Healthy_if[OF assms]]
+    by blast
+qed
+
+lemma ap_from_RD:
+  "P is RD \<Longrightarrow> H1 (p2ac P) is AP"
+proof -
+  assume assms: "P is RD"
+  show ?thesis
+  by (rule H1_RAD_AP_closure[OF rad_p2ac_RD_closure[OF assms]])
+qed
+
+lemma ap_RD_roundtrip:
+  "P is RD \<Longrightarrow> ac2p (RA1 (H1 (p2ac P))) = P"
+proof -
+  assume assms: "P is RD"
+  show ?thesis
+  by (simp only: RA1_H1_RAD_healthy[OF rad_p2ac_RD_closure[OF assms],
+          simplified comp_apply] rad_ac2p_p2ac_inverse')
+qed
+
+lemma ap_RD_reverse_roundtrip:
+  "\<lbrakk> P is AP; P is A2 \<rbrakk> \<Longrightarrow> H1 (p2ac (ac2p (RA1 P))) = H1 (RA1 P)"
+proof -
+  assume assms: "P is AP" "P is A2"
+  show ?thesis
+  by (simp only: rad_p2ac_ac2p_RAD_A2'[
+        OF RA1_AP_RAD_closure[OF assms(1)] RA1_A2_closure[OF assms(2)]])
+qed
+
 end
