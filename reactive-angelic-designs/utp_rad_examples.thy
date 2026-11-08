@@ -822,7 +822,7 @@ proof -
     apply (simp add: ades_singleton_choice_def RA2_def RA1_def
         prefix_diverge_post_def prefix_offer_post_def
         prefix_offer_pair_post_def fun_eq_iff Let_def
-        rad_normalise_choices_as_prepend rad_zero_trace_def
+        rad_normalise_choices_as_prepend[unfolded rad_trace_prepend_def] rad_zero_trace_def
         rad_trace_extensions_def lens_defs des_vars.ok_def astate.s_def
         des_vars.more\<^sub>L_def SEXP_def conj_pred_def disj_pred_def
         not_pred_def)

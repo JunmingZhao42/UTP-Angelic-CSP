@@ -278,31 +278,6 @@ definition rad_normalise_choices ::
     z \<in> ac' \<and>
     rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v z}"
 
-lemma rad_normalise_choices_mono:
-  "ac' \<subseteq> X \<Longrightarrow>
-   rad_normalise_choices s0 ac' \<subseteq>
-   rad_normalise_choices s0 X"
-  by (auto simp add: rad_normalise_choices_def)
-
-lemma rad_trace_update_self [simp]:
-  "rad_tr\<^sub>v_update (\<lambda>_. rad_tr\<^sub>v z) z = z"
-  by (cases z) simp
-
-(* Normalising is the inverse image of prepending the initial trace. *)
-lemma rad_normalise_choices_as_prepend:
-  "rad_normalise_choices s0 ac' =
-   {s'. rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) s' \<in> ac'}"
-  apply (rule Set.set_eqI)
-  apply (auto simp add: rad_normalise_choices_def
-      rad_trace_difference_def comp_def diff_add_cancel_left'
-      intro!: exI[where x =
-        "rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) x" for x])
-  done
-
-lemma rad_trace_append_assoc:
-  "(\<lambda>x. t + (u + x)) = ((+) (t + u))" for t :: "'t::trace"
-  by (auto simp add: fun_eq_iff add.assoc)
-
 (* Paper Definition 29. *)
 (* RA2 P(ok, s, ok', ac') = P(ok, s[0/tr], ok', rad_normalise_choices s ac') *)
 definition RA2 ::
@@ -319,6 +294,76 @@ where [pred]: "RA2 P \<equiv> (\<lambda> (x, z).
       x' = des_vars.more_update (\<lambda>_. x_vars') x;
       z' = des_vars.more_update (\<lambda>_. z_vars') z
   in P (x', z'))"
+
+lemma RA2_obs':
+  "RA2 P (ades_obs ok0 s0 ok' ac') =
+    P (ades_obs ok0 (rad_zero_trace s0) ok' (rad_normalise_choices s0 ac'))"
+  by (simp add: RA2_def Let_def)
+
+lemma rad_normalise_choices_mono:
+  "ac' \<subseteq> X \<Longrightarrow>
+   rad_normalise_choices s0 ac' \<subseteq>
+   rad_normalise_choices s0 X"
+  by (auto simp add: rad_normalise_choices_def)
+
+lemma rad_zero_trace_idem [simp]:
+  "rad_zero_trace (rad_zero_trace s0) = rad_zero_trace s0"
+  by (cases s0; simp add: rad_zero_trace_def)
+
+lemma rad_trace_difference_zero [simp]:
+  "rad_trace_difference (rad_zero_trace s0) z = z"
+  by (cases s0; cases z; simp add: rad_trace_difference_def rad_zero_trace_def)
+
+lemma rad_zero_trace_wait [simp]:
+  "rad_wait\<^sub>v (rad_zero_trace s0) = rad_wait\<^sub>v s0"
+  by (simp add: rad_zero_trace_def)
+
+lemma rad_normalise_choices_zero [simp]:
+  "rad_normalise_choices (rad_zero_trace s0) ac' = ac'"
+  unfolding rad_normalise_choices_def
+  by (simp only: rad_trace_difference_zero; auto simp: rad_zero_trace_def)
+
+lemma rad_trace_update_self [simp]:
+  "rad_tr\<^sub>v_update (\<lambda>_. rad_tr\<^sub>v z) z = z"
+  by (cases z) simp
+
+(* Prefix the original history to a normalised trace. *)
+definition rad_trace_prepend ::
+  "('t::trace, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state \<Rightarrow> ('t, 'e) rad_state"
+where
+  "rad_trace_prepend s0 z \<equiv>
+    rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) z"
+
+(* Normalising is the inverse image of prepending the initial trace. *)
+lemma rad_normalise_choices_as_prepend:
+  "rad_normalise_choices s0 ac' =
+   {s'. rad_trace_prepend s0 s' \<in> ac'}"
+  apply (rule Set.set_eqI)
+  apply (auto simp add: rad_normalise_choices_def rad_trace_prepend_def
+      rad_trace_difference_def comp_def diff_add_cancel_left'
+      intro!: exI[where x =
+        "rad_tr\<^sub>v_update (\<lambda>tr. rad_tr\<^sub>v s0 + tr) x" for x])
+  done
+
+lemma rad_trace_difference_prepend:
+  "rad_trace_difference s0 (rad_trace_prepend s0 z) = z"
+  by (cases z; simp add: rad_trace_prepend_def rad_trace_difference_def)
+
+lemma rad_normalise_choices_prepend:
+  "rad_normalise_choices s0 (rad_trace_prepend s0 ` ac') = ac'"
+  by (auto simp: rad_normalise_choices_as_prepend;
+      metis rad_trace_difference_prepend)
+
+lemma RA2_trace_prepend_obs:
+  assumes "P is RA2"
+  shows "P (ades_obs ok0 s0 ok' (rad_trace_prepend s0 ` ac')) =
+    P (ades_obs ok0 (rad_zero_trace s0) ok' ac')"
+  by (subst Healthy_if[OF assms, symmetric];
+      simp add: RA2_obs' rad_normalise_choices_prepend)
+
+lemma rad_trace_append_assoc:
+  "(\<lambda>x. t + (u + x)) = ((+) (t + u))" for t :: "'t::trace"
+  by (auto simp add: fun_eq_iff add.assoc)
 
 lemma RA2_idem: "RA2 (RA2 P) = RA2 P"
   by (simp add: RA2_def rad_zero_trace_def rad_normalise_choices_def
@@ -357,7 +402,7 @@ lemma RA2_impl: "RA2 (P \<longrightarrow> Q) = (RA2 P \<longrightarrow> RA2 Q)"
 
 lemma RA2_state_choice: "RA2 ades_state_choice = ades_state_choice"
   by (simp add: RA2_def ades_state_choice_def Let_def fun_eq_iff
-      comp_def rad_normalise_choices_as_prepend rad_zero_trace_def)
+      comp_def rad_normalise_choices_as_prepend[unfolded rad_trace_prepend_def] rad_zero_trace_def)
 
 lemma RA2_unrest_ok_out [unrest]:
   "$ok\<^sup>> \<sharp> P \<Longrightarrow> $ok\<^sup>> \<sharp> RA2 P"
@@ -467,7 +512,7 @@ lemma RA1_RA2_ac_non_empty: "RA1 (RA2 ac_non_empty) = RA1 true"
 lemma RA2_aseq_distrib:
   "RA2 (P ;;\<^sub>A\<^sub>D RA2 Q) = (RA2 P ;;\<^sub>A\<^sub>D RA2 Q)"
   by (simp add: RA2_def aseq_ades_def Let_def fun_eq_iff comp_def
-      rad_normalise_choices_as_prepend rad_zero_trace_def
+      rad_normalise_choices_as_prepend[unfolded rad_trace_prepend_def] rad_zero_trace_def
       rad_trace_append_assoc)
 
 (* A reusable form of the RA2 transport used by reactive sequential
@@ -1281,6 +1326,9 @@ lemma H2_not_ok:
 
 lemma H2_RA1_commute: "H2 (RA1 P) = RA1 (H2 P)"
   by (simp add: H2_split RA1_def fun_eq_iff Let_def; pred_auto; blast)
+
+lemma H2_RA2_commute: "H2 (RA2 P) = RA2 (H2 P)"
+  by (rule ades_obs_ext; simp add: H2_obs RA2_obs')
 
 lemma H2_RA3_commute: "H2 (RA3 P) = RA3 (H2 P)"
   by (simp add: H2_split RA3_def II_Rac_def RA1_def expr_if_def
