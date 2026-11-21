@@ -33,3 +33,6 @@ temp/
 *.log
 *.json
 *.txt
+
+# Local Codex settings
+.codex/
