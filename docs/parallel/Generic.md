@@ -19,9 +19,11 @@ A merge reads a record [`mrg`](../../deps/UTP/utp_concurrency.thy#L24) of the pr
 left and right observations; [`merge`](../../deps/UTP/utp_concurrency.thy#L47) is the
 type of merges whose three parts and output share one alphabet.
 [`merge_eval`](../../deps/UTP/utp_concurrency.thy#L53) writes `M(x,p,q,z)`, and
-[`mergeable`](../../deps/UTP/utp_concurrency.thy#L63) says some output always exists.
-[`skip_m`](../../deps/UTP/utp_concurrency.thy#L68) returns the prior, and
-[`swap_m`](../../deps/UTP/utp_concurrency.thy#L79) swaps the two branches.
+[`mergeable`](../../deps/UTP/utp_concurrency.thy#L64) says some output always exists.
+UTP's [`Functional`](../../deps/UTP/utp_rel.thy#L264) says at most one output exists;
+[`Functional_merge_eval`](../../deps/UTP/utp_concurrency.thy#L72) states it with `merge_eval`.
+[`skip_m`](../../deps/UTP/utp_concurrency.thy#L105) returns the prior, and
+[`swap_m`](../../deps/UTP/utp_concurrency.thy#L116) swaps the two branches.
 
 ## Separating simulations
 
@@ -31,21 +33,21 @@ substitution laws for them.
 
 ## Parallel operator
 
-[`par_sep`](../../deps/UTP/utp_concurrency.thy#L223) runs both operands into a merge
-record, and [`par_by_merge`](../../deps/UTP/utp_concurrency.thy#L231) composes it with `M`:
+[`par_sep`](../../deps/UTP/utp_concurrency.thy#L260) runs both operands into a merge
+record, and [`par_by_merge`](../../deps/UTP/utp_concurrency.thy#L268) composes it with `M`:
 
 ```isabelle
 P ∥[M] Q = (P ∥s Q) ;; M
 ```
 
 The theory then gives unrestriction and substitution laws, and the basic
-algebra: [`par_by_merge_eval`](../../deps/UTP/utp_concurrency.thy#L282) is the evaluation
+algebra: [`par_by_merge_eval`](../../deps/UTP/utp_concurrency.thy#L319) is the evaluation
 above, false is absorbing, and a skip merge of feasible operands is `II`.
 
 ## Symmetry and associativity
 
-[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L323) and
-[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L334):
+[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L360) and
+[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L371):
 
 ```isabelle
 (* we can swap the positions of p and q branches *)
@@ -66,7 +68,7 @@ AssocMerge M ↔ ∀x p q r z.
 M is SymMerge ∧ AssocMerge M ⟹ (P ∥[M] Q) ∥[M] R = P ∥[M] (Q ∥[M] R)
 ```
 
-[`AssocMerge`](../../deps/UTP/utp_concurrency.thy#L215) itself is defined by rotating
+[`AssocMerge`](../../deps/UTP/utp_concurrency.thy#L252) itself is defined by rotating
 the inputs of a three-way merge, hence the cyclic form.
 
 ## Associativity on nondivergent operands

@@ -387,6 +387,320 @@ proof -
             A_ac2p_NDD[OF a A_preserves_NDAD[OF operands(3) nondiv(3)]] merge]])
 qed
 
+text \<open>For a deterministic (Functional) merge we get associativity for all operands,
+  without A2 or nondivergence: (P \<parallel> Q) \<parallel> R = P \<parallel> (Q \<parallel> R).
+  At a started prior, P \<parallel> Q diverges when one side diverges and the other has an
+  observation; otherwise it offers the merges of every pair of offered states.\<close>
+
+context
+begin
+
+(* P may diverge from s0 with a nonempty set *)
+private definition div_at :: "'s angelic_design \<Rightarrow> 's \<Rightarrow> bool" where
+  "div_at P s0 \<equiv> (\<exists>X. X \<noteq> {} \<and> P (ades_obs True s0 False X))"
+
+(* P terminates from s0 offering the nonempty set X *)
+private definition term_at :: "'s angelic_design \<Rightarrow> 's \<Rightarrow> 's set \<Rightarrow> bool" where
+  "term_at P s0 X \<equiv> X \<noteq> {} \<and> P (ades_obs True s0 True X)"
+
+(* P has some started observation with a nonempty set *)
+private definition obs_at :: "'s angelic_design \<Rightarrow> 's \<Rightarrow> bool" where
+  "obs_at P s0 \<equiv> (\<exists>ok' X. X \<noteq> {} \<and> P (ades_obs True s0 ok' X))"
+
+private lemma obs_at_iff: "obs_at P s0 \<longleftrightarrow> div_at P s0 \<or> (\<exists>X. term_at P s0 X)"
+proof
+  assume "obs_at P s0"
+  then obtain ok' X where h: "X \<noteq> {}" "P (ades_obs True s0 ok' X)" unfolding obs_at_def by blast
+  show "div_at P s0 \<or> (\<exists>X. term_at P s0 X)"
+  proof (cases ok')
+    case True
+    then have "term_at P s0 X" using h unfolding term_at_def by simp
+    then show ?thesis by (intro disjI2 exI)
+  next
+    case False
+    then have "div_at P s0" using h unfolding div_at_def by (intro exI[where x=X]) simp
+    then show ?thesis by (rule disjI1)
+  qed
+next
+  assume "div_at P s0 \<or> (\<exists>X. term_at P s0 X)"
+  then show "obs_at P s0"
+  proof
+    assume "div_at P s0"
+    then obtain X where "X \<noteq> {}" "P (ades_obs True s0 False X)" unfolding div_at_def by blast
+    then show "obs_at P s0" unfolding obs_at_def by (intro exI[where x=False] exI[where x=X]) simp
+  next
+    assume "\<exists>X. term_at P s0 X"
+    then obtain X where "X \<noteq> {}" "P (ades_obs True s0 True X)" unfolding term_at_def by blast
+    then show "obs_at P s0" unfolding obs_at_def by (intro exI[where x=True] exI[where x=X]) simp
+  qed
+qed
+
+(* both branches start; a divergent pair releases everything *)
+private abbreviation div_pair :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's \<Rightarrow> bool" where
+  "div_pair P Q s0 \<equiv> (div_at P s0 \<and> obs_at Q s0) \<or> (obs_at P s0 \<and> div_at Q s0)"
+
+private lemma par_obs_raw:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
+    (\<exists>okL acL okR acR. P (ades_obs ok0 s0 okL acL) \<and> Q (ades_obs ok0 s0 okR acR) \<and>
+      (ok0 \<longrightarrow> acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+        (okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'))))"
+  by (cases ok0; simp add: ades_par_def par_by_merge_eval choices_ex merge_ades_obs[simplified] f;
+      blast)
+
+private lemma par_obs_unstarted:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs False s0 ok' ac') \<longleftrightarrow>
+    (\<exists>k X. P (ades_obs False s0 k X)) \<and> (\<exists>k X. Q (ades_obs False s0 k X))"
+  by (simp only: par_obs_raw[OF f]) blast
+
+private lemma par_obs_started:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs True s0 ok' ac') \<longleftrightarrow>
+    div_pair P Q s0 \<or>
+    (ok' \<and> (\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac')))"
+  (is "_ \<longleftrightarrow> ?R")
+proof (simp only: par_obs_raw[OF f] simp_thms, rule iffI)
+  assume "\<exists>okL acL okR acR. P (ades_obs True s0 okL acL) \<and> Q (ades_obs True s0 okR acR) \<and>
+      acL \<noteq> {} \<and> acR \<noteq> {} \<and> (okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'))"
+  then obtain okL acL okR acR where hP: "P (ades_obs True s0 okL acL)" and hQ: "Q (ades_obs True s0 okR acR)"
+    and ne1: "acL \<noteq> {}" and ne2: "acR \<noteq> {}"
+    and m: "okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac')"
+    by blast
+  have neP: "obs_at P s0" unfolding obs_at_def by (intro exI[where x=okL] exI[where x=acL] conjI ne1 hP)
+  have neQ: "obs_at Q s0" unfolding obs_at_def by (intro exI[where x=okR] exI[where x=acR] conjI ne2 hQ)
+  show ?R
+  proof (cases okL)
+    case False
+    then have "div_at P s0" unfolding div_at_def using hP ne1 by (intro exI[where x=acL]) simp
+    then show ?R using neQ by blast
+  next
+    case okl: True
+    show ?R
+    proof (cases okR)
+      case False
+      then have "div_at Q s0" unfolding div_at_def using hQ ne2 by (intro exI[where x=acR]) simp
+      then show ?R using neP by blast
+    next
+      case True
+      have "term_at P s0 acL" "term_at Q s0 acR" unfolding term_at_def using okl True hP hQ ne1 ne2 by simp_all
+      moreover have "ok'" "\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'" using m okl True by simp_all
+      ultimately show ?R by (intro disjI2 conjI exI[where x=acL] exI[where x=acR]) simp_all
+    qed
+  qed
+next
+  assume r: ?R
+  show "\<exists>okL acL okR acR. P (ades_obs True s0 okL acL) \<and> Q (ades_obs True s0 okR acR) \<and>
+      acL \<noteq> {} \<and> acR \<noteq> {} \<and> (okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'))"
+  proof -
+    { assume "div_at P s0" "obs_at Q s0"
+      then obtain X okR Y where "X \<noteq> {}" "P (ades_obs True s0 False X)"
+          "Y \<noteq> {}" "Q (ades_obs True s0 okR Y)" unfolding div_at_def obs_at_def by blast
+      then have ?thesis by (intro exI[where x=False] exI[where x=X] exI[where x=okR] exI[where x=Y]) simp }
+    moreover
+    { assume "obs_at P s0" "div_at Q s0"
+      then obtain X okL Y where "Y \<noteq> {}" "Q (ades_obs True s0 False Y)"
+          "X \<noteq> {}" "P (ades_obs True s0 okL X)" unfolding div_at_def obs_at_def by blast
+      then have ?thesis by (intro exI[where x=okL] exI[where x=X] exI[where x=False] exI[where x=Y]) simp }
+    moreover
+    { assume "ok'" "\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac')"
+      then obtain acL acR where h: "term_at P s0 acL" "term_at Q s0 acR" "\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'" by blast
+      then have ?thesis using \<open>ok'\<close> unfolding term_at_def
+        by (intro exI[where x=True] exI[where x=acL] exI[where x=True] exI[where x=acR]) simp }
+    ultimately show ?thesis using r by blast
+  qed
+qed
+
+private lemma ex_nonempty_set: "(\<exists>X::'a set. X \<noteq> {} \<and> D) \<longleftrightarrow> D"
+  by (auto intro: exI[where x=UNIV])
+
+private lemma div_at_par:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "div_at (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) s0 \<longleftrightarrow> div_pair P Q s0"
+  by (simp only: div_at_def[of "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q"] par_obs_started[OF f] simp_thms ex_nonempty_set)
+
+private lemma term_at_par:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "term_at (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) s0 Y \<longleftrightarrow> Y \<noteq> {} \<and>
+    (div_pair P Q s0 \<or> (\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> Y)))"
+  by (simp only: term_at_def[of "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q"] par_obs_started[OF f] simp_thms)
+
+private lemma obs_at_par:
+  fixes j :: "'s merge" and f :: "'s \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's"
+  assumes f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  shows "obs_at (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) s0 \<longleftrightarrow> div_pair P Q s0 \<or> (\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR)"
+  (is "_ \<longleftrightarrow> ?D \<or> ?T")
+proof (simp only: obs_at_iff[of "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q"] div_at_par[OF f] term_at_par[OF f], rule iffI)
+  assume "?D \<or> (\<exists>Y. Y \<noteq> {} \<and> (?D \<or> (\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and>
+      (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> Y))))"
+  then show "?D \<or> ?T" by blast
+next
+  assume "?D \<or> ?T"
+  then show "?D \<or> (\<exists>Y. Y \<noteq> {} \<and> (?D \<or> (\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and>
+      (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> Y))))"
+  proof
+    assume ?T
+    then have h: "\<exists>acL acR. term_at P s0 acL \<and> term_at Q s0 acR \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> UNIV)"
+      by simp
+    show ?thesis by (rule disjI2, rule exI[where x=UNIV]) (use h in simp)
+  qed (rule disjI1)
+qed
+
+private lemma flat_left:
+  assumes neP: "\<And>X. TP X \<Longrightarrow> X \<noteq> {}" and neQ: "\<And>X. TQ X \<Longrightarrow> X \<noteq> {}"
+  shows "(\<exists>Y XC. (Y \<noteq> {} \<and> (D \<or> (\<exists>XL XR. TP XL \<and> TQ XR \<and> (\<forall>a\<in>XL. \<forall>b\<in>XR. f a b \<in> Y)))) \<and>
+      TR XC \<and> (\<forall>u\<in>Y. \<forall>c\<in>XC. f u c \<in> Z)) \<longleftrightarrow>
+   (D \<and> (\<exists>XC. TR XC \<and> (\<exists>Y. Y \<noteq> {} \<and> (\<forall>u\<in>Y. \<forall>c\<in>XC. f u c \<in> Z)))) \<or>
+   (\<exists>XL XR XC. TP XL \<and> TQ XR \<and> TR XC \<and>
+      (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f (f a b) c \<in> Z))"
+  (is "?L \<longleftrightarrow> ?R")
+proof
+  assume ?L
+  then obtain Y XC where y: "Y \<noteq> {}"
+    and dd: "D \<or> (\<exists>XL XR. TP XL \<and> TQ XR \<and> (\<forall>a\<in>XL. \<forall>b\<in>XR. f a b \<in> Y))"
+    and tr: "TR XC" and z: "\<forall>u\<in>Y. \<forall>c\<in>XC. f u c \<in> Z"
+    by blast
+  from dd show ?R
+  proof
+    assume "D"
+    with y tr z show ?R by (intro disjI1 conjI exI[where x=XC]) (auto intro!: exI[where x=Y])
+  next
+    assume "\<exists>XL XR. TP XL \<and> TQ XR \<and> (\<forall>a\<in>XL. \<forall>b\<in>XR. f a b \<in> Y)"
+    then obtain XL XR where "TP XL" "TQ XR" and img: "\<forall>a\<in>XL. \<forall>b\<in>XR. f a b \<in> Y" by blast
+    moreover have "\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f (f a b) c \<in> Z"
+      using img z by simp
+    ultimately show ?R using tr by (intro disjI2 exI[where x=XL] exI[where x=XR] exI[where x=XC] conjI)
+  qed
+next
+  assume ?R
+  then show ?L
+  proof
+    assume "D \<and> (\<exists>XC. TR XC \<and> (\<exists>Y. Y \<noteq> {} \<and> (\<forall>u\<in>Y. \<forall>c\<in>XC. f u c \<in> Z)))"
+    then obtain XC Y where "D" "TR XC" "Y \<noteq> {}" "\<forall>u\<in>Y. \<forall>c\<in>XC. f u c \<in> Z" by blast
+    then show ?L by (intro exI[where x=Y] exI[where x=XC] conjI disjI1)
+  next
+    assume "\<exists>XL XR XC. TP XL \<and> TQ XR \<and> TR XC \<and>
+      (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f (f a b) c \<in> Z)"
+    then obtain XL XR XC where h: "TP XL" "TQ XR" "TR XC"
+      and t: "\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f (f a b) c \<in> Z" by blast
+    obtain a0 b0 where "a0 \<in> XL" "b0 \<in> XR" using neP[OF h(1)] neQ[OF h(2)] by blast
+    then have img_ne: "{f a b | a b. a \<in> XL \<and> b \<in> XR} \<noteq> {}" by blast
+    have img: "\<forall>a\<in>XL. \<forall>b\<in>XR. f a b \<in> {f a b | a b. a \<in> XL \<and> b \<in> XR}" by blast
+    have z: "\<forall>u\<in>{f a b | a b. a \<in> XL \<and> b \<in> XR}. \<forall>c\<in>XC. f u c \<in> Z" using t by blast
+    show ?L
+      by (rule exI[where x="{f a b | a b. a \<in> XL \<and> b \<in> XR}"], rule exI[where x=XC])
+         (use img_ne img z h in blast)
+  qed
+qed
+
+private lemma flat_right:
+  assumes neQ: "\<And>X. TQ X \<Longrightarrow> X \<noteq> {}" and neR: "\<And>X. TR X \<Longrightarrow> X \<noteq> {}"
+  shows "(\<exists>XL Y. TP XL \<and> (Y \<noteq> {} \<and> (D \<or> (\<exists>XR XC. TQ XR \<and> TR XC \<and> (\<forall>b\<in>XR. \<forall>c\<in>XC. f b c \<in> Y)))) \<and>
+      (\<forall>a\<in>XL. \<forall>v\<in>Y. f a v \<in> Z)) \<longleftrightarrow>
+   (D \<and> (\<exists>XL. TP XL \<and> (\<exists>Y. Y \<noteq> {} \<and> (\<forall>a\<in>XL. \<forall>v\<in>Y. f a v \<in> Z)))) \<or>
+   (\<exists>XL XR XC. TP XL \<and> TQ XR \<and> TR XC \<and>
+      (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f a (f b c) \<in> Z))"
+  (is "?L \<longleftrightarrow> ?R")
+proof
+  assume ?L
+  then obtain XL Y where tp: "TP XL" and y: "Y \<noteq> {}"
+    and dd: "D \<or> (\<exists>XR XC. TQ XR \<and> TR XC \<and> (\<forall>b\<in>XR. \<forall>c\<in>XC. f b c \<in> Y))"
+    and z: "\<forall>a\<in>XL. \<forall>v\<in>Y. f a v \<in> Z"
+    by blast
+  from dd show ?R
+  proof
+    assume "D"
+    with y tp z show ?R by (intro disjI1 conjI exI[where x=XL]) (auto intro!: exI[where x=Y])
+  next
+    assume "\<exists>XR XC. TQ XR \<and> TR XC \<and> (\<forall>b\<in>XR. \<forall>c\<in>XC. f b c \<in> Y)"
+    then obtain XR XC where "TQ XR" "TR XC" and img: "\<forall>b\<in>XR. \<forall>c\<in>XC. f b c \<in> Y" by blast
+    moreover have "\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f a (f b c) \<in> Z"
+      using img z by simp
+    ultimately show ?R using tp by (intro disjI2 exI[where x=XL] exI[where x=XR] exI[where x=XC] conjI)
+  qed
+next
+  assume ?R
+  then show ?L
+  proof
+    assume "D \<and> (\<exists>XL. TP XL \<and> (\<exists>Y. Y \<noteq> {} \<and> (\<forall>a\<in>XL. \<forall>v\<in>Y. f a v \<in> Z)))"
+    then obtain XL Y where "D" "TP XL" "Y \<noteq> {}" "\<forall>a\<in>XL. \<forall>v\<in>Y. f a v \<in> Z" by blast
+    then show ?L by (intro exI[where x=XL] exI[where x=Y] conjI disjI1)
+  next
+    assume "\<exists>XL XR XC. TP XL \<and> TQ XR \<and> TR XC \<and>
+      (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f a (f b c) \<in> Z)"
+    then obtain XL XR XC where h: "TP XL" "TQ XR" "TR XC"
+      and t: "\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>c\<in>XC. f a (f b c) \<in> Z" by blast
+    obtain b0 c0 where "b0 \<in> XR" "c0 \<in> XC" using neQ[OF h(2)] neR[OF h(3)] by blast
+    then have img_ne: "{f b c | b c. b \<in> XR \<and> c \<in> XC} \<noteq> {}" by blast
+    have img: "\<forall>b\<in>XR. \<forall>c\<in>XC. f b c \<in> {f b c | b c. b \<in> XR \<and> c \<in> XC}" by blast
+    have z: "\<forall>a\<in>XL. \<forall>v\<in>{f b c | b c. b \<in> XR \<and> c \<in> XC}. f a v \<in> Z" using t by blast
+    show ?L
+      by (rule exI[where x=XL], rule exI[where x="{f b c | b c. b \<in> XR \<and> c \<in> XC}"])
+         (use img_ne img z h in blast)
+  qed
+qed
+
+private lemma ex_pair_split: "(\<exists>XL XR. G1 XL \<and> G2 XR) \<longleftrightarrow> (\<exists>X. G1 X) \<and> (\<exists>X. G2 X)"
+  by blast
+
+theorem ades_par_assoc_det:
+  fixes j :: "'s merge" and P Q R :: "'s angelic_design"
+  assumes det: "Functional j" and tot: "mergeable j"
+    and sym: "j is SymMerge" and assoc: "AssocMerge j"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+proof -
+  obtain f where f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+    using mergeable_Functional_fun[OF tot det] by blast
+  have fsym: "f s p q = f s q p" for s p q
+    using sym f unfolding SymMerge_eval by metis
+  have fassoc: "f s (f s a b) c = f s a (f s b c)" for s a b c
+  proof -
+    have "f s (f s a b) c = f s (f s b c) a"
+      using assoc[unfolded AssocMerge_iff, rule_format, of s a b c "f s (f s a b) c"]
+      by (simp add: f)
+    then show ?thesis by (simp add: fsym[of s _ a])
+  qed
+  note obs = par_obs_unstarted[OF f] par_obs_started[OF f]
+    div_at_par[OF f] term_at_par[OF f] obs_at_par[OF f]
+  have term_nonempty: "term_at X s0 Y \<Longrightarrow> Y \<noteq> {}" for X :: "'s angelic_design" and s0 Y
+    by (simp add: term_at_def)
+  show ?thesis
+  proof (rule ades_obs_ext)
+    fix ok0 s0 ok' ac'
+    show "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) (ades_obs ok0 s0 ok' ac') =
+          (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)) (ades_obs ok0 s0 ok' ac')"
+    proof (cases ok0)
+      case False
+      then show ?thesis by (simp only: obs) blast
+    next
+      case True
+      let ?D3 = "(div_at P s0 \<and> obs_at Q s0 \<and> obs_at R s0) \<or> (obs_at P s0 \<and> div_at Q s0 \<and> obs_at R s0) \<or>
+                 (obs_at P s0 \<and> obs_at Q s0 \<and> div_at R s0)"
+      have left: "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) (ades_obs True s0 ok' ac') \<longleftrightarrow>
+          ?D3 \<or> (ok' \<and> (\<exists>XL XR XC. term_at P s0 XL \<and> term_at Q s0 XR \<and> term_at R s0 XC \<and>
+             (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>e\<in>XC. f s0 (f s0 a b) e \<in> ac')))"
+        apply (simp only: obs flat_left[where f="f s0", OF term_nonempty term_nonempty])
+        apply (simp only: obs_at_iff ex_pair_split)
+        by blast
+      have right: "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)) (ades_obs True s0 ok' ac') \<longleftrightarrow>
+          ?D3 \<or> (ok' \<and> (\<exists>XL XR XC. term_at P s0 XL \<and> term_at Q s0 XR \<and> term_at R s0 XC \<and>
+             (\<forall>a\<in>XL. \<forall>b\<in>XR. \<forall>e\<in>XC. f s0 a (f s0 b e) \<in> ac')))"
+        apply (simp only: obs flat_right[where f="f s0", OF term_nonempty term_nonempty])
+        apply (simp only: obs_at_iff ex_pair_split)
+        by blast
+      show ?thesis
+        using True by (simp only: left right fassoc)
+    qed
+  qed
+qed
+
+end
+
 subsubsection \<open>Example: Skip Merge\<close>
 
 text \<open>With two terminating branch observations, the skip state merge requires

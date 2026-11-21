@@ -132,6 +132,7 @@ Its algebraic laws:
 | `P ∥AD[j] Q = Q ∥AD[j] P` | - | `SymMerge` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel_lift.thy#L281) |
 | `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2` | `SymMerge`, `AssocMerge`, `mergeable` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel_lift.thy#L351) |
 | `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2`, `NDAD` | `SymMerge`, `AssocMerge` | [`ades_par_assoc_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L368) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | - | `SymMerge`, `AssocMerge`, `mergeable`, `Functional` | [`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L651) |
 | `P ∥AD[j] Miracle =`<br>`Miracle ∥AD[j] P = Miracle` | `P is H1` | - | [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_lift.thy#L266) |
 | `Chaos ∥AD[j] Chaos = Chaos` | - | `∀s. ∃sL sR u. j(s,sL,sR,u)`<br>(`mergeable j` suffices) | [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel_lift.thy#L247) |
 
@@ -139,6 +140,13 @@ The associativity laws transfer [`des_par_assoc`](../../deps/UTP-Designs/utp_des
 and [`des_par_assoc_nd`](../../deps/UTP-Designs/utp_des_nd.thy#L100) to AD through
 [`ades_lift_par_assoc_transfer`](../../angelic-designs/utp_ades_parallel_lift.thy#L291):
 for `A`, `A2` operands, AD associativity follows from D associativity of their `ac2p` images.
+These two laws only cover operands without angelic choice.
+
+[`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L651) needs no
+operand premise. A mergeable, `Functional` (deterministic) `j` is a function `f`, so both bracketings
+offer `ac'` when `f(f(sP,sQ),sR) = f(sP,f(sQ,sR))` lies in `ac'` for every triple of
+offered states. With a nondeterministic `j`, associativity can fail as soon as one
+operand has angelic choice; with a partial `j`, it can fail once an operand diverges.
 
 Chaos is `true`, and Miracle is `A false = ¬ok`.
 

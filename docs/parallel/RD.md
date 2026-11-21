@@ -37,7 +37,7 @@ ORDm ≡ RD1m ∘ R3cm ∘ R2m ∘ RD2
 NDRDm M ≡ M ∧ (ok ∧ ¬wait ∧ okL ∧ okR ⟶ ok')
 ```
 
-[`skipₘ`](../../deps/UTP/utp_concurrency.thy#L68) preserves the prior whole
+[`skipₘ`](../../deps/UTP/utp_concurrency.thy#L105) preserves the prior whole
 observation, so `RD1m skipₘ` is the merge form of the reactive skip
 [`II_C`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L50).
 Upstream [`R3m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L230) uses plain `skipₘ`

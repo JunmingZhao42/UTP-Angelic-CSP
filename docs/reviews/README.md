@@ -25,6 +25,12 @@ scratch files keep the old names and no longer load against the current theory.
 - [AD merge transformers](2026-10-30-ad-merge-healthiness/README.md), now `A2m`
   and, split, `A0m` and `A1m`.
 
+Scratch work behind the associativity of AD parallel for operands with angelic
+choice. Its theory builds against the current development.
+
+- [Associativity of AD parallel beyond A2](2026-11-21-ad-parallel-assoc/README.md):
+  a counterexample for a nondeterministic merge and brute-force checks.
+
 ## Stage 0a: baseline audit
 
 30 October 2026, at `8aaa682` on `research/parallel2` with uncommitted work.
