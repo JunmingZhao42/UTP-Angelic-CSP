@@ -104,8 +104,8 @@ runtime installation/profile, and complete processing of the loaded theories.
 Passing those regressions establishes only that those examples are blocked.
 It does not establish that Isabelle has no other soundness defects.
 
-Raw logs, source hashes, patches and recoverable snapshots are local and ignored,
-under `audits/reviews/2026-11-11-isabelle2026-patched/`. Compatibility edits adapt
+Raw logs, source hashes, patches and recoverable snapshots are kept locally,
+outside the repository. Compatibility edits adapt
 ML APIs, replace one removed solver-helper reference, make AP symmetry rules
 explicit, and prove `H1_A2_closure` at its unchanged general type. Statements,
 premises and definitions are preserved. Existing upstream SMT proofs were
@@ -116,10 +116,10 @@ updated checkout because its existing filter omits the split parallel filenames.
 A paper-only proof build was not part of this verification.
 
 For rollback, review the upgrade-only diff and restore only its allowlisted files
-from `initial/working-files.tar.gz`, preserving any later edits. Restore the saved
+from the snapshot's `initial/working-files.tar.gz`, preserving any later edits. Restore the saved
 project MCP configuration, then select `/Applications/Isabelle2025-2.app/bin/isabelle`
 and `utp-2025-2`. During initial GUI approval, the inherited old identifier caused
 a cache collision; its Pure/HOL images were subsequently rebuilt with the
 unchanged 2025-2 executable, with user approval. Their bytes and logs differ from
-the original cache; other recorded old caches and settings are preserved.
-Those dependent caches may need a rebuild after rollback.
+the original cache. The saved copies of the old heaps were deleted on
+22 November 2026, so dependent sessions need a rebuild after rollback.

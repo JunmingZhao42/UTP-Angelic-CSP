@@ -8,11 +8,11 @@ Keep the reader's docs small. Working records go where they cannot pile up.
 | --- | --- |
 | Reader guides | `docs/paper/` and `docs/parallel/`; update them in place. |
 | Open tasks and undecided questions | `PLAN.md` for the parallel plan; GitHub issues for other work. |
-| Finished stage | One short entry in `docs/reviews/README.md`: what changed and how it was checked. |
-| Full stage write-up and raw evidence: PIDE and batch output, logs, hashes, patches, `.before` copies | `audits/reviews/<YYYY-MM-DD>-<stage>/`, which is gitignored. |
-| Write-up of unfinished work that `PLAN.md` depends on | `docs/reviews/<YYYY-MM-DD>-<topic>/README.md` until that item closes; then reduce it to a log entry. |
-| Session handoffs | Not in `docs/`. Move open items into `PLAN.md` or an issue; keep any other notes in `audits/handoffs/`. |
-| Superseded notes | Fold anything still true into the guide that owns it, then delete the note or move it to `audits/retired-docs/`. |
+| Finished work | The commit message. Do not add a log entry; remove finished items from `PLAN.md`. |
+| Evidence an open `PLAN.md` item depends on: write-up, scratch theories, scripts | `docs/reviews/<YYYY-MM-DD>-<topic>/`, listed in `docs/reviews/README.md`. When the item is settled, install the result or state it in the owning guide, then delete the folder. |
+| Raw evidence: PIDE and batch output, logs, hashes, patches, `.before` copies | Outside the repository. Never commit it. |
+| Session handoffs | Not in `docs/`. Move open items into `PLAN.md` or an issue. |
+| Superseded notes | Fold anything still true into the guide that owns it, then delete the note. |
 
 ## Rules
 
@@ -26,8 +26,7 @@ Keep the reader's docs small. Working records go where they cannot pile up.
 - Keep `docs/parallel/` as concise references to definitions, laws, premises and
   open questions. Put shared notation in its README; use tables only for useful
   comparisons. Add theory walkthroughs and proof explanations only when requested.
-- A scratch proof that `PLAN.md` relies on must not exist only as evidence:
-  `*.txt`, `*.json` and `*.log` are gitignored. Save it as
-  `docs/reviews/<YYYY-MM-DD>-<stage>/scratch.thy`, or install it.
+- A scratch proof that `PLAN.md` relies on must build: save it as a theory in
+  its `docs/reviews/` folder with a `ROOT` session, or install it.
 - Before finishing a documentation change, run `./scripts/check-doc-links.py`
   and fix what it reports.
