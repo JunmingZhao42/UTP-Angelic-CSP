@@ -416,6 +416,19 @@ Stage 5d is not a prerequisite for AP specialisation.
   retaining its explicit AP/A2 premises; the ORDm merge premises are gone.
 - [ ] Transfer associativity at the scope available from 5c; pursue a broader
   law only if 5d supplies one.
+- [ ] Decide how angelic choice should behave against a synchronising partner.
+  The shared choice-set lift needs a merge for every pair of kept-open
+  alternatives, so with a synchronising RAD merge
+  `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))` never progresses past the choice, and an
+  AD equality merge makes the analogous composition infeasible. The lift is
+  canonical: every merge on choice sets that never gains from larger branch sets
+  and merges single states no more than the inner merge refines it
+  (`par_lift_canonical`), so no such lift avoids the blocking or gives the blind
+  product. Options: keep the lift and document that angelic choice does not
+  cooperate with synchronisation (use external choice for that); change angelic
+  choice at the process level; or drop up-closure for parallel operands. Check AP
+  and waiting priors before deciding. See the
+  [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md).
 - [ ] Update the guides and retire superseded historical notes.
 
 ## Remaining decisions
@@ -423,6 +436,7 @@ Stage 5d is not a prerequisite for AP specialisation.
 - Stage 0b: where generic par-by-merge lemmas should live.
 - Stage 4: whether associativity beyond NDRD operands is needed.
 - Stage 5c: whether qualified Chaos and Miracle laws are needed for the selected merge.
+- Stage 6: whether angelic choice should cooperate with a synchronising partner; the choice-set lift itself is canonical.
 
 The shared `j` interface and completion orders are selected. The upstream
 unit-state comparison is proved for ordinary RD and is not a prerequisite for

@@ -25,6 +25,13 @@ scratch files keep the old names and no longer load against the current theory.
 - [AD merge transformers](2026-10-30-ad-merge-healthiness/README.md), now `A2m`
   and, split, `A0m` and `A1m`.
 
+Scratch work behind the Stage 6 decision on angelic choice in parallel. Its
+theories build against the current development.
+
+- [Geometry of AD parallel](2026-11-20-ad-parallel-geometry/README.md):
+  refinement laws for `∥AD[j]`, canonicity of the choice-set lift, and the
+  blocking of angelic choice by synchronising merges.
+
 Scratch work behind the associativity of AD parallel for operands with angelic
 choice. Its theory builds against the current development.
 
