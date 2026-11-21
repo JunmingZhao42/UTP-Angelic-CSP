@@ -32,9 +32,13 @@ identify distinct divergent processes. See the [parallel guide](docs/parallel/RE
 
 ## Build
 
-Use **Isabelle2025-2** and the dependency commits pinned in `deps/`.
-The submodules use GitHub SSH URLs. Most come from `isabelle-utp`;
-Optics uses the compatibility fork recorded in [.gitmodules](.gitmodules).
+Use **Isabelle2026 (revision `096842708b28`) with the published kernel fix**
+and the dependency revisions in `deps/`. The fix changes `bicompose_aux`
+in `src/Pure/thm.ML`; an unpatched Isabelle2026 installation is insufficient.
+See [patched installation setup](docs/tools/isabelle2026-patched.md).
+The submodules use GitHub SSH URLs. Abstract_Prog_Syntax comes from
+`isabelle-utp`; the others use the forks recorded in [.gitmodules](.gitmodules),
+which carry this development's changes and the Isabelle2026 compatibility edits.
 
 ### Setup
 
@@ -42,9 +46,10 @@ From the repository root, set the executable and profile:
 
 ```bash
 export PROJECT_DIR="$PWD"
-export ISABELLE="/path/to/Isabelle2025-2/bin/isabelle"
-export UTP_PROFILE="utp-2025-2"
+export ISABELLE="$HOME/Applications/Isabelle2026-patched.app/bin/isabelle"
+export UTP_PROFILE="utp-2026-patched"
 
+# On a fresh clone only: this resets submodules to the recorded commits.
 git submodule sync --recursive
 git submodule update --init --recursive
 ```

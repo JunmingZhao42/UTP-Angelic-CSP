@@ -1,5 +1,5 @@
 theory tmp_pide_mcp_scratch_ades_generic_closure
-  imports "UTP-Angelic-Designs.utp_ades_parallel"
+  imports "UTP-Angelic-Designs.utp_ades_parallel_lift"
 begin
 
 lemma generic_H1:

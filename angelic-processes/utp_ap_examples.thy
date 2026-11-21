@@ -132,7 +132,7 @@ proof -
     by (simp only: PrefixSkip_AP_design pred_ba.compl_bot_eq
         expr_if_idem)
   have chaoscsp_shape:
-    "(ChaosCSP\<^sub>A\<^sub>P :: ('e list, 'e) reactive_angelic_design) =
+    "(ChaosCSP\<^sub>A\<^sub>P :: ('e list, 'e) angelic_process) =
      ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA1 true)) \<turnstile>
       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> false))"
     apply (simp only: ChaosCSP_AP_design)

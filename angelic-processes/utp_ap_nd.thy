@@ -7,8 +7,8 @@ begin
 subsection \<open>NDAP\<close>
 
 (* Paper Definition 49 / Thesis Definition 130. *)
-definition NDAP :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) reactive_angelic_design" where
+definition NDAP :: "('t::trace, 'e) angelic_process \<Rightarrow>
+   ('t, 'e) angelic_process" where
 [pred]: "NDAP P = Choice\<^sub>A\<^sub>P \<squnion>\<^sub>A\<^sub>P P"
 
 lemma NDAP_conj: "NDAP P = (Choice\<^sub>A\<^sub>P \<and> P)"
@@ -60,7 +60,7 @@ proof -
     using AP_wait_false_ok_false[of P] AP_wait_false_ok_true[of P]
     by (simp only: Healthy_if[OF assms])
   have absorb: "(?A \<or> ?B) = ?B"
-    by (simp only: PBMH_ades_disj[symmetric] proj impl_absorb)
+    by (simp only: PBMH_ades_disj[THEN sym] proj impl_absorb)
 
   have "NDAP P = (Choice\<^sub>A\<^sub>P \<and> AP P)"
     by (simp only: NDAP_conj Healthy_if[OF assms])

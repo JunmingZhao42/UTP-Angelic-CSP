@@ -7,21 +7,21 @@ between the published operators and this repository's lifting.
 
 ## Divergence and infeasibility
 
-[D](D.md#state-merge-lifting) and [AD](AD.md#lifting-a-state-merge) release
+[D](D.md#lifted-merge-and-laws) and [AD](AD.md#lifted-merge-and-laws) release
 the final observation after divergence but retain branch and merge feasibility.
 Completed RD parallel additionally requires a merged witness whose trace is
 a prefix of the final trace, through the completed
-[merge_rd](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L132).
-The pinned [rdes_parallel_Chaos_iff](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L495)
+[`merge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L132).
+The pinned [`rdes_parallel_Chaos_iff`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L495)
 gives the exact Chaos criterion for SRD operands and an RDM input merge.
 
 Every generic parallel selects an observation from both operands. If one
 operand has no started observation, changing the merge cannot supply it.
-Thus Miracle absorbs Chaos in the installed [des_par_miracle](../../deps/UTP-Designs/utp_des_parallel.thy#L494) and
-[ades_par_miracle](../../angelic-designs/utp_ades_parallel.thy#L730) laws. Universal Chaos absorption on a carrier containing
+Thus Miracle absorbs Chaos in the installed [`des_par_miracle`](../../deps/UTP-Designs/utp_des_parallel_lift.thy#L200) and
+[`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_lift.thy#L266) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 
-The [RAD choice-set lift](RAD.md#reactive-merge-lifting) applies the supplied
+The [RAD choice-set lift](RAD.md#choice-set-lifting) applies the supplied
 ordinary merge directly. Reactive skip completion belongs to the selected
 ordinary merge construction; see [RD lifting](RD.md#lifted-merge-and-laws).
 
@@ -72,7 +72,7 @@ Partial merges also explain the mergeability premise in D associativity.
 For the equality merge `j(s,sL,sR,s') ≡ sL = sR ∧ s' = sL`, let C0 and C1
 terminate at distinct states. Then the hand calculation is
 
-```text
+```isabelle
 (Chaos ∥D[j] C0) ∥D[j] C1 = Chaos
 Chaos ∥D[j] (C0 ∥D[j] C1) = Miracle.
 ```

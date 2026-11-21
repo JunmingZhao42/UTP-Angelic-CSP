@@ -24,7 +24,7 @@ state alphabets. The selected recipes are:
 | Pair | Route | Status |
 | --- | --- | --- |
 | D/AD | D: `M_D j = H1m (merge_des_raw j) ;; II_D`. AD: `merge_ades j ≡ H1m (ades_lift_merge j) ;; II_D`. | Both installed; equivalence with the previous AD construction is recorded in the Stage 1 recipe audit. |
-| RD/RAD | `j → merge_rdes j → ∥RD[j]`; `merge_rad j = rad_lift_merge (merge_rdes j)` gives the RAD merge. | Exact `p2ac` correspondence, RD/RAD closure and associativity for nondivergent operands are proved. |
+| RD/RAD | `j → merge_rdes j → ∥RD[j]`; `P ∥RAD[j] Q = P ∥[merge_rad j] Q`. | Exact `p2ac`/`ac2p` correspondence and round trips on RAD+A2, RD/RAD closure and associativity for nondivergent operands are proved. |
 | Upstream RD at unit state | `j → unit_state_rd_merge j → M_R(unit_state_rd_merge j)`. | `rdes_lift_parallel_unit_state_eq` compares ordinary `∥RD[j]` with this upstream instance; no further stateful bridge is needed for flat RAD. |
 
 Keep the proof obligations separate:
@@ -178,7 +178,7 @@ Names changed on 2 November 2026: `ADH1m`, `ADH2m`, `ADH3m` and `ADHM` are now
 D's `H1m`, `H2m`, `H3m` and `HDM`, generalised to merges whose alphabets
 differ, and `merge_ades_ADHxm` became `merge_ades_is_Hxm`. `HDM` was renamed
 `HDm` on 7 November 2026. Finished items below
-keep the names they were done under. The [AD guide](docs/parallel/AD.md#merge-healthiness)
+keep the names they were done under. The [AD guide](docs/parallel/AD.md#generic-merge-healthiness-and-closure)
 states the naming rule.
 
 - [x] Recheck the recipe in scratch and define
@@ -242,7 +242,7 @@ states the naming rule.
   their rules; weaker premises were not adopted.
 - [x] Settle unconditional pairwise commutation of `H1m`, `H2m`, `H3m`,
   `HDm`, `A0m`, `A1m` and `A2m`: 15 commuting pairs and 6 pairs with proved
-  counterexamples. See the [results](docs/parallel/AD.md#commutation-of-merge-healthiness).
+  counterexamples. See the [results](docs/parallel/AD.md#generic-merge-healthiness-and-closure).
 - [ ] Optional research: conditional commutation and one-way preservation
   between the merge transformers. Unconditional pairwise results do not settle
   these questions or idempotence of arbitrary noncommuting compositions.
@@ -320,7 +320,7 @@ it is not required to use either existing result.
   refuted at that scope, or open. Unresolved associativity research belongs in Stage 4
   and does not block other rows or Stage 5.
 
-- [x] Prove `rdes_lift_parallel_assoc_nondiv` for RD and NDRD operands when
+- [x] Prove `rdes_lift_parallel_assoc_nd` for RD and NDRD operands when
   `j is SymMerge` and `AssocMerge j`. A general stateful lifted law was removed
   with the unused stateful lift; broader ordinary laws belong in Stage 4.
 - [ ] A unit-state lifted RD Chaos zero law with premises on `j`, specialising
@@ -338,9 +338,11 @@ is unaffected.
 
 ## Stage 4 — broader RD associativity · optional research
 
-`ORDm_parallel_assoc` proves associativity for arbitrary operands when the
-input merge is RD2-healthy, symmetric and associative. For the constructed
-`merge_rdes j`, `rdes_lift_parallel_assoc_nondiv` proves associativity
+D, RD and RAD have generic associativity laws with operand healthiness and merge
+premises: `par_by_merge_assoc_NDD`, `par_by_merge_assoc_NDRD` and
+`par_by_rad_lift_merge_assoc_NDRAD`, all through
+`par_by_merge_assoc_guard`. For the constructed
+`merge_rdes j`, `rdes_lift_parallel_assoc_nd` proves associativity
 when `j is SymMerge` and `AssocMerge j` and all three operands are RD and
 NDRD. Completion can extend a divergent intermediate trace, so this does not
 establish the law for arbitrary RD operands.
@@ -364,18 +366,19 @@ that route is pursued.
 ## Stage 5 — RAD from ordinary RD parallel
 
 Take `M = merge_rdes j` with `j :: ('t × 'e set) merge`. Ordinary
-`P ∥RD[j] Q` uses `M` directly; `merge_rad j = rad_lift_merge M` names its
-RAD choice-set lift. The ordinary RD and RAD laws below establish their correspondence and
+`P ∥RD[j] Q` uses `M` directly; `P ∥RAD[j] Q = P ∥[rad_lift_merge M] Q`
+uses its RAD choice-set lift. The RAD parallel laws are stated for `∥RAD[j]`
+with premises on `j`. The ordinary RD and RAD laws below establish their correspondence and
 closure. The [unit-state RD comparison](docs/parallel/RD.md#correspondence-with-upstream-rd-parallel)
 is a separate check against upstream stateful parallel.
 
 ### 5a — flat RD/RAD correspondence · complete
 
-- [x] `rad_par_p2ac` holds for any ordinary merge `M`.
-  `merge_rad_p2ac` states the selected instance:
-  `p2ac P ∥[merge_rad j] p2ac Q = p2ac (P ∥RD[j] Q)`.
+- [x] `rad_par_p2ac`: `p2ac P ∥RAD[j] p2ac Q = p2ac (P ∥RD[j] Q)`.
 - [x] `rad_par_form` and `rad_par_ac2p` give the reverse representation for
   RAD and A2 operands; `rad_ac2p_RD` maps these operands to ordinary RD.
+  `rad_par_ac2p` gives `ac2p (P ∥RAD[j] Q) = ac2p P ∥RD[j] ac2p Q`;
+  `rad_par_form` and `rad_par_ac2p_p2ac` state both round trips.
   The reverse round trip outside A2 remains open.
 
 ### 5b — lifted merge and healthy closure · complete
@@ -386,16 +389,17 @@ is a separate check against upstream stateful parallel.
   `rad_par_by_merge_RAD` rule uses `M is RADm`. The seven component merge
   transformers are monotonic, idempotent and pairwise commuting. The ORDm
   lift is RADm-healthy, so `rad_par_RAD` gives RAD closure for all RAD operands.
-  See the [component rules](docs/parallel/RAD.md#component-parallel-closure).
+  See the [component rules](docs/parallel/RAD.md#generic-merge-healthiness-and-closure).
+- [x] Nondivergence is preserved by `∥RD[j]` for RD+NDRD operands and by
+  `∥RAD[j]` for RAD+A2+NDRAD operands, without a premise on `j`.
+  See the [lifted closure laws](docs/parallel/RAD.md#lifted-merge-and-laws).
 
 ### 5c — algebraic laws · partly complete
 
-- [x] `rad_par_comm_merge` gives commutativity when `M is SymMerge`;
-  `merge_rdes_SymMerge` supplies this from `j is SymMerge`.
-- [x] `rad_par_assoc` gives associativity for RAD/A2 operands and a symmetric,
-  associative `M`. For the constructed merge, `rad_par_lift_assoc` gives
-  associativity when `j is SymMerge`, `AssocMerge j`, all three operands are
-  RAD and A2, and their ordinary RD images have `pre_R = true_r`.
+- [x] `rad_par_comm` gives commutativity when `j is SymMerge`.
+- [x] `rad_par_assoc` gives associativity when `j is SymMerge`, `AssocMerge j`,
+  and all three operands are RAD, A2 and NDRAD. It instantiates the generic
+  `par_by_rad_lift_merge_assoc_NDRAD` over `rad_lift_merge N`. `rad_ac2p_NDRD` maps their nondivergence to ordinary RD.
 - [ ] Assess whether the selected operator needs qualified Chaos and Miracle
   laws; retain the exact operand, merge and feasibility premises in any result.
 
@@ -408,9 +412,8 @@ Stage 5d is not a prerequisite for AP specialisation.
 
 ## Stage 6 — AP and documentation
 
-- [ ] Specialise the existing parameterised `ap_par` to
-  `M = merge_rdes j`, retaining its generic definition and explicit
-  AP/A2 premises. Use `merge_rdes_ORDm` for the merge premise.
+- [x] Specialise `ap_par` to `P ∥AP[j] Q = H1 (RA1 P ∥RAD[j] RA1 Q)`,
+  retaining its explicit AP/A2 premises; the ORDm merge premises are gone.
 - [ ] Transfer associativity at the scope available from 5c; pursue a broader
   law only if 5d supplies one.
 - [ ] Update the guides and retire superseded historical notes.
@@ -432,8 +435,6 @@ its laws. The [RAD guide](docs/parallel/RAD.md) records the choice-set lifting,
 closure and mapping laws. The [stateful RD guide](docs/parallel/RD-stateful.md)
 records the separate upstream comparison.
 
-- `rad_par_p2ac` does not complete `M`; `merge_rad_p2ac` instantiates it
-  with the completed `merge_rdes j` in 5a.
 - The healthy round trip between flat RD and RAD ∩ A2 uses
   `rad_ac2p_p2ac_inverse`, `rad_p2ac_ac2p_RAD_A2`,
   `rad_p2ac_RD_closure`, `A2_p2ac` and `rad_ac2p_RD`.

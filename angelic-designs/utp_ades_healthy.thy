@@ -185,12 +185,10 @@ theorem PBMH_H2_commute:
 
 subsection \<open>PBMH_ades\<close>
 
-(* Apply PBMH to the nested angelic-choice output while carrying ok' unchanged. *)
-definition PBMH_ades :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "PBMH_ades P = (\<lambda> (s0, s1).
-  let ac' = des_vars.more s1
-  in PBMH (\<lambda> (s, ac). let s1' = des_vars.more_update (\<lambda>_. ac) s1
-    in P (s, s1')) (s0, ac'))"
+(* PBMH_ades P = P ;; (ok' = ok \<and> \<lceil>pbmh_step\<rceil>\<^sub>D) *)
+definition PBMH_ades ::
+  "('\<beta>, 's achoices des_vars_ext) urel \<Rightarrow> ('\<beta>, 's achoices des_vars_ext) urel" where
+[pred]: "PBMH_ades P \<equiv> P ;; (($ok\<^sup>> = $ok\<^sup><)\<^sub>e \<and> \<lceil>pbmh_step\<rceil>\<^sub>D)"
 
 lemma PBMH_ades_lift:
   "PBMH_ades (\<lceil>P\<rceil>\<^sub>D) = \<lceil>PBMH P\<rceil>\<^sub>D"
@@ -370,7 +368,7 @@ proof (rule ext)
 qed
 
 lemma PBMH_ades_idem: "PBMH_ades (PBMH_ades P) = PBMH_ades P"
-  by (simp add: PBMH_ades_def fun_eq_iff PBMH_idem)
+  by (simp add: PBMH_ades_def pbmh_step_def fun_eq_iff; pred_auto; blast)
 
 lemma PBMH_ades_Idempotent [closure]: "Idempotent PBMH_ades"
   by (simp add: Idempotent_def PBMH_ades_idem)
@@ -1212,11 +1210,12 @@ qed
 
 text \<open>
   Paper Definition 20 in the expanded form of Theorem 4. A2 changes only
-  the final choice set; the initial observation and both outer control
-  observations are preserved.
+  the final choice set; the arbitrary input observation and the output
+  termination flag are preserved.
 \<close>
-definition A2 :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "A2 P = (\<lambda>(s0, out).
+definition A2 ::
+  "('\<beta>, 's achoices des_vars_ext) urel \<Rightarrow> ('\<beta>, 's achoices des_vars_ext) urel" where
+[pred]: "A2 P \<equiv> (\<lambda>(s0, out).
   P (s0, des_vars.more_update
     (achoices.ac\<^sub>v_update (\<lambda>_. {})) out) \<or>
   (\<exists>y \<in> achoices.ac\<^sub>v (des_vars.more out).
@@ -1270,11 +1269,17 @@ lemma A2_arel_to_ades:
   by (simp add: arel_to_ades_def A2_rdesign
       A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
 
+lemma A2_output_obs:
+  "A2 P (x, ades_output ok' X) \<longleftrightarrow>
+    (P (x, ades_output ok' {}) \<or>
+     (\<exists>y\<in>X. P (x, ades_output ok' {y})))"
+  by (simp add: A2_def)
+
 lemma A2_obs:
   "A2 P (ades_obs b s0 c X) \<longleftrightarrow>
     (P (ades_obs b s0 c {}) \<or>
      (\<exists>z\<in>X. P (ades_obs b s0 c {z})))"
-  by (simp add: A2_def)
+  by (simp add: A2_output_obs)
 
 lemma A2_idem: "A2 (A2 P) = A2 P"
   by (simp add: A2_def fun_eq_iff comp_def; blast)
@@ -1318,7 +1323,7 @@ lemma A2_def':
   done
 
 lemma PBMH_ades_A2 [simp]: "PBMH_ades (A2 P) = A2 P"
-  by (simp only: A2_def' PBMH_ades_idem)
+  by (simp add: PBMH_ades_def A2_def fun_eq_iff; pred_auto; blast)
 
 lemma A_obs_A2:
   assumes "P is A2"

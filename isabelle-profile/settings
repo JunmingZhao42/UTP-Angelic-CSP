@@ -1,4 +1,4 @@
-# Recommended Isabelle settings for this UTP stack.
+# Memory and heap isolation for this UTP stack on patched Isabelle2026.
 #
 # Copy this file to:
 #
@@ -9,4 +9,7 @@
 # budget.
 
 ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
-ML_OPTIONS="--minheap 1000"
+ML_OPTIONS="--minheap 1000 --maxheap 4000"
+
+# Rebuild every image from patched Pure; never read distribution heaps.
+ISABELLE_HEAPS_SYSTEM="$ISABELLE_HOME_USER/disabled-distribution-heaps"

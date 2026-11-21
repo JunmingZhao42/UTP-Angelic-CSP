@@ -170,7 +170,7 @@ lemma ac2p_healthy_obs:
 
 (* Paper Lemma 25 *)
 lemma ac2p_PBMH_ades [simp]: "ac2p (PBMH_ades P) = ac2p P"
-  by (simp add: ac2p_def PBMH_ades_def fun_eq_iff PBMH_idem)
+  by (simp add: ac2p_def PBMH_ades_idem)
 
 (* Thesis Theorem T.C.5.1. *)
 lemma ac2p_disj: "ac2p (P \<or> Q) = (ac2p P \<or> ac2p Q)"

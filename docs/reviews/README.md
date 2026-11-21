@@ -543,7 +543,7 @@ stateful conditions, normality and completed-operator laws into
 `utp_srdes_parallel_laws`; updated the stateful associativity import and session
 registration. Removed duplicate R2m combination proofs and reused reversed
 commutation facts through aliases. Generalised
-[RD2_merge_conj](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L250)
+[RD2_merge_conj](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L269)
 to ordinary reactive observations, including stateful instances. The combined
 transformer was then named `RADm`; it is now `ORDm`.
 
@@ -571,7 +571,7 @@ or batch build was run.
 RD1m under R1m. The combined ORDm rule takes `AssocMerge (RD2 M)`; its
 corollary takes `M is RD2` and `AssocMerge M`. Added the corresponding
 parallel law, and moved the existing cyclic evaluation lemma from the lifted
-file into the generic laws file. See the [ordinary RD guide](../parallel/RD.md#generic-merge-associativity)
+file into the generic laws file. See the [ordinary RD guide](../parallel/RD.md#generic-merge-algebra)
 for exact premises.
 
 Focused PIDE checks passed for ordinary laws (456 commands) and ordinary
@@ -634,8 +634,8 @@ and a batch build were not rerun.
 
 8 November 2026. Added sufficient conditions on arbitrary RAD merges and proved
 `rad_par_by_merge_RAD` for all RAD operands. An ORDm-healthy ordinary merge
-satisfies the conditions after `rad_lift_merge`; `merge_rad j` does so without
-a premise on `j`. Updated the RAD guides and plan.
+satisfies the conditions after `rad_lift_merge`; `P ∥RAD[j] Q` is therefore
+RAD-healthy for RAD operands without a premise on `j`. Updated the RAD guides and plan.
 
 Focused PIDE checking of `utp_rad_parallel` settled all 1302 commands with no
 errors, warnings or unfinished commands. Documentation links and whitespace
@@ -684,7 +684,7 @@ No AP replay or batch build was run; all changes remain uncommitted.
 moved the RA2 definition before its supporting lemmas, and removed five
 standalone helpers. The RA2 parallel-closure proof now normalises observations
 directly; the subset argument is local to
-[RA2m_PBMHm_commute](../../reactive-angelic-designs/utp_rad_parallel.thy#L220).
+[RA2m_PBMHm_commute](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L220).
 
 Focused PIDE checks passed for RAD healthiness (1436 commands), designs (464),
 CSP (514), and parallel (1054), with zero errors, bad or unfinished commands.
@@ -717,9 +717,9 @@ whitespace checks passed. No downstream replay or batch build was run.
 ## Direct basic RAD merge
 
 8 November 2026. Defined
-[rad_basic_merge](../../reactive-angelic-designs/utp_rad_parallel.thy#L540)
+[rad_basic_merge](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L15)
 directly on RAD observations and proved all seven component merge conditions,
-then [rad_basic_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel.thy#L634).
+then [rad_basic_merge_RADm](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L109).
 The definition and proofs do not use RD lifting or RADm completion.
 
 Focused PIDE checking passed for RAD parallel (1240 commands), with zero
@@ -730,7 +730,7 @@ The additions remain unstaged and uncommitted; the existing index is unchanged.
 ## Raw AD lift branch healthiness
 
 8 November 2026. Added
-[ades_lift_merge_RABm](../../angelic-designs/utp_ades_parallel.thy#L473)
+`ades_lift_merge_RABm`
 for arbitrary `j`, keeping the lift definitions unchanged. Focused PIDE checking
 passed for AD parallel (872 commands), with zero errors, warnings, bad or
 unfinished commands. Documentation-link and whitespace checks passed.
@@ -739,7 +739,7 @@ No downstream replay or batch build was run; the addition remains uncommitted.
 ## Simplify RA2 parallel closure
 
 8 November 2026. Shortened
-[rad_par_by_merge_RA2](../../reactive-angelic-designs/utp_rad_parallel.thy#L436)
+[rad_par_by_merge_RA2](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L436)
 from 100 to 66 lines by proving the two implications directly and removing
 local aliases for existing lemmas. Its statement and premises are unchanged.
 Three repeated isolated PIDE checks gave median proof-command timings of
@@ -751,7 +751,7 @@ replay was run; changes remain uncommitted and the existing index is unchanged.
 ## Simplify the remaining RAD closure proofs
 
 8 November 2026. Simplified
-[rad_par_by_merge_RA1](../../reactive-angelic-designs/utp_rad_parallel.thy#L397),
+[rad_par_by_merge_RA1](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L397),
 the CSPA1, RA3 and RA closure proofs, and the basic merge's PBMHm and RABm proofs,
 removing 40 lines without changing statements or premises. Each retained proof
 had a lower median PIDE command time across three comparisons; the median
@@ -763,7 +763,7 @@ the existing index is unchanged.
 ## Share AD and RAD choice-set lifting
 
 9 November 2026. Added
-[choice_lift_merge](../../angelic-designs/utp_ades_parallel.thy#L425) and factored
+[ac'_lift_merge](../../angelic-designs/utp_ades_parallel_laws.thy#L498) and factored
 both existing lifts through it and RABm. AD also reuses `merge_des_raw` for its
 termination flags. Existing observation equations and theorem statements are
 unchanged. AD parallel (882 commands) and RAD parallel (1168 commands) passed
@@ -776,7 +776,7 @@ remain uncommitted and the existing index is unchanged.
 ## Simplify the raw design merge
 
 9 November 2026. Rewrote
-[merge_des_raw](../../deps/UTP-Designs/utp_des_parallel.thy#L310) using
+[merge_des_raw](../../deps/UTP-Designs/utp_des_parallel_lift.thy#L18) using
 `merge_eval` and meta-equality, preserving its semantics and leaving RABm unchanged.
 D, AD, RD and RAD parallel theories passed focused PIDE checks with zero errors,
 bad, failed, canceled or unfinished commands; existing RD warnings remain.
@@ -804,3 +804,312 @@ documentation-link and whitespace checks. Removed links to ignored local audit
 files from two historical review notes. No full build or unrelated downstream
 replay was run. Dependency forks were published before the parent branch, with
 exact remote leases and submodule fetchability checks.
+
+## Complete RD/RAD parallel correspondence
+
+9 November 2026. Added the reverse `ac2p` correspondence and both round trips
+for `∥RAD[j]` and `∥RD[j]`, using RAD+A2 premises for the RAD-to-RD direction.
+Reserved `∥RAD[j]` for the completed construction from `j` and wrote generic
+lifted parallel explicitly in RAD, its AP callers and the guides.
+Focused PIDE checks passed for RAD parallel (1170 commands) and AP parallel
+(70 commands), with no errors or unfinished commands. Documentation links,
+whitespace and leftover-name checks passed. No full build was run.
+
+## State RAD associativity with nondivergence healthiness
+
+9 November 2026. Replaced the three RD-image precondition equations in
+`rad_par_lift_assoc` with NDRAD premises on the RAD operands. Added
+`rad_ac2p_NDRD` in the nondivergence theory to transfer those premises to RD.
+RAD, A2, symmetry and merge associativity remain required. Focused PIDE checks
+passed for `utp_rad_nd` and `utp_rad_parallel`, with no errors or unfinished
+commands. Documentation links and whitespace checks passed; no full build or
+unrelated downstream replay was run.
+
+## Preserve nondivergence through p2ac
+
+9 November 2026. Added
+[rad_p2ac_NDRAD](../../reactive-angelic-designs/utp_rad_nd.thy#L90):
+NDRD healthiness implies NDRAD healthiness after `p2ac`, without an RD premise.
+Focused PIDE checks passed for `utp_rad_nd` (268 commands) and
+`utp_rad_parallel` (1166 commands), with no errors or unfinished commands.
+No full build or unrelated downstream replay was run.
+
+## Close RD and RAD parallel under nondivergence
+
+9 November 2026. Added
+[rdes_lift_parallel_NDRD](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L185)
+for RD+NDRD operands and transferred it through `ac2p` and `p2ac` as
+`rad_par_lift_NDRAD` (now [rad_par_NDRAD](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L396))
+for RAD+A2+NDRAD operands. Neither law requires a premise on `j`.
+Focused PIDE checks passed for RD parallel lift (318 commands) and RAD parallel
+(1194 commands), with zero errors, warnings, bad, failed, canceled, running or
+unprocessed commands. Documentation links and whitespace checks passed.
+No full build or AP replay was run; changes remain unstaged and uncommitted.
+
+## State RAD and AP parallel laws for j
+
+9 November 2026. Restated every RAD parallel law over `∥[rad_lift_merge M]`
+for `∥RAD[j]`, with merge premises on `j`: `M is ORDm` is discharged by
+`merge_rdes_ORDm`, and commutativity assumes `j is SymMerge`. The duplicate
+`rad_par_lift_*` lemmas were merged into the short `rad_par_*` names;
+`rad_par_comm_merge` merged into `rad_par_comm`. The generic `rad_par_assoc`
+and `rad_par_assoc_state` for an associative `M` were removed; `rad_par_assoc`
+now names the NDRAD law for `j`. `ap_par` now takes `j` and uses `∥RAD[j]`;
+its ORDm premises were removed. Merge-level `rad_lift_merge_*` lemmas keep
+their premises on `M`.
+Focused PIDE checks passed for `utp_rad_parallel` (1084 commands) and
+`utp_ap_parallel` (70 commands), with zero errors, warnings, bad, failed,
+canceled, running or unprocessed commands. Documentation links and whitespace
+checks passed. No full build was run.
+
+## Generic associativity laws for every layer
+
+9 November 2026. Added `merge_guard`, `AssocMerge_merge_guard`, `merge_guard_cong`
+and `par_by_merge_assoc_guard` to `utp_concurrency.thy`. Each layer now has a
+generic associativity law with operand healthiness and merge premises:
+`par_by_merge_assoc_NDD` (with the new `NDDm`), `par_by_merge_assoc_NDRD` (with
+`NDRDm`), `par_by_ades_lift_assoc` and `par_by_ades_lift_assoc_NDAD` over the new
+`ades_lift_des N`, and `par_by_rad_lift_merge_assoc_NDRAD` over `rad_lift_merge N`.
+`merge_ades_lift` identifies `merge_ades j` with `ades_lift_des (merge_des j)`;
+`ades_lift_par_d2ac_ac2p` gives the AD/D correspondence for any HDm- and
+H3m-healthy `N`. The `j` laws (`des_par_assoc`, `des_par_assoc_nd`,
+`ades_par_assoc`, `ades_par_assoc_nd`, `rdes_lift_parallel_assoc_nd`,
+`rad_par_assoc`) keep their statements and are now corollaries.
+`ORDm_parallel_assoc` and `ORDm_AssocMerge` were removed.
+Prototyped in a PIDE scratch theory; the bounded full `UTP-Angelic-CSP` build then
+rebuilt UTP2 through Angelic CSP and passed after one AD proof fix
+(`A_preserves_NDAD`). Documentation links and whitespace checks passed.
+
+## Separate parallel associativity laws
+
+9 November 2026. Moved the parallel associativity laws and `merge_guard` from
+`utp_concurrency.thy` to a new `utp_concurrency_assoc.thy`, imported by `utp.thy`.
+The upstream `ThreeWayMerge` and `AssocMerge` definitions stay in
+`utp_concurrency.thy`. Removed `par_by_merge_assoc_on`; its proof is now inside
+`par_by_merge_assoc_guard`. The bounded full `UTP-Angelic-CSP` build rebuilt
+UTP2 through Angelic CSP and passed (5 min 42 s). Documentation links and
+whitespace checks passed.
+Then split `utp_concurrency_assoc.thy` into merge-fold, symmetric-merge and
+guarded-merge subsections and shortened three proofs; the final guarded step
+uses `meson` (about 0.05 s in PIDE, against 2.9 s for `blast`). The bounded full
+build passed again (5 min 46 s; UTP2 32 s).
+
+## Split the D, AD and RAD parallel theories
+
+9 November 2026. Trimmed `utp_des_parallel.thy`: removed the counterexample
+lemmas `H2m_not_conj_distrib` and `HDm_not_conj_distrib`, the unused
+`merge_des_expand_terminate` and `merge_des_expand_diverge`, and
+`des_par_by_merge_unfold` (replaced by `par_by_merge_eval`). The `_idem` and
+`_mono` lemmas of `H1m`–`HDm` and `NDDm` are now only `Idempotent` and `Monotonic`.
+Then split each of `utp_des_parallel`, `utp_ades_parallel` and `utp_rad_parallel`
+into `_parallel_laws` (merge healthiness and laws for any merge) and
+`_parallel_lift` (the merge built from `j` and its operator), matching RD.
+The bounded full `UTP-Angelic-CSP` build passed after each step (5 min 7 s,
+then 5 min 12 s). Documentation links passed.
+Then moved `NDD`, `NDDm` and the nondivergent associativity laws
+(`par_by_merge_assoc_NDD`, `merge_des_NDDm`, `merge_des_guard_AssocMerge`,
+`des_par_assoc_nd`) into a new `utp_des_nd.thy`, and renamed single-merge
+`N` to `M`. The bounded full build passed (5 min 22 s).
+
+11 November 2026. Rewrote AD merge healthiness using predicate substitutions
+for `A0m` and `A2m`, and `HDm` composition for `A1m`. Proved
+[`A2m_healthy_iff`](../../angelic-designs/utp_ades_parallel_laws.thy#L147)
+to separate singleton output normalization from branch restriction. The existing
+observation equations and closure-law premises are preserved. Focused PIDE
+checks passed for `utp_ades_parallel_laws` and `utp_ades_parallel_lift`, with
+no errors, bad commands or unfinished commands. Documentation links passed;
+no full build or RAD/AP replay was run.
+
+11 November 2026. Simplified `PBMHm` to restrict nonempty outputs before
+composition with `ac_up`, and defined `RABm` by direct branch-choice substitution.
+Removed their auxiliary relations and reproved the unchanged observation
+equations and monotonicity laws. All 526 commands in the focused AD merge-laws
+PIDE context passed, with zero errors, warnings, bad or unfinished commands.
+Documentation-link and whitespace checks passed. No full build or downstream
+replay was run.
+
+11 November 2026. Simplified [`PBMH_ades`](../../angelic-designs/utp_ades_healthy.thy#L189)
+to composition with the lifted `pbmh_step` and equality of termination flags.
+Its type and theorem statements are unchanged; only the idempotence proof needed
+adapting. Focused PIDE validation of `utp_ades_healthy` finished all 2344 commands
+with zero errors, bad, running or unprocessed commands; four warnings remain in
+unchanged proofs. Documentation-link and whitespace checks passed. No full build
+or downstream replay was run.
+
+11 November 2026. Removed `ac_up`; `A1m` and `PBMHm` now compose directly
+with the lifted `pbmh_step` and equality of termination flags. Their unchanged
+observation equations and all remaining merge laws passed focused PIDE
+validation: 524 commands, zero errors, warnings, bad, running or unprocessed
+commands. No live theory or reader-guide references to the removed helper
+remain. Documentation-link and whitespace checks passed. No full build or
+RAD/AP replay was run.
+
+11 November 2026. Generalised the input alphabet of `PBMH_ades`, retaining
+its AD output alphabet and defining equation. `A1m` and `PBMHm` now use it
+directly. Adapted the general idempotence proof and repaired the imported
+`ac2p_PBMH_ades` proof left unfinished by the earlier adapter change. Focused
+PIDE checks passed for `utp_ades_healthy`, `utp_ades_designs` and
+`utp_ades_parallel_laws`, with zero errors, bad, running or unprocessed commands;
+five warnings remain in unchanged proofs. The theorem statement texts are
+unchanged; input-independent laws now admit arbitrary inputs. Documentation-link
+and whitespace checks passed. No full build or RAD/AP replay was run.
+
+11 November 2026. Generalised `A2` to arbitrary inputs and reused it in
+`A2m`; removed the redundant output-termination guard from `A0m`; and
+rewrote the `A1m` and `PBMHm` monotonicity proofs using generic laws. The
+unchanged `A0m_eval` and `A2m_obs` equations were reproved. All theorem
+statement texts and premises are preserved, with input-independent `A2` laws
+now generalised. Focused PIDE checks passed for `utp_ades_healthy`, its imported
+Design–AD conversion theory, and `utp_ades_parallel_laws`: zero errors, bad,
+running or unprocessed commands. The merge-laws theory has no warnings; five
+warnings remain in unchanged healthiness and conversion proofs. Documentation
+links and whitespace checks passed. No full build or RAD/AP replay was run.
+
+11 November 2026. Added the arbitrary-input `A2_output_obs` equation and
+`A2m_obs_A2`, which keeps output normalisation expressed through `A2`. Reused
+these equations in the existing observation proofs, `A2_idem` in the merge
+idempotence proof, and `A2_mono` in the merge monotonicity proof. Definitions
+and all existing theorem statement texts and premises are unchanged. Focused
+PIDE checks passed for `utp_ades_healthy`, `utp_ades_designs` and
+`utp_ades_parallel_laws`: zero errors, bad, running or unprocessed commands;
+five warnings remain in unchanged proofs. Documentation-link and whitespace
+checks passed. No full build or RAD/AP replay was run.
+
+11 November 2026. Rewrote `RABm` using `PBMH_ades II` lifted to each branch,
+with the prior observation fixed and the original nonempty-input guards.
+Reproved the unchanged `RABm_obs` equation and reused `seqr_mono` for
+monotonicity; retained the short observation-based idempotence proof. All
+existing theorem statements and premises are unchanged. Focused PIDE
+validation of `utp_ades_parallel_laws` passed with zero errors, warnings, bad,
+running or unprocessed commands. Documentation-link and whitespace checks
+passed. No full build or RAD/AP replay was run.
+
+11 November 2026. Restored the quantified `RABm` definition, its original
+observation and monotonicity proofs, and the guide equation and explanation
+at the user's request for readability. The merge-laws theory matches the
+snapshot before the `RABm` rewrite; earlier `A2m` improvements are preserved.
+Focused PIDE validation passed with zero errors, warnings, bad, running or
+unprocessed commands. Documentation-link and whitespace checks passed.
+No full build or RAD/AP replay was run.
+
+11 November 2026. Rechecked all six reported AD merge-healthiness
+noncommutations against the current definitions with Isabelle proofs. An
+isolated alternative `A1c` has exactly the `A1m` fixed points, is monotone
+and idempotent, and commutes with `A0m`; it still fails to commute with
+`A2m` and can remove behaviour from an unhealthy input. Proved general
+uniqueness of monotone idempotent extensive and contractive maps with given
+fixed points, explaining why preserving the original normalization directions
+precludes repairing `A0m`/`A1m` this way. Proofs are saved in
+`audits/reviews/2026-11-11-ad-commutation-recheck/AD_Commutation_Recheck.thy`.
+Focused PIDE validation passed: 190 commands, zero errors, warnings, bad,
+running or unprocessed commands. Production definitions were unchanged.
+No full build or RAD/AP replay was run.
+
+11 November 2026. Renamed `RABm` to `ABm`, including associated lemma names,
+AD/RAD references and reader guides. The defining equation and proofs are
+unchanged apart from the rename. Focused AD merge-laws PIDE validation passed
+with zero errors, warnings, bad, running or unprocessed commands. Downstream
+references were updated mechanically without replaying RAD/AP. Documentation
+links and whitespace checks passed.
+
+11 November 2026. Defined `merge_ades` by lifting `merge_des_raw` and then
+applying `ABm`, `H1m` and `H3m`. Removed `ades_lift_des`, writing its completion
+expression directly in the general correspondence and associativity results.
+Reproved the unchanged observation equation and proved `merge_ades_design_lift`
+to establish equivalence with the former construction. Focused PIDE validation
+of the lifted AD theory passed all 656 commands with zero errors, warnings, bad,
+running or unprocessed commands. Updated the guide and affected declaration
+links; documentation-link and whitespace checks passed. No full build or
+RAD/AP replay was run.
+
+11 November 2026. Added `ades_par_A0_closure` without premises and
+`ades_par_A1_closure` for H1 operands, and included both in the AD closure
+table. Refreshed affected declaration links. Focused lifted AD PIDE validation
+passed all 668 commands with zero errors, warnings, bad, running or unprocessed
+commands. Documentation-link and whitespace checks passed; no full build or
+RAD/AP replay was run.
+
+11 November 2026. Moved choice-set lifting and the Design–AD parallel
+correspondence proofs into the generic AD laws theory. The two generic mapping
+lemmas use Design merge `M` and AD merge `AM`, with an explicit completed-lift
+equality and the existing operand and merge-healthiness premises. The concrete
+lifted correspondence proofs now instantiate these laws. Updated the generic
+guide table and declaration links. Focused PIDE checks passed: 794 commands in
+the laws theory and 430 in the lifted theory, with zero errors, warnings, bad,
+running or unprocessed commands. Documentation-link and whitespace checks
+passed. No full build or RAD/AP replay was run.
+
+11 November 2026. Added generic RAD/RD parallel correspondence lemmas
+`rad_par_by_merge_form` and `rad_par_by_merge_ac2p`, requiring RAD+A2 operands
+and `AM = rad_lift_merge M`, with no healthiness premise on `M`. The concrete
+RAD mapping proofs now instantiate these lemmas. Updated the RAD guide and
+affected declaration links. Focused PIDE validation of the RAD lift theory
+passed all 446 commands with zero errors, warnings, bad, failed, canceled,
+running or unprocessed commands, after loading its prerequisite chain.
+Documentation-link and whitespace checks passed. No full build or AP replay.
+
+11 November 2026. Reformatted `ac'_lift_merge_completion_obs` around before
+start, ordinary merging, and divergence; replaced the divergence witness set
+with an unrestricted state witness. Adapted the correspondence proof locally
+and refreshed declaration links. AD laws (804 commands) and lift (430 commands)
+passed PIDE with zero errors, warnings, bad, failed, canceled, running or
+unprocessed commands. Documentation-link and whitespace checks passed.
+
+## Conclude Design and AD parallel cleanup
+
+11 November 2026. Generalised the AD output-healthiness adapters to merge
+inputs, separated generic AD laws from state-merge lifting, simplified the
+merge conditions and added generic Design–AD correspondence. Updated the
+Design and AD guides and migrated the existing RAD theory's AD references.
+The selected AD healthiness, mapping, merge-laws and lifted-merge sources
+passed focused PIDE checks with zero errors, bad or unfinished commands;
+five existing warnings remain in healthiness and mapping proofs. The migrated
+RAD proof region also passed (1122 commands). Its unchanged lifted-associativity
+proof refers to a theorem present in the pinned RD dependency but renamed in
+the dirty checkout, so the full build checks that dependency separately after
+committing.
+
+## Align RD and RAD parallel guides
+
+11 November 2026. Aligned the RD and RAD guides with the D/AD layout:
+generic laws before state-merge lifting, separate merge-property, closure
+and algebra tables, explicit operand and merge premises, and multiline
+mapping equations. Preserved the nondivergence and stateful-RD qualifications.
+Checked the tables against the current theory statements; documentation links
+and whitespace checks passed. Documentation only; no Isabelle replay or build.
+
+11 November 2026. Added observation-level equations for the individual RD
+and RAD merge conditions to their generic sections. RAD uses local notation
+for the existing trace-extension and normalisation helpers; the equations
+retain branch guards, output filtering and termination flags. Checked against
+the definitions and observation lemmas; links and whitespace checks passed.
+Documentation only; no theory edits or proof replay.
+
+11 November 2026. Added `AssocMerge_RD2_compatible` and `AssocMerge_RD2`:
+associativity survives `RD2` when `M` allows an intermediate `J` step to move
+to the output, or when `M` is already `RD2`-healthy. Updated the RD table and
+affected declaration links. Focused PIDE validation of the installed RD
+merge-laws theory finished all 644 commands with zero errors, warnings, bad,
+running or unprocessed commands. Documentation links and whitespace checks
+passed; no downstream replay or full build.
+
+11 November 2026. Made idempotence and monotonicity explicit for all five
+RD merge conditions, and distinguished inherited Isabelle/UTP definitions
+from the local `R3cm`, `ORDm` and `NDRDm` definitions. Checked the existing
+lemmas and Git history; documentation links and whitespace checks passed.
+Documentation only; no theory edits or proof replay.
+
+11 November 2026. Simplified the RAD generic-condition display to one code
+block: factored output trace filtering through `RA1m`, used pointwise trace
+subtraction for choice sets, and used the UTP conditional for `RA3m`. Checked
+the equations against the current definitions and observation lemmas;
+documentation links and whitespace checks passed. Documentation only.
+
+11 November 2026. Added the RD component-commutation table and distinguished
+the commuting core conditions from `NDRDm`, which does not commute with
+`RD2` or `ORDm`. Checked the existing commutation lemmas and verified the
+remaining `R1m` pairs, positive `NDRDm` pairs and negative witnesses in a
+focused Isabelle scratch theory: 44 commands, zero errors, warnings, bad,
+running or unprocessed commands. Retained the scratch evidence under
+`audits/reviews/2026-11-11-rd-commutation/`. Documentation links and whitespace
+checks passed; no production theory edits or downstream replay.

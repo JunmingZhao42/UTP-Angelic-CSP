@@ -277,10 +277,8 @@ lemma H1_A2_closure:
 proof -
   assume assms: "P is A2"
   show ?thesis
-  apply (rule Healthy_intro, rule ades_obs_ext)
-    apply (simp only: A2_obs H1_obs)
-    using A2_obs[of P, simplified Healthy_if[OF assms]]
-    by blast
+  using assms
+  by pred_auto
 qed
 
 lemma ap_from_RD:

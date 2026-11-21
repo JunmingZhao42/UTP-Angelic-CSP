@@ -1,8 +1,10 @@
 section \<open>Non-Divergent Reactive Angelic Designs\<close>
 
 theory utp_rad_nd
-  imports utp_rad_seq
+  imports utp_rad_seq "UTP-Reactive-Designs.utp_rdes_triples"
 begin
+
+no_notation utp_rea_core.wait_f ("_\<^sub>f" [1000] 1000)
 
 (* Paper Definition 45: the angelic choice with the most nondeterministic
    non-divergent process. *)
@@ -82,6 +84,47 @@ proof -
   show ?thesis
     using nondiv
     by (simp add: fun_eq_iff usubst usubst_eval; pred_auto)
+qed
+
+(* Nondivergence is preserved by the RD-to-RAD mapping. *)
+lemma rad_p2ac_NDRAD:
+  fixes P :: "('t::trace, 'e set) rp_hrel"
+  assumes "P is NDRD"
+  shows "p2ac P is NDRAD"
+proof -
+  have normal: "\<^bold>R(true\<^sub>r \<turnstile> true\<^sub>r) = \<^bold>R(true \<turnstile> true)"
+    by pred_auto
+  have choice: "p2ac (\<^bold>R(true\<^sub>r \<turnstile> true\<^sub>r)) =
+      (Choice\<^sub>R\<^sub>A\<^sub>D :: ('t, 'e) reactive_angelic_design)"
+    unfolding normal rad_p2ac_R' Choice_RAD_RA
+    by (rule RA_cong_ac_non_empty; pred_auto; metis rad_state_cases)
+  have refine: "\<^bold>R(true\<^sub>r \<turnstile> true\<^sub>r) \<sqsubseteq> P"
+    using assms
+    by (simp add: Healthy_def' NDRD_def ref_lattice.le_iff_sup inf_commute)
+  have "Choice\<^sub>R\<^sub>A\<^sub>D \<sqsubseteq> p2ac P"
+    using p2ac_mono[OF refine] by (simp only: choice)
+  then show ?thesis
+    by (simp add: Healthy_def' NDRAD_def ref_by_pred_is_leq inf.absorb1)
+qed
+
+(* Nondivergence is preserved by the RAD-to-RD projection. *)
+lemma rad_ac2p_NDRD:
+  assumes "P is RAD" "P is A2" "P is NDRAD"
+  shows "ac2p P is NDRD"
+proof -
+  have rd: "ac2p P is RD"
+    by (rule rad_ac2p_RD[OF assms(1,2)])
+  have nondiv: "\<forall>x z. ac2p P (x,z) \<and> ok\<^sub>v x \<and> \<not> wait\<^sub>v x \<longrightarrow> ok\<^sub>v z"
+    using NDRAD_wf_ok_false_subst[OF assms(1,3)]
+    apply (simp add: fun_eq_iff rad_wait_false_def ac2p_def
+        Healthy_if[OF RAD_is_PBMH_ades[OF assms(1)]] usubst usubst_eval)
+    apply pred_auto
+    subgoal for ok0 w t r ok' w' t' r'
+      by (cases ok'; auto)
+    done
+  show ?thesis
+    using nondiv
+    by (simp only: NDRD_healthy_iff[OF rd] preR_true_iff[OF RD_healths(1)[OF rd]])
 qed
 
 (* Thesis Theorem T.G.6.1: sequential composition of two non-divergent

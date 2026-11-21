@@ -7,8 +7,8 @@ begin
 subsection \<open>Angelic Choice\<close>
 
 abbreviation achoice_AP ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) reactive_angelic_design"
+  "('t::trace, 'e) angelic_process \<Rightarrow> ('t, 'e) angelic_process \<Rightarrow>
+   ('t, 'e) angelic_process"
   (infixl "\<squnion>\<^sub>A\<^sub>P" 70)
 where "P \<squnion>\<^sub>A\<^sub>P Q \<equiv> P \<squnion> Q"
 
@@ -47,7 +47,9 @@ lemma AP_angelic_choice_design:
              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)) \<and>
             ((RA2 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>f) \<or>
              (RA2 \<circ> RA1 \<circ> PBMH_ades) ((Q \<^sub>f)\<^sup>t))))"
-  by (simp only: AP_angelic_choice_form[OF assms]; pred_auto)
+  by (simp only: AP_angelic_choice_form[OF assms];
+      rule arg_cong[where f=RA3AP];
+      auto simp: design_def conj_pred_def disj_pred_def not_pred_def impl_pred_def fun_eq_iff)
 
 (* Thesis Theorem T.6.4.1. *)
 lemma AP_angelic_closure [closure]:
@@ -97,8 +99,8 @@ qed
 subsection \<open>Demonic Choice\<close>
 
 abbreviation dchoice_AP ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
-   ('t, 'e) reactive_angelic_design"
+  "('t::trace, 'e) angelic_process \<Rightarrow> ('t, 'e) angelic_process \<Rightarrow>
+   ('t, 'e) angelic_process"
   (infixl "\<sqinter>\<^sub>A\<^sub>P" 65)
 where "P \<sqinter>\<^sub>A\<^sub>P Q \<equiv> P \<sqinter> Q"
 
@@ -160,28 +162,28 @@ subsection \<open>Chaos\<close>
 
 (* Paper Definition 52 / Thesis Definition 133. *)
 definition Chaos_AP ::
-  "('t::trace, 'e) reactive_angelic_design" ("Chaos\<^sub>A\<^sub>P") where
+  "('t::trace, 'e) angelic_process" ("Chaos\<^sub>A\<^sub>P") where
 [pred]: "Chaos_AP = AP (false \<turnstile> true)"
 
 lemma Chaos_AP_is_AP [closure]: "Chaos\<^sub>A\<^sub>P is AP"
   by (simp add: Chaos_AP_def AP_healthy)
 
 lemma bottom_AP_is_Chaos:
-  "(\<^bold>\<bottom>\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) = Chaos\<^sub>A\<^sub>P"
+  "(\<^bold>\<bottom>\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) = Chaos\<^sub>A\<^sub>P"
   by (simp only: Chaos_AP_def design_false_pre)
 
 (* Paper Lemma 11 / Thesis Lemma L.6.4.1: Chaos_AP = (s.wait \<turnstile> s \<in> ac') *)
 lemma Chaos_AP_design:
-  "(Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+  "(Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) =
    (($rad_wait_lens\<^sup><)\<^sub>e \<turnstile> ades_state_choice)"
 proof -
   have absorb:
       "((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> true)) \<turnstile>
         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Y)) =
        (($rad_wait_lens\<^sup><)\<^sub>e \<turnstile> ades_state_choice)"
-      for Y :: "('t, 'e) reactive_angelic_design"
+      for Y :: "('t, 'e) angelic_process"
     by (simp only: ades_state_choice_expr; pred_auto)
-  have "(Chaos\<^sub>A\<^sub>P :: ('t, 'e) reactive_angelic_design) = AP true"
+  have "(Chaos\<^sub>A\<^sub>P :: ('t, 'e) angelic_process) = AP true"
     by (simp only: Chaos_AP_def design_false_pre)
   also have "... =
       ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
@@ -214,7 +216,7 @@ qed
 (* Paper Definition 53 / Thesis Definition 134: the counterpart of
    Chaos_RAD, whose precondition still requires RA1. *)
 definition ChaosCSP_AP ::
-  "('t::trace, 'e) reactive_angelic_design" ("ChaosCSP\<^sub>A\<^sub>P") where
+  "('t::trace, 'e) angelic_process" ("ChaosCSP\<^sub>A\<^sub>P") where
 [pred]: "ChaosCSP_AP = AP ((\<not> RA1 true) \<turnstile> true)"
 
 lemma ChaosCSP_AP_is_AP [closure]: "ChaosCSP\<^sub>A\<^sub>P is AP"
@@ -240,32 +242,32 @@ lemma chaos_wait_cond_collapse:
 (* Thesis Lemma L.6.4.2: ChaosCSP_AP as an explicit design,
    s.wait \<or> \<not> RA1 true \<turnstile> s.wait \<and> s \<in> ac'. *)
 lemma ChaosCSP_AP_design:
-  "(ChaosCSP\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+  "(ChaosCSP\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) =
    ((($rad_wait_lens\<^sup><)\<^sub>e \<or> (\<not> RA1 true)) \<turnstile>
     (($rad_wait_lens\<^sup><)\<^sub>e \<and>
      ($ades_s_lens\<^sup>< \<in> $ades_ac_lens\<^sup>>)\<^sub>e))"
 proof -
   have pbmh_ra1: "PBMH_ades (RA1 true) =
-      (RA1 true :: ('t, 'e) reactive_angelic_design)"
+      (RA1 true :: ('t, 'e) angelic_process)"
     using PBMH_ades_RA1_absorb[of true]
     by (simp only: comp_apply PBMH_ades_true)
   have ok_pre:
       "((\<not> ((\<not> ok\<^sup><) \<or> Z)) \<turnstile> Y) = ((\<not> Z) \<turnstile> Y)"
-      for Z Y :: "('t, 'e) reactive_angelic_design"
+      for Z Y :: "('t, 'e) angelic_process"
     by pred_auto
   have projf: "(((\<not> RA1 true) \<turnstile> true) ::
-      ('t, 'e) reactive_angelic_design)\<^sup>f = ((\<not> ok\<^sup><) \<or> RA1 true)"
+      ('t, 'e) angelic_process)\<^sup>f = ((\<not> ok\<^sup><) \<or> RA1 true)"
     by pred_auto
   have projt: "(((\<not> RA1 true) \<turnstile> true) ::
-      ('t, 'e) reactive_angelic_design)\<^sup>t = true"
+      ('t, 'e) angelic_process)\<^sup>t = true"
     by pred_auto
-  have wf: "((((\<not> RA1 true) \<turnstile> true) :: ('t, 'e) reactive_angelic_design) \<^sub>f) =
+  have wf: "((((\<not> RA1 true) \<turnstile> true) :: ('t, 'e) angelic_process) \<^sub>f) =
       ((\<not> RA1 true) \<turnstile> true)"
     by (simp only: rad_wait_false_design rad_wait_false_not
         rad_wait_false_RA1_commute rad_wait_false_true)
   have "ChaosCSP\<^sub>A\<^sub>P =
       RA3AP (((\<not> RA1 true) \<turnstile> RA1 true) ::
-        ('t, 'e) reactive_angelic_design)"
+        ('t, 'e) angelic_process)"
     by (simp only: ChaosCSP_AP_def AP_RA3AP_design comp_apply wf
         projf projt PBMH_ades_disj PBMH_ades_not_ok_expr pbmh_ra1
         RA2_disj RA2_not_ok_expr RA2_RA1_true PBMH_ades_true RA2_true
@@ -282,7 +284,7 @@ proof -
   have "H1 Chaos\<^sub>R\<^sub>A\<^sub>D =
       ((true \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> RA1 true)) \<turnstile>
        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-        (RA1 true :: ('t, 'e) reactive_angelic_design)))"
+        (RA1 true :: ('t, 'e) angelic_process)))"
     by (simp only: Chaos_RAD_RAD H1_RAD_design[simplified comp_apply]
         rad_wait_false_true subst_pred(1) PBMH_ades_true RA2_true
         RA2_RA1_true RA3AP_design_post)
@@ -300,13 +302,13 @@ theorem RA1_ChaosCSP_AP:
 text \<open>Chaos shows why the AP round trip through RAD needs a premise.\<close>
 
 lemma Chaos_AP_RA1:
-  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) =
     Chaos\<^sub>R\<^sub>A\<^sub>D"
   by (simp only: Chaos_AP_def RA1_AP_RAD[simplified comp_apply]
       design_false_pre Chaos_RAD_RAD)
 
 lemma Chaos_AP_roundtrip:
-  "H1 (RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design)) =
+  "H1 (RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process)) =
     ChaosCSP\<^sub>A\<^sub>P"
   by (simp only: Chaos_AP_RA1 H1_Chaos_RAD)
 
@@ -319,17 +321,17 @@ lemma ChaosCSP_AP_empty:
   by (simp add: ChaosCSP_AP_design RA1_obs; pred_auto)
 
 lemma Chaos_AP_neq_ChaosCSP:
-  "(Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) \<noteq> ChaosCSP\<^sub>A\<^sub>P"
+  "(Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) \<noteq> ChaosCSP\<^sub>A\<^sub>P"
 proof
   let ?s0 = "(rea_vars_ext (False) (0) ({})) :: ('t, 'e) rad_state"
-  assume eq: "(Chaos\<^sub>A\<^sub>P :: ('t, 'e) reactive_angelic_design) = ChaosCSP\<^sub>A\<^sub>P"
+  assume eq: "(Chaos\<^sub>A\<^sub>P :: ('t, 'e) angelic_process) = ChaosCSP\<^sub>A\<^sub>P"
   have "Chaos\<^sub>A\<^sub>P (ades_obs True ?s0 True {})"
     by (rule Chaos_AP_empty; simp)
   then show False using eq ChaosCSP_AP_empty[of ?s0] by simp
 qed
 
 lemma Chaos_AP_same_RAD:
-  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+  "RA1 (Chaos\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) =
     RA1 ChaosCSP\<^sub>A\<^sub>P"
   by (simp only: Chaos_AP_RA1 RA1_ChaosCSP_AP)
 
@@ -337,7 +339,7 @@ subsection \<open>Choice\<close>
 
 (* Paper Definition 54. *)
 definition Choice_AP ::
-  "('t::trace, 'e) reactive_angelic_design" ("Choice\<^sub>A\<^sub>P") where
+  "('t::trace, 'e) angelic_process" ("Choice\<^sub>A\<^sub>P") where
 [pred]: "Choice_AP = AP (true \<turnstile> ac_non_empty)"
 
 lemma Choice_AP_is_AP [closure]: "Choice\<^sub>A\<^sub>P is AP"
@@ -381,7 +383,7 @@ subsection \<open>Stop\<close>
 
 (* Paper Definition 55. *)
 definition Stop_AP ::
-  "('t::trace, 'e) reactive_angelic_design" ("Stop\<^sub>A\<^sub>P") where
+  "('t::trace, 'e) angelic_process" ("Stop\<^sub>A\<^sub>P") where
 [pred]: "Stop_AP = AP (true \<turnstile> stop_post)"
 
 lemma Stop_AP_is_AP [closure]: "Stop\<^sub>A\<^sub>P is AP"
@@ -411,7 +413,7 @@ subsection \<open>Skip\<close>
 
 (* Paper Definition 56. *)
 definition Skip_AP ::
-  "('t::trace, 'e) reactive_angelic_design" ("Skip\<^sub>A\<^sub>P") where
+  "('t::trace, 'e) angelic_process" ("Skip\<^sub>A\<^sub>P") where
 [pred]: "Skip_AP = AP (true \<turnstile> skip_post)"
 
 lemma Skip_AP_is_AP [closure]: "Skip\<^sub>A\<^sub>P is AP"
@@ -463,10 +465,10 @@ lemma AP_wait_design_seq:
                 ((\<not> G) \<longrightarrow> U))))"
 proof -
   have not_true:
-      "(\<not> (true :: ('t::trace, 'e) reactive_angelic_design)) = false"
+      "(\<not> (true :: ('t::trace, 'e) angelic_process)) = false"
     by pred_auto
   have not_false:
-      "(\<not> (false :: ('t::trace, 'e) reactive_angelic_design)) = true"
+      "(\<not> (false :: ('t::trace, 'e) angelic_process)) = true"
     by pred_auto
   have wait_conj: "\<And>A B C D.
       ((A \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> B) \<and>
@@ -621,7 +623,7 @@ proof -
     have pre_as_neg: "?pre =
         (\<not> ((?Pf ;;\<^sub>A\<^sub>D true) \<or>
           (?Pt ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 ?Qf))))"
-      by pred_auto
+      by (simp only: pred_ba.compl_sup)
     show ?thesis
       unfolding pre_as_neg
       by (rule PBMH_ades_design_closure[OF bad_PBMH post_PBMH])
@@ -701,13 +703,13 @@ proof -
     by (simp only: raw_components(2) subst_pred assms(3); pred_auto)
   show "(PBMH_ades (((true \<turnstile> P) \<^sub>f)\<^sup>f))
       \<lbrakk>True/ok\<^sup><\<rbrakk> = false"
-    by (simp only: wf PBMH_ades_ok_in_subst[symmetric] failure
+    by (simp only: wf PBMH_ades_ok_in_subst[THEN sym] failure
         PBMH_ades_false)
   show "((RA1 \<circ> PBMH_ades) (((true \<turnstile> P) \<^sub>f)\<^sup>t))
       \<lbrakk>True/ok\<^sup><\<rbrakk> =
       (RA1 P)\<lbrakk>True/ok\<^sup><\<rbrakk>"
     by (simp only: wf comp_apply RA1_ok_in_subst
-        PBMH_ades_ok_in_subst[symmetric] success
+        PBMH_ades_ok_in_subst[THEN sym] success
         PBMH_ades_ok_in_subst assms(2))
 qed
 
@@ -788,7 +790,7 @@ qed
    handover guard to the non-waiting condition and the continuation
    to true. *)
 lemma AP_true_design_seq_Chaos:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
+  fixes P :: "('t::trace, 'e) angelic_process"
   assumes "(P \<^sub>f) = P" "PBMH_ades P = P"
     and "P\<lbrakk>True/ok\<^sup>>\<rbrakk> = P"
   shows "(AP (true \<turnstile> P) ;;\<^sub>D\<^sub>A Chaos\<^sub>A\<^sub>P) =
@@ -806,7 +808,7 @@ proof -
       "(RA1 (PBMH_ades ((true \<^sub>f)\<^sup>t)))\<lbrakk>True/ok\<^sup><\<rbrakk> =
         RA1 true"
     by (simp_all only: RA1_ok_in_subst
-        PBMH_ades_ok_in_subst[symmetric] Q_comp PBMH_ades_true)
+        PBMH_ades_ok_in_subst[THEN sym] Q_comp PBMH_ades_true)
   show ?thesis
     apply (simp only: Chaos_AP_def design_false_pre
         AP_seq_design_PBMH comp_apply)
@@ -968,7 +970,7 @@ subsection \<open>Prefixing\<close>
    event-to-trace embedding; the current list instance maps a to [a]. *)
 
 (* Paper Definition 57 / Thesis Definition 138. *)
-definition PrefixSkip_AP :: "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design" where
+definition PrefixSkip_AP :: "'e \<Rightarrow> ('e list, 'e) angelic_process" where
 [pred]: "PrefixSkip_AP a = AP (true \<turnstile> prefix_post a)"
 
 lemma PrefixSkip_AP_is_AP [closure]: "PrefixSkip_AP a is AP"
@@ -1001,8 +1003,8 @@ lemma RA1_PrefixSkip_AP:
    abbreviates (a \<rightarrow>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) ;;\<^sub>D\<^sub>A P; its
    general normal form is stated below. *)
 definition Prefix_AP ::
-  "'e \<Rightarrow> ('e list, 'e) reactive_angelic_design \<Rightarrow>
-   ('e list, 'e) reactive_angelic_design"
+  "'e \<Rightarrow> ('e list, 'e) angelic_process \<Rightarrow>
+   ('e list, 'e) angelic_process"
   (infixr "\<rightarrow>\<^sub>A\<^sub>P" 80) where
 [pred]: "Prefix_AP a P = (PrefixSkip_AP a ;;\<^sub>D\<^sub>A P)"
 

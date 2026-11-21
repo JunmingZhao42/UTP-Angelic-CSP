@@ -1,155 +1,215 @@
 # Reactive design parallel
 
-[Parallel by merge](README.md) · [D](D.md) · [AD](AD.md) · [RAD](RAD.md)
+[Parallel by merge](README.md) · [Generic](Generic.md) · [D](D.md) · [AD](AD.md) · [RAD](RAD.md)
 
-This guide covers ordinary reactive designs with the paper's process healthiness
-conditions: R1, R2, R3c, RD1 and RD2. The paper calls the last two CSP1 and CSP2;
-its R3 corresponds to Isabelle's R3c. See the [paper correspondence](../paper/RAD.md#63-relationship-with-csp).
+Source: [`utp_rdes_parallel_laws.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy),
+[`utp_rdes_parallel_lift.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy) and
+[`utp_rdes_parallel_unit_state.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy).
+[Shared notation](README.md#shared-notation).
 
-The operator is generic parallel by merge, `P ∥[M] Q`, on complete reactive
-observations. Its merge is supplied directly. The broader stateful construction,
-lifting and associativity results are documented in [Stateful RD parallel](RD-stateful.md).
+We first give laws for any ordinary reactive design merge `M`, then lift a
+state merge `j` to obtain `P ∥RD[j] Q`.
+RD uses `R1`, `R2`, `R3c`, `RD1` and
+`RD2`; the paper calls the last three R3, CSP1 and CSP2
+([paper correspondence](../paper/RAD.md#63-relationship-with-csp)).
+The broader stateful construction is covered in [Stateful RD](RD-stateful.md).
+
+- [Reactive design parallel](#reactive-design-parallel)
+  - [Generic merge healthiness and closure](#generic-merge-healthiness-and-closure)
+    - [Generic merge algebra](#generic-merge-algebra)
+  - [Lifted merge and laws](#lifted-merge-and-laws)
+    - [Correspondence with upstream RD parallel](#correspondence-with-upstream-rd-parallel)
 
 ## Generic merge healthiness and closure
 
-| Process healthiness (Isabelle) | Paper notation | Meaning | Merge condition |
-| --- | --- | --- | --- |
-| R1 | R1 | Output trace extends the prior trace | [R1m](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13) |
-| R2 | R2 | Independence from the common trace history | [R2m](../../deps/UTP-Reactive/utp_rea_parallel.thy#L23) |
-| R3c | R3 | Reactive skip when the prior process is waiting | [R3cm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L24) |
-| RD1 | CSP1 | Prior divergence guarantees only trace growth | [RD1m](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L77) |
-| RD2 | CSP2 | Cannot require nontermination | [RD2](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L373), applied to the merge |
+Each process healthiness condition has a merge counterpart. Here `tr` and
+`wait` belong to the prior observation, `trL`, `trR` to the branches, and
+`tr'` to the output. Substitutions are simultaneous:
 
-The ordinary waiting condition R3cm and the combined ORDm interface reside in
-`utp_rdes_parallel_laws.thy`; the RAD parallel theory imports them.
-Shared merge laws also live there. Stateful merge healthiness and completed-operator
-laws are kept in [utp_srdes_parallel_laws.thy](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy).
+```isabelle
+R1m  M ≡ M ∧ tr ≤ tr'
+R2m  M ≡ R1m (M[0, tr' − tr, trL − tr, trR − tr / tr, tr', trL, trR])
+R3cm M ≡ (RD1m skipₘ) ◁ wait ▷ M
+RD1m M ≡ M ∨ (¬ok ∧ tr ≤ tr')
+RD2  M ≡ M ;; J
 
-| Parallel result | Operand premises | Merge premises | Closure lemma | File |
-| --- | --- | --- | --- | --- |
-| `P ∥[M] Q is R1` | None | `M is R1m` | [R1_par_by_merge](../../deps/UTP-Reactive/utp_rea_parallel.thy#L191) | [utp_rea_parallel.thy](../../deps/UTP-Reactive/utp_rea_parallel.thy) |
-| `P ∥[M] Q is R2` | Both R2 | `M is R2m` | [R2_par_by_merge](../../deps/UTP-Reactive/utp_rea_parallel.thy#L202) | [utp_rea_parallel.thy](../../deps/UTP-Reactive/utp_rea_parallel.thy) |
-| `P ∥[M] Q is R3c` | Both R3c | `M is R3cm` | [R3cm_par_by_merge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L378) | [utp_rdes_parallel_laws.thy](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy) |
-| `P ∥[M] Q is RD1` | Both R1 and RD1 | `M is R1m` and `M is RD1m` | [RD1_par_by_merge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L79) | [utp_rdes_parallel.thy](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
-| `P ∥[M] Q is RD2` | None | `M is RD2` | [RD2_par_by_merge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L96) | [utp_rdes_parallel.thy](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
-
-R2m already supplies output trace growth, so the combined interface needs four
-merge conditions. Their combined transformer is [ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L27):
-
-```text
 ORDm ≡ RD1m ∘ R3cm ∘ R2m ∘ RD2
+NDRDm M ≡ M ∧ (ok ∧ ¬wait ∧ okL ∧ okR ⟶ ok')
 ```
 
-[ORDm_healthy_iff](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L113) equates its fixed points with R2m, R3cm,
-RD1m and RD2. [ORDm_R1m](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L126) recovers R1m.
-The package is [idempotent](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L98) and [monotone](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L101).
+[`skipₘ`](../../deps/UTP/utp_concurrency.thy#L68) preserves the prior whole
+observation, so `RD1m skipₘ` is the merge form of the reactive skip
+[`II_C`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L50).
+Upstream [`R3m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L230) uses plain `skipₘ`
+in its waiting branch; `R3cm` is its RD version, as `R3c` uses `II_C` where `R3`
+uses `II`. `R2m` includes `R1m`, so `ORDm` needs no separate `R1m` component
+([`ORDm_R1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L125)).
 
-| Parallel result | Operand premises | Merge premises | Closure lemma | File |
-| --- | --- | --- | --- | --- |
-| `P ∥[M] Q is RD` | Both RD | `M is ORDm` | [RD_par_by_ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L399) | [utp_rdes_parallel_laws.thy](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy) |
+On merges, `RD2` is Design's `H2m`, with `J` at the reactive observation type,
+and `RD1m` after `R2m` is `H1m` before it.
+So `ORDm` is Design's `HDm` followed by the reactive conditions
+([`ORDm_HDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L144)):
 
-Here [RD](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L425) combines the five process conditions above.
-ORDm supplies sufficient merge conditions for closure; the theorem does not
-assert their necessity.
+```isabelle
+ORDm M = R3cm (R2m (HDm M))
+```
 
-## Generic merge symmetry
+All five conditions are idempotent and monotonic:
+[`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L40),
+[`R2m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L83),
+[`R3cm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L49),
+[`RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L37) and
+[`RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L393).
+Their definitions are inherited from Isabelle/UTP except for `R3cm`.
+[`NDRDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L413)
+is also idempotent and monotone, with fixed points characterised by
+[`NDRDm_healthy_iff`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L429).
 
-[ORDm_SymMerge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L275)
-preserves merge symmetry. [ORDm_parallel_comm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L417)
-gives `P ∥[ORDm M] Q = Q ∥[ORDm M] P` when `M is SymMerge`,
-with no operand-healthiness premises.
+The five core conditions `R1m`, `R2m`, `R3cm`, `RD1m` and `RD2` commute
+pairwise without premises. In particular, the four components of `ORDm` can be
+applied in any order:
 
-## Generic merge associativity
-
-[AssocMerge](../../deps/UTP/utp_concurrency.thy#L215) expresses cyclic equality
-of two merge applications; [AssocMerge_cyclic_eval](../../deps/UTP/utp_concurrency.thy#L377)
-gives its pointwise form. Symmetry turns this into ordinary parallel
-associativity.
-
-| Result | Merge premises | Lemma |
+| Commuting pair | Premises | Lemma |
 | --- | --- | --- |
-| `AssocMerge (R2m M)` | `AssocMerge M` | [AssocMerge_R2m](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L324) |
-| `AssocMerge (R3cm M)` | `AssocMerge M` | [AssocMerge_R3cm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L309) |
-| `AssocMerge (RD1m M)` | `M is R1m`, `AssocMerge M` | [AssocMerge_RD1m](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L291) |
-| `AssocMerge (ORDm M)` | `AssocMerge (RD2 M)` | [ORDm_AssocMerge_RD2](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L351) |
-| `AssocMerge (ORDm M)` | `M is RD2`, `AssocMerge M` | [ORDm_AssocMerge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L362) |
-| Parallel with `ORDm M` is associative | `M is RD2`, `M is SymMerge`, `AssocMerge M` | [ORDm_parallel_assoc](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L424) |
+| `R2m`, `R3cm` | - | [`R2m_R3cm_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L63) |
+| `R2m`, `RD1m` | - | [`RD1m_R2m_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L60) |
+| `R2m`, `RD2` | - | [`RD2_R2m_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L72) |
+| `R3cm`, `RD1m` | - | [`RD1m_R3cm_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L57) |
+| `R3cm`, `RD2` | - | [`RD2_R3cm_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L69) |
+| `RD1m`, `RD2` | - | [`RD2_RD1m_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L66) |
 
-R2m supplies the trace-growth premise needed by RD1m in the composite.
-The combined rule requires associativity after RD2; an already RD2-healthy
-input therefore needs only `AssocMerge M`. These are sufficient conditions.
-The parallel law holds for arbitrary relational operands.
+[`R1m_R2m_commute`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L160)
+covers `R1m` with `R2m`; the other three `R1m` pairs were checked in Isabelle
+but are not installed as named lemmas.
+The additional `NDRDm` commutes with `R1m`, `R2m`, `R3cm` and `RD1m`
+([`NDRDm_R1m_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L458) and the three lemmas after it), but
+**not with `RD2` or `ORDm` in general**; these negative results are not
+installed as Isabelle lemmas.
+
+| Law for `P ∥[M] Q` | Operand premises | Merge premises | Lemma |
+| --- | --- | --- | --- |
+| `is R1` | - | [`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13) | [`R1_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L191) |
+| `is R2` | Both `R2` | [`R2m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L23) | [`R2_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L202) |
+| `is R3c` (R3) | Both `R3c` | [`R3cm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L24) | [`R3c_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L481) |
+| `is RD1` (CSP1) | Both `R1`, `RD1` | [`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13), [`RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L77) | [`RD1_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L79) |
+| `is RD2` (CSP2) | - | [`RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L373) | [`RD2_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L96) |
+| `is RD` | Both `RD` | `ORDm` | [`RD_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L502) |
+
+[`RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L425) combines the five
+process conditions above. These merge premises are sufficient for closure;
+the laws do not assert their necessity.
+
+### Generic merge algebra
+
+Associativity of a merge is the cyclic equation given by
+[`AssocMerge_iff`](../../deps/UTP/utp_concurrency_assoc.thy#L15); symmetry turns
+it into ordinary parallel associativity.
+
+| Merge property | Premises on `M` | Lemma |
+| --- | --- | --- |
+| `ORDm M is SymMerge` | `SymMerge` | [`ORDm_SymMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L294) |
+| `AssocMerge (R2m M)` | `AssocMerge M` | [`AssocMerge_R2m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L342) |
+| `AssocMerge (R3cm M)` | `AssocMerge M` | [`AssocMerge_R3cm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L327) |
+| `AssocMerge (RD1m M)` | `R1m`, `AssocMerge M` | [`AssocMerge_RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L309) |
+| `AssocMerge (RD2 M)` | `AssocMerge M`, `J(u,v) ∧ M(x,v,r,z) ⟹ ∃w. M(x,u,r,w) ∧ J(w,z)` | [`AssocMerge_RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L370) |
+| `AssocMerge (ORDm M)` | `AssocMerge (RD2 M)` | [`ORDm_AssocMerge_RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L395) |
+
+In the `RD2` row, `J(u,v)` says `v` is `u` with `ok` possibly raised from false
+to true. So lowering the left branch's `ok` may only lower the output's `ok`.
+
+Symmetry and associativity:
+
+| Law | Operand premises | Merge premises | Lemma |
+| --- | --- | --- | --- |
+| `P ∥[ORDm M] Q = Q ∥[ORDm M] P` | - | `M is SymMerge` | [`ORDm_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L520) |
+| `(P ∥[M] Q) ∥[M] R =`<br>`P ∥[M] (Q ∥[M] R)` | All `RD`, `NDRD` | `M is SymMerge`, `M is NDRDm`, `AssocMerge (merge_guard G_RD M)` | [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L533) |
+
+`G_RD` is the guard from [Generic](Generic.md#associativity-on-nondivergent-operands):
+a started, non-waiting prior gives a terminating result.
+
+With [`par_by_merge_assoc`](../../deps/UTP/utp_concurrency_assoc.thy#L30), the merge
+rules above make `∥[ORDm M]` associative for any operands when `M is SymMerge`
+and `AssocMerge (RD2 M)`. The lifted `∥RD[j]` needs `NDRD` operands only because
+of its `RD3c` completion; see [below](#lifted-merge-and-laws).
 
 ## Lifted merge and laws
 
-The local [merge_rdes_raw](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L22)
-takes `j :: ('t::trace × 'a) merge`, where `'a` contains extension observations
-such as refusals. It applies j to traces and extensions, sets output `ok` to
-the conjunction of branch flags, and sets output `wait` to their disjunction.
-[merge_rdes](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L34)
-then applies ORDm and completes with upstream's
-[RD3c](../../deps/UTP-Reactive-Designs/utp_rdes_normal.thy#L13), `P ;; II_C`, as
-H3m completes the design merge with design skip:
+[`merge_rdes_raw`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L22)
+applies `j :: ('t::trace × 'a) merge` to traces and extension observations,
+such as refusals. It sets `ok' = okL ∧ okR` and `wait' = waitL ∨ waitR`.
+We apply `ORDm`, then complete with
+[`RD3c`](../../deps/UTP-Reactive-Designs/utp_rdes_normal.thy#L13), `P ;; II_C`:
 
-```text
-merge_rdes j ≡ RD3c (ORDm (merge_rdes_raw j))
-merge_des j  ≡ H3m (HDm (merge_des_raw j))
+```isabelle
+merge_rdes ≡ RD3c ∘ ORDm ∘ merge_rdes_raw
+
+P ∥RD[j] Q ≡ P ∥[merge_rdes j] Q
 ```
 
-RD3c commutes with ORDm ([ORDm_RD3c_commute](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L221)), so completing
-an ORDm-healthy merge keeps it ORDm-healthy ([RD3c_ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L227)).
+This parallels Design's completion with `H3m`.
+`RD3c` commutes with `ORDm`
+([`ORDm_RD3c_commute`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L240)),
+so completion preserves `ORDm`
+([`RD3c_ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L246)).
+[`rdes_lift_par`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L170)
+provides the `∥RD[j]` notation.
 
-[merge_rdes_eval](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L74)
-exposes four cases. Prior divergence permits trace growth; a waiting prior is
-preserved. At an active prior, j sees trace contributions relative to the
-common history. If both branches are ok, j constrains the output trace and
-extension, `ok'` holds and `wait'` is the disjunction of branch flags. If a
-branch diverges, j must admit some trace no longer than the output trace; the
-output flags and extension are unconstrained. As in upstream `M_R`, divergent
-outputs are closed under trace extension.
+[`merge_rdes_eval`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L74)
+exposes four cases. Prior divergence permits trace growth; a started, waiting
+prior is preserved. At an active prior, `j` sees trace contributions relative
+to the common history. If both branches terminate, `j` constrains the output
+trace and extension, `ok'` holds and `wait' = waitL ∨ waitR`. If a branch
+diverges, `j` must admit a trace no longer than the output trace; the output
+flags and extension are unconstrained.
 
-[rdes_lift_par](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L170)
-abbreviates `P ∥[merge_rdes j] Q` as `P ∥RD[j] Q`.
+The lifted merge inherits these properties:
 
-| Property or law | Premises | Result |
+| Property of `merge_rdes j` | Premises on `j` | Lemma |
 | --- | --- | --- |
-| Lifted merge is ORDm-healthy | None | [merge_rdes_ORDm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L124) |
-| Component merge healthiness | None | [merge_rdes_healths](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L127) |
-| Monotonicity in j | `j ⊑ k` | [merge_rdes_mono](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L137) |
-| Merge symmetry | `j is SymMerge` | [merge_rdes_SymMerge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L159) |
-| `P ∥RD[j] Q is RD` | Both operands RD | [rdes_lift_parallel_RD](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L177) |
-| Parallel commutativity | `j is SymMerge` | [rdes_lift_parallel_comm](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L185) |
-| Parallel associativity | `j is SymMerge`, `AssocMerge j`; all operands RD and NDRD | [rdes_lift_parallel_assoc_nondiv](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L201) |
+| `ORDm` | - | [`merge_rdes_ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L124) |
+| `R1m`, `R2m`, `R3cm`, `RD1m`, `RD2` | - | [`merge_rdes_healths`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L127) |
+| `NDRDm` | - | [`merge_rdes_NDRDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L243) |
+| `SymMerge` | `SymMerge` | [`merge_rdes_SymMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L159) |
+| `merge_rdes j ⊑ merge_rdes k` | `j ⊑ k` | [`merge_rdes_mono`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L137) |
+
+So `∥RD[j]` preserves reactive design healthiness:
+
+| Result of `P ∥RD[j] Q` | Operand premises | Lemma |
+| --- | --- | --- |
+| `RD` | Both `RD` | [`rdes_lift_parallel_RD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L177) |
+| `NDRD` | Both `RD`, `NDRD` | [`rdes_lift_parallel_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L185) |
+
+Its algebraic laws:
+
+| Law | Operand premises | Premises on `j` | Lemma |
+| --- | --- | --- | --- |
+| `P ∥RD[j] Q = Q ∥RD[j] P` | - | `SymMerge` | [`rdes_lift_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L205) |
+| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `RD`, `NDRD` | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L267) |
+
+Completion can extend a divergent intermediate trace, so `merge_rdes j` is
+not associative in general. The uncompleted merge is associative when
+`AssocMerge j`
+([`ORDm_merge_rdes_raw_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L215));
+the completed merge retains this property under `G_RD`
+([`merge_rdes_guard_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L252)).
+For RD operands, [`NDRD_healthy_iff`](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
+equates `NDRD` with `pre_R P = true_r`: these operands never diverge from an
+active prior. Associativity for a wider class, such as prefix-closed operands,
+remains open.
 
 ### Correspondence with upstream RD parallel
 
-[to_unit_state](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L57)
-adds `st = ()` while preserving `ok`, `wait`, trace and the extension observation.
-[unit_state_rd_merge](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L13)
-applies the same `j` to trace contributions and extension observations on
-the stateful alphabet with `st = ()`. It is RDM by
-[unit_state_rd_merge_RDM](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L47).
-The completed merges agree pointwise by
-[merge_rdes_unit_state](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L119).
-Consequently,
-[rdes_lift_parallel_unit_state_eq](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L154)
-identifies `P ∥RD[j] Q` with upstream
-`P ∥R[unit_state_rd_merge j] Q` after transporting the operands and result
-through the unit-state alphabet map. It has no premises on `P`, `Q` or `j`.
-The extension observation remains available, including for refusals; only
-the separate program state is fixed to `()`.
+Ordinary RD parallel agrees with upstream parallel at `st = ()`, preserving
+all other observations, including refusals. Write `U` for
+[`unit_state_relation`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L137)
+and `M = unit_state_rd_merge j`, using
+[`unit_state_rd_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L13).
 
-Completion can extend a diverged intermediate result's trace, so it may then
-synchronise with traces that its branches did not perform. For RD operands,
-[NDRD_healthy_iff](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
-equates `P is NDRD` with `pre_R P = true_r`. Such operands never diverge
-from an active prior, so completion has no effect on them and associativity
-follows from the uncompleted merge; the proof of
-[rdes_lift_parallel_assoc_nondiv](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L201)
-shows both steps locally. Associativity for a
-wider class, such as prefix-closed operands, is open.
+| Law | Premises | Lemma |
+| --- | --- | --- |
+| `M is RDM` | - | [`unit_state_rd_merge_RDM`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L47) |
+| Completed merges agree under [`to_unit_state`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L57) | - | [`merge_rdes_unit_state`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L119) |
+| `U (P ∥RD[j] Q) =`<br>`U P ∥R[M] U Q` | - | [`rdes_lift_parallel_unit_state_eq`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_unit_state.thy#L154) |
 
-Except for associativity, the algebraic laws hold for arbitrary relational
-operands. [RAD parallel](RAD.md) lifts this completed
-ordinary merge and gives the flat RD/RAD correspondence. The upstream
-completion premises and the unit-state instance are recorded in [Stateful RD](RD-stateful.md).
+See [Stateful RD](RD-stateful.md) for broader completion premises and
+[RAD](RAD.md) for choice-set lifting and RD/RAD mapping laws.

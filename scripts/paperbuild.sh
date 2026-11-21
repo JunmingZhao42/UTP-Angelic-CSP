@@ -30,7 +30,7 @@ for entry in angelic-designs/utp_ades.thy reactive-angelic-designs/utp_rad.thy A
 done
 
 # A separate profile avoids loading the full project's ROOTS into the paper build.
-export ISABELLE_IDENTIFIER="${UTP_PROFILE:-utp-2025-2}-paper"
+export ISABELLE_IDENTIFIER="${UTP_PROFILE:-utp-2026-patched}-paper"
 export PROJECT_DIR="$paper_dir"
-"${ISABELLE:-isabelle}" build -b -d "$repo/deps" -d "$paper_dir" \
+"${ISABELLE:-$HOME/Applications/Isabelle2026-patched.app/bin/isabelle}" build -b -d "$repo/deps" -d "$paper_dir" \
   -o system_heaps=false -o threads=4 "$@" UTP-Angelic-CSP

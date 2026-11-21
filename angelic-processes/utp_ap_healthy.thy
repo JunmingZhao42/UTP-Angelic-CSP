@@ -4,10 +4,15 @@ theory utp_ap_healthy
   imports "UTP-Reactive-Angelic-Designs.utp_rad"
 begin
 
+text \<open>AP and RAD share an alphabet; AP healthiness remains an explicit condition.\<close>
+
+type_synonym ('t, 'e) angelic_process =
+  "('t, 'e) reactive_angelic_design"
+
 subsection \<open>The Identity of Angelic Processes\<close>
 
 (* Paper Definition 47: II_AP \<equiv> H1 (ok' \<and> s \<in> ac'). *)
-definition II_AP :: "('t::trace, 'e) reactive_angelic_design" where
+definition II_AP :: "('t::trace, 'e) angelic_process" where
 [pred]: "II_AP = H1 (ok\<^sup>> \<and> ades_state_choice)"
 
 lemma II_AP_is_H1 [closure]: "II_AP is H1"
@@ -31,7 +36,7 @@ lemma II_AP_is_PBMH_ades [closure]: "II_AP is PBMH_ades"
 subsection \<open>RA3AP: Waiting\<close>
 
 (* Paper Definition 48: RA3AP (P) = II_AP \<triangleleft> s.wait \<triangleright> P. *)
-definition RA3AP :: "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
+definition RA3AP :: "('t::trace, 'e) angelic_process \<Rightarrow> ('t, 'e) angelic_process" where
 [pred]: "RA3AP P = (II_AP \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P)"
 
 lemma RA3AP_idem: "RA3AP (RA3AP P) = RA3AP P"
@@ -171,7 +176,7 @@ subsection \<open>AP\<close>
 
 (* Paper Definition 46: AP = RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> CSPA2. *)
 definition AP ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design" where
+  "('t::trace, 'e) angelic_process \<Rightarrow> ('t, 'e) angelic_process" where
 [pred]: "AP = RA3AP \<circ> RA2 \<circ> A \<circ> H1 \<circ> CSPA2"
 
 lemma AP_mono:
@@ -260,7 +265,7 @@ proof -
       ((\<not> ok\<^sup><) \<or> Q\<lbrakk>True/ok\<^sup>>\<rbrakk>)"
     by pred_auto+
   have pre_ok: "((\<not> (\<not> ok\<^sup><)) \<turnstile> T) = (true \<turnstile> T)"
-      for T :: "('t, 'e) reactive_angelic_design"
+      for T :: "('t, 'e) angelic_process"
     by pred_auto
   show ?thesis
     by (simp only: AP_RA3AP_design comp_apply rad_wait_false_design
@@ -284,14 +289,18 @@ lemma AP_wait_false:
 lemma AP_wait_false_ok_false:
   "(rad_wait_false (AP P))\<^sup>f =
    (ok\<^sup>< \<longrightarrow> rad_wait_false ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f)))"
-  by (simp add: AP_wait_false design_def; pred_auto)
+  unfolding AP_wait_false
+  by (subst design_ok_out_false_subst;
+      simp add: unrest rad_wait_false_def impl_neg_disj)
 
 (* Thesis Lemma L.H.1.7. *)
 lemma AP_wait_false_ok_true:
   "(rad_wait_false (AP P))\<^sup>t =
    ((ok\<^sup>< \<and> \<not> rad_wait_false ((RA2 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>f))) \<longrightarrow>
      rad_wait_false ((RA2 \<circ> RA1 \<circ> PBMH_ades) ((P \<^sub>f)\<^sup>t)))"
-  by (simp add: AP_wait_false design_def; pred_auto)
+  unfolding AP_wait_false
+  by (subst design_ok_out_true_subst;
+      simp add: unrest rad_wait_false_def impl_neg_disj pred_ba.sup_assoc)
 
 (* AP acts as RA3AP \<circ> RA2 on a PBMH-healthy design whose
    postcondition absorbs RA1 true under the precondition. *)
@@ -505,7 +514,7 @@ text \<open>
 \<close>
 
 definition AP_feasible ::
-  "('t::trace, 'e) reactive_angelic_design \<Rightarrow> bool" where
+  "('t::trace, 'e) angelic_process \<Rightarrow> bool" where
 "AP_feasible P \<longleftrightarrow>
   (\<forall>s0. des_vars.ok\<^sub>v s0 \<and>
       \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))
@@ -524,16 +533,16 @@ lemma AP_feasibleD:
   obtains out where "P (s0, out)" "des_vars.ok\<^sub>v out"
   using assms by (auto simp: AP_feasible_def)
 
-abbreviation bottom_AP :: "('t::trace, 'e) reactive_angelic_design"
+abbreviation bottom_AP :: "('t::trace, 'e) angelic_process"
     ("\<^bold>\<bottom>\<^sub>A\<^sub>P") where
 "\<^bold>\<bottom>\<^sub>A\<^sub>P \<equiv> AP true"
 
-abbreviation top_AP :: "('t::trace, 'e) reactive_angelic_design"
+abbreviation top_AP :: "('t::trace, 'e) angelic_process"
     ("\<^bold>\<top>\<^sub>A\<^sub>P") where
 "\<^bold>\<top>\<^sub>A\<^sub>P \<equiv> AP false"
 
 lemma top_AP_design:
-  "(\<^bold>\<top>\<^sub>A\<^sub>P :: ('t::trace, 'e) reactive_angelic_design) =
+  "(\<^bold>\<top>\<^sub>A\<^sub>P :: ('t::trace, 'e) angelic_process) =
    (true \<turnstile>
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> false))"
   by (simp only: AP_wait_cond_design rad_wait_false_false subst_pred(2)
