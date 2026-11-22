@@ -121,11 +121,6 @@ proof -
   have rotate: "(\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. f s (f s a b) c \<in> Z) \<longleftrightarrow>
       (\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. f s (f s a b) c \<in> Z)" for s XP XQ XR Z
     using rot[of XP XQ XR s Z] rot[of XQ XR XP s Z] rot[of XR XP XQ s Z] by blast
-  have prior_all: "(\<forall>x :: 's astate des_vars_ext. F x) \<longleftrightarrow>
-      (\<forall>ok0 s0. F \<lparr>ok\<^sub>v = ok0, s\<^sub>v = s0, \<dots> = ()\<rparr>)" for F
-    by pred_auto
-  have output_all: "(\<forall>p :: 's achoices des_vars_ext. F p) \<longleftrightarrow> (\<forall>b X. F (ades_output b X))" for F
-    using choices_ex[of "\<lambda>p. \<not> F p"] by blast
   have started:
     "merge_eval (merge_ades j) \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>
         (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') \<longleftrightarrow>
@@ -151,13 +146,86 @@ proof -
       by (rule exI[where x="okP \<and> okQ"], rule exI[where x="?U"]) (use r ne in blast)
   qed
   show ?thesis
-    unfolding AssocMerge_iff prior_all output_all
+    unfolding AssocMerge_iff
     apply (intro allI)
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
     subgoal for ok0 s0 okP XP okQ XQ okR XR ok' ac'
       apply (cases ok0)
        apply (simp only: choices_ex started middle rotate[of XP XQ XR s0 ac'])
        apply blast
       by (simp add: choices_ex merge_ades_obs[simplified])
+    done
+qed
+
+text \<open>We want associativity for nondivergent operands even when j is partial, so we
+  guard the merge to nondivergent branches, as for designs. Then a deterministic j is
+  enough: both merge orders need the merge of a, b and then c to exist and lie in ac'.\<close>
+
+lemma merge_ades_guard_AssocMerge:
+  fixes j :: "'s merge"
+  assumes det: "Functional j" and assoc: "AssocMerge j"
+  shows "AssocMerge (merge_guard (\<lambda>x z. des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z) (merge_ades j))"
+proof -
+  have uniq: "u = v" if "merge_eval j s a b u" "merge_eval j s a b v" for s a b u v
+    using det[unfolded Functional_merge_eval] that by blast
+  have Tcyc: "(\<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z) \<longleftrightarrow>
+      (\<exists>u. merge_eval j s b c u \<and> merge_eval j s u a z)" for s a b c z
+    by (rule assoc[unfolded AssocMerge_iff, rule_format])
+  (* one cyclic step; three steps return to the start *)
+  have rot: "\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
+    if h: "\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
+    for s XP XQ XR Z
+  proof (intro ballI)
+    fix a b c assume "a \<in> XQ" "b \<in> XR" "c \<in> XP"
+    then have "\<exists>z\<in>Z. \<exists>u. merge_eval j s c a u \<and> merge_eval j s u b z" using h by blast
+    then show "\<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
+      using Tcyc[of s c a b] by blast
+  qed
+  have rotate:
+    "(\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z) \<longleftrightarrow>
+     (\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z)"
+    for s XP XQ XR Z
+    by (rule iffI) (erule rot, erule rot[THEN rot])
+  have started:
+    "merge_eval (merge_guard (\<lambda>x z. des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z) (merge_ades j))
+        \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>
+        (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') \<longleftrightarrow>
+     okL \<and> okR \<and> acL \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>a\<in>acL. \<forall>b\<in>acR. \<exists>z. merge_eval j s0 a b z) \<and>
+     ok' \<and> (\<forall>a\<in>acL. \<forall>b\<in>acR. \<exists>z\<in>ac'. merge_eval j s0 a b z)"
+    for s0 okL acL okR acR ok' ac'
+    by (auto simp: merge_guard_eval merge_ades_obs[simplified])
+  (* the middle set holds every result of the first merge *)
+  have middle:
+    "(\<exists>okU U.
+        (okP \<and> okQ \<and> XP \<noteq> {} \<and> XQ \<noteq> {} \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<exists>z. merge_eval j s0 a b z) \<and>
+         okU \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<exists>z\<in>U. merge_eval j s0 a b z)) \<and>
+        (okU \<and> okR \<and> U \<noteq> {} \<and> XR \<noteq> {} \<and> (\<forall>a\<in>U. \<forall>b\<in>XR. \<exists>z. merge_eval j s0 a b z) \<and>
+         ok' \<and> (\<forall>a\<in>U. \<forall>b\<in>XR. \<exists>z\<in>Z. merge_eval j s0 a b z))) \<longleftrightarrow>
+     okP \<and> okQ \<and> okR \<and> XP \<noteq> {} \<and> XQ \<noteq> {} \<and> XR \<noteq> {} \<and> ok' \<and>
+     (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s0 a b u \<and> merge_eval j s0 u c z)"
+    (is "?L \<longleftrightarrow> ?R")
+    for s0 XP XQ XR Z okP okQ okR ok'
+  proof
+    assume ?L
+    then show ?R by blast
+  next
+    assume r: ?R
+    let ?U = "{u. \<exists>a\<in>XP. \<exists>b\<in>XQ. merge_eval j s0 a b u}"
+    have uz: "\<exists>z\<in>Z. merge_eval j s0 u c z" if "u \<in> ?U" "c \<in> XR" for u c
+      using that r uniq by blast
+    show ?L
+      by (rule exI[where x=True], rule exI[where x="?U"]) (use r uz in blast)
+  qed
+  show ?thesis
+    unfolding AssocMerge_iff
+    apply (intro allI)
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
+    subgoal for ok0 s0 okP XP okQ XQ okR XR ok' ac'
+      apply (cases ok0)
+       apply (simp only: choices_ex started middle
+          rotate[where s=s0 and XP=XP and XQ=XQ and XR=XR and Z=ac'])
+       apply blast
+      by (simp add: choices_ex merge_guard_eval merge_ades_obs[simplified])
     done
 qed
 
@@ -463,6 +531,31 @@ theorem ades_par_assoc_det:
   shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
   unfolding ades_par_def
   by (rule par_by_merge_assoc[OF merge_ades_SymMerge[OF sym] merge_ades_AssocMerge[OF det tot assoc]])
+
+text \<open>For nondivergent operands a deterministic merge need not be total:
+  (P \<parallel> Q) \<parallel> R = P \<parallel> (Q \<parallel> R). With divergence, a partial merge breaks this.\<close>
+
+theorem ades_par_assoc_det_nd:
+  fixes j :: "'s merge" and P Q R :: "'s angelic_design"
+  assumes nondiv: "P is NDAD" "Q is NDAD" "R is NDAD"
+    and det: "Functional j" and sym: "j is SymMerge" and assoc: "AssocMerge j"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+  unfolding ades_par_def
+proof (rule par_by_merge_assoc_guard[OF SymMerge_merge_guard[OF merge_ades_SymMerge[OF sym]]
+      merge_ades_guard_AssocMerge[OF det assoc]])
+  (* nondivergent operands never pass from a started prior to ok' = False *)
+  have nd_ok: "\<And>x z. S (x, z) \<Longrightarrow> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z"
+    if "S is NDAD" for S :: "'s angelic_design"
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
+    by (metis (full_types) NDAD_obs Healthy_if[OF that] des_vars.select_convs(1))
+  show "\<lbrakk> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v p; des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v q;
+      merge_eval (merge_ades j) x p q z \<rbrakk> \<Longrightarrow> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z" for x p q z
+    by (auto simp: merge_ades_unfold Let_def)
+  show "P (x, z) \<Longrightarrow> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z"
+    "Q (x, z) \<Longrightarrow> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z"
+    "R (x, z) \<Longrightarrow> des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z" for x z
+    using nd_ok[OF nondiv(1)] nd_ok[OF nondiv(2)] nd_ok[OF nondiv(3)] by blast+
+qed
 
 subsubsection \<open>Example: Skip Merge\<close>
 
