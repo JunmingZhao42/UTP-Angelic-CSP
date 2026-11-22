@@ -61,9 +61,9 @@ Checkboxes track work, not conjectured truth. The
 ## Off-A2 AD and RAD laws
 
 The installed AD laws `ades_par_assoc` and `ades_par_assoc_nd` need A2 operands.
-[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L527) needs no
+[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L552) needs no
 operand premise when `j` is `Functional`, `mergeable`, symmetric and associative;
-[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_lift.thy#L538) drops
+[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_lift.thy#L563) drops
 `mergeable` for nondivergent operands. A nondeterministic `j` breaks associativity
 (see the [AD guide](docs/parallel/AD.md)).
 
@@ -71,8 +71,11 @@ operand premise when `j` is `Functional`, `mergeable`, symmetric and associative
   precondition first, then A0/H1/H3.
 - [ ] Characterise `∥AD` off A2 for a general `j`; the deterministic case at a
   started prior is installed.
-- [ ] Distribution of `∥AD` over `⊓` and `⊔`, with equality cases. Expect only
-  one-way refinement for `⊔`.
+- [ ] Equality cases for `∥AD` over `⊔`. Distribution over `⊓` and the one-way laws for
+  `⊔` are installed (`ades_par_demonic_distl`, `ades_par_angelic_subdistl`, and the
+  right-hand versions). Candidate: the shared operand has no demonic choice and the
+  others are up-closed (geometry review); stating "no demonic choice" with the real
+  operators needs a decision.
 - [ ] Unit and zero laws (Chaos, Miracle, unit), compared with D.
 - [ ] Decide which [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md)
   results to install (canonicity, subdistribution, clairvoyance), restated with

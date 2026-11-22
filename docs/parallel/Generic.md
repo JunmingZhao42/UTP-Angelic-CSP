@@ -44,10 +44,22 @@ The theory then gives unrestriction and substitution laws, and the basic
 algebra: [`par_by_merge_eval`](../../deps/UTP/utp_concurrency.thy#L319) is the evaluation
 above, false is absorbing, and a skip merge of feasible operands is `II`.
 
+Parallel distributes over disjunction on either side
+([`par_by_merge_disj_distl`](../../deps/UTP/utp_concurrency.thy#L332), [`par_by_merge_disj_distr`](../../deps/UTP/utp_concurrency.thy#L337)), and over `⊓` of
+a set ([`par_by_merge_Sup_distl`](../../deps/UTP/utp_concurrency.thy#L323), [`par_by_merge_Sup_distr`](../../deps/UTP/utp_concurrency.thy#L327)). Conjunction only
+subdistributes, since the two parallels on the left may use different observations of the
+shared operand ([`par_by_merge_conj_subdistl`](../../deps/UTP/utp_concurrency.thy#L345),
+[`par_by_merge_conj_subdistr`](../../deps/UTP/utp_concurrency.thy#L350)):
+
+```isabelle
+P ∥[M] (Q ∨ R) = (P ∥[M] Q) ∨ (P ∥[M] R)
+(P ∥[M] Q) ∧ (P ∥[M] R) ⊑ P ∥[M] (Q ∧ R)
+```
+
 ## Symmetry and associativity
 
-[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L360) and
-[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L371):
+[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L383) and
+[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L394):
 
 ```isabelle
 (* we can swap the positions of p and q branches *)

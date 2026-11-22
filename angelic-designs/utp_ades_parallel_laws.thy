@@ -491,6 +491,35 @@ text \<open>Use @{thm [source] par_by_merge_comm} for symmetric merges and
   @{thm [source] par_by_merge_assoc} for symmetric AssocMerge merges.
   These laws need no operand healthiness or mergeability premise.\<close>
 
+subsubsection \<open>Choice\<close>
+
+text \<open>Demonic choice is disjunction, so parallel distributes over it. Angelic choice
+  is conjunction, so parallel only subdistributes: (P \<parallel> Q) \<squnion> (P \<parallel> R) \<sqsubseteq> P \<parallel> (Q \<squnion> R).\<close>
+
+(* P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R) *)
+lemma ades_par_by_merge_demonic_distl:
+  fixes P Q R :: "'s angelic_design" and M :: "'s ades_merge_rel"
+  shows "P \<parallel>\<^bsub>M\<^esub> (Q \<sqinter>\<^sub>A\<^sub>D R) = (P \<parallel>\<^bsub>M\<^esub> Q) \<sqinter>\<^sub>A\<^sub>D (P \<parallel>\<^bsub>M\<^esub> R)"
+  by (simp only: angelic_design_demonic par_by_merge_disj_distl)
+
+(* (P \<sqinter> Q) \<parallel> R = (P \<parallel> R) \<sqinter> (Q \<parallel> R) *)
+lemma ades_par_by_merge_demonic_distr:
+  fixes P Q R :: "'s angelic_design" and M :: "'s ades_merge_rel"
+  shows "(P \<sqinter>\<^sub>A\<^sub>D Q) \<parallel>\<^bsub>M\<^esub> R = (P \<parallel>\<^bsub>M\<^esub> R) \<sqinter>\<^sub>A\<^sub>D (Q \<parallel>\<^bsub>M\<^esub> R)"
+  by (simp only: angelic_design_demonic par_by_merge_disj_distr)
+
+(* (P \<parallel> Q) \<squnion> (P \<parallel> R) \<sqsubseteq> P \<parallel> (Q \<squnion> R) *)
+lemma ades_par_by_merge_angelic_subdistl:
+  fixes P Q R :: "'s angelic_design" and M :: "'s ades_merge_rel"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P \<parallel>\<^bsub>M\<^esub> R) \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> (Q \<squnion>\<^sub>A\<^sub>D R)"
+  by (simp only: angelic_design_angelic par_by_merge_conj_subdistl)
+
+(* (P \<parallel> R) \<squnion> (Q \<parallel> R) \<sqsubseteq> (P \<squnion> Q) \<parallel> R *)
+lemma ades_par_by_merge_angelic_subdistr:
+  fixes P Q R :: "'s angelic_design" and M :: "'s ades_merge_rel"
+  shows "(P \<parallel>\<^bsub>M\<^esub> R) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^bsub>M\<^esub> R) \<sqsubseteq> (P \<squnion>\<^sub>A\<^sub>D Q) \<parallel>\<^bsub>M\<^esub> R"
+  by (simp only: angelic_design_angelic par_by_merge_conj_subdistr)
+
 subsection \<open>Choice-set lifting\<close>
 
 (* ac'_lift_merge M ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =

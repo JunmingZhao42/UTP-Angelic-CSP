@@ -11,7 +11,7 @@ Fix a started prior `s`. An AD offers a family of sets `ac'` (faces of the
 simplex of final states): the demon offers a set, and the angel picks a state in
 it. Refinement shrinks the family; `⊓` is union of families and `⊔` is pairwise
 union of sets. The AD lift
-[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_laws.thy#L498),
+[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_laws.thy#L527),
 shared by RAD through
 [`rad_lift_merge`](../../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L120),
 needs a merge result in `ac'` for every pair of branch states:

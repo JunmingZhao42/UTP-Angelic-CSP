@@ -363,6 +363,31 @@ lemma ades_par_ac2p_d2ac:
   by (simp only: ades_par_d2ac[OF assms]
       ac2p_d2ac[OF des_par_H_closure[OF H_implies_H1[OF assms(1)] H_implies_H1[OF assms(2)]], simplified comp_apply])
 
+subsubsection \<open>Choice\<close>
+
+text \<open>The choice laws for any AD merge apply to the lifted merge. The angelic law can be
+  strict, since the left side may resolve the shared operand's demonic choice twice.\<close>
+
+(* P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R) *)
+lemma ades_par_demonic_distl:
+  "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<sqinter>\<^sub>A\<^sub>D R) = (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<sqinter>\<^sub>A\<^sub>D (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+  by (simp only: ades_par_def ades_par_by_merge_demonic_distl)
+
+(* (P \<sqinter> Q) \<parallel> R = (P \<parallel> R) \<sqinter> (Q \<parallel> R) *)
+lemma ades_par_demonic_distr:
+  "(P \<sqinter>\<^sub>A\<^sub>D Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqinter>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+  by (simp only: ades_par_def ades_par_by_merge_demonic_distr)
+
+(* (P \<parallel> Q) \<squnion> (P \<parallel> R) \<sqsubseteq> P \<parallel> (Q \<squnion> R) *)
+lemma ades_par_angelic_subdistl:
+  "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqsubseteq> P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<squnion>\<^sub>A\<^sub>D R)"
+  by (simp only: ades_par_def ades_par_by_merge_angelic_subdistl)
+
+(* (P \<parallel> R) \<squnion> (Q \<parallel> R) \<sqsubseteq> (P \<squnion> Q) \<parallel> R *)
+lemma ades_par_angelic_subdistr:
+  "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqsubseteq> (P \<squnion>\<^sub>A\<^sub>D Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R"
+  by (simp only: ades_par_def ades_par_by_merge_angelic_subdistr)
+
 subsubsection \<open>Monotonicity\<close>
 
 lemma ades_par_mono:
