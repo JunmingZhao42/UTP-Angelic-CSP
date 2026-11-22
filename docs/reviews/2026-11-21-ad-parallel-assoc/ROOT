@@ -1,3 +1,0 @@
-session "AD_Assoc_Counterexample" = "UTP-Angelic-Designs" +
-  options [document = false]
-  theories AD_Assoc_Counterexample

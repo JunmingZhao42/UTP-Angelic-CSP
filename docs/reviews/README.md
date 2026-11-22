@@ -8,7 +8,7 @@ work is recorded in commit messages, not here.
 | Folder | Open item | Isabelle sessions |
 | --- | --- | --- |
 | [Geometry of AD parallel](2026-11-20-ad-parallel-geometry/README.md) | Stage 6: angelic choice against a synchronising partner; which geometry laws to install | `AD_Geometry_Probe`, `RAD_Geometry_Probe` |
-| [Associativity of AD parallel beyond A2](2026-11-21-ad-parallel-assoc/README.md) | Off-A2 laws: counterexample for a nondeterministic merge | `AD_Assoc_Counterexample` |
+| [Associativity of AD parallel beyond A2](2026-11-21-ad-parallel-assoc/README.md) | Off A2: associativity for a partial deterministic merge | - |
 
 ## Milestones
 

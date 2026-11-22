@@ -61,17 +61,18 @@ Checkboxes track work, not conjectured truth. The
 ## Off-A2 AD and RAD laws
 
 The installed AD laws `ades_par_assoc` and `ades_par_assoc_nd` need A2 operands.
-[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L651) needs no
+[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L459) needs no
 operand premise when `j` is `Functional`, `mergeable`, symmetric and associative;
-a nondeterministic `j` breaks associativity
-([counterexample](docs/reviews/2026-11-21-ad-parallel-assoc/README.md)).
+a nondeterministic `j` breaks associativity (see the [AD guide](docs/parallel/AD.md)).
 
 - [ ] AD normal form at a fixed prior: `U = ⋃ ↑A`, `P = ⊓ ⊔ ⟨a⟩`. True
   precondition first, then A0/H1/H3.
 - [ ] Characterise `∥AD` off A2 for a general `j`; the deterministic case at a
   started prior is installed.
 - [ ] Optional: associativity for a partial deterministic `j` on nondivergent
-  operands. It fails with divergence.
+  operands. It fails with divergence
+  ([brute force](docs/reviews/2026-11-21-ad-parallel-assoc/README.md)). Try a guarded
+  merge with `par_by_merge_assoc_guard`, as D's `par_by_merge_assoc_NDD` does.
 - [ ] Distribution of `∥AD` over `⊓` and `⊔`, with equality cases. Expect only
   one-way refinement for `⊔`.
 - [ ] Unit and zero laws (Chaos, Miracle, unit), compared with D.
@@ -81,7 +82,8 @@ a nondeterministic `j` breaks associativity
 - [ ] RAD normal form and characterisation through ordinary RD parallel.
 - [ ] RAD associativity off A2: try a deterministic `j` such as `jsync` first.
   RAD releases only trace extensions after divergence, so the AD proof does not
-  carry over directly.
+  carry over directly. Try associativity of the lifted RAD merge first, as for AD
+  (`merge_ades_AssocMerge`).
 
 ## Stage 0b — publication and organisation · deferred
 
