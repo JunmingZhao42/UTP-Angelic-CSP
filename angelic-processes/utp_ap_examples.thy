@@ -49,7 +49,7 @@ lemma H1_RA1_bottom_AP_example:
    divergence of Chaos_AP by resolving the choice in favour of
    deadlock. *)
 lemma Stop_Skip_seq_Chaos_AP:
-  "(Stop\<^sub>A\<^sub>P \<squnion>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) ;;\<^sub>D\<^sub>A Chaos\<^sub>A\<^sub>P =
+  "(Stop\<^sub>A\<^sub>P \<squnion>\<^sub>A\<^sub>P Skip\<^sub>A\<^sub>P) ;;\<^sub>A\<^sub>D Chaos\<^sub>A\<^sub>P =
    Stop\<^sub>A\<^sub>P"
 proof -
   let ?J = "stop_post \<and> skip_post"
@@ -71,12 +71,12 @@ proof -
   \<comment> \<open>A non-waiting handover is impossible: the deadlocked branch
       has no non-waiting final state.\<close>
   have handover_false:
-    "(RA1 ?J ;;\<^sub>A\<^sub>D (\<not> rad_wait_lens\<^sup><)) = false"
+    "(RA1 ?J ;;\<^sub>A\<^sub>R (\<not> rad_wait_lens\<^sup><)) = false"
     by (simp add: RA1_def aseq_ades_def stop_post_def skip_post_def
         ades_singleton_choice_def fun_eq_iff Let_def; pred_auto; auto)
   \<comment> \<open>The angel keeps only the waiting branch, which is deadlock.\<close>
   have continuation_stop:
-    "(RA1 ?J ;;\<^sub>A\<^sub>D
+    "(RA1 ?J ;;\<^sub>A\<^sub>R
       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> true)) =
      stop_post"
     apply (simp add: RA1_def aseq_ades_def stop_post_def

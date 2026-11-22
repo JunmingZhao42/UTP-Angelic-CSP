@@ -14,7 +14,7 @@ subsection \<open>Healthiness and angelic composition\<close>
 (* Thesis Lemma L.G.1.29: an aborted first process followed by anything
    yields the aborted behaviour. *)
 lemma RA1_not_ok_aseq_absorb:
-  "(RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D RA1 true) = RA1 (\<not> ok\<^sup><)"
+  "(RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>R RA1 true) = RA1 (\<not> ok\<^sup><)"
   apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
   apply pred_auto
    apply (blast dest: rad_trace_extensions_trans)
@@ -23,7 +23,7 @@ lemma RA1_not_ok_aseq_absorb:
 
 (* Thesis Lemma L.G.1.16: composition preserves RA1 healthiness. *)
 lemma RA1_aseq_absorb:
-  "RA1 (RA1 P ;;\<^sub>A\<^sub>D RA1 Q) = (RA1 P ;;\<^sub>A\<^sub>D RA1 Q)"
+  "RA1 (RA1 P ;;\<^sub>A\<^sub>R RA1 Q) = (RA1 P ;;\<^sub>A\<^sub>R RA1 Q)"
   apply (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def)
   apply (simp add: rad_trace_extensions_Int_Collect
       rad_trace_extensions_inter_absorb cong: conj_cong)
@@ -37,7 +37,7 @@ lemma rad_trace_append_assoc:
 (* Thesis Theorem T.G.2.4: RA2 distributes through full-alphabet angelic
    composition when the right operand is already RA2-normalised. *)
 lemma RA2_aseq_distrib:
-  "RA2 (P ;;\<^sub>A\<^sub>D RA2 Q) = (RA2 P ;;\<^sub>A\<^sub>D RA2 Q)"
+  "RA2 (P ;;\<^sub>A\<^sub>R RA2 Q) = (RA2 P ;;\<^sub>A\<^sub>R RA2 Q)"
   by (simp add: RA2_def aseq_ades_def Let_def fun_eq_iff comp_def
       rad_normalise_choices_as_prepend[unfolded rad_trace_prepend_def] rad_zero_trace_def
       rad_trace_append_assoc)
@@ -45,27 +45,27 @@ lemma RA2_aseq_distrib:
 (* A reusable form of the RA2 transport used by reactive sequential
    composition: commute RA1 and RA2 on both operands in one step. *)
 lemma RA2_RA1_aseq_distrib:
-  "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
-   (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+  "RA2 (RA1 P ;;\<^sub>A\<^sub>R RA2 (RA1 Q)) =
+   (RA1 (RA2 P) ;;\<^sub>A\<^sub>R RA1 (RA2 Q))"
 proof -
-  have "RA2 (RA1 P ;;\<^sub>A\<^sub>D RA2 (RA1 Q)) =
-      (RA2 (RA1 P) ;;\<^sub>A\<^sub>D RA2 (RA1 Q))"
+  have "RA2 (RA1 P ;;\<^sub>A\<^sub>R RA2 (RA1 Q)) =
+      (RA2 (RA1 P) ;;\<^sub>A\<^sub>R RA2 (RA1 Q))"
     by (rule RA2_aseq_distrib)
   also have "... =
-      (RA1 (RA2 P) ;;\<^sub>A\<^sub>D RA1 (RA2 Q))"
+      (RA1 (RA2 P) ;;\<^sub>A\<^sub>R RA1 (RA2 Q))"
     by (simp only: RA1_RA2_commute'[symmetric])
   finally show ?thesis .
 qed
 
 lemma RA2_aseq_fixed:
   assumes "RA2 Y = Y"
-  shows "RA2 (X ;;\<^sub>A\<^sub>D Y) = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+  shows "RA2 (X ;;\<^sub>A\<^sub>R Y) = (RA2 X ;;\<^sub>A\<^sub>R Y)"
 proof -
-  have "RA2 (X ;;\<^sub>A\<^sub>D Y) = RA2 (X ;;\<^sub>A\<^sub>D RA2 Y)"
+  have "RA2 (X ;;\<^sub>A\<^sub>R Y) = RA2 (X ;;\<^sub>A\<^sub>R RA2 Y)"
     by (simp only: assms)
-  also have "... = (RA2 X ;;\<^sub>A\<^sub>D RA2 Y)"
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>R RA2 Y)"
     by (rule RA2_aseq_distrib)
-  also have "... = (RA2 X ;;\<^sub>A\<^sub>D Y)"
+  also have "... = (RA2 X ;;\<^sub>A\<^sub>R Y)"
     by (simp only: assms)
   finally show ?thesis .
 qed
@@ -111,10 +111,10 @@ subsection \<open>Sequential composition of RA1 designs\<close>
 lemma RA1_design_seq:
   assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q" "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
     and "(\<not> P) is PBMH_ades" "Q is PBMH_ades"
-  shows "(RA1 (P \<turnstile> Q) ;;\<^sub>D\<^sub>A RA1 (R \<turnstile> S)) =
-    RA1 (((\<not> (RA1 (\<not> P) ;;\<^sub>A\<^sub>D RA1 true)) \<and>
-          (\<not> (RA1 Q ;;\<^sub>A\<^sub>D RA1 (\<not> R)))) \<turnstile>
-         (RA1 Q ;;\<^sub>A\<^sub>D RA1 (R \<longrightarrow> S)))"
+  shows "(RA1 (P \<turnstile> Q) ;;\<^sub>A\<^sub>D RA1 (R \<turnstile> S)) =
+    RA1 (((\<not> (RA1 (\<not> P) ;;\<^sub>A\<^sub>R RA1 true)) \<and>
+          (\<not> (RA1 Q ;;\<^sub>A\<^sub>R RA1 (\<not> R)))) \<turnstile>
+         (RA1 Q ;;\<^sub>A\<^sub>R RA1 (R \<longrightarrow> S)))"
 proof -
   let ?B = "RA1 ((\<not> R) \<or> (S \<and> ok\<^sup>>))"
   have disj_collapse:
@@ -126,19 +126,19 @@ proof -
   have B_refine: "RA1 true \<sqsubseteq> ?B"
     by (rule RA1_mono; pred_auto)
   have absorb_not_ok:
-      "RA1 (\<not> ok\<^sup><) \<sqsubseteq> (RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D ?B)"
+      "RA1 (\<not> ok\<^sup><) \<sqsubseteq> (RA1 (\<not> ok\<^sup><) ;;\<^sub>A\<^sub>R ?B)"
     using aseq_ades_mono_right
       [where P="RA1 (\<not> ok\<^sup><)" and Q="RA1 true" and R="?B",
        OF _ B_refine]
     by (simp add: Healthy_def' RA1_not_ok_aseq_absorb)
   have absorb_not_P:
-      "(RA1 (\<not> P) ;;\<^sub>A\<^sub>D RA1 true) \<sqsubseteq>
-       (RA1 (\<not> P) ;;\<^sub>A\<^sub>D ?B)"
+      "(RA1 (\<not> P) ;;\<^sub>A\<^sub>R RA1 true) \<sqsubseteq>
+       (RA1 (\<not> P) ;;\<^sub>A\<^sub>R ?B)"
     by (rule aseq_ades_mono_right
         [OF RA1_PBMH_ades_closure[OF assms(5)] B_refine])
-  have B_split: "(RA1 Q ;;\<^sub>A\<^sub>D ?B) =
-    ((RA1 Q ;;\<^sub>A\<^sub>D RA1 (\<not> R)) \<or>
-     ((RA1 Q ;;\<^sub>A\<^sub>D RA1 (R \<longrightarrow> S)) \<and> ok\<^sup>>))"
+  have B_split: "(RA1 Q ;;\<^sub>A\<^sub>R ?B) =
+    ((RA1 Q ;;\<^sub>A\<^sub>R RA1 (\<not> R)) \<or>
+     ((RA1 Q ;;\<^sub>A\<^sub>R RA1 (R \<longrightarrow> S)) \<and> ok\<^sup>>))"
     by (simp only: RA1_disj RA1_conj_ok
         aseq_ades_ok_out_split[OF RA1_PBMH_ades_closure[OF assms(6)]]
         RA1_disj[symmetric] impl_neg_disj[of R S, symmetric])
@@ -171,9 +171,9 @@ lemma rad_wait_cond_left_absorb:
   by (simp add: expr_if_def fun_eq_iff)
 
 lemma aseq_ades_wait_cond_distrib:
-  "((P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) ;;\<^sub>A\<^sub>D R) =
-   ((P ;;\<^sub>A\<^sub>D R) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-    (Q ;;\<^sub>A\<^sub>D R))"
+  "((P \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> Q) ;;\<^sub>A\<^sub>R R) =
+   ((P ;;\<^sub>A\<^sub>R R) \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
+    (Q ;;\<^sub>A\<^sub>R R))"
   by (simp add: aseq_ades_def expr_if_def fun_eq_iff; pred_auto)
 
 subsection \<open>Sequential composition of RA designs\<close>
@@ -192,11 +192,11 @@ lemma RA_design_seq:
   assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
     "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
     and "(\<not> P) is PBMH_ades" "Q is PBMH_ades"
-  shows "(RA (P \<turnstile> Q) ;;\<^sub>D\<^sub>A RA (R \<turnstile> S)) =
-    RA (((\<not> (RA1 (\<not> P) ;;\<^sub>A\<^sub>D RA1 true)) \<and>
-         (\<not> (RA1 Q ;;\<^sub>A\<^sub>D
+  shows "(RA (P \<turnstile> Q) ;;\<^sub>A\<^sub>D RA (R \<turnstile> S)) =
+    RA (((\<not> (RA1 (\<not> P) ;;\<^sub>A\<^sub>R RA1 true)) \<and>
+         (\<not> (RA1 Q ;;\<^sub>A\<^sub>R
              ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 (\<not> R)))))) \<turnstile>
-        (RA1 Q ;;\<^sub>A\<^sub>D
+        (RA1 Q ;;\<^sub>A\<^sub>R
          (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
           RA2 (RA1 (R \<longrightarrow> S)))))"
 proof -
@@ -246,45 +246,45 @@ proof -
      RA1 (RA2 (R \<longrightarrow> S)))"
     by (simp only: rad_wait_cond_impl pred_impl_laws(1)
         RA2_impl[symmetric] RA1_wait_cond RA1_state_choice)
-  have P_failure_comp_form: "(RA1 (\<not> ?P') ;;\<^sub>A\<^sub>D RA1 true) =
+  have P_failure_comp_form: "(RA1 (\<not> ?P') ;;\<^sub>A\<^sub>R RA1 true) =
     (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-     (RA1 (RA2 (\<not> P)) ;;\<^sub>A\<^sub>D RA1 true))"
+     (RA1 (RA2 (\<not> P)) ;;\<^sub>A\<^sub>R RA1 true))"
     by (simp only: P_failure_RA1_form aseq_ades_wait_cond_distrib
         aseq_ades_false_left)
-  have handover_failure_comp_form: "(RA1 ?Q' ;;\<^sub>A\<^sub>D RA1 (\<not> ?R')) =
+  have handover_failure_comp_form: "(RA1 ?Q' ;;\<^sub>A\<^sub>R RA1 (\<not> ?R')) =
     (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-     (RA1 (RA2 Q) ;;\<^sub>A\<^sub>D
+     (RA1 (RA2 Q) ;;\<^sub>A\<^sub>R
       (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
        RA1 (RA2 (\<not> R)))))"
     by (simp only: P_post_RA1_form Q_failure_RA1_form
         aseq_ades_wait_cond_distrib
         aseq_ades_state_choice_left rad_wait_cond_left_absorb)
-  have continuation_comp_form: "(RA1 ?Q' ;;\<^sub>A\<^sub>D RA1 (?R' \<longrightarrow> ?S')) =
+  have continuation_comp_form: "(RA1 ?Q' ;;\<^sub>A\<^sub>R RA1 (?R' \<longrightarrow> ?S')) =
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
-     (RA1 (RA2 Q) ;;\<^sub>A\<^sub>D
+     (RA1 (RA2 Q) ;;\<^sub>A\<^sub>R
       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
        RA1 (RA2 (R \<longrightarrow> S)))))"
     by (simp only: P_post_RA1_form Q_body_RA1_form
         aseq_ades_wait_cond_distrib
         aseq_ades_state_choice_left rad_wait_cond_left_absorb)
-  have P_failure_RA2_transport: "RA2 (RA1 (\<not> P) ;;\<^sub>A\<^sub>D RA1 true) =
-    (RA1 (RA2 (\<not> P)) ;;\<^sub>A\<^sub>D RA1 true)"
+  have P_failure_RA2_transport: "RA2 (RA1 (\<not> P) ;;\<^sub>A\<^sub>R RA1 true) =
+    (RA1 (RA2 (\<not> P)) ;;\<^sub>A\<^sub>R RA1 true)"
     by (rule RA2_RA1_aseq_distrib
         [where P="\<not> P" and Q=true,
          simplified RA1_RA2_commute'[symmetric] RA2_true])
-  have handover_failure_RA2_transport: "RA2 (RA1 Q ;;\<^sub>A\<^sub>D
+  have handover_failure_RA2_transport: "RA2 (RA1 Q ;;\<^sub>A\<^sub>R
       (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
        RA2 (RA1 (\<not> R)))) =
-    (RA1 (RA2 Q) ;;\<^sub>A\<^sub>D
+    (RA1 (RA2 Q) ;;\<^sub>A\<^sub>R
      (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA1 (RA2 (\<not> R))))"
     by (rule RA2_RA1_aseq_distrib
         [where P=Q and
           Q="false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> (\<not> R)",
          simplified RA1_wait_cond RA1_false RA2_wait_cond RA2_false])
-  have continuation_RA2_transport: "RA2 (RA1 Q ;;\<^sub>A\<^sub>D
+  have continuation_RA2_transport: "RA2 (RA1 Q ;;\<^sub>A\<^sub>R
       (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
        RA2 (RA1 (R \<longrightarrow> S)))) =
-    (RA1 (RA2 Q) ;;\<^sub>A\<^sub>D
+    (RA1 (RA2 Q) ;;\<^sub>A\<^sub>R
      (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
       RA1 (RA2 (R \<longrightarrow> S))))"
     by (rule RA2_RA1_aseq_distrib
@@ -293,16 +293,16 @@ proof -
              (R \<longrightarrow> S)",
          simplified RA1_wait_cond RA1_state_choice
            RA2_wait_cond RA2_state_choice])
-  let ?failure = "RA1 (\<not> P) ;;\<^sub>A\<^sub>D RA1 true"
-  let ?handover = "RA1 Q ;;\<^sub>A\<^sub>D
+  let ?failure = "RA1 (\<not> P) ;;\<^sub>A\<^sub>R RA1 true"
+  let ?handover = "RA1 Q ;;\<^sub>A\<^sub>R
     (false \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 (RA1 (\<not> R)))"
-  let ?continuation = "RA1 Q ;;\<^sub>A\<^sub>D
+  let ?continuation = "RA1 Q ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 (R \<longrightarrow> S)))"
-  have "(RA (P \<turnstile> Q) ;;\<^sub>D\<^sub>A RA (R \<turnstile> S)) =
-    RA1 ((\<not> (RA1 (\<not> ?P') ;;\<^sub>A\<^sub>D RA1 true) \<and>
-          \<not> (RA1 ?Q' ;;\<^sub>A\<^sub>D RA1 (\<not> ?R'))) \<turnstile>
-         (RA1 ?Q' ;;\<^sub>A\<^sub>D RA1 (?R' \<longrightarrow> ?S')))"
+  have "(RA (P \<turnstile> Q) ;;\<^sub>A\<^sub>D RA (R \<turnstile> S)) =
+    RA1 ((\<not> (RA1 (\<not> ?P') ;;\<^sub>A\<^sub>R RA1 true) \<and>
+          \<not> (RA1 ?Q' ;;\<^sub>A\<^sub>R RA1 (\<not> ?R'))) \<turnstile>
+         (RA1 ?Q' ;;\<^sub>A\<^sub>R RA1 (?R' \<longrightarrow> ?S')))"
     unfolding P_RA1_design_form Q_RA1_design_form
     by (rule RA1_design_seq[OF component_unrests P_pre_failure_PBMH
           P_post_wait_PBMH])
@@ -325,7 +325,7 @@ subsection \<open>Sequential composition of reactive angelic designs\<close>
 
 text \<open>
   Notation in the statement below follows the mechanisation layers:
-  \<open>;;\<^sub>A\<^sub>D\<close> is the full-design-alphabet lifting of the paper's
+  \<open>;;\<^sub>A\<^sub>R\<close> is the full-design-alphabet lifting of the paper's
   angelic relation composition, \<open>ades_state_choice\<close> is the predicate
   \<open>s \<in> ac'\<close>, and \<open>$rad_wait_lens\<^sup><\<close> is the initial
   \<open>s.wait\<close> observation.  The expressions \<open>(P \<^sub>f)\<^sup>f\<close>
@@ -338,26 +338,26 @@ theorem RAD_seq_design:
   assumes "P is RAD" "Q is RAD"
   shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) =
     \<comment> \<open> \<not> (RA1 (P_f^f) ;; RA1(true)): P's precondition must hold \<close>
-    (RA \<circ> A) (((\<not> (RA1 ((P \<^sub>f)\<^sup>f) ;;\<^sub>A\<^sub>D RA1 true)) \<and>
+    (RA \<circ> A) (((\<not> (RA1 ((P \<^sub>f)\<^sup>f) ;;\<^sub>A\<^sub>R RA1 true)) \<and>
     \<comment> \<open> \<not> (RA1(P_f^t) ;; \<not>wait \<and> RA2 \<circ> RA1 (Q_f^f)): If P terminates and post condition hold then Q's precondition must hold\<close>
-    (\<not> (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ((Q \<^sub>f)\<^sup>f)))))) \<turnstile>
+    (\<not> (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>R ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ((Q \<^sub>f)\<^sup>f)))))) \<turnstile>
     \<comment> \<open>If P waits then s\<in>ac', else RA2 \<circ> RA1 (Q_pre => Q_post)\<close>
-    (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 (RA1 ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t)))))"
+    (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>R (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> RA2 (RA1 ((\<not> (Q \<^sub>f)\<^sup>f) \<longrightarrow> (Q \<^sub>f)\<^sup>t)))))"
 proof -
   let ?Af = "(P \<^sub>f)\<^sup>f" and ?At = "(P \<^sub>f)\<^sup>t"
   let ?Bf = "(Q \<^sub>f)\<^sup>f" and ?Bt = "(Q \<^sub>f)\<^sup>t"
   let ?Bf' = "(Q \<^sub>f)\<^sup>f\<lbrakk>True/ok\<^sup><\<rbrakk>"
     and ?Bt' = "(Q \<^sub>f)\<^sup>t\<lbrakk>True/ok\<^sup><\<rbrakk>"
-  let ?preT = "((\<not> (RA1 ?Af ;;\<^sub>A\<^sub>D RA1 true)) \<and>
-    (\<not> (RA1 ?At ;;\<^sub>A\<^sub>D
+  let ?preT = "((\<not> (RA1 ?Af ;;\<^sub>A\<^sub>R RA1 true)) \<and>
+    (\<not> (RA1 ?At ;;\<^sub>A\<^sub>R
         ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Bf)))))"
-  let ?postT = "(RA1 ?At ;;\<^sub>A\<^sub>D
+  let ?postT = "(RA1 ?At ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 ((\<not> ?Bf) \<longrightarrow> ?Bt))))"
-  let ?pre' = "((\<not> (RA1 ?Af ;;\<^sub>A\<^sub>D RA1 true)) \<and>
-    (\<not> (RA1 ?At ;;\<^sub>A\<^sub>D
+  let ?pre' = "((\<not> (RA1 ?Af ;;\<^sub>A\<^sub>R RA1 true)) \<and>
+    (\<not> (RA1 ?At ;;\<^sub>A\<^sub>R
         ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Bf')))))"
-  let ?post' = "(RA1 ?At ;;\<^sub>A\<^sub>D
+  let ?post' = "(RA1 ?At ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 ((\<not> ?Bf') \<longrightarrow> ?Bt'))))"
   have Q_ok_normalised:
@@ -371,7 +371,7 @@ proof -
   have P_failure_PBMH: "(\<not> (\<not> ?Af)) is PBMH_ades"
     by (simp only: pred_ba.double_compl
         RAD_wf_ok_false_PBMH[OF assms(1)])
-  have seq_RA_normal_form: "(RA ((\<not> ?Af) \<turnstile> ?At) ;;\<^sub>D\<^sub>A
+  have seq_RA_normal_form: "(RA ((\<not> ?Af) \<turnstile> ?At) ;;\<^sub>A\<^sub>D
       RA ((\<not> ?Bf') \<turnstile> ?Bt')) =
     RA (?pre' \<turnstile> ?post')"
     by (simp only: RA_design_seq[OF component_unrests P_failure_PBMH
@@ -385,8 +385,8 @@ proof -
     using arg_cong2[where f=design, OF push]
     by (simp only: design_subst_ok)
   have seq_pre_as_neg_failure: "?preT =
-    (\<not> ((RA1 ?Af ;;\<^sub>A\<^sub>D RA1 true) \<or>
-        (RA1 ?At ;;\<^sub>A\<^sub>D
+    (\<not> ((RA1 ?Af ;;\<^sub>A\<^sub>R RA1 true) \<or>
+        (RA1 ?At ;;\<^sub>A\<^sub>R
          ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Bf)))))"
     by pred_auto
   have seq_design_PBMH: "(?preT \<turnstile> ?postT) is PBMH_ades"
@@ -401,7 +401,7 @@ proof -
   have seq_design_H: "(?preT \<turnstile> ?postT) is \<^bold>H"
     by (rule design_is_H1_H2; simp add: unrest)
   have "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) =
-    (RA ((\<not> ?Af) \<turnstile> ?At) ;;\<^sub>D\<^sub>A RA ((\<not> ?Bf') \<turnstile> ?Bt'))"
+    (RA ((\<not> ?Af) \<turnstile> ?At) ;;\<^sub>A\<^sub>D RA ((\<not> ?Bf') \<turnstile> ?Bt'))"
     by (simp only: RAD_RA_design_form[OF assms(1), symmetric]
         RAD_RA_design_form[OF assms(2), symmetric]
         Q_ok_normalised[symmetric])
@@ -441,7 +441,7 @@ lemma Prefix_RAD_A2_closure [closure]:
 subsection \<open>Prefixing laws\<close>
 
 (* An RA1-guarded left operand vanishes on the empty continuation. *)
-lemma RA1_aseq_false: "(RA1 P ;;\<^sub>A\<^sub>D false) = false"
+lemma RA1_aseq_false: "(RA1 P ;;\<^sub>A\<^sub>R false) = false"
   by (simp add: RA1_def aseq_ades_def fun_eq_iff Let_def; pred_auto)
 
 (* A nonempty choice set is subsumed by an inhabited choice over it. *)
@@ -483,7 +483,7 @@ definition prefix_continuation ::
       P (des_vars.more_update (astate.s\<^sub>v_update (\<lambda>_. y)) s0, ac'))"
 
 lemma prefix_handover_aseq:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     ((\<not> rad_wait_lens\<^sup><) \<and> P)) = prefix_handover a P"
   by (simp only: RA1_prefix_post;
       simp add: aseq_ades_def prefix_post_def
@@ -493,7 +493,7 @@ lemma prefix_handover_aseq:
       auto simp add: if_bool_eq_disj split: prod.splits)
 
 lemma prefix_continuation_aseq:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P)) =
    prefix_continuation a P"
   by (simp only: RA1_prefix_post;
@@ -514,7 +514,7 @@ lemma prefix_design_failure_absorb:
 
 lemma Prefix_RA_design:
   assumes "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
-  shows "(PrefixSkip_RAD a ;;\<^sub>D\<^sub>A RA (R \<turnstile> S)) =
+  shows "(PrefixSkip_RAD a ;;\<^sub>A\<^sub>D RA (R \<turnstile> S)) =
     RA ((\<not> prefix_handover a (RA2 (RA1 (\<not> R)))) \<turnstile>
       prefix_continuation a (RA2 (RA1 S)))"
 proof -
@@ -592,7 +592,7 @@ proof -
      apply (rule unrests(1))
     by (rule unrests(2))
   have "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D P) =
-      (PrefixSkip_RAD a ;;\<^sub>D\<^sub>A RA ((\<not> ?F') \<turnstile> ?T'))"
+      (PrefixSkip_RAD a ;;\<^sub>A\<^sub>D RA ((\<not> ?F') \<turnstile> ?T'))"
     by (simp only: Prefix_RAD_def P_form[symmetric])
   also have "... = RA ?D'"
     by (simp only: Prefix_RA_design[OF components] pred_ba.double_compl)
@@ -605,7 +605,7 @@ qed
 (* The continuation of prefixing into Skip leaves the prefix
    postcondition unchanged: Skip is a right unit of the primitive. *)
 lemma prefix_continuation_skip:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
       RA2 (RA1 skip_post))) = prefix_post a"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_skip_post)
@@ -645,7 +645,7 @@ proof -
       "(RA \<circ> A) (true \<turnstile> skip_post) = RA (true \<turnstile> skip_post)"
     by (rule RA_A_absorb_design_true; simp add: Healthy_def' unrest)
   have "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Skip\<^sub>R\<^sub>A\<^sub>D) =
-      (RA (true \<turnstile> prefix_post a) ;;\<^sub>D\<^sub>A
+      (RA (true \<turnstile> prefix_post a) ;;\<^sub>A\<^sub>D
        RA (true \<turnstile> skip_post))"
     by (simp only: Prefix_RAD_def PrefixSkip_RAD_RA Skip_RAD_def
         skip_absorb)
@@ -722,7 +722,7 @@ lemma prefix_offer_post_unrest_ok [unrest]:
 (* Handing the prefix over to an arbitrary continuation records
    exactly that the event has occurred. *)
 lemma prefix_handover_diverge:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 true))) =
    prefix_diverge_post a"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
@@ -751,7 +751,7 @@ lemma prefix_handover_diverge:
 (* The continuation of the prefix into Chaos: either the event is
    still offered, or it has occurred and anything may follow. *)
 lemma prefix_continuation_chaos:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
       RA2 (RA1 true))) =
    (prefix_offer_post a \<or> prefix_diverge_post a)"
@@ -852,7 +852,7 @@ qed
 (* Handing the prefix over to any non-waiting continuation is always
    possible: performing the event reaches a non-waiting state. *)
 lemma prefix_handover_nonwait:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D (\<not> rad_wait_lens\<^sup><)) = true"
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R (\<not> rad_wait_lens\<^sup><)) = true"
   apply (simp add: RA1_def aseq_ades_def prefix_post_def
       ades_singleton_choice_def expr_if_def
       rad_wait_def rad_trace_extensions_def fun_eq_iff

@@ -720,7 +720,7 @@ subsection \<open>Sequential Composition\<close>
 
 text \<open>
   Paper Section 6.4.7: sequential composition of reactive angelic designs
-  is exactly \<open>;;\<^sub>D\<^sub>A\<close> from the theory of angelic designs.  The notation
+  is exactly \<open>;;\<^sub>A\<^sub>D\<close> from the theory of angelic designs.  The notation
   remains here because the compound prefix operator below uses it.  Its
   laws, CSP correspondence, paper Theorem 30 normal form, and RAD closure
   law are proved in \<open>utp_rad_seq\<close>.
@@ -729,7 +729,7 @@ text \<open>
 abbreviation seq_RAD ::
   "('t::trace, 'e) reactive_angelic_design \<Rightarrow> ('t, 'e) reactive_angelic_design \<Rightarrow>
    ('t, 'e) reactive_angelic_design" (infixl ";;\<^sub>R\<^sub>A\<^sub>D" 75)
-where "P ;;\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P ;;\<^sub>D\<^sub>A Q"
+where "P ;;\<^sub>R\<^sub>A\<^sub>D Q \<equiv> P ;;\<^sub>A\<^sub>D Q"
 
 subsection \<open>Prefixing\<close>
 

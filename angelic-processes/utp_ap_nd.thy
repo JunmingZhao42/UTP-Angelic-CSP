@@ -156,10 +156,10 @@ subsection \<open>Closure under Sequential Composition\<close>
 (* Paper Theorem 63 / Thesis Theorem T.6.4.22. *)
 theorem NDAP_seq_closure:
   assumes "P is AP" "Q is AP" "P is NDAP" "Q is NDAP"
-  shows "NDAP (P ;;\<^sub>D\<^sub>A Q) = (P ;;\<^sub>D\<^sub>A Q)"
+  shows "NDAP (P ;;\<^sub>A\<^sub>D Q) = (P ;;\<^sub>A\<^sub>D Q)"
 proof -
   let ?Pt = "(P \<^sub>f)\<^sup>t" and ?Qt = "(Q \<^sub>f)\<^sup>t"
-  let ?post = "(RA1 ?Pt ;;\<^sub>A\<^sub>D
+  let ?post = "(RA1 ?Pt ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 ?Qt)))"
   note Pt_facts = AP_wf_ok_true_facts[OF assms(1)]
@@ -173,7 +173,7 @@ proof -
   have Q_form: "Q = AP (true \<turnstile> ?Qt)"
     using NDAP_AP_true_design[OF assms(2)]
     by (simp only: Healthy_if[OF assms(4)])
-  have seq_form: "(P ;;\<^sub>D\<^sub>A Q) = AP (true \<turnstile> ?post)"
+  have seq_form: "(P ;;\<^sub>A\<^sub>D Q) = AP (true \<turnstile> ?post)"
     using AP_true_design_seq[OF Pt_facts Qt_facts]
     by (simp only: P_form[symmetric] Q_form[symmetric])
   show ?thesis

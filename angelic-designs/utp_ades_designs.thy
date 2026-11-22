@@ -333,7 +333,7 @@ proof
 qed
 
 lemma Skip_AD_not_unconditional_right_unit:
-  "(P_dummy ;;\<^sub>D\<^sub>A Skip_AD) \<noteq> P_dummy"
+  "(P_dummy ;;\<^sub>A\<^sub>D Skip_AD) \<noteq> P_dummy"
   using Skip_AD_seq_right_unit_iff_normal[OF P_dummy_is_A] P_dummy_not_normal by blast
 
 lemma ac2p_P_dummy: "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
@@ -487,7 +487,7 @@ subsection \<open>Sequential Composition\<close>
 (* Thesis Theorem T.G.7.11: p2ac is a homomorphism from relational
    sequential composition to the angelic design composition. *)
 lemma p2ac_seq:
-  "p2ac (P ;; Q) = (p2ac P ;;\<^sub>D\<^sub>A p2ac Q)"
+  "p2ac (P ;; Q) = (p2ac P ;;\<^sub>A\<^sub>D p2ac Q)"
   by (simp add: p2ac_def angelic_design_seq_def fun_eq_iff;
       pred_auto; blast)
 

@@ -244,7 +244,7 @@ qed
 
 lemma aseq_ades_mono_right:
   assumes "P is PBMH_ades" and "Q \<sqsubseteq> R"
-  shows "(P ;;\<^sub>A\<^sub>D Q) \<sqsubseteq> (P ;;\<^sub>A\<^sub>D R)"
+  shows "(P ;;\<^sub>A\<^sub>R Q) \<sqsubseteq> (P ;;\<^sub>A\<^sub>R R)"
   unfolding aseq_ades_def pred_refine_iff
   apply (clarsimp split: prod.splits)
   apply (erule PBMH_ades_upward[OF assms(1)])
@@ -255,7 +255,7 @@ lemma aseq_ades_mono_right:
    \<open>aseq_ades_mono_right\<close>, the left operand must be upward closed. *)
 lemma angelic_design_seq_mono:
   assumes "P is PBMH_ades" "P \<sqsubseteq> P'" "Q \<sqsubseteq> Q'"
-  shows "(P ;;\<^sub>D\<^sub>A Q) \<sqsubseteq> (P' ;;\<^sub>D\<^sub>A Q')"
+  shows "(P ;;\<^sub>A\<^sub>D Q) \<sqsubseteq> (P' ;;\<^sub>A\<^sub>D Q')"
 proof -
   have PP: "\<And>s. P' s \<Longrightarrow> P s"
   proof -
@@ -284,16 +284,16 @@ qed
 
 lemma aseq_ades_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades" "Q is PBMH_ades"
-  shows "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
+  shows "(P ;;\<^sub>A\<^sub>R Q) is PBMH_ades"
 proof (rule Healthy_intro, rule ext)
   fix w :: "'a astate des_vars_ext \<times> 'a achoices des_vars_ext"
   obtain s0 ac' where w_eq [simp]: "w = (s0, ac')"
     by (cases w) auto
-  show "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w = (P ;;\<^sub>A\<^sub>D Q) w"
+  show "PBMH_ades (P ;;\<^sub>A\<^sub>R Q) w = (P ;;\<^sub>A\<^sub>R Q) w"
   proof
-    assume "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w"
+    assume "PBMH_ades (P ;;\<^sub>A\<^sub>R Q) w"
     then obtain X where
-        comp: "(P ;;\<^sub>A\<^sub>D Q) (s0, des_vars.more_update
+        comp: "(P ;;\<^sub>A\<^sub>R Q) (s0, des_vars.more_update
           (achoices.ac\<^sub>v_update (\<lambda>_. X)) ac')"
         and sub: "X \<subseteq> achoices.ac\<^sub>v (des_vars.more ac')"
       by (auto simp add: PBMH_ades_eval)
@@ -311,14 +311,14 @@ proof (rule Healthy_intro, rule ext)
       apply (simp only: mem_Collect_eq)
       apply (erule PBMH_ades_upward[OF assms(2)])
       using sub by auto
-    show "(P ;;\<^sub>A\<^sub>D Q) w"
+    show "(P ;;\<^sub>A\<^sub>R Q) w"
       unfolding w_eq aseq_ades_def
       apply (simp only: prod.case)
       apply (rule PBMH_ades_upward[OF assms(1) P_at])
       using S_sub by auto
   next
-    assume "(P ;;\<^sub>A\<^sub>D Q) w"
-    then show "PBMH_ades (P ;;\<^sub>A\<^sub>D Q) w"
+    assume "(P ;;\<^sub>A\<^sub>R Q) w"
+    then show "PBMH_ades (P ;;\<^sub>A\<^sub>R Q) w"
       by (rule PBMH_ades_weaken)
   qed
 qed
@@ -327,8 +327,8 @@ qed
    comprehension, so it can be pulled out of the right operand. *)
 lemma aseq_ades_ok_out_split:
   assumes "P is PBMH_ades"
-  shows "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) =
-    ((P ;;\<^sub>A\<^sub>D X) \<or> ((P ;;\<^sub>A\<^sub>D (X \<or> Y)) \<and> ok\<^sup>>))"
+  shows "(P ;;\<^sub>A\<^sub>R (X \<or> (Y \<and> ok\<^sup>>))) =
+    ((P ;;\<^sub>A\<^sub>R X) \<or> ((P ;;\<^sub>A\<^sub>R (X \<or> Y)) \<and> ok\<^sup>>))"
 proof (rule ext)
   fix w :: "'a astate des_vars_ext \<times> 'a achoices des_vars_ext"
   obtain s0 ac' where w_eq [simp]: "w = (s0, ac')" by (cases w) auto
@@ -338,15 +338,15 @@ proof (rule ext)
   have evalo: "((Z \<and> ok\<^sup>>) (s0, ac')) \<longleftrightarrow> (Z (s0, ac') \<and> ok\<^sub>v ac')"
     for Z :: "'a angelic_design"
     by pred_auto
-  show "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) w =
-      ((P ;;\<^sub>A\<^sub>D X) \<or> ((P ;;\<^sub>A\<^sub>D (X \<or> Y)) \<and> ok\<^sup>>)) w"
+  show "(P ;;\<^sub>A\<^sub>R (X \<or> (Y \<and> ok\<^sup>>))) w =
+      ((P ;;\<^sub>A\<^sub>R X) \<or> ((P ;;\<^sub>A\<^sub>R (X \<or> Y)) \<and> ok\<^sup>>)) w"
   proof (cases "ok\<^sub>v ac'")
     case True
-    then have "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
-        (P ;;\<^sub>A\<^sub>D (X \<or> Y)) (s0, ac')"
+    then have "(P ;;\<^sub>A\<^sub>R (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
+        (P ;;\<^sub>A\<^sub>R (X \<or> Y)) (s0, ac')"
       by (simp add: aseq_ades_def evalp disj_pred_def; pred_auto)
-    moreover have "(P ;;\<^sub>A\<^sub>D X) (s0, ac') \<Longrightarrow>
-        (P ;;\<^sub>A\<^sub>D (X \<or> Y)) (s0, ac')"
+    moreover have "(P ;;\<^sub>A\<^sub>R X) (s0, ac') \<Longrightarrow>
+        (P ;;\<^sub>A\<^sub>R (X \<or> Y)) (s0, ac')"
       unfolding aseq_ades_def
       apply (simp only: prod.case)
       apply (erule PBMH_ades_upward[OF assms])
@@ -357,8 +357,8 @@ proof (rule ext)
           des_vars.ok_def)
   next
     case False
-    then have "(P ;;\<^sub>A\<^sub>D (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
-        (P ;;\<^sub>A\<^sub>D X) (s0, ac')"
+    then have "(P ;;\<^sub>A\<^sub>R (X \<or> (Y \<and> ok\<^sup>>))) (s0, ac') =
+        (P ;;\<^sub>A\<^sub>R X) (s0, ac')"
       by (simp add: aseq_ades_def evalp disj_pred_def; pred_auto)
     then show ?thesis
       using False
@@ -442,27 +442,27 @@ lemma ades_design_seq:
   assumes "$ok\<^sup>> \<sharp> P" "$ok\<^sup>> \<sharp> Q"
     "$ok\<^sup>< \<sharp> R" "$ok\<^sup>< \<sharp> S"
     and "(\<not> P) is PBMH_ades" "Q is PBMH_ades"
-  shows "((P \<turnstile> Q) ;;\<^sub>D\<^sub>A (R \<turnstile> S)) =
-    (((\<not> ((\<not> P) ;;\<^sub>A\<^sub>D true)) \<and>
-      (\<not> (Q ;;\<^sub>A\<^sub>D (\<not> R)))) \<turnstile>
-     (Q ;;\<^sub>A\<^sub>D (R \<longrightarrow> S)))"
+  shows "((P \<turnstile> Q) ;;\<^sub>A\<^sub>D (R \<turnstile> S)) =
+    (((\<not> ((\<not> P) ;;\<^sub>A\<^sub>R true)) \<and>
+      (\<not> (Q ;;\<^sub>A\<^sub>R (\<not> R)))) \<turnstile>
+     (Q ;;\<^sub>A\<^sub>R (R \<longrightarrow> S)))"
 proof -
   let ?B = "(\<not> R) \<or> (S \<and> ok\<^sup>>)"
   have B_refine: "true \<sqsubseteq> ?B"
     by pred_auto
   have absorb_not_ok:
-      "(\<not> ok\<^sup><) \<sqsubseteq> ((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D ?B)"
+      "(\<not> ok\<^sup><) \<sqsubseteq> ((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>R ?B)"
     using aseq_ades_mono_right
       [where P="\<not> ok\<^sup><" and Q=true and R="?B",
        OF _ B_refine]
     by (simp add: Healthy_def' not_ok_aseq_ades_true)
   have absorb_not_P:
-      "((\<not> P) ;;\<^sub>A\<^sub>D true) \<sqsubseteq>
-       ((\<not> P) ;;\<^sub>A\<^sub>D ?B)"
+      "((\<not> P) ;;\<^sub>A\<^sub>R true) \<sqsubseteq>
+       ((\<not> P) ;;\<^sub>A\<^sub>R ?B)"
     by (rule aseq_ades_mono_right[OF assms(5) B_refine])
-  have B_split: "(Q ;;\<^sub>A\<^sub>D ?B) =
-    ((Q ;;\<^sub>A\<^sub>D (\<not> R)) \<or>
-     ((Q ;;\<^sub>A\<^sub>D (R \<longrightarrow> S)) \<and> ok\<^sup>>))"
+  have B_split: "(Q ;;\<^sub>A\<^sub>R ?B) =
+    ((Q ;;\<^sub>A\<^sub>R (\<not> R)) \<or>
+     ((Q ;;\<^sub>A\<^sub>R (R \<longrightarrow> S)) \<and> ok\<^sup>>))"
     by (simp only: aseq_ades_ok_out_split[OF assms(6)]
         impl_neg_disj[of R S, symmetric])
   show ?thesis
@@ -486,7 +486,7 @@ qed
 lemma angelic_rdesign_seq:
   fixes P Q R S :: "'s angelic_rel"
   assumes "PBMH (\<not> P) = (\<not> P)" "PBMH Q = Q"
-  shows "((P \<turnstile>\<^sub>r Q) ;;\<^sub>D\<^sub>A (R \<turnstile>\<^sub>r S)) =
+  shows "((P \<turnstile>\<^sub>r Q) ;;\<^sub>A\<^sub>D (R \<turnstile>\<^sub>r S)) =
     (((\<not> ((\<not> P) ;;\<^sub>A true)) \<and> (\<not> (Q ;;\<^sub>A (\<not> R))))
       \<turnstile>\<^sub>r (Q ;;\<^sub>A (R \<longrightarrow> S)))"
 proof -
@@ -734,19 +734,19 @@ lemma A_disj: "A (P \<or> Q) = (A P \<or> A Q)"
       pred_ba.boolean_algebra.conj_disj_distrib2)
 
 lemma A_demonic:
-  "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (A P \<sqinter>\<^sub>D\<^sub>A A Q)"
+  "A (P \<sqinter>\<^sub>A\<^sub>D Q) = (A P \<sqinter>\<^sub>A\<^sub>D A Q)"
   by (simp add: angelic_design_demonic A_disj)
 
 (* Thesis Theorem T.4.5.12 *)
 lemma A_demonic_closure:
   assumes "P is A" "Q is A"
-  shows "A (P \<sqinter>\<^sub>D\<^sub>A Q) = (P \<sqinter>\<^sub>D\<^sub>A Q)"
+  shows "A (P \<sqinter>\<^sub>A\<^sub>D Q) = (P \<sqinter>\<^sub>A\<^sub>D Q)"
   using assms by (simp add: A_demonic Healthy_def')
 
 (* Thesis Theorem T.4.5.16. *)
 lemma A_angelic_closure:
   assumes "P is A" "Q is A"
-  shows "P \<squnion>\<^sub>D\<^sub>A Q is A"
+  shows "P \<squnion>\<^sub>A\<^sub>D Q is A"
 proof -
   let ?N = "($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
   let ?PF = "PBMH (\<not> pre\<^sub>D P)"
@@ -766,7 +766,7 @@ proof -
   have Q_form: "Q = ?DQ"
     using assms(2) by (simp add: Healthy_def' A_design_form)
   have choice_form:
-      "P \<squnion>\<^sub>D\<^sub>A Q = (?Pre \<turnstile>\<^sub>r ?Post)"
+      "P \<squnion>\<^sub>A\<^sub>D Q = (?Pre \<turnstile>\<^sub>r ?Post)"
     apply (subst P_form)
     apply (subst Q_form)
     apply (simp only: rdesign_inf)
@@ -798,7 +798,7 @@ qed
 
 (* Thesis Theorem T.4.5.14 *)
 lemma angelic_design_demonic_bottom:
-  "P \<sqinter>\<^sub>D\<^sub>A \<bottom>\<^sub>D = \<bottom>\<^sub>D"
+  "P \<sqinter>\<^sub>A\<^sub>D \<bottom>\<^sub>D = \<bottom>\<^sub>D"
   by (simp add: angelic_design_demonic bot_d_true)
 
 lemma A_idem: "A (A P) = A P"
@@ -931,7 +931,7 @@ qed
 
 lemma angelic_design_seq_PBMH_closure:
   assumes "P is PBMH_ades" "Q is PBMH_ades"
-  shows "(P ;;\<^sub>D\<^sub>A Q) is PBMH_ades"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
   unfolding angelic_design_seq_ok_cases
   apply (rule PBMH_ades_disj_closure)
    apply (rule aseq_ades_PBMH_ades_closure)
@@ -943,7 +943,7 @@ lemma angelic_design_seq_PBMH_closure:
 
 lemma angelic_design_seq_H_closure:
   assumes "P is A" "Q is \<^bold>H"
-  shows "(P ;;\<^sub>D\<^sub>A Q) is \<^bold>H"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is \<^bold>H"
 proof -
   let ?F = "PBMH (\<not> pre\<^sub>D P)"
   let ?T = "PBMH (post\<^sub>D P) \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e"
@@ -952,12 +952,12 @@ proof -
   have Q_form: "Q = (pre\<^sub>D Q \<turnstile>\<^sub>r post\<^sub>D Q)"
     using H1_H2_eq_rdesign[of Q] by (simp only: Healthy_if[OF assms(2)])
   have normal:
-    "((\<not> ?F) \<turnstile>\<^sub>r ?T) ;;\<^sub>D\<^sub>A (pre\<^sub>D Q \<turnstile>\<^sub>r post\<^sub>D Q) =
+    "((\<not> ?F) \<turnstile>\<^sub>r ?T) ;;\<^sub>A\<^sub>D (pre\<^sub>D Q \<turnstile>\<^sub>r post\<^sub>D Q) =
       angelic_design_seq_simplified ((\<not> ?F) \<turnstile>\<^sub>r ?T)
         (pre\<^sub>D Q \<turnstile>\<^sub>r post\<^sub>D Q)"
     by (rule angelic_design_seq_eq_simplified;
         simp add: PBMH_idem PBMH_conj_nonempty)
-  have "(((\<not> ?F) \<turnstile>\<^sub>r ?T) ;;\<^sub>D\<^sub>A
+  have "(((\<not> ?F) \<turnstile>\<^sub>r ?T) ;;\<^sub>A\<^sub>D
       (pre\<^sub>D Q \<turnstile>\<^sub>r post\<^sub>D Q)) is \<^bold>H"
     by (simp only: normal angelic_design_seq_simplified_def Healthy_def';
         simp add: H1_rdesign H2_rdesign)
@@ -966,7 +966,7 @@ qed
 
 lemma angelic_design_seq_A0_closure:
   assumes "Q is A"
-  shows "(P ;;\<^sub>D\<^sub>A Q) is A0"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is A0"
 proof -
   have empty_normal:
     "(((\<not> F) \<turnstile>\<^sub>r (T \<and> ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)))
@@ -1010,16 +1010,16 @@ qed
 (* Thesis Theorem T.4.5.3. The A normal form supplies control-independent components. *)
 lemma angelic_design_seq_A_closure [closure]:
   assumes "P is A" "Q is A"
-  shows "(P ;;\<^sub>D\<^sub>A Q) is A"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is A"
 proof -
   have Q_H: "Q is \<^bold>H"
     using A_is_H[of Q] by (simp only: Healthy_if[OF assms(2)] Healthy_def')
-  have H: "(P ;;\<^sub>D\<^sub>A Q) is \<^bold>H"
+  have H: "(P ;;\<^sub>A\<^sub>D Q) is \<^bold>H"
     by (rule angelic_design_seq_H_closure[OF assms(1) Q_H])
-  have PBMH: "(P ;;\<^sub>D\<^sub>A Q) is PBMH_ades"
+  have PBMH: "(P ;;\<^sub>A\<^sub>D Q) is PBMH_ades"
     by (rule angelic_design_seq_PBMH_closure;
         rule A_is_PBMH_ades; rule assms)
-  have A0: "(P ;;\<^sub>D\<^sub>A Q) is A0"
+  have A0: "(P ;;\<^sub>A\<^sub>D Q) is A0"
     by (rule angelic_design_seq_A0_closure[OF assms(2)])
   show ?thesis
     using PBMH A0
@@ -1035,11 +1035,11 @@ lemma Skip_AD_is_A [closure]: "Skip_AD is A"
 
 lemma Skip_AD_seq_left_unit:
   assumes "P is \<^bold>H"
-  shows "(Skip_AD ;;\<^sub>D\<^sub>A P) = P"
+  shows "(Skip_AD ;;\<^sub>A\<^sub>D P) = P"
 proof -
   have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
     using H1_H2_eq_rdesign[of P] by (simp only: Healthy_if[OF assms])
-  have unit: "(Skip_AD ;;\<^sub>D\<^sub>A (R \<turnstile>\<^sub>r S)) = (R \<turnstile>\<^sub>r S)"
+  have unit: "(Skip_AD ;;\<^sub>A\<^sub>D (R \<turnstile>\<^sub>r S)) = (R \<turnstile>\<^sub>r S)"
     for R S :: "'s angelic_rel"
     by (simp add: Skip_AD_def arel_to_ades_def angelic_design_seq_def fun_eq_iff;
         pred_auto)
@@ -1050,7 +1050,7 @@ qed
 (* Thesis Theorems T.4.5.7 and T.4.5.8. Right identity requires a normal precondition. *)
 lemma Skip_AD_seq_right_normal:
   assumes "P is A"
-  shows "(P ;;\<^sub>D\<^sub>A Skip_AD) =
+  shows "(P ;;\<^sub>A\<^sub>D Skip_AD) =
     ((\<not> ((\<not> pre\<^sub>D P) ;;\<^sub>A true)) \<turnstile>\<^sub>r post\<^sub>D P)"
 proof -
   let ?F = "PBMH (\<not> pre\<^sub>D P)"
@@ -1059,7 +1059,7 @@ proof -
     by (rule A_healthy_design_form[OF assms])
   have empty: "(?T ;;\<^sub>A false) = false"
     by (simp add: aseq_def fun_eq_iff; pred_auto)
-  have seq: "(P ;;\<^sub>D\<^sub>A Skip_AD) =
+  have seq: "(P ;;\<^sub>A\<^sub>D Skip_AD) =
       ((\<not> (?F ;;\<^sub>A true)) \<turnstile>\<^sub>r ?T)"
     apply (subst P_form)
     apply (simp only: Skip_AD_def arel_to_ades_def)
@@ -1089,22 +1089,22 @@ qed
 
 lemma Skip_AD_seq_right_unit_iff:
   assumes "P is A"
-  shows "(P ;;\<^sub>D\<^sub>A Skip_AD) = P \<longleftrightarrow> (out\<alpha> \<sharp> pre\<^sub>D P)"
+  shows "(P ;;\<^sub>A\<^sub>D Skip_AD) = P \<longleftrightarrow> (out\<alpha> \<sharp> pre\<^sub>D P)"
 proof -
   have H: "P is \<^bold>H"
     using A_is_H[of P] by (simp only: Healthy_if[OF assms] Healthy_def')
   have P_form: "P = (pre\<^sub>D P \<turnstile>\<^sub>r post\<^sub>D P)"
     using H1_H2_eq_rdesign[of P] by (simp only: Healthy_if[OF H])
-  have fixed_iff: "(P ;;\<^sub>D\<^sub>A Skip_AD) = P \<longleftrightarrow>
+  have fixed_iff: "(P ;;\<^sub>A\<^sub>D Skip_AD) = P \<longleftrightarrow>
       (\<not> ((\<not> pre\<^sub>D P) ;;\<^sub>A true)) = pre\<^sub>D P"
   proof
-    assume fixed: "(P ;;\<^sub>D\<^sub>A Skip_AD) = P"
+    assume fixed: "(P ;;\<^sub>A\<^sub>D Skip_AD) = P"
     show "(\<not> ((\<not> pre\<^sub>D P) ;;\<^sub>A true)) = pre\<^sub>D P"
       using arg_cong[where f="pre\<^sub>D", OF fixed]
       by (simp only: Skip_AD_seq_right_normal[OF assms] rdesign_pre)
   next
     assume fixed: "(\<not> ((\<not> pre\<^sub>D P) ;;\<^sub>A true)) = pre\<^sub>D P"
-    show "(P ;;\<^sub>D\<^sub>A Skip_AD) = P"
+    show "(P ;;\<^sub>A\<^sub>D Skip_AD) = P"
       by (simp only: Skip_AD_seq_right_normal[OF assms] fixed P_form[symmetric])
   qed
   show ?thesis by (simp only: fixed_iff aseq_univ_pre_iff)
@@ -1112,7 +1112,7 @@ qed
 
 lemma Skip_AD_seq_right_unit_iff_normal:
   assumes "P is A"
-  shows "(P ;;\<^sub>D\<^sub>A Skip_AD) = P \<longleftrightarrow> P is \<^bold>N"
+  shows "(P ;;\<^sub>A\<^sub>D Skip_AD) = P \<longleftrightarrow> P is \<^bold>N"
 proof -
   have H: "P is \<^bold>H"
     using A_is_H[of P] by (simp only: Healthy_if[OF assms] Healthy_def')
@@ -1123,7 +1123,7 @@ qed
 
 lemma Skip_AD_seq_right_unit:
   assumes "P is A" "P is \<^bold>N"
-  shows "(P ;;\<^sub>D\<^sub>A Skip_AD) = P"
+  shows "(P ;;\<^sub>A\<^sub>D Skip_AD) = P"
   using Skip_AD_seq_right_unit_iff_normal[OF assms(1)] assms(2) by blast
 
 subsection \<open>A2\<close>
@@ -1310,7 +1310,7 @@ lemma A2_lift:
       fun_eq_iff; pred_auto)
 
 lemma A2_def':
-  "A2 P = PBMH_ades (P ;;\<^sub>A\<^sub>D \<lceil>singleton_ac\<rceil>\<^sub>D)"
+  "A2 P = PBMH_ades (P ;;\<^sub>A\<^sub>R \<lceil>singleton_ac\<rceil>\<^sub>D)"
   apply (simp add: A2_def PBMH_ades_def aseq_ades_def
       singleton_ac_def fun_eq_iff)
   apply pred_auto
@@ -1371,9 +1371,9 @@ lemma A2_disj: "A2 (P \<or> Q) = (A2 P \<or> A2 Q)"
 (* Thesis Theorem T.C.4.1. *)
 lemma angelic_design_seq_A2_closure [closure]:
   assumes "P is A2" "Q is A2"
-  shows "(P ;;\<^sub>D\<^sub>A Q) is A2"
+  shows "(P ;;\<^sub>A\<^sub>D Q) is A2"
 proof -
-  have "A2 (A2 P ;;\<^sub>D\<^sub>A A2 Q) = (A2 P ;;\<^sub>D\<^sub>A A2 Q)"
+  have "A2 (A2 P ;;\<^sub>A\<^sub>D A2 Q) = (A2 P ;;\<^sub>A\<^sub>D A2 Q)"
     by (simp add: A2_def angelic_design_seq_def fun_eq_iff comp_def; blast)
   then show ?thesis
     by (simp only: Healthy_if[OF assms(1)] Healthy_if[OF assms(2)] Healthy_def')
@@ -1695,8 +1695,8 @@ lemma ades_state_choice_ac_non_empty_absorb:
    is immaterial: operands that agree there compose equally. *)
 lemma aseq_ades_ac_empty_cong:
   assumes "((\<not> ac_non_empty) \<and> Y) = ((\<not> ac_non_empty) \<and> Z)"
-  shows "((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Y)) =
-    ((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>D Z))"
+  shows "((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>R Y)) =
+    ((\<not> ac_non_empty) \<and> (T ;;\<^sub>A\<^sub>R Z))"
   using assms
   apply (simp add: aseq_ades_def ac_non_empty_def fun_eq_iff
       lens_defs des_vars.more\<^sub>L_def)
@@ -1732,7 +1732,7 @@ lemma Choice_AD_is_A [closure]: "Choice_AD is A"
 
 (* NDAD P = P \<and> Choice_AD. *)
 definition NDAD :: "'s angelic_design \<Rightarrow> 's angelic_design" where
-[pred]: "NDAD P \<equiv> P \<squnion>\<^sub>D\<^sub>A Choice_AD"
+[pred]: "NDAD P \<equiv> P \<squnion>\<^sub>A\<^sub>D Choice_AD"
 
 lemma NDAD_obs:
   "NDAD P (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>

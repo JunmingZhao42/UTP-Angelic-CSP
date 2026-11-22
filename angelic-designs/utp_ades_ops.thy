@@ -17,7 +17,7 @@ definition assigns_ades :: "('a \<Longrightarrow> 's) \<Rightarrow> ('a, 's) exp
 [pred]: "assigns_ades x e = arel_to_ades (assign_arel x e)"
 
 syntax
-  "_assignment_ades" :: "svid \<Rightarrow> logic \<Rightarrow> logic"  (infixr ":=\<^sub>D\<^sub>A" 62)
+  "_assignment_ades" :: "svid \<Rightarrow> logic \<Rightarrow> logic"  (infixr ":=\<^sub>A\<^sub>D" 62)
 
 translations
   "_assignment_ades x e" == "CONST assigns_ades x (e)\<^sub>e"
@@ -31,21 +31,21 @@ definition Skip_AD :: "'s angelic_design" where
 
 subsection \<open>Demonic Choice\<close>
 
-abbreviation dchoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<sqinter>\<^sub>D\<^sub>A" 65)
-where "P \<sqinter>\<^sub>D\<^sub>A Q \<equiv> P \<sqinter> Q"
+abbreviation dchoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<sqinter>\<^sub>A\<^sub>D" 65)
+where "P \<sqinter>\<^sub>A\<^sub>D Q \<equiv> P \<sqinter> Q"
 
 lemma angelic_rel_demonic:
   fixes P Q :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
   shows "P \<sqinter> Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
-lemma angelic_design_demonic: "P \<sqinter>\<^sub>D\<^sub>A Q = (P \<or> Q)"
+lemma angelic_design_demonic: "P \<sqinter>\<^sub>A\<^sub>D Q = (P \<or> Q)"
   by (simp add: disj_pred_def)
 
 subsection \<open>Angelic Choice\<close>
 
-abbreviation achoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<squnion>\<^sub>D\<^sub>A" 70)
-where "P \<squnion>\<^sub>D\<^sub>A Q \<equiv> P \<squnion> Q"
+abbreviation achoice_ades :: "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl "\<squnion>\<^sub>A\<^sub>D" 70)
+where "P \<squnion>\<^sub>A\<^sub>D Q \<equiv> P \<squnion> Q"
 
 lemma angelic_rel_angelic:
   fixes P Q :: "('s, '\<alpha>, '\<beta>) angelic_rel_ext"
@@ -53,14 +53,14 @@ lemma angelic_rel_angelic:
   by (simp add: conj_pred_def)
 
 lemma angelic_design_angelic:
-  "P \<squnion>\<^sub>D\<^sub>A Q = (P \<and> Q)"
+  "P \<squnion>\<^sub>A\<^sub>D Q = (P \<and> Q)"
   by (simp add: conj_pred_def)
 
 (* Thesis Theorem T.4.5.18 *)
 lemma angelic_design_angelic_top:
   fixes P :: "'s angelic_design"
   assumes "P is \<^bold>H"
-  shows "P \<squnion>\<^sub>D\<^sub>A \<top>\<^sub>D = \<top>\<^sub>D"
+  shows "P \<squnion>\<^sub>A\<^sub>D \<top>\<^sub>D = \<top>\<^sub>D"
 proof -
   have H1H2_eq: "H1 (H2 P) = P"
     using assms by (simp only: Healthy_def')
@@ -149,8 +149,8 @@ text \<open>
 
 definition aseq_ades ::
   "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design"
-  (infixl ";;\<^sub>A\<^sub>D" 75)
-where [pred]: "P ;;\<^sub>A\<^sub>D Q = (\<lambda> (s0, ac').
+  (infixl ";;\<^sub>A\<^sub>R" 75)
+where [pred]: "P ;;\<^sub>A\<^sub>R Q = (\<lambda> (s0, ac').
   P (s0, des_vars.more_update
     (achoices.ac\<^sub>v_update (\<lambda>_.
       {s1. Q (des_vars.more_update
@@ -158,7 +158,7 @@ where [pred]: "P ;;\<^sub>A\<^sub>D Q = (\<lambda> (s0, ac').
 
 (* Plain alphabet lifting preserves the relation-level composition. *)
 lemma aseq_ades_lift:
-  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>D \<lceil>Q\<rceil>\<^sub>D) = \<lceil>P ;;\<^sub>A Q\<rceil>\<^sub>D"
+  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>R \<lceil>Q\<rceil>\<^sub>D) = \<lceil>P ;;\<^sub>A Q\<rceil>\<^sub>D"
   by (simp add: aseq_ades_def aseq_def fun_eq_iff; pred_auto)
 
 lemma ades_lift_logic:
@@ -168,32 +168,32 @@ lemma ades_lift_logic:
   by pred_auto+
 
 lemma aseq_ades_lift_true:
-  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>D true) = \<lceil>P ;;\<^sub>A true\<rceil>\<^sub>D"
+  "(\<lceil>P\<rceil>\<^sub>D ;;\<^sub>A\<^sub>R true) = \<lceil>P ;;\<^sub>A true\<rceil>\<^sub>D"
   by (simp add: aseq_ades_def aseq_def fun_eq_iff; pred_auto)
 
 (* Embedding angelic relations as designs preserves sequential composition. *)
 lemma arel_to_ades_aseq:
   "arel_to_ades (P ;;\<^sub>A Q) =
-   (arel_to_ades P ;;\<^sub>A\<^sub>D arel_to_ades Q)"
+   (arel_to_ades P ;;\<^sub>A\<^sub>R arel_to_ades Q)"
   by (simp add: arel_to_ades_def rdesign_def design_def
       aseq_def aseq_ades_def fun_eq_iff; pred_auto)
 
-lemma aseq_ades_true_left [simp]: "true ;;\<^sub>A\<^sub>D P = true"
+lemma aseq_ades_true_left [simp]: "true ;;\<^sub>A\<^sub>R P = true"
   by pred_auto
 
-lemma aseq_ades_false_left [simp]: "false ;;\<^sub>A\<^sub>D P = false"
+lemma aseq_ades_false_left [simp]: "false ;;\<^sub>A\<^sub>R P = false"
   by pred_auto
 
 lemma not_ok_aseq_ades_true:
-  "((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>D true) = (\<not> ok\<^sup><)"
+  "((\<not> ok\<^sup><) ;;\<^sub>A\<^sub>R true) = (\<not> ok\<^sup><)"
   by (simp add: aseq_ades_def fun_eq_iff; pred_auto)
 
 lemma aseq_ades_disj_distrib:
-  "((P \<or> Q) ;;\<^sub>A\<^sub>D R) = ((P ;;\<^sub>A\<^sub>D R) \<or> (Q ;;\<^sub>A\<^sub>D R))"
+  "((P \<or> Q) ;;\<^sub>A\<^sub>R R) = ((P ;;\<^sub>A\<^sub>R R) \<or> (Q ;;\<^sub>A\<^sub>R R))"
   by pred_auto
 
 lemma aseq_ades_mono_left:
-  "P \<sqsubseteq> Q \<Longrightarrow> (P ;;\<^sub>A\<^sub>D R) \<sqsubseteq> (Q ;;\<^sub>A\<^sub>D R)"
+  "P \<sqsubseteq> Q \<Longrightarrow> (P ;;\<^sub>A\<^sub>R R) \<sqsubseteq> (Q ;;\<^sub>A\<^sub>R R)"
   by (auto simp add: aseq_ades_def pred_refine_iff split: prod.splits)
 
 (* s \<in> ac' *)
@@ -212,12 +212,12 @@ lemma ades_state_choice_expr:
   by pred_auto
 
 lemma aseq_ades_state_choice_left [simp]:
-  "(ades_state_choice ;;\<^sub>A\<^sub>D P) = P"
+  "(ades_state_choice ;;\<^sub>A\<^sub>R P) = P"
   by pred_auto
 
 lemma aseq_ades_unrest_ok_out [unrest]:
   "\<lbrakk> $ok\<^sup>> \<sharp> P; $ok\<^sup>> \<sharp> Q \<rbrakk> \<Longrightarrow>
-   $ok\<^sup>> \<sharp> (P ;;\<^sub>A\<^sub>D Q)"
+   $ok\<^sup>> \<sharp> (P ;;\<^sub>A\<^sub>R Q)"
   apply (simp add: unrest_lens aseq_ades_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs des_more_ok_update_commute)
@@ -225,7 +225,7 @@ lemma aseq_ades_unrest_ok_out [unrest]:
 
 lemma aseq_ades_unrest_ok_in [unrest]:
   "\<lbrakk> $ok\<^sup>< \<sharp> P; $ok\<^sup>< \<sharp> Q \<rbrakk> \<Longrightarrow>
-   $ok\<^sup>< \<sharp> (P ;;\<^sub>A\<^sub>D Q)"
+   $ok\<^sup>< \<sharp> (P ;;\<^sub>A\<^sub>R Q)"
   apply (simp add: unrest_lens aseq_ades_def)
   apply (simp add: subst_app_def subst_upd_def subst_id_def
       SEXP_def lens_defs alpha_defs)
@@ -258,7 +258,7 @@ subsection \<open>Angelic Design Sequential Composition\<close>
 
 (* Paper Definition 18: compose angelic designs through a hidden intermediate ok value. *)
 definition angelic_design_seq ::
-  "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl ";;\<^sub>D\<^sub>A" 75)
+  "'s angelic_design \<Rightarrow> 's angelic_design \<Rightarrow> 's angelic_design" (infixl ";;\<^sub>A\<^sub>D" 75)
 where
 [pred]: "angelic_design_seq P Q = (\<lambda> (s0, ac'). \<exists> ok0.
   P (s0, ok\<^sub>v_update (\<lambda>_. ok0)
@@ -269,9 +269,9 @@ where
 (* Splitting the hidden intermediate observation into its two Boolean cases
    connects the design operator above to full-alphabet angelic composition. *)
 lemma angelic_design_seq_ok_cases:
-  "P ;;\<^sub>D\<^sub>A Q =
-   ((P\<lbrakk>True/ok\<^sup>>\<rbrakk> ;;\<^sub>A\<^sub>D Q\<lbrakk>True/ok\<^sup><\<rbrakk>) \<or>
-    (P\<lbrakk>False/ok\<^sup>>\<rbrakk> ;;\<^sub>A\<^sub>D Q\<lbrakk>False/ok\<^sup><\<rbrakk>))"
+  "P ;;\<^sub>A\<^sub>D Q =
+   ((P\<lbrakk>True/ok\<^sup>>\<rbrakk> ;;\<^sub>A\<^sub>R Q\<lbrakk>True/ok\<^sup><\<rbrakk>) \<or>
+    (P\<lbrakk>False/ok\<^sup>>\<rbrakk> ;;\<^sub>A\<^sub>R Q\<lbrakk>False/ok\<^sup><\<rbrakk>))"
   by (simp add: angelic_design_seq_def aseq_ades_def fun_eq_iff
       ex_bool_eq subst_app_def subst_upd_def subst_id_def SEXP_def
       lens_defs des_vars.ok_def; pred_auto)
@@ -279,8 +279,8 @@ lemma angelic_design_seq_ok_cases:
 subsubsection \<open>Design-observation substitution laws\<close>
 
 lemma aseq_ades_ok_in_subst:
-  "(P ;;\<^sub>A\<^sub>D Q)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
-   (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> ;;\<^sub>A\<^sub>D Q\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
+  "(P ;;\<^sub>A\<^sub>R Q)\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> =
+   (P\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk> ;;\<^sub>A\<^sub>R Q\<lbrakk>\<guillemotleft>b\<guillemotright>/ok\<^sup><\<rbrakk>)"
   by (simp add: aseq_ades_def fun_eq_iff subst_app_def subst_upd_def
       subst_id_def SEXP_def lens_defs des_vars.ok_def
       des_more_ok_update_commute; pred_auto)
@@ -333,8 +333,8 @@ where [pred]: "angelic_design_seq_simplified P Q =
 
 (* Thesis Theorem T.4.5.15 *)
 lemma angelic_design_seq_demonic:
-  "(P \<sqinter>\<^sub>D\<^sub>A Q) ;;\<^sub>D\<^sub>A R =
-   (P ;;\<^sub>D\<^sub>A R) \<sqinter>\<^sub>D\<^sub>A (Q ;;\<^sub>D\<^sub>A R)"
+  "(P \<sqinter>\<^sub>A\<^sub>D Q) ;;\<^sub>A\<^sub>D R =
+   (P ;;\<^sub>A\<^sub>D R) \<sqinter>\<^sub>A\<^sub>D (Q ;;\<^sub>A\<^sub>D R)"
   by (simp add: angelic_design_seq_def angelic_design_demonic, pred_auto)
 
 lemma angelic_design_seq_simplified_alt:

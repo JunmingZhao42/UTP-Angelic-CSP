@@ -678,7 +678,7 @@ lemma rad_wait_false_RA1_commute: "((RA1 P) \<^sub>f) = RA1 (P \<^sub>f)"
 (* Wait-false substitution affects the initial observation of the left
    operand.  The intermediate state supplied to the right operand is chosen
    afresh by full-alphabet angelic composition. *)
-lemma rad_wait_false_aseq_ades: "((P ;;\<^sub>A\<^sub>D Q) \<^sub>f) = ((P \<^sub>f) ;;\<^sub>A\<^sub>D Q)"
+lemma rad_wait_false_aseq_ades: "((P ;;\<^sub>A\<^sub>R Q) \<^sub>f) = ((P \<^sub>f) ;;\<^sub>A\<^sub>R Q)"
   by (simp add: rad_wait_false_def aseq_ades_def fun_eq_iff
       subst_app_def subst_upd_def subst_id_def SEXP_def lens_defs;
       pred_auto)

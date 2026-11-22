@@ -133,19 +133,19 @@ lemma NDRAD_seq_design:
   assumes "P is RAD" "Q is RAD" "P is NDRAD" "Q is NDRAD"
   shows "(P ;;\<^sub>R\<^sub>A\<^sub>D Q) =
     (RA \<circ> A) (true \<turnstile>
-      (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>D
+      (RA1 ((P \<^sub>f)\<^sup>t) ;;\<^sub>A\<^sub>R
        (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
         RA2 (RA1 ((Q \<^sub>f)\<^sup>t)))))"
 proof -
   let ?Pf = "(P \<^sub>f)\<^sup>f" and ?Pt = "(P \<^sub>f)\<^sup>t"
   let ?Qf = "(Q \<^sub>f)\<^sup>f" and ?Qt = "(Q \<^sub>f)\<^sup>t"
-  let ?pre = "((\<not> (RA1 ?Pf ;;\<^sub>A\<^sub>D RA1 true)) \<and>
-    (\<not> (RA1 ?Pt ;;\<^sub>A\<^sub>D
+  let ?pre = "((\<not> (RA1 ?Pf ;;\<^sub>A\<^sub>R RA1 true)) \<and>
+    (\<not> (RA1 ?Pt ;;\<^sub>A\<^sub>R
       ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 ?Qf)))))"
-  let ?post = "(RA1 ?Pt ;;\<^sub>A\<^sub>D
+  let ?post = "(RA1 ?Pt ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 ((\<not> ?Qf) \<longrightarrow> ?Qt))))"
-  let ?postND = "(RA1 ?Pt ;;\<^sub>A\<^sub>D
+  let ?postND = "(RA1 ?Pt ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
      RA2 (RA1 ?Qt)))"
   have Pf_false: "?Pf\<lbrakk>True/ok\<^sup><\<rbrakk> = false"

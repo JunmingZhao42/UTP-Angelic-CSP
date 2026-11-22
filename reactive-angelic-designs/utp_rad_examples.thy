@@ -120,12 +120,12 @@ proof -
       "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
     by (simp_all add: unrest)
   have handover_false:
-      "(RA1 ?J ;;\<^sub>A\<^sub>D
+      "(RA1 ?J ;;\<^sub>A\<^sub>R
         ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 true))) = false"
     by (simp add: RA1_def aseq_ades_def stop_post_def skip_post_def ades_singleton_choice_def
         fun_eq_iff Let_def; pred_auto; auto)
   have continuation_stop:
-      "(RA1 ?J ;;\<^sub>A\<^sub>D
+      "(RA1 ?J ;;\<^sub>A\<^sub>R
         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
           RA2 (RA1 true))) = stop_post"
     apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
@@ -145,7 +145,7 @@ proof -
           auto)
     done
   have seq_form:
-      "(RA (true \<turnstile> ?J) ;;\<^sub>D\<^sub>A RA true) =
+      "(RA (true \<turnstile> ?J) ;;\<^sub>A\<^sub>D RA true) =
        RA (true \<turnstile> stop_post)"
     using RA_design_seq[
       where P=true and Q="?J" and R=false and S=true,
@@ -200,7 +200,7 @@ lemma prefix_stop_post_unrest_ok [unrest]:
    process waits offering a; after it the handover state is a
    deadlocked state whose trace records the event. *)
 lemma prefix_continuation_stop:
-  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>D
+  "(RA1 (prefix_post a) ;;\<^sub>A\<^sub>R
     (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
       RA2 (RA1 stop_post))) = prefix_stop_post a"
   apply (simp only: RA1_RA2_commute'[symmetric] RA2_stop_post)
@@ -238,7 +238,7 @@ proof -
   have prefix_PBMH: "prefix_post a is PBMH_ades"
     by (simp add: Healthy_def')
   have "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Stop\<^sub>R\<^sub>A\<^sub>D) =
-      (RA (true \<turnstile> prefix_post a) ;;\<^sub>D\<^sub>A
+      (RA (true \<turnstile> prefix_post a) ;;\<^sub>A\<^sub>D
        RA (true \<turnstile> stop_post))"
     by (simp only: Prefix_RAD_def PrefixSkip_RAD_RA Stop_RAD_RA)
   also have "... = RA (true \<turnstile> prefix_stop_post a)"
@@ -310,12 +310,12 @@ proof -
       "$ok\<^sup>< \<sharp> (true :: ('t::trace, 'e) reactive_angelic_design)"
     by (simp_all add: unrest)
   have handover_false:
-      "(RA1 ?J ;;\<^sub>A\<^sub>D
+      "(RA1 ?J ;;\<^sub>A\<^sub>R
         ((\<not> rad_wait_lens\<^sup><) \<and> RA2 (RA1 true))) = false"
     by (simp add: RA1_def aseq_ades_def prefix_stop_post_def
         skip_post_def ades_singleton_choice_def fun_eq_iff Let_def; pred_auto; auto)
   have continuation_prefix_stop:
-      "(RA1 ?J ;;\<^sub>A\<^sub>D
+      "(RA1 ?J ;;\<^sub>A\<^sub>R
         (ades_state_choice \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright>
           RA2 (RA1 true))) = prefix_stop_post a"
     apply (simp only: RA1_RA2_commute'[symmetric] RA2_true)
@@ -348,7 +348,7 @@ proof -
       done
     done
   have seq_form:
-      "(RA (true \<turnstile> ?J) ;;\<^sub>D\<^sub>A RA true) =
+      "(RA (true \<turnstile> ?J) ;;\<^sub>A\<^sub>D RA true) =
        RA (true \<turnstile> prefix_stop_post a)"
     using RA_design_seq[
       where P=true and Q="?J" and R=false and S=true,
@@ -382,7 +382,7 @@ proof -
   have prefix_PBMH: "prefix_post a is PBMH_ades"
     by (simp add: Healthy_def')
   have "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Chaos\<^sub>R\<^sub>A\<^sub>D) =
-      (RA (true \<turnstile> prefix_post a) ;;\<^sub>D\<^sub>A RA true)"
+      (RA (true \<turnstile> prefix_post a) ;;\<^sub>A\<^sub>D RA true)"
     by (simp only: Prefix_RAD_def PrefixSkip_RAD_RA Chaos_RAD_RA)
   also have "... =
       RA ((\<not> prefix_diverge_post a) \<turnstile>
@@ -594,7 +594,7 @@ proof -
       "(RA \<circ> A) (true \<turnstile> true) = RA (true \<turnstile> true)"
     by (rule RA_A_absorb_design_true[OF true_PBMH_ades]; simp add: unrest)
   have "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D Choice\<^sub>R\<^sub>A\<^sub>D) =
-      (RA (true \<turnstile> prefix_post a) ;;\<^sub>D\<^sub>A
+      (RA (true \<turnstile> prefix_post a) ;;\<^sub>A\<^sub>D
        RA (true \<turnstile> true))"
     by (simp only: Prefix_RAD_def PrefixSkip_RAD_RA Choice_RAD_alt
         choice_absorb)
