@@ -291,8 +291,7 @@ lemma ades_par_normalise_A:
         A_obs_A2[OF assms(1)] A_obs_A2[OF assms(2)] ex_bool_eq; blast)
 
 lemma ades_par_eval:
-  assumes "P is H1" "Q is H1"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
+  "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
     (\<exists>okL acL okR acR.
       P (ades_obs ok0 s0 okL acL) \<and> Q (ades_obs ok0 s0 okR acR) \<and>
       (\<not>ok0 \<or> (acL \<noteq> {} \<and> acR \<noteq> {} \<and>
@@ -387,6 +386,126 @@ lemma ades_par_angelic_subdistl:
 lemma ades_par_angelic_subdistr:
   "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqsubseteq> (P \<squnion>\<^sub>A\<^sub>D Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> R"
   by (simp only: ades_par_def ades_par_by_merge_angelic_subdistr)
+
+text \<open>The angelic laws are equalities when the shared operand Q has no demonic choice,
+  so its offered sets are closed under intersection, and no operand diverges:
+  (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q.\<close>
+
+(* (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q *)
+lemma ades_par_angelic_distr:
+  fixes P P' Q :: "'s angelic_design"
+  assumes a: "P is A" "P' is A"
+    and nd: "P is NDAD" "P' is NDAD" "Q is NDAD"
+    and q: "\<And>s0 Y Y'. Q (ades_obs True s0 True Y) \<Longrightarrow> Q (ades_obs True s0 True Y') \<Longrightarrow>
+      Q (ades_obs True s0 True (Y \<inter> Y'))"
+  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P' \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) = (P \<squnion>\<^sub>A\<^sub>D P') \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q"
+proof (rule ades_obs_ext)
+  fix ok0 s0 ok' ac'
+  have un: "S (ades_obs False s0 c X)" if "S is A" for S :: "'s angelic_design" and c X
+    using that by (simp add: A_healthy_components_iff H1_healthy_obs_iff)
+  have up: "S (ades_obs True s0 True X')"
+    if "S is A" "S (ades_obs True s0 True X)" "X \<subseteq> X'" for S :: "'s angelic_design" and X X'
+  proof -
+    have pb: "S is PBMH_ades" using that(1) by (simp add: A_healthy_components_iff)
+    show ?thesis by (rule PBMH_ades_upward[OF pb that(2)]; simp add: that(3))
+  qed
+  have ndt: "c \<and> X \<noteq> {}" if "S is NDAD" "S (ades_obs True s0 c X)" for S :: "'s angelic_design" and c X
+    using NDAD_obs[of S True s0 c X] that by (simp add: Healthy_if[OF that(1)])
+  show "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P' \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac') = ((P \<squnion>\<^sub>A\<^sub>D P') \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')"
+  proof (cases ok0)
+    case False
+    then show ?thesis by (simp add: ades_par_eval inf_fun_def inf_bool_def un[OF a(1)] un[OF a(2)])
+  next
+    case True
+    show ?thesis
+    proof
+      assume "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P' \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac')"
+      then obtain okL X okR Y okL' X' okR' Y' where
+        px: "P (ades_obs True s0 okL X)" and qy: "Q (ades_obs True s0 okR Y)"
+        and f: "\<forall>a\<in>X. \<forall>b\<in>Y. \<exists>s'. merge_eval j s0 a b s'"
+        and h: "okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>a\<in>X. \<forall>b\<in>Y. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and px': "P' (ades_obs True s0 okL' X')" and qy': "Q (ades_obs True s0 okR' Y')"
+        and f': "\<forall>a\<in>X'. \<forall>b\<in>Y'. \<exists>s'. merge_eval j s0 a b s'"
+        and h': "okL' \<and> okR' \<longrightarrow> ok' \<and> (\<forall>a\<in>X'. \<forall>b\<in>Y'. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        using True by (simp only: ades_par_eval inf_fun_def inf_bool_def simp_thms) blast
+      note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy] ndt[OF nd(2) px'] ndt[OF nd(3) qy']
+      have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"
+          "Q (ades_obs True s0 True Y)" "Q (ades_obs True s0 True Y')"
+        using px px' qy qy' ok by simp_all
+      have qi: "Q (ades_obs True s0 True (Y \<inter> Y'))" by (rule q[OF T(3,4)])
+      have "((P \<squnion>\<^sub>A\<^sub>D P') \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs True s0 ok' ac')"
+        unfolding ades_par_eval inf_fun_def inf_bool_def
+        by (rule exI[where x=True], rule exI[where x="X \<union> X'"],
+            rule exI[where x=True], rule exI[where x="Y \<inter> Y'"])
+           (use up[OF a(1) T(1) Un_upper1] up[OF a(2) T(2) Un_upper2] ndt[OF nd(3) qi]
+             ndt[OF nd(1) T(1)] qi ok f f' h h' in blast)
+      then show "((P \<squnion>\<^sub>A\<^sub>D P') \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')"
+        using True by simp
+    next
+      assume "((P \<squnion>\<^sub>A\<^sub>D P') \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')"
+      then show "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P' \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac')"
+        unfolding ades_par_eval inf_fun_def inf_bool_def by blast
+    qed
+  qed
+qed
+
+(* (Q \<parallel> P) \<squnion> (Q \<parallel> P') = Q \<parallel> (P \<squnion> P') *)
+lemma ades_par_angelic_distl:
+  fixes P P' Q :: "'s angelic_design"
+  assumes a: "P is A" "P' is A"
+    and nd: "P is NDAD" "P' is NDAD" "Q is NDAD"
+    and q: "\<And>s0 Y Y'. Q (ades_obs True s0 True Y) \<Longrightarrow> Q (ades_obs True s0 True Y') \<Longrightarrow>
+      Q (ades_obs True s0 True (Y \<inter> Y'))"
+  shows "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P') = Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>A\<^sub>D P')"
+proof (rule ades_obs_ext)
+  fix ok0 s0 ok' ac'
+  have un: "S (ades_obs False s0 c X)" if "S is A" for S :: "'s angelic_design" and c X
+    using that by (simp add: A_healthy_components_iff H1_healthy_obs_iff)
+  have up: "S (ades_obs True s0 True X')"
+    if "S is A" "S (ades_obs True s0 True X)" "X \<subseteq> X'" for S :: "'s angelic_design" and X X'
+  proof -
+    have pb: "S is PBMH_ades" using that(1) by (simp add: A_healthy_components_iff)
+    show ?thesis by (rule PBMH_ades_upward[OF pb that(2)]; simp add: that(3))
+  qed
+  have ndt: "c \<and> X \<noteq> {}" if "S is NDAD" "S (ades_obs True s0 c X)" for S :: "'s angelic_design" and c X
+    using NDAD_obs[of S True s0 c X] that by (simp add: Healthy_if[OF that(1)])
+  show "((Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac') = (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')"
+  proof (cases ok0)
+    case False
+    then show ?thesis by (simp add: ades_par_eval inf_fun_def inf_bool_def un[OF a(1)] un[OF a(2)])
+  next
+    case True
+    show ?thesis
+    proof
+      assume "((Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac')"
+      then obtain okR Y okL X okR' Y' okL' X' where
+        qy: "Q (ades_obs True s0 okR Y)" and px: "P (ades_obs True s0 okL X)"
+        and f: "\<forall>a\<in>Y. \<forall>b\<in>X. \<exists>s'. merge_eval j s0 a b s'"
+        and h: "okR \<and> okL \<longrightarrow> ok' \<and> (\<forall>a\<in>Y. \<forall>b\<in>X. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and qy': "Q (ades_obs True s0 okR' Y')" and px': "P' (ades_obs True s0 okL' X')"
+        and f': "\<forall>a\<in>Y'. \<forall>b\<in>X'. \<exists>s'. merge_eval j s0 a b s'"
+        and h': "okR' \<and> okL' \<longrightarrow> ok' \<and> (\<forall>a\<in>Y'. \<forall>b\<in>X'. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        using True by (simp only: ades_par_eval inf_fun_def inf_bool_def simp_thms) blast
+      note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy] ndt[OF nd(2) px'] ndt[OF nd(3) qy']
+      have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"
+          "Q (ades_obs True s0 True Y)" "Q (ades_obs True s0 True Y')"
+        using px px' qy qy' ok by simp_all
+      have qi: "Q (ades_obs True s0 True (Y \<inter> Y'))" by (rule q[OF T(3,4)])
+      have "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>A\<^sub>D P')) (ades_obs True s0 ok' ac')"
+        unfolding ades_par_eval inf_fun_def inf_bool_def
+        by (rule exI[where x=True], rule exI[where x="Y \<inter> Y'"],
+            rule exI[where x=True], rule exI[where x="X \<union> X'"])
+           (use up[OF a(1) T(1) Un_upper1] up[OF a(2) T(2) Un_upper2] ndt[OF nd(3) qi]
+             ndt[OF nd(1) T(1)] qi ok f f' h h' in blast)
+      then show "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')"
+        using True by simp
+    next
+      assume "(Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')"
+      then show "((Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac')"
+        unfolding ades_par_eval inf_fun_def inf_bool_def by blast
+    qed
+  qed
+qed
 
 subsubsection \<open>Monotonicity\<close>
 
