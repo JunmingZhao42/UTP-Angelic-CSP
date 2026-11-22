@@ -370,6 +370,19 @@ lemma rad_par_form:
     p2ac (ac2p P \<parallel>\<^sub>R\<^sub>D\<^bsub>j\<^esub> ac2p Q)"
   by (rule rad_par_by_merge_form[OF assms refl])
 
+(* (P \<parallel> Q)(x,z) holds when some branch observations, with nonempty sets, merge into z *)
+lemma rad_par_eval:
+  "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
+    (\<exists>okL acL okR acR.
+      P (ades_obs ok0 s0 okL acL) \<and> Q (ades_obs ok0 s0 okR acR) \<and>
+      acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+      (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
+        merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
+          \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+          \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+          \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
+  by (simp add: par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
+
 lemma rad_par_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
   shows "ac2p (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) =
@@ -461,5 +474,183 @@ lemma rad_par_assoc:
   by (rule par_by_rad_lift_merge_assoc_NDRAD[OF rad a2 nondiv
         merge_rdes_SymMerge[OF merge(1)] merge_rdes_NDRDm
         merge_rdes_guard_AssocMerge[OF merge(2)]])
+
+subsubsection \<open>Choice\<close>
+
+text \<open>We instantiate the arbitrary-merge laws with the lifted merge:
+  P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R).\<close>
+
+(* P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R) *)
+lemma rad_par_demonic_distl:
+  "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<sqinter>\<^sub>R\<^sub>A\<^sub>D R) = (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+  by (rule rad_par_by_merge_demonic_distl)
+
+(* (P \<sqinter> Q) \<parallel> R = (P \<parallel> R) \<sqinter> (Q \<parallel> R) *)
+lemma rad_par_demonic_distr:
+  "(P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+  by (rule rad_par_by_merge_demonic_distr)
+
+(* (P \<parallel> Q) \<squnion> (P \<parallel> R) \<sqsubseteq> P \<parallel> (Q \<squnion> R) *)
+lemma rad_par_angelic_subdistl:
+  "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqsubseteq> P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<squnion>\<^sub>R\<^sub>A\<^sub>D R)"
+  by (rule rad_par_by_merge_angelic_subdistl)
+
+(* (P \<parallel> R) \<squnion> (Q \<parallel> R) \<sqsubseteq> (P \<squnion> Q) \<parallel> R *)
+lemma rad_par_angelic_subdistr:
+  "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R) \<sqsubseteq> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R"
+  by (rule rad_par_by_merge_angelic_subdistr)
+
+text \<open>We combine the varying offers by union and the shared offers by
+  intersection. We require intersection closure for all shared offers,
+  including waiting states, and nondivergence so their termination flags agree:
+  (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q.\<close>
+
+(* (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q *)
+lemma rad_par_angelic_distr:
+  fixes P P' Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes rad: "P is RAD" "P' is RAD"
+    and nd: "P is NDRAD" "P' is NDRAD" "Q is NDRAD"
+    and q: "\<And>s0 Y Y'. Q (ades_obs True s0 True Y) \<Longrightarrow> Q (ades_obs True s0 True Y') \<Longrightarrow>
+      Q (ades_obs True s0 True (Y \<inter> Y'))"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P' \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) = (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q"
+proof (rule ades_obs_ext)
+  fix ok0 s0 ok' ac'
+  have un: "S (ades_obs False s0 c X) \<longleftrightarrow> rad_trace_extensions s0 \<inter> X \<noteq> {}"
+    if "S is RAD" for S :: "('t, 'e) reactive_angelic_design" and c X
+  proof -
+    have a: "S (ades_obs False s0 c X) =
+        (S (ades_obs False s0 c (rad_trace_extensions s0 \<inter> X)) \<and> rad_trace_extensions s0 \<inter> X \<noteq> {})"
+      using RA1_obs[of S False s0 c X] by (simp only: Healthy_if[OF RAD_is_RA1[OF that]])
+    have b: "S (ades_obs False s0 c X) = (S (ades_obs False s0 c X) \<or> rad_trace_extensions s0 \<inter> X \<noteq> {})"
+      using CSPA1_obs[of S False s0 c X] by (simp only: Healthy_if[OF RAD_is_CSPA1[OF that]] simp_thms)
+    show ?thesis using a b by blast
+  qed
+  have up: "S (ades_obs True s0 True X')"
+    if "S is RAD" "S (ades_obs True s0 True X)" "X \<subseteq> X'"
+    for S :: "('t, 'e) reactive_angelic_design" and X X'
+    by (rule PBMH_ades_upward[OF RAD_is_PBMH_ades[OF that(1)] that(2)]; simp add: that(3))
+  have ndt: "c \<and> X \<noteq> {}" if "S is NDRAD" "S (ades_obs True s0 c X)"
+    for S :: "('t, 'e) reactive_angelic_design" and c X
+  proof -
+    have "Choice\<^sub>R\<^sub>A\<^sub>D (ades_obs True s0 c X)"
+      using that(2) by (subst (asm) Healthy_if[OF that(1), symmetric]) (simp add: NDRAD_def inf_fun_def)
+    then show ?thesis
+      unfolding Choice_RAD_design RA1_obs by (simp add: design_def; pred_auto)
+  qed
+  let ?M = "\<lambda>a b sa sb s'. merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = a, \<dots> = sa\<rparr> \<lparr>ok\<^sub>v = b, \<dots> = sb\<rparr>
+    \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>"
+  show "((P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P' \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac') =
+        ((P \<squnion>\<^sub>R\<^sub>A\<^sub>D P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')"
+  proof (cases ok0)
+    case False
+    then show ?thesis
+      by (simp add: rad_par_eval inf_fun_def inf_bool_def un[OF rad(1)] un[OF rad(2)])
+  next
+    case True
+    show ?thesis
+    proof
+      assume "((P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P' \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac')"
+      then obtain okL X okR Y okL' X' okR' Y' where
+        px: "P (ades_obs True s0 okL X)" and qy: "Q (ades_obs True s0 okR Y)"
+        and h: "\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>ac'. ?M okL okR sL sR s'"
+        and px': "P' (ades_obs True s0 okL' X')" and qy': "Q (ades_obs True s0 okR' Y')"
+        and h': "\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'\<in>ac'. ?M okL' okR' sL sR s'"
+        using True by (simp only: rad_par_eval inf_fun_def inf_bool_def simp_thms) blast
+      note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy]
+        ndt[OF nd(2) px'] ndt[OF nd(3) qy']
+      have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"
+          "Q (ades_obs True s0 True Y)" "Q (ades_obs True s0 True Y')"
+        using px px' qy qy' ok by simp_all
+      have cover: "\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>ac'. ?M True True sL sR s'"
+          "\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'\<in>ac'. ?M True True sL sR s'"
+        using h h' ok by simp_all
+      have qi: "Q (ades_obs True s0 True (Y \<inter> Y'))" by (rule q[OF T(3,4)])
+      have "((P \<squnion>\<^sub>R\<^sub>A\<^sub>D P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs True s0 ok' ac')"
+        unfolding rad_par_eval inf_fun_def inf_bool_def
+        by (rule exI[where x=True], rule exI[where x="X \<union> X'"],
+            rule exI[where x=True], rule exI[where x="Y \<inter> Y'"])
+           (use up[OF rad(1) T(1) Un_upper1] up[OF rad(2) T(2) Un_upper2] qi ndt[OF nd(3) qi] ok cover in blast)
+      then show "((P \<squnion>\<^sub>R\<^sub>A\<^sub>D P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')" using True by simp
+    next
+      assume "((P \<squnion>\<^sub>R\<^sub>A\<^sub>D P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac')"
+      then show "((P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P' \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac')"
+        unfolding rad_par_eval inf_fun_def inf_bool_def by blast
+    qed
+  qed
+qed
+
+(* (Q \<parallel> P) \<squnion> (Q \<parallel> P') = Q \<parallel> (P \<squnion> P') *)
+lemma rad_par_angelic_distl:
+  fixes P P' Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes rad: "P is RAD" "P' is RAD"
+    and nd: "P is NDRAD" "P' is NDRAD" "Q is NDRAD"
+    and q: "\<And>s0 Y Y'. Q (ades_obs True s0 True Y) \<Longrightarrow> Q (ades_obs True s0 True Y') \<Longrightarrow>
+      Q (ades_obs True s0 True (Y \<inter> Y'))"
+  shows "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P') = Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P')"
+proof (rule ades_obs_ext)
+  fix ok0 s0 ok' ac'
+  have un: "S (ades_obs False s0 c X) \<longleftrightarrow> rad_trace_extensions s0 \<inter> X \<noteq> {}"
+    if "S is RAD" for S :: "('t, 'e) reactive_angelic_design" and c X
+  proof -
+    have a: "S (ades_obs False s0 c X) =
+        (S (ades_obs False s0 c (rad_trace_extensions s0 \<inter> X)) \<and> rad_trace_extensions s0 \<inter> X \<noteq> {})"
+      using RA1_obs[of S False s0 c X] by (simp only: Healthy_if[OF RAD_is_RA1[OF that]])
+    have b: "S (ades_obs False s0 c X) = (S (ades_obs False s0 c X) \<or> rad_trace_extensions s0 \<inter> X \<noteq> {})"
+      using CSPA1_obs[of S False s0 c X] by (simp only: Healthy_if[OF RAD_is_CSPA1[OF that]] simp_thms)
+    show ?thesis using a b by blast
+  qed
+  have up: "S (ades_obs True s0 True X')"
+    if "S is RAD" "S (ades_obs True s0 True X)" "X \<subseteq> X'"
+    for S :: "('t, 'e) reactive_angelic_design" and X X'
+    by (rule PBMH_ades_upward[OF RAD_is_PBMH_ades[OF that(1)] that(2)]; simp add: that(3))
+  have ndt: "c \<and> X \<noteq> {}" if "S is NDRAD" "S (ades_obs True s0 c X)"
+    for S :: "('t, 'e) reactive_angelic_design" and c X
+  proof -
+    have "Choice\<^sub>R\<^sub>A\<^sub>D (ades_obs True s0 c X)"
+      using that(2) by (subst (asm) Healthy_if[OF that(1), symmetric]) (simp add: NDRAD_def inf_fun_def)
+    then show ?thesis
+      unfolding Choice_RAD_design RA1_obs by (simp add: design_def; pred_auto)
+  qed
+  let ?M = "\<lambda>a b sa sb s'. merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = a, \<dots> = sa\<rparr> \<lparr>ok\<^sub>v = b, \<dots> = sb\<rparr>
+    \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>"
+  show "((Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac') =
+        (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')"
+  proof (cases ok0)
+    case False
+    then show ?thesis
+      by (simp add: rad_par_eval inf_fun_def inf_bool_def un[OF rad(1)] un[OF rad(2)])
+  next
+    case True
+    show ?thesis
+    proof
+      assume "((Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac')"
+      then obtain okL X okR Y okL' X' okR' Y' where
+        px: "P (ades_obs True s0 okL X)" and qy: "Q (ades_obs True s0 okR Y)"
+        and h: "\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>ac'. ?M okR okL sR sL s'"
+        and px': "P' (ades_obs True s0 okL' X')" and qy': "Q (ades_obs True s0 okR' Y')"
+        and h': "\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'\<in>ac'. ?M okR' okL' sR sL s'"
+        using True by (simp only: rad_par_eval inf_fun_def inf_bool_def simp_thms) blast
+      note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy]
+        ndt[OF nd(2) px'] ndt[OF nd(3) qy']
+      have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"
+          "Q (ades_obs True s0 True Y)" "Q (ades_obs True s0 True Y')"
+        using px px' qy qy' ok by simp_all
+      have cover: "\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>ac'. ?M True True sR sL s'"
+          "\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'\<in>ac'. ?M True True sR sL s'"
+        using h h' ok by simp_all
+      have qi: "Q (ades_obs True s0 True (Y \<inter> Y'))" by (rule q[OF T(3,4)])
+      have "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P')) (ades_obs True s0 ok' ac')"
+        unfolding rad_par_eval inf_fun_def inf_bool_def
+        by (rule exI[where x=True], rule exI[where x="Y \<inter> Y'"],
+            rule exI[where x=True], rule exI[where x="X \<union> X'"])
+           (use up[OF rad(1) T(1) Un_upper1] up[OF rad(2) T(2) Un_upper2] qi ndt[OF nd(3) qi] ok cover in blast)
+      then show "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')" using True by simp
+    next
+      assume "(Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D P')) (ades_obs ok0 s0 ok' ac')"
+      then show "((Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac')"
+        unfolding rad_par_eval inf_fun_def inf_bool_def by blast
+    qed
+  qed
+qed
 
 end

@@ -50,6 +50,10 @@ so the combined conditions omit it.
 | `is CSPA2` | - | [`CSPA2m`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L59) | [`rad_par_by_merge_CSPA2`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L520) |
 | `is PBMH_ades` | - | [`PBMHm`](../../angelic-designs/utp_ades_parallel_laws.thy#L235) | [`PBMH_ades_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L387) |
 | `is RAD` | Both `RAD` | `RADm` | [`rad_par_by_merge_RAD`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L527) |
+| `P ∥[M] (Q ⊓RAD R) =`<br>`(P ∥[M] Q) ⊓RAD (P ∥[M] R)` | - | - | [`rad_par_by_merge_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L543) |
+| `(P ⊓RAD Q) ∥[M] R =`<br>`(P ∥[M] R) ⊓RAD (Q ∥[M] R)` | - | - | [`rad_par_by_merge_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L549) |
+| `(P ∥[M] Q) ⊔RAD (P ∥[M] R) ⊑`<br>`P ∥[M] (Q ⊔RAD R)` | - | - | [`rad_par_by_merge_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L555) |
+| `(P ∥[M] R) ⊔RAD (Q ∥[M] R) ⊑`<br>`(P ⊔RAD Q) ∥[M] R` | - | - | [`rad_par_by_merge_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L561) |
 
 ### Generic correspondence with RD
 
@@ -99,17 +103,31 @@ is `RADm` for every `j`. Thus `∥RAD[j]` preserves RAD healthiness:
 
 | Result of `P ∥RAD[j] Q` | Operand premises | Lemma |
 | --- | --- | --- |
-| `RAD` | Both `RAD` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L391) |
-| `A2` | Both `RAD`, `A2` | [`rad_par_A2`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L386) |
-| `NDRAD` | Both `RAD`, `A2`, `NDRAD` | [`rad_par_NDRAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L396) |
+| `RAD` | Both `RAD` | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L404) |
+| `A2` | Both `RAD`, `A2` | [`rad_par_A2`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L399) |
+| `NDRAD` | Both `RAD`, `A2`, `NDRAD` | [`rad_par_NDRAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L409) |
 
 Its algebraic laws:
 
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
-| monotone in both operands | - | - | [`rad_par_mono`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L414) |
-| `P ∥RAD[j] Q = Q ∥RAD[j] P` | - | `SymMerge` | [`rad_par_comm`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L420) |
-| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`, `NDRAD` | `SymMerge`, `AssocMerge` | [`rad_par_assoc`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L454) |
+| monotone in both operands | - | - | [`rad_par_mono`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L427) |
+| `P ∥RAD[j] (Q ⊓RAD R) =`<br>`(P ∥RAD[j] Q) ⊓RAD (P ∥RAD[j] R)` | - | - | [`rad_par_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L484) |
+| `(P ⊓RAD Q) ∥RAD[j] R =`<br>`(P ∥RAD[j] R) ⊓RAD (Q ∥RAD[j] R)` | - | - | [`rad_par_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L489) |
+| `(P ∥RAD[j] Q) ⊔RAD (P ∥RAD[j] R) ⊑`<br>`P ∥RAD[j] (Q ⊔RAD R)` | - | - | [`rad_par_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L494) |
+| `(P ∥RAD[j] R) ⊔RAD (Q ∥RAD[j] R) ⊑`<br>`(P ⊔RAD Q) ∥RAD[j] R` | - | - | [`rad_par_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L499) |
+| `(P ∥RAD[j] Q) ⊔RAD (P' ∥RAD[j] Q) =`<br>`(P ⊔RAD P') ∥RAD[j] Q` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L509) |
+| `(Q ∥RAD[j] P) ⊔RAD (Q ∥RAD[j] P') =`<br>`Q ∥RAD[j] (P ⊔RAD P')` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L583) |
+| `P ∥RAD[j] Q = Q ∥RAD[j] P` | - | `SymMerge` | [`rad_par_comm`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L433) |
+| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`, `NDRAD` | `SymMerge`, `AssocMerge` | [`rad_par_assoc`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L467) |
+
+Here `Q` is intersection-closed when `Q(True,s,True,Y)` and
+`Q(True,s,True,Y')` imply `Q(True,s,True,Y ∩ Y')` for every prior state `s`.
+This premise covers waiting states and mixed waiting/terminating offers too.
+The equalities need no A2 or restriction on `j`. The proof uses nondivergence; whether
+it is necessary for RAD is open. AD's counterexample does not carry over directly: RAD's
+merge sets `ok' = okL ∧ okR`, so a diverging branch yields only diverging observations,
+whereas AD's merge lets it release terminating ones.
 
 ## ac2p/p2ac mapping laws
 
@@ -119,8 +137,8 @@ These instantiate the generic correspondence with `M = merge_rdes j`:
 | --- | --- | --- |
 | `p2ac D ∥RAD[j] p2ac E =`<br>`p2ac (D ∥RD[j] E)` | - | [`rad_par_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L360) |
 | `P ∥RAD[j] Q =`<br>`p2ac (ac2p P ∥RD[j] ac2p Q)` | Both `RAD`, `A2` | [`rad_par_form`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L367) |
-| `ac2p (P ∥RAD[j] Q) =`<br>`ac2p P ∥RD[j] ac2p Q` | Both `RAD`, `A2` | [`rad_par_ac2p`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L373) |
-| `D ∥RD[j] E =`<br>`ac2p (p2ac D ∥RAD[j] p2ac E)` | - | [`rad_par_ac2p_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L379) |
+| `ac2p (P ∥RAD[j] Q) =`<br>`ac2p P ∥RD[j] ac2p Q` | Both `RAD`, `A2` | [`rad_par_ac2p`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L386) |
+| `D ∥RD[j] E =`<br>`ac2p (p2ac D ∥RAD[j] p2ac E)` | - | [`rad_par_ac2p_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L392) |
 
 RAD rejects empty output sets
 ([`RAD_empty`](../../reactive-angelic-designs/utp_rad_designs.thy#L534)), so there

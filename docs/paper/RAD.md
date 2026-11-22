@@ -309,6 +309,6 @@ Parallel-by-merge is an extension of this repository's paper development. Its de
 | `ac2p P is RD`. | `P` both RAD and A2 | [`rad_ac2p_RD`](../../reactive-angelic-designs/utp_rad_csp.thy#L421) |
 | Parallel by an arbitrary RAD merge is RAD-healthy. | `P`, `Q` both RAD; `M is RADm` | [`rad_par_by_merge_RAD`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L527) |
 | The ordinary lift is RADm-healthy. | `M is ORDm` | [`rad_lift_merge_RADm`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L312) |
-| `P ∥RAD[j] Q` is RAD-healthy. | `P`, `Q` both RAD | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L391) |
+| `P ∥RAD[j] Q` is RAD-healthy. | `P`, `Q` both RAD | [`rad_par_RAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L404) |
 
 </details>

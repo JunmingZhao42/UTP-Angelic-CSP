@@ -533,4 +533,34 @@ lemma rad_par_by_merge_RAD [closure]:
   by (auto intro: rad_par_by_merge_RA1 rad_par_by_merge_RA2 rad_par_by_merge_RA3
       rad_par_by_merge_CSPA1 rad_par_by_merge_CSPA2 PBMH_ades_par_by_merge)
 
+subsection \<open>Choice\<close>
+
+text \<open>We use the UTP choice laws because RAD choices are disjunction and
+  conjunction. Demonic choice therefore distributes without premises:
+  P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R).\<close>
+
+(* P \<parallel> (Q \<sqinter> R) = (P \<parallel> Q) \<sqinter> (P \<parallel> R) *)
+lemma rad_par_by_merge_demonic_distl:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  shows "P \<parallel>\<^bsub>M\<^esub> (Q \<sqinter>\<^sub>R\<^sub>A\<^sub>D R) = (P \<parallel>\<^bsub>M\<^esub> Q) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (P \<parallel>\<^bsub>M\<^esub> R)"
+  by (simp only: angelic_design_demonic par_by_merge_disj_distl)
+
+(* (P \<sqinter> Q) \<parallel> R = (P \<parallel> R) \<sqinter> (Q \<parallel> R) *)
+lemma rad_par_by_merge_demonic_distr:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  shows "(P \<sqinter>\<^sub>R\<^sub>A\<^sub>D Q) \<parallel>\<^bsub>M\<^esub> R = (P \<parallel>\<^bsub>M\<^esub> R) \<sqinter>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^bsub>M\<^esub> R)"
+  by (simp only: angelic_design_demonic par_by_merge_disj_distr)
+
+(* (P \<parallel> Q) \<squnion> (P \<parallel> R) \<sqsubseteq> P \<parallel> (Q \<squnion> R) *)
+lemma rad_par_by_merge_angelic_subdistl:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (P \<parallel>\<^bsub>M\<^esub> R) \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> (Q \<squnion>\<^sub>R\<^sub>A\<^sub>D R)"
+  by (simp only: angelic_design_angelic par_by_merge_conj_subdistl)
+
+(* (P \<parallel> R) \<squnion> (Q \<parallel> R) \<sqsubseteq> (P \<squnion> Q) \<parallel> R *)
+lemma rad_par_by_merge_angelic_subdistr:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design" and M :: "('t, 'e) rad_merge_rel"
+  shows "(P \<parallel>\<^bsub>M\<^esub> R) \<squnion>\<^sub>R\<^sub>A\<^sub>D (Q \<parallel>\<^bsub>M\<^esub> R) \<sqsubseteq> (P \<squnion>\<^sub>R\<^sub>A\<^sub>D Q) \<parallel>\<^bsub>M\<^esub> R"
+  by (simp only: angelic_design_angelic par_by_merge_conj_subdistr)
+
 end
