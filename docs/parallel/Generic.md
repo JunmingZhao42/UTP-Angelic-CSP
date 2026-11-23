@@ -56,10 +56,20 @@ P ∥[M] (Q ∨ R) = (P ∥[M] Q) ∨ (P ∥[M] R)
 (P ∥[M] Q) ∧ (P ∥[M] R) ⊑ P ∥[M] (Q ∧ R)
 ```
 
+Parallel is monotone in each operand and in the merge
+([`par_by_merge_mono_left`](../../deps/UTP/utp_concurrency.thy#L355),
+[`par_by_merge_mono_right`](../../deps/UTP/utp_concurrency.thy#L360),
+[`par_by_merge_mono_merge`](../../deps/UTP/utp_concurrency.thy#L365)), and so in all three
+together ([`par_by_merge_mono`](../../deps/UTP/utp_concurrency.thy#L370)):
+
+```isabelle
+P ⊑ P' ∧ Q ⊑ Q' ∧ M ⊑ M' ⟹ P ∥[M] Q ⊑ P' ∥[M'] Q'
+```
+
 ## Symmetry and associativity
 
-[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L383) and
-[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L394):
+[`SymMerge_eval`](../../deps/UTP/utp_concurrency.thy#L403) and
+[`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L414):
 
 ```isabelle
 (* we can swap the positions of p and q branches *)

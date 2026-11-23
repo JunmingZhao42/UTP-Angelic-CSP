@@ -11,7 +11,7 @@ between the published operators and this repository's lifting.
 the final observation after divergence but retain branch and merge feasibility.
 Completed RD parallel additionally requires a merged witness whose trace is
 a prefix of the final trace, through the completed
-[`merge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L132).
+[`merge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L129).
 The pinned [`rdes_parallel_Chaos_iff`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L495)
 gives the exact Chaos criterion for SRD operands and an RDM input merge.
 

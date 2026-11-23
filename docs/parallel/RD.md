@@ -91,8 +91,8 @@ installed as Isabelle lemmas.
 | `is R1` | - | [`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13) | [`R1_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L191) |
 | `is R2` | Both `R2` | [`R2m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L23) | [`R2_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L202) |
 | `is R3c` (R3) | Both `R3c` | [`R3cm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L24) | [`R3c_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L481) |
-| `is RD1` (CSP1) | Both `R1`, `RD1` | [`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13), [`RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L77) | [`RD1_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L79) |
-| `is RD2` (CSP2) | - | [`RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L373) | [`RD2_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L96) |
+| `is RD1` (CSP1) | Both `R1`, `RD1` | [`R1m`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L13), [`RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L77) | [`RD1_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L76) |
+| `is RD2` (CSP2) | - | [`RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L373) | [`RD2_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L93) |
 | `is RD` | Both `RD` | `ORDm` | [`RD_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L502) |
 
 [`RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L425) combines the five

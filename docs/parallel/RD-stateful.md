@@ -40,10 +40,10 @@ not a claim that every merge preserving SRD must satisfy them.
 | --- | --- | --- | --- | --- |
 | `P ∥[M] Q is R1` | None | `M is R1m` | [`R1_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L191) | [`utp_rea_parallel.thy`](../../deps/UTP-Reactive/utp_rea_parallel.thy) |
 | `P ∥[M] Q is R2` | Both R2 | `M is R2m` | [`R2_par_by_merge`](../../deps/UTP-Reactive/utp_rea_parallel.thy#L202) | [`utp_rea_parallel.thy`](../../deps/UTP-Reactive/utp_rea_parallel.thy) |
-| `P ∥[M] Q is R3h` | Both R3h | `M is R3hm` | [`R3h_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L37) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
-| `P ∥[M] Q is RD1` | Both R1 and RD1 | `M is R1m` and `M is RD1m` | [`RD1_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L79) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
-| `P ∥[M] Q is RD2` | None | `M is RD2` | [`RD2_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L96) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
-| `P ∥[M] Q is SRD` | Both SRD | R1m, R2m, R3hm, RD1m and RD2 | [`SRD_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L112) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
+| `P ∥[M] Q is R3h` | Both R3h | `M is R3hm` | [`R3h_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L34) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
+| `P ∥[M] Q is RD1` | Both R1 and RD1 | `M is R1m` and `M is RD1m` | [`RD1_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L76) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
+| `P ∥[M] Q is RD2` | None | `M is RD2` | [`RD2_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L93) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
+| `P ∥[M] Q is SRD` | Both SRD | R1m, R2m, R3hm, RD1m and RD2 | [`SRD_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L109) | [`utp_rdes_parallel.thy`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy) |
 | `P ∥[M] Q is SRD` | Both SRD | `M is SRDM` | [`SRDM_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L249) | [`utp_srdes_parallel_laws.thy`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy) |
 | `P ∥[M] Q is RD3` | None | `M is RD3` | [`RD3_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L243) | [`utp_srdes_parallel_laws.thy`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy) |
 | `P ∥[M] Q is NSRD` | Both SRD | `M is SRDM` and `M is RD3` | [`NSRD_par_by_merge`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L254) | [`utp_srdes_parallel_laws.thy`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy) |
@@ -53,16 +53,16 @@ These rules use `M` directly and permit dependence on control flags.
 
 ## Upstream RD merge construction
 
-[`RDM`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L140) characterises
+[`RDM`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L137) characterises
 the input merge: trace growth, independence from the common history, and
 independence from all prior, branch and output `ok`/`wait` flags.
-[`RDM_intro`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L178) supplies
-the introduction rule; [`RDM_unrests`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L185)
-and [`RDM_R2m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L194)
+[`RDM_intro`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L175) supplies
+the introduction rule; [`RDM_unrests`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L182)
+and [`RDM_R2m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L191)
 recover its components.
 
-Upstream's [`nmerge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L126)
-adds control behaviour. Its [`merge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L132)
+Upstream's [`nmerge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L123)
+adds control behaviour. Its [`merge_rd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L129)
 then appends reactive skip:
 
 ```isabelle
@@ -72,17 +72,17 @@ P ∥R[M] Q ≡ P ∥[M_R(M)] Q
 
 | Merge expression | Property | Premise | Result |
 | --- | --- | --- | --- |
-| `N_R(M)` | R1m | None | [`nmerge_rd_is_R1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L142) |
-| `N_R(M)` | R2m | `M is R2m` | [`nmerge_rd_is_R2m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L150) |
-| `N_R(M)` | R3hm | None | [`nmerge_rd_is_R3hm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L154) |
-| `N_R(M)` | RD1m | None | [`nmerge_rd_is_RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L157) |
-| `M_R(M)` | RD3, hence RD2 | None | [`merge_rd_is_RD3`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L160), [`merge_rd_is_RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L163) |
+| `N_R(M)` | R1m | None | [`nmerge_rd_is_R1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L139) |
+| `N_R(M)` | R2m | `M is R2m` | [`nmerge_rd_is_R2m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L147) |
+| `N_R(M)` | R3hm | None | [`nmerge_rd_is_R3hm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L151) |
+| `N_R(M)` | RD1m | None | [`nmerge_rd_is_RD1m`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L154) |
+| `M_R(M)` | RD3, hence RD2 | None | [`merge_rd_is_RD3`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L160), [`merge_rd_is_RD2`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L160) |
 | `M_R(M)` | SRDM | `M is RDM` | [`merge_rd_is_SRDM`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L287) |
 
 | Parallel result | Operand premises | Merge premises | Result |
 | --- | --- | --- | --- |
 | `P ∥R[M] Q is SRD` | Both SRD | `M is RDM` | [`rdes_parallel_SRD`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L313) |
-| `P ∥R[M] Q is NSRD` | Both SRD | `M is RDM` | [`rdes_parallel_NSRD`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L318), recovering upstream [`par_rdes_NSRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L166) |
+| `P ∥R[M] Q is NSRD` | Both SRD | `M is RDM` | [`rdes_parallel_NSRD`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L318), recovering upstream [`par_rdes_NSRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel.thy#L163) |
 
 The completion bridge uses [`R2m_RD3_closed`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L154)
 and commutation of RD3 with [`RD1m`](../../deps/UTP-Reactive-Designs/utp_srdes_parallel_laws.thy#L56)
