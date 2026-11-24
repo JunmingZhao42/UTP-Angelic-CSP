@@ -185,6 +185,7 @@ Its algebraic laws:
 | --- | --- | --- | --- |
 | `P ∥RD[j] Q = Q ∥RD[j] P` | - | `SymMerge` | [`rdes_lift_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L205) |
 | `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `RD`, `NDRD` | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L267) |
+| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `NRD` | `SymMerge`, `AssocMerge`, absorbing | [`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L284) |
 
 Completion can extend a divergent intermediate trace, so `merge_rdes j` is
 not associative in general. The uncompleted merge is associative when
@@ -194,8 +195,26 @@ the completed merge retains this property under `G_RD`
 ([`merge_rdes_guard_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L252)).
 For RD operands, [`NDRD_healthy_iff`](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
 equates `NDRD` with `pre_R P = true_r`: these operands never diverge from an
-active prior. Associativity for a wider class, such as prefix-closed operands,
-remains open.
+active prior.
+
+[`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L284)
+allows divergence for normal operands
+([`NRD`](../../deps/UTP-Reactive-Designs/utp_rdes_normal.thy#L157)), which allow every
+extension after a divergence. Completion lets a divergent intermediate result end with
+any extension `u` of its merged trace; the other bracketing produces `u` only if a
+divergent input can reach it. So `j` must absorb extensions: writing `p ⊗ q` for the
+results `j` merges from inputs `p` and `q`, and `↑A` for their trace extensions with any
+state,
+
+```isabelle
+↑(p ⊗ q) ⊆ ↑p ⊗ q
+```
+
+Interleaving with a unit state satisfies it. Determinism and totality are not enough:
+with exclusive or on time traces, `P` diverging at time 1 and `Q`, `R` terminating at
+time 1, `(P ∥ Q) ∥ R` can terminate at time 0 but `P ∥ (Q ∥ R)` cannot. A synchronising
+merge fails as well: if `Q` terminates at `⟨⟩` and `R` diverges after `⟨a⟩`, then
+`Q ∥ R` has no observation while `(P ∥ Q) ∥ R` has one.
 
 ### Correspondence with upstream RD parallel
 

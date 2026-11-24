@@ -115,15 +115,16 @@ Its algebraic laws:
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
 | monotone in both operands | - | - | [`rad_par_mono`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L9) |
-| `P ∥RAD[j] (Q ⊓RAD R) =`<br>`(P ∥RAD[j] Q) ⊓RAD (P ∥RAD[j] R)` | - | - | [`rad_par_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L66) |
-| `(P ⊓RAD Q) ∥RAD[j] R =`<br>`(P ∥RAD[j] R) ⊓RAD (Q ∥RAD[j] R)` | - | - | [`rad_par_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L71) |
-| `(P ∥RAD[j] Q) ⊔RAD (P ∥RAD[j] R) ⊑`<br>`P ∥RAD[j] (Q ⊔RAD R)` | - | - | [`rad_par_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L76) |
-| `(P ∥RAD[j] R) ⊔RAD (Q ∥RAD[j] R) ⊑`<br>`(P ⊔RAD Q) ∥RAD[j] R` | - | - | [`rad_par_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L81) |
-| `(P ∥RAD[j] Q) ⊔RAD (P' ∥RAD[j] Q) =`<br>`(P ⊔RAD P') ∥RAD[j] Q` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L91) |
-| `(Q ∥RAD[j] P) ⊔RAD (Q ∥RAD[j] P') =`<br>`Q ∥RAD[j] (P ⊔RAD P')` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L165) |
+| `P ∥RAD[j] (Q ⊓RAD R) =`<br>`(P ∥RAD[j] Q) ⊓RAD (P ∥RAD[j] R)` | - | - | [`rad_par_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L89) |
+| `(P ⊓RAD Q) ∥RAD[j] R =`<br>`(P ∥RAD[j] R) ⊓RAD (Q ∥RAD[j] R)` | - | - | [`rad_par_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L94) |
+| `(P ∥RAD[j] Q) ⊔RAD (P ∥RAD[j] R) ⊑`<br>`P ∥RAD[j] (Q ⊔RAD R)` | - | - | [`rad_par_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L99) |
+| `(P ∥RAD[j] R) ⊔RAD (Q ∥RAD[j] R) ⊑`<br>`(P ⊔RAD Q) ∥RAD[j] R` | - | - | [`rad_par_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L104) |
+| `(P ∥RAD[j] Q) ⊔RAD (P' ∥RAD[j] Q) =`<br>`(P ⊔RAD P') ∥RAD[j] Q` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distr`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L114) |
+| `(Q ∥RAD[j] P) ⊔RAD (Q ∥RAD[j] P') =`<br>`Q ∥RAD[j] (P ⊔RAD P')` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distl`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L188) |
 | `P ∥RAD[j] Q = Q ∥RAD[j] P` | - | `SymMerge` | [`rad_par_comm`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L15) |
 | `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`, `NDRAD` | `SymMerge`, `AssocMerge` | [`rad_par_assoc`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L49) |
-| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `NDRAD` | `SymMerge`, `AssocMerge`, `Functional` | [`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L330) |
+| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`; all `ac2p` images `NRD` | `SymMerge`, `AssocMerge`, absorbing | [`rad_par_assoc_nrd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L62) |
+| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `NDRAD` | `SymMerge`, `AssocMerge`, `Functional` | [`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L353) |
 
 Here `Q` is intersection-closed when `Q(True,s,True,Y)` and
 `Q(True,s,True,Y')` imply `Q(True,s,True,Y ∩ Y')` for every prior state `s`.
@@ -133,13 +134,16 @@ it is necessary for RAD is open. AD's counterexample does not carry over directl
 merge sets `ok' = okL ∧ okR`, so a diverging branch yields only diverging observations,
 whereas AD's merge lets it release terminating ones.
 
-[`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L330) drops A2: with a deterministic `j` the
+[`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L353) drops A2: with a deterministic `j` the
 intermediate result of each branch pair is fixed, so operands may have angelic choice,
 and `j` may be partial. As for AD's `ades_par_assoc_det_nd`, it guards the merge to
-nondivergent branches ([`merge_rad_guard_AssocMerge`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L245), with RD's guard: a
+nondivergent branches ([`merge_rad_guard_AssocMerge`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L268), with RD's guard: a
 started, non-waiting prior gives a terminating result) and applies
 [`par_by_merge_assoc_guard`](../../deps/UTP/utp_concurrency_assoc.thy#L75).
-Associativity with divergent operands remains open, as for RD.
+[`rad_par_assoc_nrd`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L62) allows
+divergent operands. It transfers the RD law for normal operands through `ac2p`, with the
+same premises on `j` ([RD](RD.md#lifted-merge-and-laws)), so it needs A2. Associativity
+with divergent operands off A2 remains open.
 
 ## Canonicity
 

@@ -72,9 +72,9 @@ operand premise when `j` is `Functional`, `mergeable`, symmetric and associative
 - [ ] Characterise `∥AD` off A2 for a general `j`; `ades_par_eval` gives the
   pointwise form.
 - [ ] RAD normal form and characterisation through ordinary RD parallel.
-- [ ] RAD associativity with divergent operands. The nondivergent case off A2 is
-  installed (`rad_par_assoc_det_nd`, deterministic `j`); with divergence RAD releases
-  only trace extensions, and RD itself has no associativity law there (item 12).
+- [ ] RAD associativity with divergent operands off A2. With A2, normal (`NRD`)
+  `ac2p` images and an absorbing `j`, it is installed
+  (`rad_par_assoc_nrd`, from RD's `rdes_lift_parallel_assoc_nrd`).
 
 ## Stage 0b — publication and organisation · deferred
 

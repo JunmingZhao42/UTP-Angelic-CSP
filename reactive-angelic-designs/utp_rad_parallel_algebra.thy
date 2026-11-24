@@ -57,6 +57,29 @@ lemma rad_par_assoc:
         merge_rdes_SymMerge[OF merge(1)] merge_rdes_NDRDm
         merge_rdes_guard_AssocMerge[OF merge(2)]])
 
+(* We transfer the RD law for normal operands through ac2p:
+     (P \<parallel>RAD[j] Q) \<parallel>RAD[j] R = P \<parallel>RAD[j] (Q \<parallel>RAD[j] R) *)
+lemma rad_par_assoc_nrd:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design" and j :: "('t \<times> 'e set) merge"
+  assumes rad: "P is RAD" "Q is RAD" "R is RAD"
+      and a2: "P is A2" "Q is A2" "R is A2"
+      and nrd: "ac2p P is NRD" "ac2p Q is NRD" "ac2p R is NRD"
+      and sym: "j is SymMerge" and assoc: "AssocMerge j"
+      and absorb: "\<And>x p q. {u. \<exists>z. merge_eval j x p q z \<and> fst z \<le> fst u} \<subseteq>
+        {u. \<exists>p'. fst p \<le> fst p' \<and> merge_eval j x p' q u}"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R = P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+proof -
+  have ordinary: "(ac2p P \<parallel>\<^sub>R\<^sub>D\<^bsub>j\<^esub> ac2p Q) \<parallel>\<^sub>R\<^sub>D\<^bsub>j\<^esub> ac2p R =
+      ac2p P \<parallel>\<^sub>R\<^sub>D\<^bsub>j\<^esub> (ac2p Q \<parallel>\<^sub>R\<^sub>D\<^bsub>j\<^esub> ac2p R)"
+    by (rule rdes_lift_parallel_assoc_nrd[OF nrd sym assoc absorb])
+  show ?thesis
+    using arg_cong[OF ordinary, of p2ac]
+    by (simp only: rad_lift_par_p2ac[symmetric]
+        rad_p2ac_ac2p_RAD_A2'[OF rad(1) a2(1)]
+        rad_p2ac_ac2p_RAD_A2'[OF rad(2) a2(2)]
+        rad_p2ac_ac2p_RAD_A2'[OF rad(3) a2(3)])
+qed
+
 subsubsection \<open>Choice\<close>
 
 text \<open>We instantiate the arbitrary-merge laws with the lifted merge:
