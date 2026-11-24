@@ -16,18 +16,18 @@ D15 and L3 are the PBMH background from paper §4.1; D16 introduces the alphabet
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d15"></a>**D15** / D88 | Upward closure of final choices | — | [`PBMH`](../../angelic-designs/utp_ades_core.thy#L153), [`PBMH_ades`](../../angelic-designs/utp_ades_healthy.thy#L189) |
-| <a id="l3"></a>**L3** | Upward closure of the empty-choice predicate | None | [`PBMH_ac_empty`](../../angelic-designs/utp_ades_healthy.thy#L35) |
+| <a id="d15"></a>**D15** / D88 | Upward closure of final choices | — | [`PBMH`](../../angelic-designs/utp_ades_core.thy#L153), [`PBMH_ades`](../../angelic-designs/utp_ades_pbmh.thy#L188) |
+| <a id="l3"></a>**L3** | Upward closure of the empty-choice predicate | None | [`PBMH_ac_empty`](../../angelic-designs/utp_ades_pbmh.thy#L34) |
 | <a id="d16"></a>**D16** / D85 | Angelic design alphabet | — | [`utp_ades_core.thy`](../../angelic-designs/utp_ades_core.thy) |
 
 ## §5.1 Healthiness conditions
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d17"></a>**D17** / D87, D89–90 | A0, A1 and combined A healthiness | — | [`A0`](../../angelic-designs/utp_ades_healthy.thy#L553), [`A1`](../../angelic-designs/utp_ades_healthy.thy#L619), [`A`](../../angelic-designs/utp_ades_healthy.thy#L698) |
-| <a id="t3"></a>**T3** / T.4.2.3 | A0 adds nonempty successful choices | Reconstructed design form | [`A0_design`](../../angelic-designs/utp_ades_healthy.thy#L598) |
+| <a id="d17"></a>**D17** / D87, D89–90 | A0, A1 and combined A healthiness | — | [`A0`](../../angelic-designs/utp_ades_healthy.thy#L24), [`A1`](../../angelic-designs/utp_ades_healthy.thy#L90), [`A`](../../angelic-designs/utp_ades_healthy.thy#L169) |
+| <a id="t3"></a>**T3** / T.4.2.3 | A0 adds nonempty successful choices | Reconstructed design form | [`A0_design`](../../angelic-designs/utp_ades_healthy.thy#L69) |
 
-[`A1_eq_PBMH_ades`](../../angelic-designs/utp_ades_healthy.thy#L645) identifies A1 with upward closure only on H-healthy designs.
+[`A1_eq_PBMH_ades`](../../angelic-designs/utp_ades_healthy.thy#L116) identifies A1 with upward closure only on H-healthy designs.
 
 <details>
 <summary>Supplementary results</summary>
@@ -57,12 +57,12 @@ Alphabet lifting adds observation fields. [`arel_to_ades`](../../angelic-designs
 | D94 | Assignment | None | [`assign_arel`](../../angelic-designs/utp_ades_ops.thy#L10), [`assigns_ades`](../../angelic-designs/utp_ades_ops.thy#L16) |
 | D97 | Skip | None | [`Skip_AD`](../../angelic-designs/utp_ades_ops.thy#L29) |
 | D98–99 | Demonic and angelic choice | None | [`angelic_design_demonic`](../../angelic-designs/utp_ades_ops.thy#L42), [`angelic_design_angelic`](../../angelic-designs/utp_ades_ops.thy#L55) |
-| T.4.5.1 | Sequential pre/postcondition calculation | PBMH-healthy left failure and success components | [`angelic_rdesign_seq`](../../angelic-designs/utp_ades_healthy.thy#L486), [`angelic_design_seq_eq_simplified`](../../angelic-designs/utp_ades_ops.thy#L348) |
-| §4.4 | Relation composition preserves PBMH | Both operands PBMH | [`PBMH_aseq_closure`](../../angelic-designs/utp_ades_healthy.thy#L125) |
-| T.4.5.3 | Design composition preserves A | Both operands A | [`angelic_design_seq_A_closure`](../../angelic-designs/utp_ades_healthy.thy#L1011) |
-| T.C.4.1 | Design composition preserves A2 | Both operands A2 | [`angelic_design_seq_A2_closure`](../../angelic-designs/utp_ades_healthy.thy#L1372) |
-| T.4.5.5–6 | Skip healthiness and left identity | None for healthiness; P is H for identity | [`Skip_AD_is_A`](../../angelic-designs/utp_ades_healthy.thy#L1033), [`Skip_AD_seq_left_unit`](../../angelic-designs/utp_ades_healthy.thy#L1036) |
-| T.4.5.8, qualified | Right identity iff normal | P is A | [`Skip_AD_seq_right_unit_iff_normal`](../../angelic-designs/utp_ades_healthy.thy#L1113) |
+| T.4.5.1 | Sequential pre/postcondition calculation | PBMH-healthy left failure and success components | [`angelic_rdesign_seq`](../../angelic-designs/utp_ades_pbmh.thy#L485), [`angelic_design_seq_eq_simplified`](../../angelic-designs/utp_ades_ops.thy#L348) |
+| §4.4 | Relation composition preserves PBMH | Both operands PBMH | [`PBMH_aseq_closure`](../../angelic-designs/utp_ades_pbmh.thy#L124) |
+| T.4.5.3 | Design composition preserves A | Both operands A | [`angelic_design_seq_A_closure`](../../angelic-designs/utp_ades_healthy.thy#L482) |
+| T.C.4.1 | Design composition preserves A2 | Both operands A2 | [`angelic_design_seq_A2_closure`](../../angelic-designs/utp_ades_a2.thy#L250) |
+| T.4.5.5–6 | Skip healthiness and left identity | None for healthiness; P is H for identity | [`Skip_AD_is_A`](../../angelic-designs/utp_ades_healthy.thy#L504), [`Skip_AD_seq_left_unit`](../../angelic-designs/utp_ades_healthy.thy#L507) |
+| T.4.5.8, qualified | Right identity iff normal | P is A | [`Skip_AD_seq_right_unit_iff_normal`](../../angelic-designs/utp_ades_healthy.thy#L584) |
 | T.4.5.15 | Left demonic distribution | None | [`angelic_design_seq_demonic`](../../angelic-designs/utp_ades_ops.thy#L335) |
 
 </details>
@@ -71,8 +71,8 @@ Alphabet lifting adds observation fields. [`arel_to_ades`](../../angelic-designs
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d20"></a>**D20** / D91 | Empty and singleton choice healthiness | — | [`A2_rel`](../../angelic-designs/utp_ades_healthy.thy#L1137), [`A2`](../../angelic-designs/utp_ades_healthy.thy#L1216) |
-| <a id="t4"></a>**T4** / T.4.2.11 | A2 expansion through empty and singleton choices | None | [`A2_obs`](../../angelic-designs/utp_ades_healthy.thy#L1278), [`A2_def'`](../../angelic-designs/utp_ades_healthy.thy#L1312) |
+| <a id="d20"></a>**D20** / D91 | Empty and singleton choice healthiness | — | [`A2_rel`](../../angelic-designs/utp_ades_a2.thy#L15), [`A2`](../../angelic-designs/utp_ades_a2.thy#L94) |
+| <a id="t4"></a>**T4** / T.4.2.11 | A2 expansion through empty and singleton choices | None | [`A2_obs`](../../angelic-designs/utp_ades_a2.thy#L156), [`A2_def'`](../../angelic-designs/utp_ades_a2.thy#L190) |
 
 ## §5.4 From designs to angelic designs
 
@@ -111,7 +111,7 @@ T6 and T8 require the additional A3 condition. [`d2ac_ac2p_iff_A3`](../../angeli
 <details>
 <summary>Supplementary results</summary>
 
-For the additional mapping condition, start with [`A3`](../../angelic-designs/utp_ades_healthy.thy#L1453), [`A3_healthy`](../../angelic-designs/utp_ades_healthy.thy#L1509). Mapping closure and the qualified Galois law are in [`d2ac_is_A`](../../angelic-designs/utp_ades_designs.thy#L133), [`d2ac_is_A2`](../../angelic-designs/utp_ades_designs.thy#L136), [`d2ac_is_A3`](../../angelic-designs/utp_ades_designs.thy#L139), [`ac2p_d2ac_galois`](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
+For the additional mapping condition, start with [`A3`](../../angelic-designs/utp_ades_a2.thy#L331), [`A3_healthy`](../../angelic-designs/utp_ades_a2.thy#L387). Mapping closure and the qualified Galois law are in [`d2ac_is_A`](../../angelic-designs/utp_ades_designs.thy#L133), [`d2ac_is_A2`](../../angelic-designs/utp_ades_designs.thy#L136), [`d2ac_is_A3`](../../angelic-designs/utp_ades_designs.thy#L139), [`ac2p_d2ac_galois`](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
 
 </details>
 
@@ -119,13 +119,13 @@ For the additional mapping condition, start with [`A3`](../../angelic-designs/ut
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t64"></a>**T64** | H1 commutes with upward closure | None | [`PBMH_ades_H1_commute`](../../angelic-designs/utp_ades_healthy.thy#L514) |
-| <a id="t65"></a>**T65** | H2 commutes with upward closure | None | [`PBMH_ades_H2_commute`](../../angelic-designs/utp_ades_healthy.thy#L521) |
+| <a id="t64"></a>**T64** | H1 commutes with upward closure | None | [`PBMH_ades_H1_commute`](../../angelic-designs/utp_ades_pbmh.thy#L513) |
+| <a id="t65"></a>**T65** | H2 commutes with upward closure | None | [`PBMH_ades_H2_commute`](../../angelic-designs/utp_ades_pbmh.thy#L520) |
 | <a id="t72"></a>**T72** | Lift a reconstructed design through p2ac | Nonempty final choices on both sides | [`p2ac_design_nonempty`](../../angelic-designs/utp_ades_designs.thy#L81) |
-| <a id="l15"></a>**L15** | Nonempty choices are upward closed | None | [`PBMH_ac_non_empty`](../../angelic-designs/utp_ades_healthy.thy#L40), [`PBMH_ades_ac_non_empty`](../../angelic-designs/utp_ades_healthy.thy#L548) |
-| <a id="l16"></a>**L16** | Upward closure of a design | Restricted-design components | [`PBMH_ades_rdesign`](../../angelic-designs/utp_ades_healthy.thy#L508), [`PBMH_rdesign`](../../angelic-designs/utp_ades_healthy.thy#L634) |
-| <a id="l17"></a>**L17** | A2 of a design | Restricted-design components | [`A2_rdesign`](../../angelic-designs/utp_ades_healthy.thy#L1261) |
-| <a id="l18"></a>**L18** | A commutes with state substitution | State-only substitution, enforced by type | [`A_state_subst`](../../angelic-designs/utp_ades_healthy.thy#L836) |
+| <a id="l15"></a>**L15** | Nonempty choices are upward closed | None | [`PBMH_ac_non_empty`](../../angelic-designs/utp_ades_pbmh.thy#L39), [`PBMH_ades_ac_non_empty`](../../angelic-designs/utp_ades_healthy.thy#L19) |
+| <a id="l16"></a>**L16** | Upward closure of a design | Restricted-design components | [`PBMH_ades_rdesign`](../../angelic-designs/utp_ades_pbmh.thy#L507), [`PBMH_rdesign`](../../angelic-designs/utp_ades_healthy.thy#L105) |
+| <a id="l17"></a>**L17** | A2 of a design | Restricted-design components | [`A2_rdesign`](../../angelic-designs/utp_ades_a2.thy#L139) |
+| <a id="l18"></a>**L18** | A commutes with state substitution | State-only substitution, enforced by type | [`A_state_subst`](../../angelic-designs/utp_ades_healthy.thy#L307) |
 | <a id="l24"></a>**L24** | Design decomposition of ac2p | P is H | [`ac2p_design`](../../angelic-designs/utp_ades_designs.thy#L231) |
 | <a id="l25"></a>**L25** | Upward closure leaves ac2p unchanged | None | [`ac2p_PBMH_ades`](../../angelic-designs/utp_ades_designs.thy#L172) |
 | <a id="l26"></a>**L26** | p2ac produces upward-closed choices | None | [`PBMH_ades_p2ac`](../../angelic-designs/utp_ades_designs.thy#L91) |
@@ -140,7 +140,10 @@ The mapping proofs use typed records, lenses and substitution for the general al
 | --- | --- |
 | [`utp_ades_core`](../../angelic-designs/utp_ades_core.thy) | Alphabet, observation constructors, state substitution and PBMH. |
 | [`utp_ades_ops`](../../angelic-designs/utp_ades_ops.thy) | Assignment, choice and the three sequential operators. |
-| [`utp_ades_healthy`](../../angelic-designs/utp_ades_healthy.thy) | A0–A3, design forms, closure and identity laws. |
+| [`utp_ades_pbmh`](../../angelic-designs/utp_ades_pbmh.thy) | PBMH laws, its commutation with H1 and H2, and angelic sequential composition. |
+| [`utp_ades_healthy`](../../angelic-designs/utp_ades_healthy.thy) | A0, A1 and A: design forms, closure and identity laws. |
+| [`utp_ades_a2`](../../angelic-designs/utp_ades_a2.thy) | A2, A3, normal angelic designs and support laws. |
+| [`utp_ades_nd`](../../angelic-designs/utp_ades_nd.thy) | Non-divergent angelic designs (NDAD). |
 | [`utp_ades_designs`](../../angelic-designs/utp_ades_designs.thy) | Mappings, round trips and counterexamples. |
 
 <details>

@@ -2,7 +2,7 @@ section \<open>Angelic process parallel by merge\<close>
 
 theory utp_ap_parallel
   imports utp_ap_nd
-    "UTP-Reactive-Angelic-Designs.utp_rad_parallel_lift"
+    "UTP-Reactive-Angelic-Designs.utp_rad_parallel_algebra"
 begin
 
 text \<open>This branch uses parallel through RAD as the sole AP operator.

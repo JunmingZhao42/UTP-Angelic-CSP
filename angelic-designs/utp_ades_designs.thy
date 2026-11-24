@@ -1,7 +1,7 @@
 section \<open>From Designs to Angelic Designs\<close>
 
 theory utp_ades_designs
-  imports utp_ades_healthy
+  imports utp_ades_nd
 begin
 
 subsection \<open>Predicate Mapping\<close>

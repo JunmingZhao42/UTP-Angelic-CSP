@@ -11,9 +11,9 @@ Fix a started prior `s`. An AD offers a family of sets `ac'` (faces of the
 simplex of final states): the demon offers a set, and the angel picks a state in
 it. Refinement shrinks the family; `⊓` is union of families and `⊔` is pairwise
 union of sets. The AD lift
-[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_laws.thy#L527),
+[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_choice_lift.thy#L14),
 shared by RAD through
-[`rad_lift_merge`](../../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L120),
+[`rad_lift_merge`](../../../reactive-angelic-designs/utp_rad_parallel_lifted_merge.thy#L120),
 needs a merge result in `ac'` for every pair of branch states:
 
 ```isabelle
@@ -33,7 +33,7 @@ and every set it offers meets `ψ`. The evaluation lemmas
 [`ad_par_ad_of`](ad/AD_Geometry_Probe.thy#L48),
 [`ad_seq_ad_of`](ad/AD_Geometry_Probe.thy#L37) and
 [`est_par_fun`](ad/AD_Geometry_Probe.thy#L77) are proved from
-[`merge_ades_obs`](../../../angelic-designs/utp_ades_parallel_lift.thy#L28) and
+[`merge_ades_obs`](../../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L25) and
 `angelic_design_seq`. Frame-disjoint laws use branches lifted from one variable
 by [`lftL`](ad/AD_Geometry_Probe.thy#L249) and
 [`lftR`](ad/AD_Geometry_Probe.thy#L252) and the merge
@@ -110,7 +110,7 @@ The clairvoyance above needs a merge that combines every pair of offered states.
 on choice sets with `ABm (ac'_lift_merge N)` for an inner merge `N` on single
 states. `merge_rad j` is exactly this lift with `N = merge_rdes j`; `merge_ades j`
 wraps it in `H1m` and `H3m`
-([`merge_ades_design_lift`](../../../angelic-designs/utp_ades_parallel_lift.thy#L39)).
+([`merge_ades_design_lift`](../../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L36)).
 Call `M` admissible when it relates only nonempty branch sets
 ([`nonempty_m`](ad/AD_Lift_Canonical.thy#L19)), never gains from larger nonempty
 branch sets ([`antitone_m`](ad/AD_Lift_Canonical.thy#L13)), and merges single

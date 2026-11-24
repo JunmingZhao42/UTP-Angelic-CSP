@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Run ./scripts/check-doc-links.py [FILE.md ...] to check Markdown links.
+"""Run ./scripts/check-doc-links.py [--fix] [FILE.md ...] to check Markdown links.
 
 Reports relative links to missing files, and `#Lnnn` anchors into theory files
 whose label names an Isabelle result that is not on that line. Without
 arguments, checks every Markdown file outside deps/ and audits/. Exits 1 if
 anything is reported.
+
+With --fix, a named anchor that no longer points at its result is moved to the
+result's declaration: in the linked theory if it is declared there, otherwise
+in the only theory of the same directory that declares it. Links it cannot
+move this way are reported as before.
 """
 import os
 import re
@@ -36,7 +41,23 @@ def result_name(label):
     return None
 
 
-def check(doc, theory_lines):
+def declared(theory, name):
+    return [i for i, l in enumerate(theory, 1) if re.match(declaration.format(re.escape(name)), l)]
+
+
+def relocate(full, name, theory_lines):
+    """The (theory, line) declaring name: in full if declared there, else in its directory."""
+    if os.path.exists(full):
+        found = declared(theory_lines(full), name)
+        if len(found) == 1:
+            return full, found[0]
+    directory = os.path.dirname(full)
+    hits = [(os.path.join(directory, f), i) for f in sorted(os.listdir(directory)) if f.endswith('.thy')
+            for i in declared(theory_lines(os.path.join(directory, f)), name)]
+    return hits[0] if len(hits) == 1 else None
+
+
+def check(doc, theory_lines, fixes=None):
     with open(doc, encoding='utf-8') as fh:
         lines = fh.read().split('\n')
     in_code = False
@@ -50,10 +71,19 @@ def check(doc, theory_lines):
                 continue
             path, _, anchor = target.partition('#')
             full = os.path.normpath(os.path.join(os.path.dirname(doc), path))
+            name = result_name(label)
+            if fixes is not None and name and path.endswith('.thy') and re.fullmatch(r'L\d+', anchor):
+                theory = theory_lines(full) if os.path.exists(full) else []
+                n = int(anchor[1:])
+                if name not in '\n'.join(theory[max(0, n - 1):n + 1]).replace('\\<^sub>', '_'):
+                    moved = relocate(full, name, theory_lines)
+                    if moved:
+                        new = os.path.relpath(moved[0], os.path.dirname(doc)) + f'#L{moved[1]}'
+                        fixes.append((lineno, f'[{label}]({target})', f'[{label}]({new})'))
+                        continue
             if not os.path.exists(full):
                 yield f'{lineno}: missing file {target}'
                 continue
-            name = result_name(label)
             if name is None or not full.endswith('.thy') or not re.fullmatch(r'L\d+', anchor):
                 continue
             theory = theory_lines(full)
@@ -67,6 +97,8 @@ def check(doc, theory_lines):
 
 
 def main(args):
+    fix = '--fix' in args
+    args = [a for a in args if a != '--fix']
     docs = [os.path.abspath(a) for a in args] or list(markdown_files())
     cache = {}
 
@@ -76,11 +108,22 @@ def main(args):
                 cache[path] = fh.read().split('\n')
         return cache[path]
 
-    count = 0
+    count = moved = 0
     for doc in docs:
-        for problem in check(doc, theory_lines):
+        fixes = [] if fix else None
+        for problem in check(doc, theory_lines, fixes):
             print(f'{os.path.relpath(doc, repo)}:{problem}')
             count += 1
+        if fixes:
+            with open(doc, encoding='utf-8') as fh:
+                lines = fh.read().split('\n')
+            for lineno, old, new in fixes:
+                lines[lineno - 1] = lines[lineno - 1].replace(old, new, 1)
+            with open(doc, 'w', encoding='utf-8') as fh:
+                fh.write('\n'.join(lines))
+            moved += len(fixes)
+    if fix:
+        print(f'{moved} anchor(s) moved')
     print(f'{count} problem(s) in {len(docs)} file(s)')
     return 1 if count else 0
 

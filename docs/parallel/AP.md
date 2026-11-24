@@ -11,8 +11,8 @@ P ∥AP[j] Q = H1 (RA1 P ∥RAD[j] RA1 Q)
 
 | Result of `P ∥AP[j] Q` | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
-| [`A2`](../../angelic-designs/utp_ades_healthy.thy#L1216) | Both AP+[`A2`](../../angelic-designs/utp_ades_healthy.thy#L1216) | None | [`ap_par_A2`](../../angelic-processes/utp_ap_parallel.thy#L44) |
-| [`AP`](../../angelic-processes/utp_ap_healthy.thy#L178) | Both AP+[`A2`](../../angelic-designs/utp_ades_healthy.thy#L1216) | None | [`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) |
+| [`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | Both AP+[`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | None | [`ap_par_A2`](../../angelic-processes/utp_ap_parallel.thy#L44) |
+| [`AP`](../../angelic-processes/utp_ap_healthy.thy#L178) | Both AP+[`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | None | [`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) |
 
 ## ac2p/p2ac mapping laws
 
@@ -50,6 +50,6 @@ operators or establish AP closure of the comparison operator.
 [`ap_par_mono`](../../angelic-processes/utp_ap_parallel.thy#L96) gives monotonicity. [`ap_par_comm`](../../angelic-processes/utp_ap_parallel.thy#L103) gives commutativity when
 `j is SymMerge`. No AP associativity theorem is installed.
 
-The [`RA1`](../../reactive-angelic-designs/utp_rad_healthy.thy#L17) transport can identify distinct divergent processes:
+The [`RA1`](../../reactive-angelic-designs/utp_rad_trace.thy#L17) transport can identify distinct divergent processes:
 [`Chaos_AP_neq_ChaosCSP`](../../angelic-processes/utp_ap_ops.thy#L323) and [`Chaos_AP_same_RAD`](../../angelic-processes/utp_ap_ops.thy#L333) exhibit this, and
 [`ap_par_Chaos`](../../angelic-processes/utp_ap_parallel.thy#L77) shows their parallel images agree.

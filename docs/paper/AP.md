@@ -174,11 +174,11 @@ AP keeps the [RAD alphabet and trace conventions](RAD.md#alphabet-and-notation),
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | §7.4.7 (paper) / §6.4.7 | Sequential operator | Same design composition as AD | [`angelic_design_seq`](../../angelic-designs/utp_ades_ops.thy#L260) |
-| <a id="t59"></a>**T59** / T.6.4.18 | Sequential composition normal form | Both operands AP | [`AP_seq_design`](../../angelic-processes/utp_ap_ops.thy#L826) |
+| <a id="t59"></a>**T59** / T.6.4.18 | Sequential composition normal form | Both operands AP | [`AP_seq_design`](../../angelic-processes/utp_ap_seq.thy#L391) |
 | <a id="ex26"></a>**Ex26** / Ex44 | Stop/Skip choice followed by Chaos | — | [`Stop_Skip_seq_Chaos_AP`](../../angelic-processes/utp_ap_examples.thy#L51) |
-| <a id="t60"></a>**T60** / T.6.4.19 | RAD sequence refinement through AP | Both operands RAD | [`RA1_H1_seq_refine`](../../angelic-processes/utp_ap_ops.thy#L851) |
-| <a id="t61"></a>**T61** / T.6.4.20 | AP sequence refinement through RAD | Both operands AP | [`H1_RA1_seq_refine`](../../angelic-processes/utp_ap_ops.thy#L876) |
-| <a id="t62"></a>**T62** / T.6.4.21 | Exact non-divergent RAD sequence transport | Both operands RAD and NDRAD | [`RA1_H1_seq`](../../angelic-processes/utp_ap_ops.thy#L938) |
+| <a id="t60"></a>**T60** / T.6.4.19 | RAD sequence refinement through AP | Both operands RAD | [`RA1_H1_seq_refine`](../../angelic-processes/utp_ap_seq.thy#L416) |
+| <a id="t61"></a>**T61** / T.6.4.20 | AP sequence refinement through RAD | Both operands AP | [`H1_RA1_seq_refine`](../../angelic-processes/utp_ap_seq.thy#L441) |
+| <a id="t62"></a>**T62** / T.6.4.21 | Exact non-divergent RAD sequence transport | Both operands RAD and NDRAD | [`RA1_H1_seq`](../../angelic-processes/utp_ap_seq.thy#L503) |
 | <a id="t63"></a>**T63** / T.6.4.22 | Sequential composition preserves NDAP | Both operands AP and NDAP | [`NDAP_seq_closure`](../../angelic-processes/utp_ap_nd.thy#L157) |
 
 T63 requires both AP and NDAP and does not assume associativity. Closure and correspondence laws alone do not establish unrestricted reassociation.
@@ -186,7 +186,7 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 <details>
 <summary>Supplementary results</summary>
 
-[`AP_seq_closure`](../../angelic-processes/utp_ap_ops.thy#L845) requires both operands AP.
+[`AP_seq_closure`](../../angelic-processes/utp_ap_seq.thy#L410) requires both operands AP.
 
 </details>
 
@@ -194,10 +194,10 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d57"></a>**D57** / D138 | Primitive event prefix | — | [`PrefixSkip_AP`](../../angelic-processes/utp_ap_ops.thy#L973) |
-| §7.4.8 (paper) / §6.4.8 | Compound event prefix | List traces | [`Prefix_AP`](../../angelic-processes/utp_ap_ops.thy#L1005) |
-| <a id="l12"></a>**L12** / L.6.4.4 | H1 maps RAD primitive prefix to AP | List traces | [`H1_PrefixSkip_RAD`](../../angelic-processes/utp_ap_ops.thy#L991) |
-| <a id="l13"></a>**L13** / L.6.4.5 | RA1 maps AP primitive prefix to RAD | List traces | [`RA1_PrefixSkip_AP`](../../angelic-processes/utp_ap_ops.thy#L997) |
+| <a id="d57"></a>**D57** / D138 | Primitive event prefix | — | [`PrefixSkip_AP`](../../angelic-processes/utp_ap_seq.thy#L538) |
+| §7.4.8 (paper) / §6.4.8 | Compound event prefix | List traces | [`Prefix_AP`](../../angelic-processes/utp_ap_seq.thy#L570) |
+| <a id="l12"></a>**L12** / L.6.4.4 | H1 maps RAD primitive prefix to AP | List traces | [`H1_PrefixSkip_RAD`](../../angelic-processes/utp_ap_seq.thy#L556) |
+| <a id="l13"></a>**L13** / L.6.4.5 | RA1 maps AP primitive prefix to RAD | List traces | [`RA1_PrefixSkip_AP`](../../angelic-processes/utp_ap_seq.thy#L562) |
 | <a id="l14"></a>**L14** / L.6.4.6 | Prefix followed by ChaosCSP | List traces | [`Prefix_ChaosCSP_AP`](../../angelic-processes/utp_ap_examples.thy#L119) |
 | <a id="ex27"></a>**Ex27** / Ex45 | Divergence erases an event prefix | — | [`Prefix_Chaos_AP`](../../angelic-processes/utp_ap_examples.thy#L108) |
 | <a id="ex28"></a>**Ex28** / Ex46 | Angelic choice avoids a divergent prefix; no a ≠ b premise | — | [`Prefix_Chaos_Skip_angelic_choice`](../../angelic-processes/utp_ap_examples.thy#L186) |
@@ -207,7 +207,7 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.6.4.23 | General prefix normal form | P is AP; list traces | [`Prefix_AP_design`](../../angelic-processes/utp_ap_ops.thy#L1025) |
+| T.6.4.23 | General prefix normal form | P is AP; list traces | [`Prefix_AP_design`](../../angelic-processes/utp_ap_seq.thy#L590) |
 
 </details>
 
@@ -217,7 +217,8 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 | --- | --- |
 | [`utp_ap_healthy`](../../angelic-processes/utp_ap_healthy.thy) | AP healthiness, waiting laws, normal forms and component support. |
 | [`utp_ap_rad`](../../angelic-processes/utp_ap_rad.thy) | H1/RA1 correspondence, closure and the Galois law. |
-| [`utp_ap_ops`](../../angelic-processes/utp_ap_ops.thy) | Operators, sequential and prefix calculations, transport laws. |
+| [`utp_ap_ops`](../../angelic-processes/utp_ap_ops.thy) | Choice, Chaos, Stop and Skip, with transport laws. |
+| [`utp_ap_seq`](../../angelic-processes/utp_ap_seq.thy) | Sequential composition and prefixing calculations. |
 | [`utp_ap_nd`](../../angelic-processes/utp_ap_nd.thy) | NDAP, non-divergent transport and closure. |
 
 <details>

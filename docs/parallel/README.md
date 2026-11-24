@@ -38,6 +38,6 @@ The merges constructed from `j`:
 | Model | Merge | Parallel |
 | --- | --- | --- |
 | D | [`merge_des`](../../deps/UTP-Designs/utp_des_parallel_lift.thy#L30) `j` | `P ∥D[j] Q` |
-| AD | [`merge_ades`](../../angelic-designs/utp_ades_parallel_lift.thy#L17) `j` | `P ∥AD[j] Q` |
+| AD | [`merge_ades`](../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L14) `j` | `P ∥AD[j] Q` |
 | RD | [`merge_rdes`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L34) `j` | `P ∥RD[j] Q` |
-| RAD | [`merge_rad`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L348) `j` | `P ∥RAD[j] Q` |
+| RAD | [`merge_rad`](../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L35) `j` | `P ∥RAD[j] Q` |

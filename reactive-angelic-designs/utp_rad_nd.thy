@@ -1,7 +1,7 @@
 section \<open>Non-Divergent Reactive Angelic Designs\<close>
 
 theory utp_rad_nd
-  imports utp_rad_seq "UTP-Reactive-Designs.utp_rdes_triples"
+  imports utp_rad_prefix_laws "UTP-Reactive-Designs.utp_rdes_triples"
 begin
 
 no_notation utp_rea_core.wait_f ("_\<^sub>f" [1000] 1000)

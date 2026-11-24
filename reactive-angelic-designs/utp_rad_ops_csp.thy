@@ -1,7 +1,7 @@
 section \<open>Reactive Angelic Operators and CSP\<close>
 
 theory utp_rad_ops_csp
-  imports utp_rad_seq
+  imports utp_rad_prefix_laws
 begin
 
 text \<open>

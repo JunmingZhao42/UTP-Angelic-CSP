@@ -113,7 +113,7 @@ G_RD x z = (ok x ∧ ¬wait x ⟶ ok z)
 | --- | --- | --- | --- |
 | D | NDD | `M is SymMerge`, `M is NDDm`, `AssocMerge (merge_guard G_D M)` | [`par_by_merge_assoc_NDD`](../../deps/UTP-Designs/utp_des_nd.thy#L72) |
 | RD | RD, NDRD | `M is SymMerge`, `M is NDRDm`, `AssocMerge (merge_guard G_RD M)` | [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L533) |
-| RAD over `rad_lift_merge M` | RAD, A2, NDRAD | The RD premises on `M` | [`par_by_rad_lift_merge_assoc_NDRAD`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L451) |
+| RAD over `rad_lift_merge M` | RAD, A2, NDRAD | The RD premises on `M` | [`par_by_rad_lift_merge_assoc_NDRAD`](../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L24) |
 
 The merges built from `j` meet these premises when `j is SymMerge` and
 `AssocMerge j`.

@@ -61,9 +61,9 @@ Checkboxes track work, not conjectured truth. The
 ## Off-A2 AD and RAD laws
 
 The installed AD laws `ades_par_assoc` and `ades_par_assoc_nd` need A2 operands.
-[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L687) needs no
+[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_algebra.thy#L315) needs no
 operand premise when `j` is `Functional`, `mergeable`, symmetric and associative;
-[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_lift.thy#L698) drops
+[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_algebra.thy#L326) drops
 `mergeable` for nondivergent operands. A nondeterministic `j` breaks associativity
 (see the [AD guide](docs/parallel/AD.md)).
 

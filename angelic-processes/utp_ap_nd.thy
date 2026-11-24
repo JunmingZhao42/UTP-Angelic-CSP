@@ -1,7 +1,7 @@
 section \<open>Non-Divergent Angelic Processes\<close>
 
 theory utp_ap_nd
-  imports utp_ap_ops
+  imports utp_ap_seq
 begin
 
 subsection \<open>NDAP\<close>
