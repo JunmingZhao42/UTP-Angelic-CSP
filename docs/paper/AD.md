@@ -102,16 +102,16 @@ Alphabet lifting adds observation fields. [`arel_to_ades`](../../angelic-designs
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
 | <a id="t5"></a>**T5** / T.4.6.7 | Ordinary-design round trip | D is H | [`ac2p_d2ac`](../../angelic-designs/utp_ades_designs.thy#L256) |
-| <a id="t6"></a>**T6** / T.4.6.8 | Reverse-mapping refinement | P is A and A3; qualified | [`d2ac_ac2p`](../../angelic-designs/utp_ades_designs.thy#L427) |
-| <a id="t7"></a>**T7** / T.4.6.9 | Opposite reverse-mapping refinement | P is A and A2 | [`d2ac_ac2p_A2`](../../angelic-designs/utp_ades_designs.thy#L436) |
-| <a id="t8"></a>**T8** / T.4.6.10 | Exact reverse-mapping round trip | P is A, A2 and A3; qualified | [`d2ac_ac2p_A2_eq`](../../angelic-designs/utp_ades_designs.thy#L456) |
+| <a id="t6"></a>**T6** / T.4.6.8 | Reverse-mapping refinement | P is A and A3; qualified | [`d2ac_ac2p`](../../angelic-designs/utp_ades_designs.thy#L410) |
+| <a id="t7"></a>**T7** / T.4.6.9 | Opposite reverse-mapping refinement | P is A and A2 | [`d2ac_ac2p_A2`](../../angelic-designs/utp_ades_designs.thy#L419) |
+| <a id="t8"></a>**T8** / T.4.6.10 | Exact reverse-mapping round trip | P is A, A2 and A3; qualified | [`d2ac_ac2p_A2_eq`](../../angelic-designs/utp_ades_designs.thy#L439) |
 
-T6 and T8 require the additional A3 condition. [`d2ac_ac2p_iff_A3`](../../angelic-designs/utp_ades_designs.thy#L357) characterises it; [`P_dummy_fails_theorem6`](../../angelic-designs/utp_ades_designs.thy#L350) supplies the counterexample.
+T6 and T8 require the additional A3 condition. [`d2ac_ac2p_iff_A3`](../../angelic-designs/utp_ades_designs.thy#L340) characterises it; [`P_dummy_fails_theorem6`](../../angelic-designs/utp_ades_designs.thy#L325) supplies the counterexample.
 
 <details>
 <summary>Supplementary results</summary>
 
-For the additional mapping condition, start with [`A3`](../../angelic-designs/utp_ades_a2.thy#L331), [`A3_healthy`](../../angelic-designs/utp_ades_a2.thy#L351). Mapping closure and the qualified Galois law are in [`d2ac_is_A`](../../angelic-designs/utp_ades_designs.thy#L133), [`d2ac_is_A2`](../../angelic-designs/utp_ades_designs.thy#L136), [`d2ac_is_A3`](../../angelic-designs/utp_ades_designs.thy#L139), [`ac2p_d2ac_galois`](../../angelic-designs/utp_ades_designs.thy#L467). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
+For the additional mapping condition, start with [`A3`](../../angelic-designs/utp_ades_a2.thy#L331), [`A3_healthy`](../../angelic-designs/utp_ades_a2.thy#L351). Mapping closure and the qualified Galois law are in [`d2ac_is_A`](../../angelic-designs/utp_ades_designs.thy#L133), [`d2ac_is_A2`](../../angelic-designs/utp_ades_designs.thy#L136), [`d2ac_is_A3`](../../angelic-designs/utp_ades_designs.thy#L139), [`ac2p_d2ac_galois`](../../angelic-designs/utp_ades_designs.thy#L450). The latter requires an A/A3-healthy angelic operand and an H-healthy ordinary design.
 
 </details>
 

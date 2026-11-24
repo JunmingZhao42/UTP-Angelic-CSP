@@ -27,8 +27,8 @@ Write `F(P) = ac2p (RA1 P)` and `G(D) = H1 (p2ac D)`.
 
 | Operand premises | Round trip | Lemma |
 | --- | --- | --- |
-| `D is RD` | `F(G(D)) = D` | [`ap_RD_roundtrip`](../../angelic-processes/utp_ap_rad.thy#L292) |
-| `P` is AP and A2 | `G(F(P)) = H1 (RA1 P)` | [`ap_RD_reverse_roundtrip`](../../angelic-processes/utp_ap_rad.thy#L301) |
+| `D is RD` | `F(G(D)) = D` | [`ap_RD_roundtrip`](../../angelic-processes/utp_ap_rad.thy#L285) |
+| `P` is AP and A2 | `G(F(P)) = H1 (RA1 P)` | [`ap_RD_reverse_roundtrip`](../../angelic-processes/utp_ap_rad.thy#L294) |
 | `P` is AP, A2 and NDAP | `G(F(P)) = P` | [`ap_RD_reverse_roundtrip_NDAP`](../../angelic-processes/utp_ap_nd.thy#L216) |
 
 ## Canonicity through RAD

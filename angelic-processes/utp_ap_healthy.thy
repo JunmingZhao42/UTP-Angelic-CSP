@@ -416,19 +416,6 @@ lemma AP_is_H:
   using AP_H_healthy[of P]
   by (simp only: Healthy_def' Healthy_if[OF assms])
 
-lemma AP_healthy_not_ok_eval:
-  assumes "P is AP" "\<not> des_vars.ok\<^sub>v x"
-  shows "P (x, y)"
-proof -
-  have h: "\<^bold>H P = P"
-    using AP_is_H[OF assms(1)] by (simp add: Healthy_def')
-  have "P (x, y) \<longleftrightarrow> \<^bold>H P (x, y)"
-    by (simp only: h)
-  also have "..."
-    using assms(2) by (simp add: H1_def; pred_auto)
-  finally show ?thesis .
-qed
-
 lemma AP_wait_false_PBMH_ades:
   assumes "P is AP"
   shows "(P \<^sub>f) is PBMH_ades"
@@ -476,33 +463,7 @@ lemma AP_wf_ok_true_facts:
       rule Healthy_if[OF AP_wf_ok_true_PBMH_ades[OF assms]],
       simp add: usubst)
 
-subsection \<open>Successful Feasibility\<close>
-
-text \<open>
-  An angelic process is feasible when every started observation admits a
-  successful branch result.  This is distinct from the standard reactive
-  notion of productivity, which requires strict trace growth on termination.
-\<close>
-
-definition AP_feasible ::
-  "('t::trace, 'e) angelic_process \<Rightarrow> bool" where
-"AP_feasible P \<longleftrightarrow>
-  (\<forall>s0. des_vars.ok\<^sub>v s0 \<and>
-      \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))
-    \<longrightarrow> (\<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out))"
-
-lemma AP_feasibleI:
-  assumes "\<And>s0. \<lbrakk>des_vars.ok\<^sub>v s0;
-      \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))\<rbrakk>
-    \<Longrightarrow> \<exists>out. P (s0, out) \<and> des_vars.ok\<^sub>v out"
-  shows "AP_feasible P"
-  using assms by (auto simp: AP_feasible_def)
-
-lemma AP_feasibleD:
-  assumes "AP_feasible P" "des_vars.ok\<^sub>v s0"
-    "\<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more s0))"
-  obtains out where "P (s0, out)" "des_vars.ok\<^sub>v out"
-  using assms by (auto simp: AP_feasible_def)
+subsection \<open>Bottom and Top\<close>
 
 abbreviation bottom_AP :: "('t::trace, 'e) angelic_process"
     ("\<^bold>\<bottom>\<^sub>A\<^sub>P") where

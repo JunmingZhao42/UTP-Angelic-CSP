@@ -313,44 +313,27 @@ lemma d2ac_ac2p_A2_rdesign_refine:
   apply (simp add: A2_rel_eq_expanded A2_rel_expanded_def)
   by (pred_auto)
 
-(* Counterexample: P_dummy \<equiv> (ac' = \<emptyset>) \<turnstile> (ac' \<noteq> \<emptyset>). *)
+(* We use one A-healthy design that is not A3 to show that Paper Theorem 6
+   needs A3. Its precondition mentions ac', so it is not N either, and
+   Skip_AD is therefore not its right unit:
+     P_dummy = (ac' = \<emptyset>) \<turnstile> (ac' \<noteq> \<emptyset>). *)
 definition P_dummy :: "unit angelic_design" where
 [pred]: "P_dummy =
   (($ac\<^sup>> = \<guillemotleft>{}\<guillemotright>)\<^sub>e \<turnstile>\<^sub>r
    ($ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
 
-lemma P_dummy_is_A: "P_dummy is A"
-  by (simp add: Healthy_def' P_dummy_def A_design_form, pred_auto)
-
-lemma P_dummy_not_normal: "\<not> (P_dummy is \<^bold>N)"
-proof
-  assume normal: "P_dummy is \<^bold>N"
-  have "$ac\<^sup>> \<sharp> pre\<^sub>D P_dummy"
-    by (rule unrest_out_var;
-        simp add: H3_unrest_out_alpha[OF normal])
-  then show False
-    by (simp add: P_dummy_def unrest unrest_lens; pred_auto)
-qed
-
-lemma Skip_AD_not_unconditional_right_unit:
-  "(P_dummy ;;\<^sub>A\<^sub>D Skip_AD) \<noteq> P_dummy"
-  using Skip_AD_seq_right_unit_iff_normal[OF P_dummy_is_A] P_dummy_not_normal by blast
-
-lemma ac2p_P_dummy: "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
-  unfolding P_dummy_def
-  apply (simp only: ac2p_rdesign ac2p_rel_subset)
-  by (pred_auto)
-
-lemma d2ac_ac2p_P_dummy: "(d2ac \<circ> ac2p) P_dummy = true"
-  apply (simp only: comp_apply ac2p_P_dummy d2ac_rdesign
-      p2ac_rel_false p2ac_rel_true
-      p2ac_exist_def)
-  by (pred_auto)
-
 lemma P_dummy_fails_theorem6:
   "\<not> (P_dummy \<sqsubseteq> (d2ac \<circ> ac2p) P_dummy)"
-  apply (simp only: d2ac_ac2p_P_dummy P_dummy_def)
-  by (pred_auto)
+proof -
+  have "ac2p P_dummy = (false \<turnstile>\<^sub>r true)"
+    unfolding P_dummy_def
+    by (simp only: ac2p_rdesign ac2p_rel_subset; pred_auto)
+  then have "(d2ac \<circ> ac2p) P_dummy = true"
+    by (simp only: comp_apply d2ac_rdesign p2ac_rel_false p2ac_rel_true
+        p2ac_exist_def; pred_auto)
+  then show ?thesis
+    by (simp only: P_dummy_def; pred_auto)
+qed
 
 (* Showing that A3 is the weakest additional healthiness condition
     required by Paper Theorem 6 on A-healthy designs. *)

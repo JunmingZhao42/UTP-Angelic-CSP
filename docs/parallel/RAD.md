@@ -168,5 +168,5 @@ These instantiate the generic correspondence with `M = merge_rdes j`:
 | `D ∥RD[j] E =`<br>`ac2p (p2ac D ∥RAD[j] p2ac E)` | - | [`rad_par_ac2p_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L79) |
 
 RAD rejects empty output sets
-([`RAD_empty`](../../reactive-angelic-designs/utp_rad_designs.thy#L534)), so there
+([`RAD_empty`](../../reactive-angelic-designs/utp_rad_designs.thy#L538)), so there
 is no `d2ac` route as in AD.

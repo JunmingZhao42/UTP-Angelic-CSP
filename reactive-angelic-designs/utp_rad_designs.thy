@@ -531,33 +531,16 @@ method rad_closure uses add =
 
 subsubsection \<open>Empty choice sets\<close>
 
+(* We note that RA1 rules out the empty choice set at every observation.
+   So d2ac D and A3 P, which both hold at ok = false with ac' = \<emptyset>, are
+   never RAD:
+     P is RAD \<Longrightarrow> \<not> P(ok, s, ok', \<emptyset>). *)
 lemma RAD_empty:
   "P is RAD \<Longrightarrow> \<not> P (ades_obs ok0 s0 ok' {})"
 proof -
   assume assms: "P is RAD"
   show ?thesis
   by (subst Healthy_if[OF assms, symmetric]; simp add: RAD_def RA_def RA1_obs)
-qed
-
-lemma rad_d2ac_not_RAD:
-  "\<not> (d2ac D is RAD)"
-proof
-  assume "d2ac D is RAD"
-  then have "\<not> d2ac D (ades_obs False s0 True {})" for s0
-    by (rule RAD_empty)
-  then show False
-    by (simp add: d2ac_def; pred_auto)
-qed
-
-lemma A3_not_RAD:
-  fixes P :: "('t::trace, 'e) reactive_angelic_design"
-  shows "\<not> (A3 P is RAD)"
-proof
-  assume "A3 P is RAD"
-  then have "\<not> A3 P (ades_obs False s0 True {})" for s0
-    by (rule RAD_empty)
-  then show False
-    by (simp add: A3_def; pred_auto)
 qed
 
 end

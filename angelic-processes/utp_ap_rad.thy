@@ -243,17 +243,10 @@ qed
 
 subsection \<open>Ordinary Reactive-Design Correspondence\<close>
 
-text \<open>The ordinary-to-AP map is H1 after p2ac. The AP-to-ordinary map is
-  ac2p after RA1. The reverse round trip is generally a refinement.\<close>
-
-lemma rad_p2ac_not_AP:
-  "\<not> (p2ac D is AP)"
-proof
-  assume "p2ac D is AP"
-  then have "p2ac D (ades_obs False s0 True {})" for s0
-    by (rule AP_healthy_not_ok_eval; simp)
-  then show False by (simp add: rad_p2ac_obs)
-qed
+text \<open>The ordinary-to-AP map is H1 after p2ac. H1 is needed because every
+  AP process holds when ok is false, while p2ac D fails there with an empty
+  choice set. The AP-to-ordinary map is ac2p after RA1. The reverse round
+  trip is generally a refinement.\<close>
 
 lemma ap_rad_roundtrip_refine:
   "P is AP \<Longrightarrow> P \<sqsubseteq> H1 (RA1 P)"

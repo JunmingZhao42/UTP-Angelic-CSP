@@ -230,6 +230,6 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 P ∥AP[j] Q = H1((RA1 P) ∥RAD[j] (RA1 Q))
 ```
 
-[`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) proves AP closure for AP-and-A2 operands, without a premise on `j`. [`ap_par_RA1`](../../angelic-processes/utp_ap_parallel.thy#L30) proves its exact RAD image under the same premises; [`ap_par_H1`](../../angelic-processes/utp_ap_parallel.thy#L37) relates RAD operands transported through H1. The merge premises and further mapping laws belong in the parallel guide, not the paper coverage. [`AP_feasible`](../../angelic-processes/utp_ap_healthy.thy#L487) is also implementation research support: it requires a successful outcome at every started, non-waiting input, and is distinct from trace-growth productivity.
+[`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) proves AP closure for AP-and-A2 operands, without a premise on `j`. [`ap_par_RA1`](../../angelic-processes/utp_ap_parallel.thy#L30) proves its exact RAD image under the same premises; [`ap_par_H1`](../../angelic-processes/utp_ap_parallel.thy#L37) relates RAD operands transported through H1. The merge premises and further mapping laws belong in the parallel guide, not the paper coverage.
 
 </details>
