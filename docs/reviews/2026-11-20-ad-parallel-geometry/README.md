@@ -131,10 +131,16 @@ stated as one lemma. Merging only the compatible pairs is not admissible: by
 up-closure `x := 2` also offers `{1,2}`, so `x := 2 ∥[jeq] x := 1` would offer
 `{1}`.
 
+The production [shared choice-set canonicity results](../../parallel/AD.md#shared-choice-set-canonicity)
+use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) and
+[AP](../../parallel/AP.md#canonicity-through-rad) consequences. The original
+`AD_Lift_Canonical` theory above remains as support for the open RAD geometry probes.
+
 ## Not checked
 
-- AP itself, `H1 (RA1 P ∥RAD[j] RA1 Q)`; waiting or diverging priors; other
-  synchronisation sets.
+- The synchronisation examples at AP level, waiting or diverging priors, and
+  other synchronisation sets. The general transported AP refinement is covered
+  by the production canonicity result linked above.
 - Alternatives outside the canonicity result: parallel on operands without
   up-closure, or a different process-level angelic choice.
 - Laws for operands with a precondition other than `true`.

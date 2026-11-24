@@ -7,7 +7,7 @@ work is recorded in commit messages, not here.
 
 | Folder | Open item | Isabelle sessions |
 | --- | --- | --- |
-| [Geometry of AD parallel](2026-11-20-ad-parallel-geometry/README.md) | Stage 6: angelic choice against a synchronising partner; which geometry laws to install | `AD_Geometry_Probe`, `RAD_Geometry_Probe` |
+| [Geometry of AD parallel](2026-11-20-ad-parallel-geometry/README.md) | Stage 6: angelic choice against a synchronising partner; remaining geometry laws to install | `AD_Geometry_Probe`, `RAD_Geometry_Probe` |
 
 ## Milestones
 

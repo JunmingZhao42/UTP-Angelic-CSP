@@ -52,7 +52,7 @@ does not commute with `H2m`, `H3m` or `HDm`.
 | Law for `P ∥[M] Q` | Operand premises | Merge premises | Lemma |
 | --- | --- | --- | --- |
 | `is A0` | - | `A0m` | [`A0_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L396) |
-| `is A1` | Both `H1` | `A1m` | [`A1_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L408) |
+| `is A1` | Both `H1` | `A1m` | [`A1_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L447) |
 | `is A` | Both `H1` | [`ADm`](../../angelic-designs/utp_ades_parallel_laws.thy#L88) | [`A_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L443) |
 | `is A2` | Both `A2` | `A2m` | [`A2_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L453) |
 | `is A3` | Both `H1` | `H1m`, `H3m` | [`A3_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L482) |
@@ -79,8 +79,8 @@ AM = H3m (H1m (ABm (ac'_lift_merge M)))
 
 | Equality | Operand premises | Premises on `M` | Lemma |
 | --- | --- | --- | --- |
-| `P ∥[AM] Q =`<br>`d2ac (ac2p P ∥[M] ac2p Q)` | Both `A`, `A2` | `HDm`, `H3m` | [`ades_par_by_merge_d2ac_ac2p`](../../angelic-designs/utp_ades_parallel_laws.thy#L592) |
-| `ac2p (P ∥[AM] Q) =`<br>`ac2p P ∥[M] ac2p Q` | Both `A`, `A2` | `HDm`, `H3m` | [`ades_par_by_merge_ac2p`](../../angelic-designs/utp_ades_parallel_laws.thy#L709) |
+| `P ∥[AM] Q =`<br>`d2ac (ac2p P ∥[M] ac2p Q)` | Both `A`, `A2` | `HDm`, `H3m` | [`ades_par_by_merge_d2ac_ac2p`](../../angelic-designs/utp_ades_parallel_laws.thy#L659) |
+| `ac2p (P ∥[AM] Q) =`<br>`ac2p P ∥[M] ac2p Q` | Both `A`, `A2` | `HDm`, `H3m` | [`ades_par_by_merge_ac2p`](../../angelic-designs/utp_ades_parallel_laws.thy#L776) |
 
 ## Lifted merge and laws
 
@@ -140,28 +140,28 @@ Its algebraic laws:
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
 | `P ∥AD[j] Q = A P ∥AD[j] A Q` | Both `H1`, `A2` | - | [`ades_par_normalise_A`](../../angelic-designs/utp_ades_parallel_lift.thy#L285) |
-| monotone in both operands | - | - | [`ades_par_mono`](../../angelic-designs/utp_ades_parallel_lift.thy#L512) |
-| `P ∥AD[j] (Q ⊓AD R) =`<br>`(P ∥AD[j] Q) ⊓AD (P ∥AD[j] R)` | - | - | [`ades_par_demonic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L371) |
-| `(P ⊓AD Q) ∥AD[j] R =`<br>`(P ∥AD[j] R) ⊓AD (Q ∥AD[j] R)` | - | - | [`ades_par_demonic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L376) |
-| `(P ∥AD[j] Q) ⊔AD (P ∥AD[j] R) ⊑`<br>`P ∥AD[j] (Q ⊔AD R)` | - | - | [`ades_par_angelic_subdistl`](../../angelic-designs/utp_ades_parallel_lift.thy#L381) |
-| `(P ∥AD[j] R) ⊔AD (Q ∥AD[j] R) ⊑`<br>`(P ⊔AD Q) ∥AD[j] R` | - | - | [`ades_par_angelic_subdistr`](../../angelic-designs/utp_ades_parallel_lift.thy#L386) |
-| `(P ∥AD[j] Q) ⊔AD (P' ∥AD[j] Q) =`<br>`(P ⊔AD P') ∥AD[j] Q` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L395) |
-| `(Q ∥AD[j] P) ⊔AD (Q ∥AD[j] P') =`<br>`Q ∥AD[j] (P ⊔AD P')` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L453) |
-| `P ∥AD[j] Q = Q ∥AD[j] P` | - | `SymMerge` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel_lift.thy#L558) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2` | `SymMerge`, `AssocMerge`, `mergeable` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel_lift.thy#L628) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2`, `NDAD` | `SymMerge`, `AssocMerge` | [`ades_par_assoc_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L645) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | - | `SymMerge`, `AssocMerge`, `mergeable`, `Functional` | [`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L671) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `NDAD` | `SymMerge`, `AssocMerge`, `Functional` | [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L682) |
-| `P ∥AD[j] Miracle =`<br>`Miracle ∥AD[j] P = Miracle` | `P is H1` | - | [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_lift.thy#L543) |
-| `Chaos ∥AD[j] Chaos = Chaos` | - | `∀s. ∃sL sR u. j(s,sL,sR,u)`<br>(`mergeable j` suffices) | [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel_lift.thy#L524) |
+| monotone in both operands | - | - | [`ades_par_mono`](../../angelic-designs/utp_ades_parallel_lift.thy#L528) |
+| `P ∥AD[j] (Q ⊓AD R) =`<br>`(P ∥AD[j] Q) ⊓AD (P ∥AD[j] R)` | - | - | [`ades_par_demonic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L387) |
+| `(P ⊓AD Q) ∥AD[j] R =`<br>`(P ∥AD[j] R) ⊓AD (Q ∥AD[j] R)` | - | - | [`ades_par_demonic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L392) |
+| `(P ∥AD[j] Q) ⊔AD (P ∥AD[j] R) ⊑`<br>`P ∥AD[j] (Q ⊔AD R)` | - | - | [`ades_par_angelic_subdistl`](../../angelic-designs/utp_ades_parallel_lift.thy#L397) |
+| `(P ∥AD[j] R) ⊔AD (Q ∥AD[j] R) ⊑`<br>`(P ⊔AD Q) ∥AD[j] R` | - | - | [`ades_par_angelic_subdistr`](../../angelic-designs/utp_ades_parallel_lift.thy#L402) |
+| `(P ∥AD[j] Q) ⊔AD (P' ∥AD[j] Q) =`<br>`(P ⊔AD P') ∥AD[j] Q` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L411) |
+| `(Q ∥AD[j] P) ⊔AD (Q ∥AD[j] P') =`<br>`Q ∥AD[j] (P ⊔AD P')` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L469) |
+| `P ∥AD[j] Q = Q ∥AD[j] P` | - | `SymMerge` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel_lift.thy#L574) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2` | `SymMerge`, `AssocMerge`, `mergeable` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel_lift.thy#L644) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2`, `NDAD` | `SymMerge`, `AssocMerge` | [`ades_par_assoc_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L661) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | - | `SymMerge`, `AssocMerge`, `mergeable`, `Functional` | [`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L687) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `NDAD` | `SymMerge`, `AssocMerge`, `Functional` | [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L698) |
+| `P ∥AD[j] Miracle =`<br>`Miracle ∥AD[j] P = Miracle` | `P is H1` | - | [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_lift.thy#L559) |
+| `Chaos ∥AD[j] Chaos = Chaos` | - | `∀s. ∃sL sR u. j(s,sL,sR,u)`<br>(`mergeable j` suffices) | [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel_lift.thy#L540) |
 
 The associativity laws transfer [`des_par_assoc`](../../deps/UTP-Designs/utp_des_parallel_lift.thy#L215)
 and [`des_par_assoc_nd`](../../deps/UTP-Designs/utp_des_nd.thy#L100) to AD through
-[`ades_lift_par_assoc_transfer`](../../angelic-designs/utp_ades_parallel_lift.thy#L568):
+[`ades_lift_par_assoc_transfer`](../../angelic-designs/utp_ades_parallel_lift.thy#L584):
 for `A`, `A2` operands, AD associativity follows from D associativity of their `ac2p` images.
 These two laws only cover operands without angelic choice.
 
-[`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L671) needs no
+[`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_lift.thy#L687) needs no
 operand premise. As in D, it follows from
 [`par_by_merge_assoc`](../../deps/UTP/utp_concurrency_assoc.thy#L30) once the lifted merge is
 associative ([`merge_ades_AssocMerge`](../../angelic-designs/utp_ades_parallel_lift.thy#L103)).
@@ -174,7 +174,7 @@ operand has angelic choice: on states `{0,1}`, with `j(sL,sR) = {sL ∨ sR}` exc
 `{0,1}`, with `j(0,0) = j(0,1) = {}` and `j(1,1) = {0}`, take `P = Q = ⟨1⟩` and an `R`
 that offers 1 but may diverge.
 
-For nondivergent operands, [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L682) drops `mergeable`.
+For nondivergent operands, [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_lift.thy#L698) drops `mergeable`.
 As D does, it guards the merge to nondivergent branches
 ([`merge_ades_guard_AssocMerge`](../../angelic-designs/utp_ades_parallel_lift.thy#L164)) and applies
 [`par_by_merge_assoc_guard`](../../deps/UTP/utp_concurrency_assoc.thy#L75).
@@ -185,8 +185,8 @@ angelic choice allows `ac' = {0}`. But `P ∥AD[j] (⟨0⟩ ⊔ ⟨1⟩)` is `�
 state `P` ends with is merged with both 0 and 1, so only `{0,1}` is allowed. On the
 left, the two parallels resolve `P`'s demonic choice separately.
 
-[`ades_par_angelic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L395) and
-[`ades_par_angelic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L453) give equality when the shared operand `Q` has no
+[`ades_par_angelic_distr`](../../angelic-designs/utp_ades_parallel_lift.thy#L411) and
+[`ades_par_angelic_distl`](../../angelic-designs/utp_ades_parallel_lift.thy#L469) give equality when the shared operand `Q` has no
 demonic choice, written as its offered sets being closed under intersection, and no operand
 diverges. Then the two witnesses on the left combine into one: the union of the two sets
 offered by `P` and `P'`, and the intersection of the two sets offered by `Q`. Divergence
@@ -195,6 +195,28 @@ breaks this: if `P` may diverge offering `{1}` or terminate offering `{1}`, and
 `⟨0⟩ ⊔ ⟨1⟩`.
 
 Chaos is `true`, and Miracle is `A false = ¬ok`.
+
+## Shared choice-set canonicity
+
+These results concern the shared choice-set alphabet, not AD healthiness.
+[RAD](RAD.md#canonicity) specialises the same lift, and
+[AP](AP.md#canonicity-through-rad) transports its refinement consequence.
+Write `L(N) = ABm (ac'_lift_merge N)` for an ordinary merge `N`.
+
+[`singleton_refines`](../../angelic-designs/utp_ades_parallel_laws.thy#L579)
+requires every accepted singleton branch pair to have an `N` witness in `ac'`,
+for every prior, all control flags and every output set.
+
+| Result | Premises | Lemma |
+| --- | --- | --- |
+| On singleton branches, `L(N)` accepts iff `N` has a witness in `ac'` | None | [`choice_lift_singleton`](../../angelic-designs/utp_ades_parallel_laws.thy#L589) |
+| `L(N) ⊑ M` iff `singleton_refines N M` | `M is ABm` | [`choice_lift_refine_iff`](../../angelic-designs/utp_ades_parallel_laws.thy#L623) |
+| `P ∥[L(N)] Q ⊑ P ∥[M] Q` | `M is ABm`, `singleton_refines N M` | [`par_choice_lift_canonical`](../../angelic-designs/utp_ades_parallel_laws.thy#L638) |
+| `P ∥AD[j] Q ⊑ P ∥[H3m (H1m M)] Q` | `M is ABm`, `singleton_refines (merge_des j) M` | [`ades_par_canonical`](../../angelic-designs/utp_ades_parallel_lift.thy#L367) |
+
+So among ABm merges `M` with `singleton_refines N M`, `L(N)` is the least in the
+refinement order. No A2 premise is needed.
+The last row accounts for AD's additional `H1m` and `H3m` completion.
 
 ## ac2p/d2ac mapping laws
 

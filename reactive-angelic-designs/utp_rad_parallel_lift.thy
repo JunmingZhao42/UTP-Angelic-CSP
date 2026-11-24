@@ -135,7 +135,7 @@ lemma rad_lift_merge_mono:
   "M \<sqsubseteq> N \<Longrightarrow> rad_lift_merge M \<sqsubseteq> rad_lift_merge N"
   unfolding rad_lift_merge_def comp_apply
   by (rule pred_ref_monoD[OF ABm_Monotonic];
-      auto simp: pred_refine_iff ac'_lift_merge_def Let_def split: prod.splits; blast)
+      auto simp: pred_refine_iff ac'_lift_merge_def split: prod.splits; blast)
 
 lemma rad_lift_merge_SymMerge:
   "M is SymMerge \<Longrightarrow> rad_lift_merge M is SymMerge"
@@ -422,6 +422,15 @@ proof -
     by (simp only: rad_par_form[OF rad a2])
 qed
 
+subsection \<open>Canonicity\<close>
+
+(* P \<parallel>\<^sub>R\<^sub>A\<^sub>D[j] Q \<sqsubseteq> P \<parallel>[M] Q *)
+theorem rad_par_canonical:
+  assumes "M is ABm" "singleton_refines (merge_rdes j) M"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
+  unfolding rad_lift_merge_def comp_apply
+  by (rule par_choice_lift_canonical[OF assms])
+
 subsection \<open>Algebra\<close>
 
 lemma rad_par_mono:
@@ -651,6 +660,132 @@ proof (rule ades_obs_ext)
         unfolding rad_par_eval inf_fun_def inf_bool_def by blast
     qed
   qed
+qed
+
+
+subsubsection \<open>Associativity without A2\<close>
+
+text \<open>A deterministic state merge fixes the intermediate result for each
+  branch pair, so associativity does not require A2. Nondivergence excludes
+  trace extension by divergent intermediate observations; j may be partial.\<close>
+
+lemma merge_rad_guard_AssocMerge:
+  fixes j :: "('t::trace \<times> 'e set) merge"
+  assumes det: "Functional j" and assoc: "AssocMerge j"
+  shows "AssocMerge (merge_guard
+    (\<lambda>x z. des_vars.ok\<^sub>v x \<and> \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x)) \<longrightarrow> des_vars.ok\<^sub>v z)
+    (merge_rad j))"
+proof -
+  (* started, non-waiting observations preserve termination *)
+  let ?G = "\<lambda>x z. des_vars.ok\<^sub>v x \<and> \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x)) \<longrightarrow> des_vars.ok\<^sub>v z"
+  (* the state merge with all termination flags true *)
+  let ?K = "\<lambda>s0 sL sR z. merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>
+    \<lparr>ok\<^sub>v = True, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = z\<rparr>"
+  have uniq: "u = v" if active: "\<not> rad_wait\<^sub>v s0" and merged: "?K s0 sL sR u" "?K s0 sL sR v"
+    for s0 sL sR u v
+  proof -
+    have h: "(rad_tr\<^sub>v u - rad_tr\<^sub>v s0, rad_ref\<^sub>v u) = (rad_tr\<^sub>v v - rad_tr\<^sub>v s0, rad_ref\<^sub>v v)"
+      by (rule det[unfolded Functional_merge_eval, rule_format, of "(0, rad_ref\<^sub>v s0)"
+          "(rad_tr\<^sub>v sL - rad_tr\<^sub>v s0, rad_ref\<^sub>v sL)"
+          "(rad_tr\<^sub>v sR - rad_tr\<^sub>v s0, rad_ref\<^sub>v sR)"])
+        (use merged active in \<open>auto simp: merge_rdes_eval\<close>)
+    show ?thesis using merged active h
+      by (cases u; cases v; auto simp: merge_rdes_eval; metis diff_add_cancel_left')
+  qed
+  have cyc: "(\<exists>u. ?K s0 sL sR u \<and> ?K s0 u sT z) = (\<exists>u. ?K s0 sR sT u \<and> ?K s0 u sL z)"
+    if active: "\<not> rad_wait\<^sub>v s0" for s0 sL sR sT z
+    using merge_rdes_guard_AssocMerge[OF assoc, unfolded AssocMerge_iff, rule_format,
+      of "\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sL\<rparr>"
+         "\<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sT\<rparr>"
+         "\<lparr>ok\<^sub>v = True, \<dots> = z\<rparr>"] active
+    by (simp add: merge_guard_eval des_vars.splits ex_bool_eq)
+  (* the smallest middle set collects the unique first-step results *)
+  have middle: "(\<exists>okU U.
+      (okL \<and> okR \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> okU \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>u\<in>U. ?K s0 sL sR u)) \<and>
+      (okU \<and> okT \<and> U \<noteq> {} \<and> V \<noteq> {} \<and> ok' \<and> (\<forall>u\<in>U. \<forall>sT\<in>V. \<exists>z\<in>ac'. ?K s0 u sT z))) =
+    (okL \<and> okR \<and> okT \<and> ok' \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> V \<noteq> {} \<and>
+      (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<forall>sT\<in>V. \<exists>z\<in>ac'. \<exists>u. ?K s0 sL sR u \<and> ?K s0 u sT z))"
+    (is "?L = ?R") if active: "\<not> rad_wait\<^sub>v s0" for s0 okL okR okT ok' X Y V ac'
+  proof
+    assume ?L then show ?R by blast
+  next
+    assume r: ?R
+    let ?U = "{u. \<exists>sL\<in>X. \<exists>sR\<in>Y. ?K s0 sL sR u}"
+    have uz: "\<exists>z\<in>ac'. ?K s0 u sT z" if "u \<in> ?U" "sT \<in> V" for u sT
+      using that r uniq[OF active] by blast
+    show ?L by (rule exI[where x=True], rule exI[where x="?U"]) (use r uz in blast)
+  qed
+  have active_obs: "merge_eval (merge_guard ?G (merge_rad j))
+      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
+    (okL \<and> okR \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> ok' \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>z\<in>ac'. ?K s0 sL sR z))"
+    if "\<not> rad_wait\<^sub>v s0" for s0 okL X okR Y ok' ac'
+    using that
+    by (cases okL; cases okR; cases ok';
+        simp add: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
+  have unstarted_obs: "merge_eval (merge_guard ?G (merge_rad j))
+      \<lparr>ok\<^sub>v = False, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
+    (X \<noteq> {} \<and> Y \<noteq> {} \<and> rad_trace_extensions s0 \<inter> ac' \<noteq> {})"
+    for s0 okL X okR Y ok' ac'
+    by (cases ok'; auto simp: merge_guard_eval rad_lift_merge_obs[simplified]
+        merge_rdes_eval rad_trace_extensions_def; blast)
+  have waiting_obs: "merge_eval (merge_guard ?G (merge_rad j))
+      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
+    (X \<noteq> {} \<and> Y \<noteq> {} \<and> ok' \<and> s0 \<in> ac')"
+    if "rad_wait\<^sub>v s0" for s0 okL X okR Y ok' ac'
+    using that by (auto simp: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
+  show ?thesis
+    unfolding AssocMerge_iff
+    apply (intro allI)
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
+    subgoal for ok0 s0 okL X okR Y okT V ok' ac'
+    proof (cases "ok0 \<and> \<not> rad_wait\<^sub>v s0")
+      case True
+      then have started: ok0 and active: "\<not> rad_wait\<^sub>v s0" by simp_all
+      show ?thesis
+        apply (simp only: started choices_ex active_obs[OF active] middle[OF active])
+        using cyc[OF active] by blast
+    next
+      case False
+      then show ?thesis
+        by (cases ok0; simp add: choices_ex unstarted_obs waiting_obs;
+            blast intro: exI[where x="{s0}"])
+    qed
+    done
+qed
+
+(* Determinism replaces A2; nondivergence keeps trace completion inactive. *)
+theorem rad_par_assoc_det_nd:
+  fixes P Q R :: "('t::trace, 'e) reactive_angelic_design"
+    and j :: "('t \<times> 'e set) merge"
+  assumes nondiv: "P is NDRAD" "Q is NDRAD" "R is NDRAD"
+    and det: "Functional j" and sym: "j is SymMerge" and assoc: "AssocMerge j"
+  shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R =
+    P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
+proof -
+  let ?G = "\<lambda>x z. des_vars.ok\<^sub>v x \<and> \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x)) \<longrightarrow> des_vars.ok\<^sub>v z"
+  (* the merge keeps nondivergent branches nondivergent *)
+  have closed: "\<And>x p q z. \<lbrakk>?G x p; ?G x q; merge_eval (merge_rad j) x p q z\<rbrakk> \<Longrightarrow> ?G x z"
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
+    subgoal for ok0 s0 okL X okR Y ok' ac'
+      by (auto simp: rad_lift_merge_obs[simplified] merge_rdes_eval)
+    done
+  (* nondivergent operands satisfy the guard *)
+  have nd: "\<And>x z. S (x, z) \<Longrightarrow> ?G x z" if "S is NDRAD" for S :: "('t, 'e) reactive_angelic_design"
+    apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
+    subgoal for ok0 s0 ok' ac'
+    proof -
+      assume "S (ades_obs ok0 s0 ok' ac')"
+      then have "Choice\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' ac')"
+        by (subst (asm) Healthy_if[OF that, symmetric]) (simp add: NDRAD_def inf_fun_def)
+      then show ?thesis
+        unfolding Choice_RAD_design RA1_obs by (simp add: design_def; pred_auto)
+    qed
+    done
+  show ?thesis
+    by (rule par_by_merge_assoc_guard[OF
+        SymMerge_merge_guard[OF rad_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF sym]]]
+        merge_rad_guard_AssocMerge[OF det assoc] closed
+        nd[OF nondiv(1)] nd[OF nondiv(2)] nd[OF nondiv(3)]])
 qed
 
 end

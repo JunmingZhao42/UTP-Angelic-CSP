@@ -61,9 +61,9 @@ Checkboxes track work, not conjectured truth. The
 ## Off-A2 AD and RAD laws
 
 The installed AD laws `ades_par_assoc` and `ades_par_assoc_nd` need A2 operands.
-[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L671) needs no
+[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_lift.thy#L687) needs no
 operand premise when `j` is `Functional`, `mergeable`, symmetric and associative;
-[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_lift.thy#L682) drops
+[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_lift.thy#L698) drops
 `mergeable` for nondivergent operands. A nondeterministic `j` breaks associativity
 (see the [AD guide](docs/parallel/AD.md)).
 
@@ -72,14 +72,13 @@ operand premise when `j` is `Functional`, `mergeable`, symmetric and associative
 - [ ] Characterise `∥AD` off A2 for a general `j`; the deterministic case at a
   started prior is installed.
 - [ ] Unit and zero laws (Chaos, Miracle, unit), compared with D.
-- [ ] Decide which [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md)
-  results to install (canonicity, subdistribution, clairvoyance), restated with
+- [ ] Decide which remaining [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md)
+  results to install (clairvoyance and sequential comparisons), restated with
   the real operators.
 - [ ] RAD normal form and characterisation through ordinary RD parallel.
-- [ ] RAD associativity off A2: try a deterministic `j` such as `jsync` first.
-  RAD releases only trace extensions after divergence, so the AD proof does not
-  carry over directly. For nondivergent operands with angelic choice, try the
-  guarded route of `ades_par_assoc_det_nd` (`merge_ades_guard_AssocMerge`).
+- [ ] RAD associativity with divergent operands. The nondivergent case off A2 is
+  installed (`rad_par_assoc_det_nd`, deterministic `j`); with divergence RAD releases
+  only trace extensions, and RD itself has no associativity law there (item 12).
 
 ## Stage 0b — publication and organisation · deferred
 
@@ -185,9 +184,8 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
   alternatives, so with a synchronising RAD merge
   `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))` never progresses past the choice, and an
   AD equality merge makes the analogous composition infeasible. The lift is
-  canonical: every merge on choice sets that never gains from larger branch sets
-  and merges single states no more than the inner merge refines it
-  (`par_lift_canonical`), so no such lift avoids the blocking or gives the blind
+  canonical under the [shared admissibility conditions](docs/parallel/AD.md#shared-choice-set-canonicity),
+  so no such lift avoids the blocking or gives the blind
   product. Options: keep the lift and document that angelic choice does not
   cooperate with synchronisation (use external choice for that); change angelic
   choice at the process level; or drop up-closure for parallel operands. Check AP

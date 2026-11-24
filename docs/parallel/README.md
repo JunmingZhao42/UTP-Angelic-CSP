@@ -4,7 +4,7 @@
 
 - [Generic](Generic.md): `P ∥[M] Q`, its symmetry and associativity laws, and guarded merges.
 - [D](D.md): ordinary designs, `P ∥D[j] Q`.
-- [AD](AD.md): angelic designs, `P ∥AD[j] Q`.
+- [AD](AD.md): angelic designs, `P ∥AD[j] Q`, and [shared choice-set canonicity](AD.md#shared-choice-set-canonicity).
 - [RD](RD.md): ordinary reactive designs, `P ∥RD[j] Q`.
 - [Stateful RD](RD-stateful.md): `P ∥R[M] Q`, including state-merge lifting and normality.
 - [RAD](RAD.md): reactive angelic designs, `P ∥RAD[j] Q`.

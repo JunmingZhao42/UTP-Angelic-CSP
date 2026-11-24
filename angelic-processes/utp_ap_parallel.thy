@@ -79,6 +79,19 @@ lemma ap_par_Chaos:
   by (simp only: ap_par_def Chaos_AP_same_RAD)
 
 
+subsection \<open>Canonicity through RAD\<close>
+
+text \<open>This refinement compares operators transported through RAD. It does
+  not characterise arbitrary AP parallel operators or assert AP closure of
+  the comparison operator.\<close>
+
+(* P \<parallel>\<^sub>A\<^sub>P[j] Q \<sqsubseteq> H1 (RA1 P \<parallel>[M] RA1 Q) *)
+theorem ap_par_canonical:
+  assumes "M is ABm" "singleton_refines (merge_rdes j) M"
+  shows "P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q \<sqsubseteq> H1 (RA1 P \<parallel>\<^bsub>M\<^esub> RA1 Q)"
+  unfolding ap_par_def
+  by (rule H1_monotone, rule rad_par_canonical[OF assms])
+
 subsection \<open>Algebra\<close>
 
 lemma ap_par_mono:

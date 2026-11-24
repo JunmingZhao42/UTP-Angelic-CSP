@@ -31,9 +31,23 @@ Write `F(P) = ac2p (RA1 P)` and `G(D) = H1 (p2ac D)`.
 | `P` is AP and A2 | `G(F(P)) = H1 (RA1 P)` | [`ap_RD_reverse_roundtrip`](../../angelic-processes/utp_ap_rad.thy#L301) |
 | `P` is AP, A2 and NDAP | `G(F(P)) = P` | [`ap_RD_reverse_roundtrip_NDAP`](../../angelic-processes/utp_ap_nd.thy#L216) |
 
+## Canonicity through RAD
+
+[`ap_par_canonical`](../../angelic-processes/utp_ap_parallel.thy#L88) transports
+[RAD canonicity](RAD.md#canonicity) through the monotone outer `H1`:
+
+```isabelle
+M is ABm ⟹ singleton_refines (merge_rdes j) M ⟹
+  P ∥AP[j] Q ⊑ H1 (RA1 P ∥[M] RA1 Q)
+```
+
+There is no operand healthiness or A2 premise. This compares operators
+transported through RAD; it does not characterise arbitrary AP parallel
+operators or establish AP closure of the comparison operator.
+
 ## Algebraic properties
 
-[`ap_par_mono`](../../angelic-processes/utp_ap_parallel.thy#L84) gives monotonicity. [`ap_par_comm`](../../angelic-processes/utp_ap_parallel.thy#L91) gives commutativity when
+[`ap_par_mono`](../../angelic-processes/utp_ap_parallel.thy#L96) gives monotonicity. [`ap_par_comm`](../../angelic-processes/utp_ap_parallel.thy#L103) gives commutativity when
 `j is SymMerge`. No AP associativity theorem is installed.
 
 The [`RA1`](../../reactive-angelic-designs/utp_rad_healthy.thy#L17) transport can identify distinct divergent processes:

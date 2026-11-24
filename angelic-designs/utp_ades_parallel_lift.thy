@@ -362,6 +362,23 @@ lemma ades_par_ac2p_d2ac:
   by (simp only: ades_par_d2ac[OF assms]
       ac2p_d2ac[OF des_par_H_closure[OF H_implies_H1[OF assms(1)] H_implies_H1[OF assms(2)]], simplified comp_apply])
 
+subsubsection \<open>Canonicity\<close>
+
+(* P \<parallel>\<^sub>A\<^sub>D[j] Q \<sqsubseteq> P \<parallel>[H3m (H1m M)] Q *)
+theorem ades_par_canonical:
+  assumes "M is ABm" "singleton_refines (merge_des j) M"
+  shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>H3m (H1m M)\<^esub> Q"
+proof -
+  have "ABm (ac'_lift_merge (merge_des j)) \<sqsubseteq> M"
+    by (rule choice_lift_least[OF assms])
+  then have "H1m (ABm (ac'_lift_merge (merge_des j))) \<sqsubseteq> H1m M"
+    by (rule H1m_Monotonic[unfolded Monotonic_refine, rule_format])
+  then have "H3m (H1m (ABm (ac'_lift_merge (merge_des j)))) \<sqsubseteq> H3m (H1m M)"
+    by (rule H3m_Monotonic[unfolded Monotonic_refine, rule_format])
+  then show ?thesis
+    unfolding ades_par_def merge_ades_design_lift by (rule par_by_merge_mono_merge)
+qed
+
 subsubsection \<open>Choice\<close>
 
 text \<open>The choice laws for any AD merge apply to the lifted merge. The angelic law can be

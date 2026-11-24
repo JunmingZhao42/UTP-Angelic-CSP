@@ -111,15 +111,16 @@ Its algebraic laws:
 
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
-| monotone in both operands | - | - | [`rad_par_mono`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L427) |
-| `P ∥RAD[j] (Q ⊓RAD R) =`<br>`(P ∥RAD[j] Q) ⊓RAD (P ∥RAD[j] R)` | - | - | [`rad_par_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L484) |
-| `(P ⊓RAD Q) ∥RAD[j] R =`<br>`(P ∥RAD[j] R) ⊓RAD (Q ∥RAD[j] R)` | - | - | [`rad_par_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L489) |
-| `(P ∥RAD[j] Q) ⊔RAD (P ∥RAD[j] R) ⊑`<br>`P ∥RAD[j] (Q ⊔RAD R)` | - | - | [`rad_par_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L494) |
-| `(P ∥RAD[j] R) ⊔RAD (Q ∥RAD[j] R) ⊑`<br>`(P ⊔RAD Q) ∥RAD[j] R` | - | - | [`rad_par_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L499) |
-| `(P ∥RAD[j] Q) ⊔RAD (P' ∥RAD[j] Q) =`<br>`(P ⊔RAD P') ∥RAD[j] Q` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L509) |
-| `(Q ∥RAD[j] P) ⊔RAD (Q ∥RAD[j] P') =`<br>`Q ∥RAD[j] (P ⊔RAD P')` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L583) |
-| `P ∥RAD[j] Q = Q ∥RAD[j] P` | - | `SymMerge` | [`rad_par_comm`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L433) |
-| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`, `NDRAD` | `SymMerge`, `AssocMerge` | [`rad_par_assoc`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L467) |
+| monotone in both operands | - | - | [`rad_par_mono`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L436) |
+| `P ∥RAD[j] (Q ⊓RAD R) =`<br>`(P ∥RAD[j] Q) ⊓RAD (P ∥RAD[j] R)` | - | - | [`rad_par_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L493) |
+| `(P ⊓RAD Q) ∥RAD[j] R =`<br>`(P ∥RAD[j] R) ⊓RAD (Q ∥RAD[j] R)` | - | - | [`rad_par_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L498) |
+| `(P ∥RAD[j] Q) ⊔RAD (P ∥RAD[j] R) ⊑`<br>`P ∥RAD[j] (Q ⊔RAD R)` | - | - | [`rad_par_angelic_subdistl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L503) |
+| `(P ∥RAD[j] R) ⊔RAD (Q ∥RAD[j] R) ⊑`<br>`(P ⊔RAD Q) ∥RAD[j] R` | - | - | [`rad_par_angelic_subdistr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L508) |
+| `(P ∥RAD[j] Q) ⊔RAD (P' ∥RAD[j] Q) =`<br>`(P ⊔RAD P') ∥RAD[j] Q` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distr`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L518) |
+| `(Q ∥RAD[j] P) ⊔RAD (Q ∥RAD[j] P') =`<br>`Q ∥RAD[j] (P ⊔RAD P')` | `P`, `P'` both `RAD`; all `NDRAD`; `Q` intersection-closed | - | [`rad_par_angelic_distl`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L592) |
+| `P ∥RAD[j] Q = Q ∥RAD[j] P` | - | `SymMerge` | [`rad_par_comm`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L442) |
+| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `RAD`, `A2`, `NDRAD` | `SymMerge`, `AssocMerge` | [`rad_par_assoc`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L476) |
+| `(P ∥RAD[j] Q) ∥RAD[j] R =`<br>`P ∥RAD[j] (Q ∥RAD[j] R)` | All `NDRAD` | `SymMerge`, `AssocMerge`, `Functional` | [`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L757) |
 
 Here `Q` is intersection-closed when `Q(True,s,True,Y)` and
 `Q(True,s,True,Y')` imply `Q(True,s,True,Y ∩ Y')` for every prior state `s`.
@@ -129,6 +130,29 @@ it is necessary for RAD is open. AD's counterexample does not carry over directl
 merge sets `ok' = okL ∧ okR`, so a diverging branch yields only diverging observations,
 whereas AD's merge lets it release terminating ones.
 
+[`rad_par_assoc_det_nd`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L757) drops A2: with a deterministic `j` the
+intermediate result of each branch pair is fixed, so operands may have angelic choice,
+and `j` may be partial. As for AD's `ades_par_assoc_det_nd`, it guards the merge to
+nondivergent branches ([`merge_rad_guard_AssocMerge`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L672), with RD's guard: a
+started, non-waiting prior gives a terminating result) and applies
+[`par_by_merge_assoc_guard`](../../deps/UTP/utp_concurrency_assoc.thy#L75).
+Associativity with divergent operands remains open, as for RD.
+
+## Canonicity
+
+`rad_lift_merge N = ABm (ac'_lift_merge N)`, so the
+[shared choice-set canonicity results](AD.md#shared-choice-set-canonicity)
+specialise directly to RAD's trace, waiting and refusal alphabet. In particular,
+[`choice_lift_refine_iff`](../../angelic-designs/utp_ades_parallel_laws.thy#L623) gives
+`rad_lift_merge N ⊑ M` iff `singleton_refines N M` for `M is ABm`.
+
+| Result | Merge premises | Lemma |
+| --- | --- | --- |
+| `P ∥RAD[j] Q ⊑ P ∥[M] Q` | `M is ABm`, `singleton_refines (merge_rdes j) M` | [`rad_par_canonical`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L428) |
+
+It needs no operand healthiness or A2 premise. Its comparison
+premises do not assert RAD closure of parallel with the arbitrary merge `M`.
+
 ## ac2p/p2ac mapping laws
 
 These instantiate the generic correspondence with `M = merge_rdes j`:
@@ -137,7 +161,7 @@ These instantiate the generic correspondence with `M = merge_rdes j`:
 | --- | --- | --- |
 | `p2ac D ∥RAD[j] p2ac E =`<br>`p2ac (D ∥RD[j] E)` | - | [`rad_par_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L360) |
 | `P ∥RAD[j] Q =`<br>`p2ac (ac2p P ∥RD[j] ac2p Q)` | Both `RAD`, `A2` | [`rad_par_form`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L367) |
-| `ac2p (P ∥RAD[j] Q) =`<br>`ac2p P ∥RD[j] ac2p Q` | Both `RAD`, `A2` | [`rad_par_ac2p`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L386) |
+| `ac2p (P ∥RAD[j] Q) =`<br>`ac2p P ∥RD[j] ac2p Q` | Both `RAD`, `A2` | [`rad_par_ac2p`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L392) |
 | `D ∥RD[j] E =`<br>`ac2p (p2ac D ∥RAD[j] p2ac E)` | - | [`rad_par_ac2p_p2ac`](../../reactive-angelic-designs/utp_rad_parallel_lift.thy#L392) |
 
 RAD rejects empty output sets

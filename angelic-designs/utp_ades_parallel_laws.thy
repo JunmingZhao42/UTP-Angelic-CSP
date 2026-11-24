@@ -522,28 +522,23 @@ lemma ades_par_by_merge_angelic_subdistr:
 
 subsection \<open>Choice-set lifting\<close>
 
-(* ac'_lift_merge M ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
-     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. M((ok,s),(okL,sL),(okR,sR),(ok',s'))). *)
+(* ac'_lift_merge N ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. N((ok,s),(okL,sL),(okR,sR),(ok',s'))). *)
 definition ac'_lift_merge :: "'s des_merge \<Rightarrow> 's ades_merge_rel" where
-  "ac'_lift_merge M \<equiv> (\<lambda>(m,z).
-    let x = mrg_prior\<^sub>v m; p = mrg_left\<^sub>v m; q = mrg_right\<^sub>v m;
-        s0 = astate.s\<^sub>v (des_vars.more x);
-        acL = achoices.ac\<^sub>v (des_vars.more p);
-        acR = achoices.ac\<^sub>v (des_vars.more q);
-        ac' = achoices.ac\<^sub>v (des_vars.more z)
-    in \<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
-      merge_eval M
-        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v x, \<dots> = s0\<rparr>
-        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v p, \<dots> = sL\<rparr>
-        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v q, \<dots> = sR\<rparr>
-        \<lparr>ok\<^sub>v = des_vars.ok\<^sub>v z, \<dots> = s'\<rparr>)"
+  "ac'_lift_merge N \<equiv>
+    (\<forall>sL\<in>$0:\<^bold>v\<^sub>D:ac\<^sup><. \<forall>sR\<in>$1:\<^bold>v\<^sub>D:ac\<^sup><. \<exists>s'\<in>$\<^bold>v\<^sub>D:ac\<^sup>>.
+      merge_eval \<guillemotleft>N\<guillemotright>
+        \<lparr>ok\<^sub>v = $<:ok\<^sup><, \<dots> = $<:\<^bold>v\<^sub>D:s\<^sup><\<rparr>
+        \<lparr>ok\<^sub>v = $0:ok\<^sup><, \<dots> = sL\<rparr>
+        \<lparr>ok\<^sub>v = $1:ok\<^sup><, \<dots> = sR\<rparr>
+        \<lparr>ok\<^sub>v = $ok\<^sup>>, \<dots> = s'\<rparr>)\<^sub>e"
 
 lemma ac'_lift_merge_obs:
   "ades_merge_obs (ac'_lift_merge M) ok0 s0 okL acL okR acR ok' ac' =
     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
       merge_eval M \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
         \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
-  by (simp add: ac'_lift_merge_def Let_def)
+  by (simp add: ac'_lift_merge_def; pred_auto)
 
 lemma ABm_ac'_lift_merge_obs:
   "ades_merge_obs (ABm (ac'_lift_merge M)) ok0 s0 okL acL okR acR ok' ac' =
@@ -572,6 +567,78 @@ lemma ac'_lift_merge_completion_obs:
   apply (simp add: H1m_def disj_pred_def expr_defs lens_defs alpha_defs)
   apply (simp add: ABm_ac'_lift_merge_obs[simplified])
   by (cases ok0; simp; blast intro: exI[where x=UNIV])
+
+subsubsection \<open>Canonicity of the shared lift\<close>
+
+text \<open>We show the lift L(N) = ABm (ac'_lift_merge N) is canonical: every ABm merge M
+  that refines it on singletons refines it everywhere, L(N) \<sqsubseteq> M.\<close>
+
+(* M((ok,s),(okL,{sL}),(okR,{sR}),(ok',ac')) \<Longrightarrow>
+     (\<exists>s'\<in>ac'. N((ok,s),(okL,sL),(okR,sR),(ok',s'))) *)
+definition singleton_refines :: "'s des_merge \<Rightarrow> 's ades_merge_rel \<Rightarrow> bool" where
+  "singleton_refines N M \<equiv> (\<forall>ok0 s0 okL sL okR sR ok' ac'.
+    ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac' \<longrightarrow>
+    (\<exists>s'\<in>ac'. merge_eval N
+      \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
+
+(* L(N)((ok,s),(okL,{sL}),(okR,{sR}),(ok',ac')) =
+     (\<exists>s'\<in>ac'. N((ok,s),(okL,sL),(okR,sR),(ok',s'))) *)
+lemma choice_lift_singleton:
+  "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL {sL} okR {sR} ok' ac' \<longleftrightarrow>
+    (\<exists>s'\<in>ac'. merge_eval N
+      \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+      \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
+      \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
+  by (simp only: ABm_ac'_lift_merge_obs) simp
+
+subsubsection \<open>The universal property\<close>
+
+(* singleton_refines N M \<Longrightarrow> L(N) \<sqsubseteq> M *)
+lemma choice_lift_least:
+  assumes healthy: "M is ABm" and refines: "singleton_refines N M"
+  shows "ABm (ac'_lift_merge N) \<sqsubseteq> M"
+proof -
+  have "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL acL okR acR ok' ac'"
+    if accepted: "ades_merge_obs M ok0 s0 okL acL okR acR ok' ac'"
+    for ok0 s0 okL acL okR acR ok' ac'
+  proof -
+    have "acL \<noteq> {} \<and> acR \<noteq> {}"
+      using accepted
+      by (subst (asm) Healthy_if[OF healthy, symmetric]; simp add: ABm_obs[simplified])
+    moreover have "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac'"
+      if "sL \<in> acL" "sR \<in> acR" for sL sR
+      by (rule ABm_restrict[OF healthy _ _ _ _ accepted]; use that in auto)
+    ultimately show ?thesis
+      unfolding ABm_ac'_lift_merge_obs
+      by (auto intro: refines[unfolded singleton_refines_def, rule_format])
+  qed
+  then show ?thesis by (simp add: pred_refine_iff; pred_auto)
+qed
+
+(* L(N) \<sqsubseteq> M \<longleftrightarrow> singleton_refines N M *)
+theorem choice_lift_refine_iff:
+  assumes "M is ABm"
+  shows "ABm (ac'_lift_merge N) \<sqsubseteq> M \<longleftrightarrow> singleton_refines N M"
+proof
+  assume "ABm (ac'_lift_merge N) \<sqsubseteq> M"
+  then show "singleton_refines N M"
+    unfolding singleton_refines_def
+    by (auto simp: pred_refine_iff simp flip: choice_lift_singleton)
+qed (rule choice_lift_least[OF assms])
+
+text \<open>So among ABm merges M with singleton_refines N M, the lift is the least refined.\<close>
+
+subsubsection \<open>Parallel refinement\<close>
+
+(* P \<parallel>[L(N)] Q \<sqsubseteq> P \<parallel>[M] Q *)
+theorem par_choice_lift_canonical:
+  assumes "M is ABm" "singleton_refines N M"
+  shows "P \<parallel>\<^bsub>ABm (ac'_lift_merge N)\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
+  by (rule par_by_merge_mono_merge[OF choice_lift_least[OF assms]])
 
 subsection \<open>Correspondence with Designs\<close>
 
