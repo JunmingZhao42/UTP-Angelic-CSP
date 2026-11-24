@@ -14,6 +14,7 @@ through choice sets and obtain `P ∥AD[j] Q`.
   - [Generic merge healthiness and closure](#generic-merge-healthiness-and-closure)
     - [Correspondence with Designs](#correspondence-with-designs)
   - [Lifted merge and laws](#lifted-merge-and-laws)
+  - [Parallel and sequential composition](#parallel-and-sequential-composition)
   - [ac2p/d2ac mapping laws](#ac2pd2ac-mapping-laws)
 
 ## Generic merge healthiness and closure
@@ -195,6 +196,34 @@ breaks this: if `P` may diverge offering `{1}` or terminate offering `{1}`, and
 `⟨0⟩ ⊔ ⟨1⟩`.
 
 Chaos is `true`, and Miracle is `A false = ¬ok`.
+
+## Parallel and sequential composition
+
+Parallel refines both sequential orders when the branches use separate parts of the
+state: `P` ignores a variable `a`, `Q` uses only `a`, and `j` takes `a` from `Q` and
+the rest from `P`. Then `P ;;AD Q ⊑ P ∥AD[j] Q` and `Q ;;AD P ⊑ P ∥AD[j] Q`. If `P` has
+no angelic choice, `P ∥AD[j] Q = P ;;AD Q`; if `P` has no demonic choice,
+`P ∥AD[j] Q = Q ;;AD P`.
+
+Both branches start from the prior state, and `ac'` must merge every state `P` offers
+with every state `Q` offers. In `P ;;AD Q`, `Q` starts from each state of `P`'s set and
+may offer a different set from each. The parallel is the case where `Q` offers the same
+set every time, so every `ac'` the parallel offers, the sequence offers too. This is not
+the interleaving picture, in which parallel is a demonic choice of orders and a fixed
+order refines it: here there is no schedule.
+
+For example, let the state be two Booleans `(b, a)`. `P` sets `b` demonically: it offers
+`{(β, a)}` for either `β`. `Q` sets `a` angelically: it offers `{(b, F), (b, T)}`. The
+parallel offers `{(β, F), (β, T)}`, which always holds a state with `a = b`, so
+`P ∥AD[j] Q` guarantees `a = b`. `Q ;;AD P` also offers `{(T, F), (F, T)}`: from each of
+`Q`'s two states, `P` may pick the other value.
+
+Without separate parts the comparison fails: with `j` keeping the left state,
+`⟨1⟩ ∥AD[j] ⟨2⟩ = ⟨1⟩` but `⟨1⟩ ;;AD ⟨2⟩ = ⟨2⟩`. These laws hold for one merge and need
+independence premises, so they are not in production. The
+[geometry review](../reviews/2026-11-20-ad-parallel-geometry/README.md) proves them for the
+AD operators in [`AD_Seq_Par`](../reviews/2026-11-20-ad-parallel-geometry/ad/AD_Seq_Par.thy),
+with the one-way exchange law `(P ∥ Q) ;; (P' ∥ Q') ⊑ (P ;; P') ∥ (Q ;; Q')`.
 
 ## Shared choice-set canonicity
 

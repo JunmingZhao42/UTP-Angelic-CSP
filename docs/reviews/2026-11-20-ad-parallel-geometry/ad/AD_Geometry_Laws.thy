@@ -48,7 +48,7 @@ subsection \<open>Link to the AD operators\<close>
 
 lemma ad_seq_seqf:
   assumes "\<And>s0 X. RP s0 X \<Longrightarrow> X \<noteq> {}"
-  shows "ad_of RP ;;\<^sub>D\<^sub>A ad_of RQ = ad_of (seqf RP RQ)"
+  shows "ad_of RP ;;\<^sub>A\<^sub>D ad_of RQ = ad_of (seqf RP RQ)"
   unfolding seqf_def by (rule ad_seq_ad_of[where RP=RP and RQ=RQ], fact assms)
 
 lemma ad_par_parfd:
@@ -457,8 +457,8 @@ lemma ades_par_angelic_dist_eq:
   assumes n1: "\<And>s0 X. P1 s0 X \<Longrightarrow> X \<noteq> {}" and n2: "\<And>s0 X. P2 s0 X \<Longrightarrow> X \<noteq> {}"
     and nq: "\<And>s0 X. Q s0 X \<Longrightarrow> X \<noteq> {}"
     and u1: "upcl P1" and u2: "upcl P2" and q: "angf Q"
-  shows "(ad_of P1 \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q) \<squnion>\<^sub>D\<^sub>A (ad_of P2 \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q) =
-         (ad_of P1 \<squnion>\<^sub>D\<^sub>A ad_of P2) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q"
+  shows "(ad_of P1 \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q) \<squnion>\<^sub>A\<^sub>D (ad_of P2 \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q) =
+         (ad_of P1 \<squnion>\<^sub>A\<^sub>D ad_of P2) \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q"
 proof -
   have n12: "\<And>s0 X. P1 s0 X \<and> P2 s0 X \<Longrightarrow> X \<noteq> {}" using n1 by blast
   have e1: "ad_of P1 \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> ad_of Q = ad_of (parj (\<lambda>s0 a b z. merge_eval j s0 a b z) P1 Q)"
@@ -533,8 +533,8 @@ qed
 lemma ades_exchange:
   assumes nU: "\<And>t X. U t X \<Longrightarrow> X \<noteq> {}" and nU': "\<And>t X. U' t X \<Longrightarrow> X \<noteq> {}"
     and nV: "\<And>t X. V t X \<Longrightarrow> X \<noteq> {}" and nV': "\<And>t X. V' t X \<Longrightarrow> X \<noteq> {}"
-  shows "(ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V)) ;;\<^sub>D\<^sub>A (ad_of (lftL U') \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V'))
-         \<sqsubseteq> (ad_of (lftL U) ;;\<^sub>D\<^sub>A ad_of (lftL U')) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> (ad_of (lftR V) ;;\<^sub>D\<^sub>A ad_of (lftR V'))"
+  shows "(ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V)) ;;\<^sub>A\<^sub>D (ad_of (lftL U') \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V'))
+         \<sqsubseteq> (ad_of (lftL U) ;;\<^sub>A\<^sub>D ad_of (lftL U')) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> (ad_of (lftR V) ;;\<^sub>A\<^sub>D ad_of (lftR V'))"
 proof -
   have nL: "\<And>s0 X. lftL U s0 X \<Longrightarrow> X \<noteq> {}" using nU unfolding lftL_def by fastforce
   have nL': "\<And>s0 X. lftL U' s0 X \<Longrightarrow> X \<noteq> {}" using nU' unfolding lftL_def by fastforce
@@ -544,12 +544,12 @@ proof -
     by (rule ad_par_parfd) (fact nL, fact nR)
   have p2: "ad_of (lftL U') \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V') = ad_of (parfd (lftL U') (lftR V'))"
     by (rule ad_par_parfd) (fact nL', fact nR')
-  have s1: "ad_of (parfd (lftL U) (lftR V)) ;;\<^sub>D\<^sub>A ad_of (parfd (lftL U') (lftR V')) =
+  have s1: "ad_of (parfd (lftL U) (lftR V)) ;;\<^sub>A\<^sub>D ad_of (parfd (lftL U') (lftR V')) =
       ad_of (seqf (parfd (lftL U) (lftR V)) (parfd (lftL U') (lftR V')))"
     by (rule ad_seq_seqf) (rule parfd_ne[OF nL nR])
-  have s2: "ad_of (lftL U) ;;\<^sub>D\<^sub>A ad_of (lftL U') = ad_of (seqf (lftL U) (lftL U'))"
+  have s2: "ad_of (lftL U) ;;\<^sub>A\<^sub>D ad_of (lftL U') = ad_of (seqf (lftL U) (lftL U'))"
     by (rule ad_seq_seqf) (fact nL)
-  have s3: "ad_of (lftR V) ;;\<^sub>D\<^sub>A ad_of (lftR V') = ad_of (seqf (lftR V) (lftR V'))"
+  have s3: "ad_of (lftR V) ;;\<^sub>A\<^sub>D ad_of (lftR V') = ad_of (seqf (lftR V) (lftR V'))"
     by (rule ad_seq_seqf) (fact nR)
   have p3: "ad_of (seqf (lftL U) (lftL U')) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (seqf (lftR V) (lftR V')) =
       ad_of (parfd (seqf (lftL U) (lftL U')) (seqf (lftR V) (lftR V')))"
@@ -572,26 +572,26 @@ section \<open>AD-level forms of the scheduling laws\<close>
 
 lemma ades_par_eq_seq_a2:
   assumes A: "a2f U" and nV: "\<And>t X. V t X \<Longrightarrow> X \<noteq> {}"
-  shows "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (lftL U) ;;\<^sub>D\<^sub>A ad_of (lftR V)"
+  shows "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (lftL U) ;;\<^sub>A\<^sub>D ad_of (lftR V)"
 proof -
   have nL: "\<And>s0 X. lftL U s0 X \<Longrightarrow> X \<noteq> {}" using a2f_ne[OF A] unfolding lftL_def by fastforce
   have nR: "\<And>s0 X. lftR V s0 X \<Longrightarrow> X \<noteq> {}" using nV unfolding lftR_def by fastforce
   have p: "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (parfd (lftL U) (lftR V))"
     by (rule ad_par_parfd) (fact nL, fact nR)
-  have s: "ad_of (lftL U) ;;\<^sub>D\<^sub>A ad_of (lftR V) = ad_of (seqf (lftL U) (lftR V))"
+  have s: "ad_of (lftL U) ;;\<^sub>A\<^sub>D ad_of (lftR V) = ad_of (seqf (lftL U) (lftR V))"
     by (rule ad_seq_seqf) (fact nL)
   show ?thesis unfolding p s par_eq_seq_a2_LR[OF A] ..
 qed
 
 lemma ades_par_eq_seq_ang:
   assumes A: "angf U" and nU: "\<And>t X. U t X \<Longrightarrow> X \<noteq> {}" and nV: "\<And>t X. V t X \<Longrightarrow> X \<noteq> {}"
-  shows "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (lftR V) ;;\<^sub>D\<^sub>A ad_of (lftL U)"
+  shows "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (lftR V) ;;\<^sub>A\<^sub>D ad_of (lftL U)"
 proof -
   have nL: "\<And>s0 X. lftL U s0 X \<Longrightarrow> X \<noteq> {}" using nU unfolding lftL_def by fastforce
   have nR: "\<And>s0 X. lftR V s0 X \<Longrightarrow> X \<noteq> {}" using nV unfolding lftR_def by fastforce
   have p: "ad_of (lftL U) \<parallel>\<^sub>A\<^sub>D\<^bsub>jfd\<^esub> ad_of (lftR V) = ad_of (parfd (lftL U) (lftR V))"
     by (rule ad_par_parfd) (fact nL, fact nR)
-  have s: "ad_of (lftR V) ;;\<^sub>D\<^sub>A ad_of (lftL U) = ad_of (seqf (lftR V) (lftL U))"
+  have s: "ad_of (lftR V) ;;\<^sub>A\<^sub>D ad_of (lftL U) = ad_of (seqf (lftR V) (lftL U))"
     by (rule ad_seq_seqf) (fact nR)
   show ?thesis unfolding p s par_eq_seq_ang_RL[OF A] ..
 qed
@@ -677,7 +677,7 @@ lemma jeq_eval [simp]: "merge_eval jeq s0 p q z \<longleftrightarrow> p = q \<an
 (* x := v1 in parallel with an angelic choice of v1 and v2: no started observation *)
 lemma ades_par_eq_angelic_miracle:
   assumes "v1 \<noteq> v2"
-  shows "\<not> (ad_of (\<lambda>s X. v1 \<in> X) \<parallel>\<^sub>A\<^sub>D\<^bsub>jeq\<^esub> (ad_of (\<lambda>s X. v1 \<in> X) \<squnion>\<^sub>D\<^sub>A ad_of (\<lambda>s X. v2 \<in> X)))
+  shows "\<not> (ad_of (\<lambda>s X. v1 \<in> X) \<parallel>\<^sub>A\<^sub>D\<^bsub>jeq\<^esub> (ad_of (\<lambda>s X. v1 \<in> X) \<squnion>\<^sub>A\<^sub>D ad_of (\<lambda>s X. v2 \<in> X)))
            (ades_obs True s0 c Z)"
 proof -
   have e: "ad_of (\<lambda>s X. v1 \<in> X) \<parallel>\<^sub>A\<^sub>D\<^bsub>jeq\<^esub> ad_of (\<lambda>s X. v1 \<in> X \<and> v2 \<in> X) =

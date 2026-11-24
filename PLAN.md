@@ -72,9 +72,6 @@ operand premise when `j` is `Functional`, `mergeable`, symmetric and associative
 - [ ] Characterise `∥AD` off A2 for a general `j`; the deterministic case at a
   started prior is installed.
 - [ ] Unit and zero laws (Chaos, Miracle, unit), compared with D.
-- [ ] Decide which remaining [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md)
-  results to install (clairvoyance and sequential comparisons), restated with
-  the real operators.
 - [ ] RAD normal form and characterisation through ordinary RD parallel.
 - [ ] RAD associativity with divergent operands. The nondivergent case off A2 is
   installed (`rad_par_assoc_det_nd`, deterministic `j`); with divergence RAD releases

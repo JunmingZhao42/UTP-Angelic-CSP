@@ -1,6 +1,6 @@
 session "AD_Geometry_Probe" in "ad" = "UTP-Angelic-Designs" +
   options [document = false]
-  theories AD_Geometry_Probe AD_Geometry_Laws AD_Lift_Canonical
+  theories AD_Geometry_Probe AD_Geometry_Laws AD_Lift_Canonical AD_Seq_Par
 
 session "RAD_Geometry_Probe" in "rad" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]

@@ -57,6 +57,13 @@ blockers; the repo has no operator for it.
 | Blind product `= P∥Q` | Neither operand has angelic choice | [`blind_eq_par_a2`](ad/AD_Geometry_Laws.thy#L364) |
 | `(P∥Q);;(P'∥Q') ⊑ (P;;P')∥(Q;;Q')`, strict in general | Lifted operands | [`ades_exchange`](ad/AD_Geometry_Laws.thy#L533), [`probe_exchange_seq`](ad/AD_Geometry_Probe.thy#L218) |
 
+[`AD_Seq_Par`](ad/AD_Seq_Par.thy) restates these comparisons and the exchange law for
+the real AD operators, with `A`, `NDAD` operands: `P` ignores a lens `a`, `Q` uses only
+`a`, and `j` takes `a` from `Q`. It also shows that these two premises say `P` commutes
+with every assignment to `a` and `Q` with every assignment that keeps `a`. They stay
+here because they hold for one merge only; the
+[AD guide](../../parallel/AD.md#parallel-and-sequential-composition) states the result.
+
 ## Results for any merge
 
 | Result | Premises | Lemma |
