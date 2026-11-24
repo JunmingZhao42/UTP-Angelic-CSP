@@ -152,21 +152,22 @@ Its algebraic laws:
 | `(P ∥AD[j] R) ⊔AD (Q ∥AD[j] R) ⊑`<br>`(P ⊔AD Q) ∥AD[j] R` | - | - | [`ades_par_angelic_subdistr`](../../angelic-designs/utp_ades_parallel_algebra.thy#L30) |
 | `(P ∥AD[j] Q) ⊔AD (P' ∥AD[j] Q) =`<br>`(P ⊔AD P') ∥AD[j] Q` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distr`](../../angelic-designs/utp_ades_parallel_algebra.thy#L39) |
 | `(Q ∥AD[j] P) ⊔AD (Q ∥AD[j] P') =`<br>`Q ∥AD[j] (P ⊔AD P')` | `P`, `P'` both `A`; all `NDAD`; `Q` intersection-closed | - | [`ades_par_angelic_distl`](../../angelic-designs/utp_ades_parallel_algebra.thy#L97) |
-| `P ∥AD[j] Q = Q ∥AD[j] P` | - | `SymMerge` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel_algebra.thy#L202) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2` | `SymMerge`, `AssocMerge`, `mergeable` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel_algebra.thy#L272) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2`, `NDAD` | `SymMerge`, `AssocMerge` | [`ades_par_assoc_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L289) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | - | `SymMerge`, `AssocMerge`, `mergeable`, `Functional` | [`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_algebra.thy#L315) |
-| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `NDAD` | `SymMerge`, `AssocMerge`, `Functional` | [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L326) |
-| `P ∥AD[j] Miracle =`<br>`Miracle ∥AD[j] P = Miracle` | `P is H1` | - | [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_algebra.thy#L187) |
-| `Chaos ∥AD[j] Chaos = Chaos` | - | `∀s. ∃sL sR u. j(s,sL,sR,u)`<br>(`mergeable j` suffices) | [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel_algebra.thy#L168) |
+| `P ∥AD[j] Q = Q ∥AD[j] P` | - | `SymMerge` | [`ades_par_comm`](../../angelic-designs/utp_ades_parallel_algebra.thy#L238) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2` | `SymMerge`, `AssocMerge`, `mergeable` | [`ades_par_assoc`](../../angelic-designs/utp_ades_parallel_algebra.thy#L308) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `H1`, `A2`, `NDAD` | `SymMerge`, `AssocMerge` | [`ades_par_assoc_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L325) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | - | `SymMerge`, `AssocMerge`, `mergeable`, `Functional` | [`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_algebra.thy#L351) |
+| `(P ∥AD[j] Q) ∥AD[j] R =`<br>`P ∥AD[j] (Q ∥AD[j] R)` | All `NDAD` | `SymMerge`, `AssocMerge`, `Functional` | [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L362) |
+| `P ∥AD[j] Miracle =`<br>`Miracle ∥AD[j] P = Miracle` | `P is H1` | - | [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_algebra.thy#L223) |
+| `P ∥AD[j] Chaos =`<br>`Chaos ∥AD[j] P = Chaos` | `P is A`, `H4` | `mergeable` | [`ades_par_chaos`](../../angelic-designs/utp_ades_parallel_algebra.thy#L191) |
+| `Chaos ∥AD[j] Chaos = Chaos` | - | `∀s. ∃sL sR u. j(s,sL,sR,u)`<br>(`mergeable j` suffices) | [`ades_par_chaos_chaos`](../../angelic-designs/utp_ades_parallel_algebra.thy#L168) |
 
 The associativity laws transfer [`des_par_assoc`](../../deps/UTP-Designs/utp_des_parallel_lift.thy#L215)
 and [`des_par_assoc_nd`](../../deps/UTP-Designs/utp_des_nd.thy#L100) to AD through
-[`ades_lift_par_assoc_transfer`](../../angelic-designs/utp_ades_parallel_algebra.thy#L212):
+[`ades_lift_par_assoc_transfer`](../../angelic-designs/utp_ades_parallel_algebra.thy#L248):
 for `A`, `A2` operands, AD associativity follows from D associativity of their `ac2p` images.
 These two laws only cover operands without angelic choice.
 
-[`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_algebra.thy#L315) needs no
+[`ades_par_assoc_det`](../../angelic-designs/utp_ades_parallel_algebra.thy#L351) needs no
 operand premise. As in D, it follows from
 [`par_by_merge_assoc`](../../deps/UTP/utp_concurrency_assoc.thy#L30) once the lifted merge is
 associative ([`merge_ades_AssocMerge`](../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L100)).
@@ -179,7 +180,7 @@ operand has angelic choice: on states `{0,1}`, with `j(sL,sR) = {sL ∨ sR}` exc
 `{0,1}`, with `j(0,0) = j(0,1) = {}` and `j(1,1) = {0}`, take `P = Q = ⟨1⟩` and an `R`
 that offers 1 but may diverge.
 
-For nondivergent operands, [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L326) drops `mergeable`.
+For nondivergent operands, [`ades_par_assoc_det_nd`](../../angelic-designs/utp_ades_parallel_algebra.thy#L362) drops `mergeable`.
 As D does, it guards the merge to nondivergent branches
 ([`merge_ades_guard_AssocMerge`](../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L161)) and applies
 [`par_by_merge_assoc_guard`](../../deps/UTP/utp_concurrency_assoc.thy#L75).
@@ -199,7 +200,17 @@ breaks this: if `P` may diverge offering `{1}` or terminate offering `{1}`, and
 `P' = Q = ⟨0⟩` with exclusive or, the left side is `⟨0⟩` but the right side is
 `⟨0⟩ ⊔ ⟨1⟩`.
 
-Chaos is `true`, and Miracle is `A false = ¬ok`.
+Chaos is `true`, Miracle is `A false = ¬ok`, and `H4` means `P ;; true = true`.
+The Miracle and Chaos laws match [D](D.md#lifted-merge-and-laws) row for row; the
+Chaos law adds `P is A`.
+
+Skip is a parallel unit when `j` returns the other branch's state against an
+unchanged one, `j(s,sL,s,s') ⟷ s' = sL` and its mirror, but only for normal
+operands, as for sequential composition
+([`Skip_AD_seq_right_unit_iff_normal`](../../angelic-designs/utp_ades_healthy.thy#L568)):
+a precondition that mentions `ac'` may fail for some choice sets only, and in
+parallel with Skip that divergence releases every output. We do not install this
+law, since its premise on `j` restates it at the state level.
 
 ## Parallel and sequential composition
 

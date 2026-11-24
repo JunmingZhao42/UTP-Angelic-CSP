@@ -165,7 +165,7 @@ text \<open>A nonterminating branch observation releases the output guarantee.
   Chaos in both branches therefore yields Chaos whenever the state merge has
   some merged state at every initial state.\<close>
 
-lemma ades_par_chaos:
+lemma ades_par_chaos_chaos:
   assumes "\<And>s0. \<exists>sL sR s'. merge_eval j s0 sL sR s'"
   shows "(true \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> true :: 's angelic_design) = true"
 proof (rule ades_obs_ext)
@@ -182,6 +182,42 @@ proof (rule ades_obs_ext)
     (true :: 's angelic_design) (ades_obs ok0 s0 ok' X)"
     using started
     by (simp add: ades_par_def par_by_merge_eval choices_ex merge_ades_obs[simplified] true_pred_def)
+qed
+
+(* We let Chaos absorb any feasible operand: by upward closure P offers the
+   full choice set, Chaos diverges offering it too, and a mergeable j merges
+   each pair, so every output is released:
+     P is A, P ;; true = true \<Longrightarrow> P \<parallel>AD[j] Chaos = Chaos *)
+lemma ades_par_chaos:
+  fixes P :: "'s angelic_design"
+  assumes "P is A" "P is H4" "mergeable j"
+  shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> true = true" "true \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P = true"
+proof -
+  have obs: "P (ades_obs b s0 c X) \<longleftrightarrow>
+    (\<not> b \<or> (\<exists>Y \<subseteq> X. P (ades_obs True s0 False Y)) \<or>
+      (c \<and> X \<noteq> {} \<and> (\<exists>Y \<subseteq> X. P (ades_obs True s0 True Y))))" for b s0 c X
+    by (subst Healthy_if[OF assms(1), symmetric], rule A_obs)
+  have "\<exists>c. P (ades_obs b s0 c UNIV)" for b s0
+  proof -
+    have "\<exists>p. P (fst (ades_obs b s0 True {}), p)"
+      using fun_cong[OF is_H4_alt_def[THEN iffD1, OF assms(2)],
+          of "(fst (ades_obs b s0 True {}), undefined)"]
+      by (simp add: seq_def true_pred_def)
+    then obtain c X where "P (ades_obs b s0 c X)"
+      unfolding fst_conv choices_ex by blast
+    then show ?thesis
+      using obs[of b s0 c X] obs[of b s0 c UNIV] by blast
+  qed
+  then have feasible: "P (ades_obs b s0 (SOME c. P (ades_obs b s0 c UNIV)) UNIV)" for b s0
+    by (rule someI_ex)
+  show "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> true = true"
+    by (rule ades_obs_ext, simp only: ades_par_eval true_pred_def SEXP_def simp_thms,
+        rule exI, rule exI[of _ UNIV], rule exI[of _ False], rule exI[of _ UNIV])
+       (use feasible assms(3) in blast)
+  show "true \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P = true"
+    by (rule ades_obs_ext, simp only: ades_par_eval true_pred_def SEXP_def simp_thms,
+        rule exI[of _ False], rule exI[of _ UNIV], rule exI, rule exI[of _ UNIV])
+       (use feasible assms(3) in blast)
 qed
 
 lemma ades_par_miracle:

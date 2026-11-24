@@ -61,17 +61,16 @@ Checkboxes track work, not conjectured truth. The
 ## Off-A2 AD and RAD laws
 
 The installed AD laws `ades_par_assoc` and `ades_par_assoc_nd` need A2 operands.
-[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_algebra.thy#L315) needs no
+[`ades_par_assoc_det`](angelic-designs/utp_ades_parallel_algebra.thy#L351) needs no
 operand premise when `j` is `Functional`, `mergeable`, symmetric and associative;
-[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_algebra.thy#L326) drops
+[`ades_par_assoc_det_nd`](angelic-designs/utp_ades_parallel_algebra.thy#L362) drops
 `mergeable` for nondivergent operands. A nondeterministic `j` breaks associativity
 (see the [AD guide](docs/parallel/AD.md)).
 
 - [ ] AD normal form at a fixed prior: `U = ⋃ ↑A`, `P = ⊓ ⊔ ⟨a⟩`. True
   precondition first, then A0/H1/H3.
-- [ ] Characterise `∥AD` off A2 for a general `j`; the deterministic case at a
-  started prior is installed.
-- [ ] Unit and zero laws (Chaos, Miracle, unit), compared with D.
+- [ ] Characterise `∥AD` off A2 for a general `j`; `ades_par_eval` gives the
+  pointwise form.
 - [ ] RAD normal form and characterisation through ordinary RD parallel.
 - [ ] RAD associativity with divergent operands. The nondivergent case off A2 is
   installed (`rad_par_assoc_det_nd`, deterministic `j`); with divergence RAD releases
