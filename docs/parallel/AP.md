@@ -12,7 +12,7 @@ P ∥AP[j] Q = H1 (RA1 P ∥RAD[j] RA1 Q)
 | Result of `P ∥AP[j] Q` | Operand premises | Merge premise | Lemma |
 | --- | --- | --- | --- |
 | [`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | Both AP+[`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | None | [`ap_par_A2`](../../angelic-processes/utp_ap_parallel.thy#L44) |
-| [`AP`](../../angelic-processes/utp_ap_healthy.thy#L178) | Both AP+[`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | None | [`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) |
+| [`AP`](../../angelic-processes/utp_ap_healthy.thy#L149) | Both AP+[`A2`](../../angelic-designs/utp_ades_a2.thy#L94) | None | [`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) |
 
 ## ac2p/p2ac mapping laws
 

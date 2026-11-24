@@ -51,7 +51,7 @@ so the combined conditions omit it.
 | `is RA` | Both `RA` | `RAm` | [`rad_par_by_merge_RA`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L137) |
 | `is CSPA1` | Both `CSPA1` | [`CSPA1m`](../../reactive-angelic-designs/utp_rad_parallel_merge.thy#L47) | [`rad_par_by_merge_CSPA1`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L39) |
 | `is CSPA2` | - | [`CSPA2m`](../../reactive-angelic-designs/utp_rad_parallel_merge.thy#L57) | [`rad_par_by_merge_CSPA2`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L154) |
-| `is PBMH_ades` | - | [`PBMHm`](../../angelic-designs/utp_ades_parallel_merge.thy#L235) | [`PBMH_ades_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L15) |
+| `is PBMH_ades` | - | [`PBMHm`](../../angelic-designs/utp_ades_parallel_merge.thy#L176) | [`PBMH_ades_par_by_merge`](../../angelic-designs/utp_ades_parallel_laws.thy#L15) |
 | `is RAD` | Both `RAD` | `RADm` | [`rad_par_by_merge_RAD`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L161) |
 | `P ∥[M] (Q ⊓RAD R) =`<br>`(P ∥[M] Q) ⊓RAD (P ∥[M] R)` | - | - | [`rad_par_by_merge_demonic_distl`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L177) |
 | `(P ⊓RAD Q) ∥[M] R =`<br>`(P ∥[M] R) ⊓RAD (Q ∥[M] R)` | - | - | [`rad_par_by_merge_demonic_distr`](../../reactive-angelic-designs/utp_rad_parallel_laws.thy#L183) |
@@ -100,7 +100,7 @@ P ∥RAD[j] Q ≡ P ∥[merge_rad j] Q
 ```
 
 [`merge_rdes_ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L124)
-and [`rad_lift_merge_RADm`](../../reactive-angelic-designs/utp_rad_parallel_lifted_merge.thy#L312)
+and [`rad_lift_merge_RADm`](../../reactive-angelic-designs/utp_rad_parallel_lifted_merge.thy#L306)
 ensure [`merge_rad`](../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L35)
 is `RADm` for every `j`. Thus `∥RAD[j]` preserves RAD healthiness:
 

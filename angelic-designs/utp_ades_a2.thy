@@ -142,11 +142,6 @@ lemma A2_rdesign:
   by (simp add: A2_def A2_rel_eq_expanded A2_rel_expanded_def
       rdesign_def design_def fun_eq_iff; pred_auto; blast)
 
-lemma A2_arel_to_ades:
-  "A2 (arel_to_ades P) = arel_to_ades (A2_rel P)"
-  by (simp add: arel_to_ades_def A2_rdesign
-      A2_rel_eq_expanded A2_rel_expanded_def; pred_auto)
-
 lemma A2_output_obs:
   "A2 P (x, ades_output ok' X) \<longleftrightarrow>
     (P (x, ades_output ok' {}) \<or>
@@ -172,20 +167,8 @@ lemma A2_mono:
 lemma A2_Monotonic [closure]: "Monotonic A2"
   by (rule MonotonicI, rule A2_mono)
 
-lemma A2_empty_choice:
-  "A2 P (x, \<lparr>ok\<^sub>v = b,
-    \<dots> = \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>\<rparr>) =
-   P (x, \<lparr>ok\<^sub>v = b,
-    \<dots> = \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>\<rparr>)"
-  by (simp add: A2_def)
-
 lemma A2_healthy [closure]: "A2 P is A2"
   by (simp add: Healthy_def' A2_idem)
-
-lemma A2_lift:
-  "A2 \<lceil>P\<rceil>\<^sub>D = \<lceil>A2_rel P\<rceil>\<^sub>D"
-  by (simp add: A2_def A2_rel_eq_expanded A2_rel_expanded_def
-      fun_eq_iff; pred_auto)
 
 lemma A2_def':
   "A2 P = PBMH_ades (P ;;\<^sub>A\<^sub>R \<lceil>singleton_ac\<rceil>\<^sub>D)"
@@ -308,12 +291,6 @@ lemma A3_rel_healthy':
     (\<forall>s. R (s, \<lparr>ac\<^sub>v = {}, \<dots> = ()\<rparr>) \<longrightarrow> (\<exists>z. R (s, \<lparr>ac\<^sub>v = {z}, \<dots> = ()\<rparr>)))"
   by (simp add: Healthy_def' A3_rel_def fun_eq_iff; pred_auto)
 
-lemma arel_indep_A3_rel:
-  fixes R :: "'s angelic_rel"
-  assumes "\<And>s0 a b. R (s0, a) = R (s0, b)"
-  shows "R is A3_rel"
-  using assms by (simp add: A3_rel_healthy'; blast)
-
 lemma A3_rel_nonempty [simp]:
   fixes R :: "'s angelic_rel" and s :: "'s astate" and X :: "'s set"
   assumes "X \<noteq> {}"
@@ -371,19 +348,6 @@ proof (rule Healthy_intro, rule ades_obs_ext)
     done
 qed
 
-lemma A3_obs_H:
-  assumes "R is \<^bold>H"
-  shows "A3 R (ades_obs b s0 c X) \<longleftrightarrow>
-    (R (ades_obs b s0 c X) \<or>
-      (X = {} \<and> (\<forall>z. R (ades_obs b s0 False {z}))))"
-proof -
-  have form: "R = (pre\<^sub>D R \<turnstile>\<^sub>r post\<^sub>D R)"
-    using H1_H2_eq_rdesign[of R] assms by (simp add: Healthy_def')
-  show ?thesis
-    apply (subst (2 3) form)
-    by (simp add: A3_def A3_rel_def; pred_auto; blast)
-qed
-
 lemma A3_healthy:
   assumes "P is A"
   shows "P is A3 \<longleftrightarrow> pre\<^sub>D P is A3_rel"
@@ -401,33 +365,6 @@ next
   show "P is A3"
     using design_form pre_healthy
     by (simp add: Healthy_def' A3_def)
-qed
-
-lemma H_A3_intro:
-  fixes P :: "'s angelic_design"
-  assumes "P is \<^bold>H" "pre\<^sub>D P is A3_rel"
-  shows "P is A3"
-  using assms H1_H2_eq_rdesign[of P]
-  by (simp add: Healthy_def' A3_def)
-
-lemma A3_healthy_obsI:
-  fixes P :: "'s angelic_design"
-  assumes "P is \<^bold>H"
-    "\<And>s0. \<not> P (ades_obs True s0 False {}) \<Longrightarrow>
-      \<exists>z. \<not> P (ades_obs True s0 False {z})"
-  shows "P is A3"
-proof (rule H_A3_intro[OF assms(1)])
-  have pre:
-    "pre\<^sub>D P (\<lparr>s\<^sub>v = s0, \<dots> = ()\<rparr>, \<lparr>ac\<^sub>v = X, \<dots> = ()\<rparr>) =
-      (\<not> P (ades_obs True s0 False X))"
-    for s0 X
-    by (pred_simp; simp add: des_vars_collapse)
-
-  show "pre\<^sub>D P is A3_rel"
-    unfolding A3_rel_healthy'
-    apply (rule allI)
-    subgoal for x by (cases x; simp add: pre assms(2))
-    done
 qed
 
 lemma A3_rel_PBMH:
@@ -531,30 +468,6 @@ lemma A3_preserves_A: "P is A \<Longrightarrow> A3 P is A"
 lemma A3_preserves_A2: "P is A2 \<Longrightarrow> A3 P is A2"
   apply (simp add: Healthy_def' A3_A2_commute[symmetric])
   done
-
-subsection \<open>Normal Angelic Designs\<close>
-
-lemma N_preD_indep:
-  fixes P :: "'s angelic_design" and s0 :: "'s astate" and a b :: "'s achoices"
-  assumes "P is \<^bold>N"
-  shows "pre\<^sub>D P (s0, a) = pre\<^sub>D P (s0, b)"
-proof -
-  have u: "$ac\<^sup>> \<sharp> pre\<^sub>D P"
-    by (rule unrest_out_var; simp add: H3_unrest_out_alpha[OF assms])
-  have put_P: "\<forall>s0 acr v.
-      pre\<^sub>D P (s0, achoices.ac\<^sub>v_update (\<lambda>_. v) acr) = pre\<^sub>D P (s0, acr)"
-    using u
-    apply (subst (asm) unrest_lens)
-     apply simp
-    by (simp add: lens_defs achoices.ac_def case_prod_beta split_paired_All)
-  have "pre\<^sub>D P (s0, b) =
-      pre\<^sub>D P (s0, achoices.ac\<^sub>v_update (\<lambda>_. achoices.ac\<^sub>v b) a)"
-    by (cases a; cases b; simp)
-  also have "... = pre\<^sub>D P (s0, a)"
-    using put_P by blast
-  finally show ?thesis by (rule sym)
-qed
-
 
 subsection \<open>Support Laws\<close>
 

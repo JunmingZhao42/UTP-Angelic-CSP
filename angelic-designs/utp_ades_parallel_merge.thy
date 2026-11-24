@@ -140,65 +140,6 @@ lemma A2m_obs:
        (\<exists>w\<in>ac'. ades_merge_obs M ok0 s0 okL {x} okR {y} ok' {w}))"
   by (simp add: A2m_obs_A2[simplified] A2_output_obs)
 
-text \<open>A2m healthiness is singleton output normalization together with
-  preservation of acceptance at every eligible singleton branch pair.
-  An empty branch choice set permits every singleton replacement.\<close>
-
-lemma A2m_healthy_iff:
-  "M is A2m \<longleftrightarrow>
-    (\<forall>ok0 s0 okL sL okR sR ok' ac'.
-      ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac' \<longleftrightarrow>
-      ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {} \<or>
-      (\<exists>s'\<in>ac'. ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {s'})) \<and>
-    (\<forall>ok0 s0 okL acL okR acR ok' ac' sL sR.
-      ades_merge_obs M ok0 s0 okL acL okR acR ok' ac' \<and>
-      (acL = {} \<or> sL \<in> acL) \<and> (acR = {} \<or> sR \<in> acR) \<longrightarrow>
-      ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac')"
-  (is "_ \<longleftrightarrow> ?conditions")
-proof (rule iffI)
-  assume healthy: "M is A2m"
-  have norm: "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac' =
-    (ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {} \<or>
-     (\<exists>s'\<in>ac'. ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {s'}))"
-    for ok0 s0 okL sL okR sR ok' ac'
-    by (subst Healthy_if[OF healthy, symmetric]) (simp add: A2m_obs[simplified])
-  have restrict: "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac'"
-    if "ades_merge_obs M ok0 s0 okL acL okR acR ok' ac'"
-       "acL = {} \<or> sL \<in> acL" "acR = {} \<or> sR \<in> acR"
-    for ok0 s0 okL acL okR acR ok' ac' sL sR
-  proof -
-    have accepted: "ades_merge_obs (A2m M) ok0 s0 okL acL okR acR ok' ac'"
-      using that(1) by (simp only: Healthy_if[OF healthy])
-    have "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {} \<or>
-      (\<exists>s'\<in>ac'. ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {s'})"
-      using accepted that(2,3)
-      by (simp add: A2m_obs[simplified])
-    then show ?thesis by (rule norm[THEN iffD2])
-  qed
-  show ?conditions
-    by (intro conjI allI impI; (rule norm | (elim conjE, rule restrict))) assumption+
-next
-  assume conditions: ?conditions
-  have norm: "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac' =
-    (ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {} \<or>
-     (\<exists>s'\<in>ac'. ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' {s'}))"
-    for ok0 s0 okL sL okR sR ok' ac'
-    by (rule conditions[THEN conjunct1, rule_format])
-  have restrict: "ades_merge_obs M ok0 s0 okL {sL} okR {sR} ok' ac'"
-    if "ades_merge_obs M ok0 s0 okL acL okR acR ok' ac'"
-       "acL = {} \<or> sL \<in> acL" "acR = {} \<or> sR \<in> acR"
-    for ok0 s0 okL acL okR acR ok' ac' sL sR
-    using conditions[THEN conjunct2, rule_format] that by blast
-  show "M is A2m"
-  proof (rule Healthy_intro, rule ades_merge_ext)
-    fix ok0 s0 okL acL okR acR ok' ac'
-    show "ades_merge_obs (A2m M) ok0 s0 okL acL okR acR ok' ac' =
-      ades_merge_obs M ok0 s0 okL acL okR acR ok' ac'"
-      by (auto simp: A2m_obs[simplified] norm[simplified, symmetric]
-          intro: restrict[simplified])
-  qed
-qed
-
 lemma A2m_Idempotent [closure]: "Idempotent A2m"
 proof (rule IdempotentI)
   fix M :: "'s ades_merge_rel"

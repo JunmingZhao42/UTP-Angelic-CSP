@@ -43,21 +43,6 @@ proof -
     done
 qed
 
-lemma ades_par_obs:
-  fixes P Q :: "'s angelic_design"
-  assumes "P is A" "Q is A" "P is A2" "Q is A2"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
-    (\<not> ok0 \<or> (\<exists>okL sL okR sR.
-      P (ades_obs True s0 okL {sL}) \<and> Q (ades_obs True s0 okR {sR}) \<and>
-      (\<exists>s'. merge_eval j s0 sL sR s') \<and>
-      (okL \<and> okR \<longrightarrow> (ok' \<and> (\<exists>s'\<in>ac'. merge_eval j s0 sL sR s')))))"
-proof -
-  have operands_H1: "P is H1" "Q is H1"
-    using assms(1,2) by (simp_all add: A_healthy_components_iff)
-  show ?thesis
-    by (rule ades_par_obs_A2[OF assms(3,4) operands_H1])
-qed
-
 lemma ades_par_normalise_A:
   assumes "P is A2" "Q is A2" "P is H1" "Q is H1"
   shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q = A P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> A Q"

@@ -64,35 +64,6 @@ lemma RA3AP_II_AP: "RA3AP II_AP = II_AP"
 lemma II_AP_is_RA3AP [closure]: "II_AP is RA3AP"
   by (rule Healthy_intro, rule RA3AP_II_AP)
 
-lemma II_AP_eval:
-  "II_AP (x, y) \<longleftrightarrow>
-   (\<not> des_vars.ok\<^sub>v x \<or>
-    (des_vars.ok\<^sub>v y \<and>
-     astate.s\<^sub>v (des_vars.more x) \<in>
-       achoices.ac\<^sub>v (des_vars.more y)))"
-  by (simp add: II_AP_design design_def; pred_auto)
-
-lemma RA3AP_eval:
-  "RA3AP P (x, y) \<longleftrightarrow>
-   (if rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))
-    then II_AP (x, y) else P (x, y))"
-  by (simp add: RA3AP_def expr_if_def SEXP_def lens_defs
-      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
-
-lemma RA3AP_healthy_wait_eval:
-  assumes "P is RA3AP"
-    "rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x))"
-  shows "P (x, y) \<longleftrightarrow> II_AP (x, y)"
-proof -
-  have h: "RA3AP P = P"
-    using assms(1) by (simp add: Healthy_def')
-  have "P (x, y) \<longleftrightarrow> RA3AP P (x, y)"
-    by (simp only: h)
-  also have "... \<longleftrightarrow> II_AP (x, y)"
-    using assms(2) by (simp add: RA3AP_eval)
-  finally show ?thesis .
-qed
-
 lemma RA3AP_PBMH_ades_closure [closure]:
   assumes "P is PBMH_ades"
   shows "RA3AP P is PBMH_ades"

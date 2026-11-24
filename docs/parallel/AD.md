@@ -134,17 +134,17 @@ So `∥AD[j]` preserves AD healthiness:
 
 | Result of `P ∥AD[j] Q` | Operand premises | Lemma |
 | --- | --- | --- |
-| `A0` | - | [`ades_par_A0_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L82) |
-| `A1` | Both `H1` | [`ades_par_A1_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L87) |
-| `A` | Both `H1` | [`ades_par_A_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L93) |
-| `A2` | Both `A2` | [`ades_par_A2_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L99) |
-| `A3` | Both `H1` | [`ades_par_A3_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L105) |
+| `A0` | - | [`ades_par_A0_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L67) |
+| `A1` | Both `H1` | [`ades_par_A1_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L72) |
+| `A` | Both `H1` | [`ades_par_A_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L78) |
+| `A2` | Both `A2` | [`ades_par_A2_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L84) |
+| `A3` | Both `H1` | [`ades_par_A3_closure`](../../angelic-designs/utp_ades_parallel_operator.thy#L90) |
 
 Its algebraic laws:
 
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
-| `P ∥AD[j] Q = A P ∥AD[j] A Q` | Both `H1`, `A2` | - | [`ades_par_normalise_A`](../../angelic-designs/utp_ades_parallel_operator.thy#L61) |
+| `P ∥AD[j] Q = A P ∥AD[j] A Q` | Both `H1`, `A2` | - | [`ades_par_normalise_A`](../../angelic-designs/utp_ades_parallel_operator.thy#L46) |
 | monotone in both operands | - | - | [`ades_par_mono`](../../angelic-designs/utp_ades_parallel_algebra.thy#L156) |
 | `P ∥AD[j] (Q ⊓AD R) =`<br>`(P ∥AD[j] Q) ⊓AD (P ∥AD[j] R)` | - | - | [`ades_par_demonic_distl`](../../angelic-designs/utp_ades_parallel_algebra.thy#L15) |
 | `(P ⊓AD Q) ∥AD[j] R =`<br>`(P ∥AD[j] R) ⊓AD (Q ∥AD[j] R)` | - | - | [`ades_par_demonic_distr`](../../angelic-designs/utp_ades_parallel_algebra.thy#L20) |
@@ -245,7 +245,7 @@ for every prior, all control flags and every output set.
 | On singleton branches, `L(N)` accepts iff `N` has a witness in `ac'` | None | [`choice_lift_singleton`](../../angelic-designs/utp_ades_parallel_choice_lift.thy#L76) |
 | `L(N) ⊑ M` iff `singleton_refines N M` | `M is ABm` | [`choice_lift_refine_iff`](../../angelic-designs/utp_ades_parallel_choice_lift.thy#L110) |
 | `P ∥[L(N)] Q ⊑ P ∥[M] Q` | `M is ABm`, `singleton_refines N M` | [`par_choice_lift_canonical`](../../angelic-designs/utp_ades_parallel_choice_lift.thy#L125) |
-| `P ∥AD[j] Q ⊑ P ∥[H3m (H1m M)] Q` | `M is ABm`, `singleton_refines (merge_des j) M` | [`ades_par_canonical`](../../angelic-designs/utp_ades_parallel_operator.thy#L144) |
+| `P ∥AD[j] Q ⊑ P ∥[H3m (H1m M)] Q` | `M is ABm`, `singleton_refines (merge_des j) M` | [`ades_par_canonical`](../../angelic-designs/utp_ades_parallel_operator.thy#L129) |
 
 So among ABm merges `M` with `singleton_refines N M`, `L(N)` is the least in the
 refinement order. No A2 premise is needed.
@@ -255,7 +255,7 @@ The last row accounts for AD's additional `H1m` and `H3m` completion.
 
 | Equality | Operand premises | Lemma |
 | --- | --- | --- |
-| `ac2p (P ∥AD[j] Q) =`<br>`ac2p P ∥D[j] ac2p Q` | `P, Q` both `A`, `A2` | [`ades_par_ac2p`](../../angelic-designs/utp_ades_parallel_operator.thy#L129) |
-| `P ∥AD[j] Q =`<br>`d2ac (ac2p P ∥D[j] ac2p Q)` | `P, Q` both `A`, `A2` | [`ades_par_d2ac_ac2p`](../../angelic-designs/utp_ades_parallel_operator.thy#L116) |
+| `ac2p (P ∥AD[j] Q) =`<br>`ac2p P ∥D[j] ac2p Q` | `P, Q` both `A`, `A2` | [`ades_par_ac2p`](../../angelic-designs/utp_ades_parallel_operator.thy#L114) |
+| `P ∥AD[j] Q =`<br>`d2ac (ac2p P ∥D[j] ac2p Q)` | `P, Q` both `A`, `A2` | [`ades_par_d2ac_ac2p`](../../angelic-designs/utp_ades_parallel_operator.thy#L101) |
 | `d2ac D ∥AD[j] d2ac E =`<br>`d2ac (D ∥D[j] E)` | `D, E` both `H` | [`ades_par_d2ac`](../../angelic-designs/utp_ades_parallel_operator.thy#L122) |
-| `D ∥D[j] E =`<br>`ac2p (d2ac D ∥AD[j] d2ac E)` | `D, E` both `H` | [`ades_par_ac2p_d2ac`](../../angelic-designs/utp_ades_parallel_operator.thy#L135) |
+| `D ∥D[j] E =`<br>`ac2p (d2ac D ∥AD[j] d2ac E)` | `D, E` both `H` | [`ades_par_ac2p_d2ac`](../../angelic-designs/utp_ades_parallel_operator.thy#L120) |

@@ -69,22 +69,6 @@ lemma A0_state_subst:
 theorem A0_design: "A0 ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) = ((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> ac_non_empty))"
   by pred_auto
 
-lemma A0_healthy_non_empty:
-  assumes "P is A0" "P (s0, out)"
-    "des_vars.ok\<^sub>v s0"
-    "\<not> P (s0, ok\<^sub>v_update (\<lambda>_. False) out)"
-    "des_vars.ok\<^sub>v out"
-  shows "achoices.ac\<^sub>v (des_vars.more out) \<noteq> {}"
-proof -
-  have fixed: "A0 P = P"
-    using assms(1) by (simp add: Healthy_def')
-  have fixed_at: "A0 P (s0, out) = P (s0, out)"
-    by (simp only: fixed)
-  show ?thesis
-    using fixed_at assms(2-)
-    by (cases s0; cases out; simp add: A0_def; pred_auto)
-qed
-
 subsection \<open>A1\<close>
 
 definition A1 :: "'s angelic_design \<Rightarrow> 's angelic_design" where

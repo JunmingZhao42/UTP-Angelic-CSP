@@ -345,35 +345,4 @@ proof (rule par_by_merge_assoc_guard[OF SymMerge_merge_guard[OF merge_ades_SymMe
     using nd_ok[OF nondiv(1)] nd_ok[OF nondiv(2)] nd_ok[OF nondiv(3)] by blast+
 qed
 
-subsection \<open>Example: Skip Merge\<close>
-
-text \<open>With two terminating branch observations, the skip state merge requires
-  s in ac'. A nonterminating branch permits every output set, including empty.\<close>
-
-lemma ades_par_skip_eval:
-  assumes operands: "P is H1" "Q is H1"
-  shows "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> Q) (ades_obs ok0 s0 ok' ac') \<longleftrightarrow>
-    (\<not>ok0 \<or> (\<exists>okL acL okR acR.
-      acL \<noteq> {} \<and> acR \<noteq> {} \<and>
-      P (ades_obs True s0 okL acL) \<and> Q (ades_obs True s0 okR acR) \<and>
-      (okL \<and> okR \<longrightarrow> (ok' \<and> s0 \<in> ac'))))"
-  using operands[unfolded H1_healthy_obs_iff]
-  by (cases ok0; simp add: ades_par_def
-      par_by_merge_eval choices_ex merge_ades_obs[simplified] skip_merge_eval; blast)
-
-lemma ades_par_skip_comm:
-  "(P \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> Q) = (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> P)"
-  by (rule ades_par_comm; simp add: Healthy_def skip_merge_swap)
-
-lemma ades_par_skip_assoc:
-  assumes "P is A2" "Q is A2" "R is A2" "P is H1" "Q is H1" "R is H1"
-  shows "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> Q) \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> R) =
-  (P \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>skip\<^sub>m\<^esub> R))"
-proof (rule ades_par_assoc[OF assms])
-  show "skip\<^sub>m is SymMerge"
-    by (simp add: Healthy_def skip_merge_swap)
-  show "AssocMerge skip\<^sub>m"
-    by (simp add: AssocMerge_def skip\<^sub>m_def; pred_auto)
-qed (simp add: skip_merge_eval)
-
 end

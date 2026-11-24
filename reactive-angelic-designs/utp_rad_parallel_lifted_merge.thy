@@ -131,12 +131,6 @@ lemma rad_lift_merge_obs:
         (\<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)))"
   by (simp add: rad_lift_merge_def ABm_ac'_lift_merge_obs[simplified])
 
-lemma rad_lift_merge_mono:
-  "M \<sqsubseteq> N \<Longrightarrow> rad_lift_merge M \<sqsubseteq> rad_lift_merge N"
-  unfolding rad_lift_merge_def comp_apply
-  by (rule pred_ref_monoD[OF ABm_Monotonic];
-      auto simp: pred_refine_iff ac'_lift_merge_def split: prod.splits; blast)
-
 lemma rad_lift_merge_SymMerge:
   "M is SymMerge \<Longrightarrow> rad_lift_merge M is SymMerge"
 proof -
