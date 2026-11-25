@@ -98,11 +98,28 @@ non-waiting prior:
 | `(a→Skip) ∥ (a→Skip)` | Can terminate after `a` | [`rad_sync_progress`](rad/RAD_Probe.thy#L105) |
 | `(a→Skip) ∥ ((a→Skip) ⊓ (b→Skip))` | Can terminate after `a` | [`rad_sync_demonic_progress`](rad/RAD_Probe.thy#L115) |
 | `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))` | Every offered set holds an observation before either event | [`rad_sync_angelic_stuck`](rad/RAD_Probe.thy#L126), [`rad_sync_angelic_no_progress`](rad/RAD_Probe.thy#L151) |
-| `((a→Skip) ⊓ (b→Skip)) ∥ ((a→Skip) ⊔ (b→Skip))` | Same | [`rad_sync_demonic_angelic_stuck`](rad/RAD_Probe.thy#L166) |
+| `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))`, exactly | Never diverges; every offered set holds a state waiting at the start that does not refuse `a`, and nothing else is required, so it equals `a →RAD ⊤RAD` | [`rad_sync_angelic_eval`](rad/RAD_Probe.thy#L166), [`rad_sync_angelic_miracle`](rad/RAD_Probe.thy#L242) |
+| `((a→Skip) ⊓ (b→Skip)) ∥ ((a→Skip) ⊔ (b→Skip))` | Same | [`rad_sync_demonic_angelic_stuck`](rad/RAD_Probe.thy#L259) |
 
 CSP external choice gives `(a→Skip) ∥ ((a→Skip) □ (b→Skip)) = a→Skip`, so the
 current lift does not let angelic choice cooperate with a synchronising partner.
 The clairvoyance above needs a merge that combines every pair of offered states.
+
+The same holds for angelic processes. `P ∥AP[j] Q` is `H1` of RAD parallel on the
+`RA1` images, and `H1` leaves a started prior unchanged
+([`ap_par_started`](ap/AP_Probe.thy#L9)). So with `PrefixSkip_AP`, `⊓AP` and `⊔AP`
+the composite progresses with a matching or demonic partner
+([`ap_sync_progress`](ap/AP_Probe.thy#L23),
+[`ap_sync_demonic_progress`](ap/AP_Probe.thy#L29)) and is stuck with an angelic one
+([`ap_sync_angelic_stuck`](ap/AP_Probe.thy#L37)), with the same exact form
+([`ap_sync_angelic_eval`](ap/AP_Probe.thy#L51)), so it equals `a →AP ⊤AP`
+([`ap_sync_angelic_miracle`](ap/AP_Probe.thy#L105)).
+
+Waiting and unstarted priors add nothing. RAD fixes every process there, the
+parallel composite included ([`rad_par_RAD`](../../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L91)),
+so two RAD processes can differ only at started, non-waiting priors
+([`RAD_eq_active`](../../../reactive-angelic-designs/utp_rad_choice.thy#L299)). The
+blocking is therefore exactly the started, non-waiting case above.
 
 ## The shared lift is canonical
 
@@ -126,7 +143,7 @@ M({sL},{sR},Z) ⟹ ∃s' ∈ Z. N(s,sL,sR,s')
 | Every admissible `M` lies inside the lift, so `P ∥[ABm (ac'_lift_merge N)] Q ⊑ P ∥[M] Q` | `M` admissible | [`lift_greatest_obs`](ad/AD_Lift_Canonical.thy#L64), [`par_lift_canonical`](ad/AD_Lift_Canonical.thy#L109) |
 | Antitonicity is free: `P ∥[ABm M] Q = P ∥[M] Q` | `P`, `Q` `PBMH_ades`; `M` nonempty | [`par_ABm_eq`](ad/AD_Lift_Canonical.thy#L136), [`par_lift_canonical_PBMH`](ad/AD_Lift_Canonical.thy#L181) |
 | `P ∥AD[j] Q ⊑ P ∥[H3m (H1m M)] Q` | `M` admissible for `merge_des j` | [`ades_par_canonical`](ad/AD_Lift_Canonical.thy#L190) |
-| The RAD blocking holds for every admissible `M` | `M` admissible for `merge_rdes jsync` | [`rad_sync_angelic_stuck_any_lift`](rad/RAD_Probe.thy#L210) |
+| The RAD blocking holds for every admissible `M` | `M` admissible for `merge_rdes jsync` | [`rad_sync_angelic_stuck_any_lift`](rad/RAD_Probe.thy#L303) |
 
 So the shared lift is the least refined merge that agrees with the inner merge on
 single states. No admissible lift lets `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))`
@@ -145,9 +162,9 @@ use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) and
 
 ## Not checked
 
-- The synchronisation examples at AP level, waiting or diverging priors, and
-  other synchronisation sets. The general transported AP refinement is covered
-  by the production canonicity result linked above.
+- Other synchronisation sets. With an alphabet `A`, an angelic alternative blocks
+  when its first event is in `A` and the partner cannot match it; this is
+  expected from the merge condition but not proved.
 - Alternatives outside the canonicity result: parallel on operands without
   up-closure, or a different process-level angelic choice.
 - Laws for operands with a precondition other than `true`.
@@ -156,8 +173,9 @@ use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) and
 
 ## Rebuilding
 
-The [ROOT](ROOT) defines `AD_Geometry_Probe` on `UTP-Angelic-Designs` and
-`RAD_Geometry_Probe` on `UTP-Reactive-Angelic-Designs`. From the repository
+The [ROOT](ROOT) defines `AD_Geometry_Probe` on `UTP-Angelic-Designs`,
+`RAD_Geometry_Probe` on `UTP-Reactive-Angelic-Designs` and `AP_Geometry_Probe` on
+`UTP-Angelic-CSP`. From the repository
 root, with the patched Isabelle2026 profile (about 20 s once the parent heaps
 exist):
 
@@ -165,5 +183,5 @@ exist):
 PROJECT_DIR="$PWD" ISABELLE_IDENTIFIER=utp-2026-patched timeout 600s \
   "$HOME/Applications/Isabelle2026-patched.app/bin/isabelle" build -o timeout=60 \
   -d deps -d . -d docs/reviews/2026-11-20-ad-parallel-geometry \
-  AD_Geometry_Probe RAD_Geometry_Probe
+  AD_Geometry_Probe RAD_Geometry_Probe AP_Geometry_Probe
 ```

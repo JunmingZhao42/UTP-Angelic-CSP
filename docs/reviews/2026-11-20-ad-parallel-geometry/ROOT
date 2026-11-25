@@ -6,3 +6,8 @@ session "RAD_Geometry_Probe" in "rad" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]
   sessions "AD_Geometry_Probe"
   theories RAD_Probe
+
+session "AP_Geometry_Probe" in "ap" = "UTP-Angelic-CSP" +
+  options [document = false]
+  sessions "RAD_Geometry_Probe"
+  theories AP_Probe

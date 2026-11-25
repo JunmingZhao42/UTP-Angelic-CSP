@@ -1,0 +1,6 @@
+session "Angelic_Sync_Probe" = "RAD_Geometry_Probe" +
+  options [document = false]
+  sessions "AD_Geometry_Probe"
+  theories
+    Sync_Algebra
+    Sync_F_Laws

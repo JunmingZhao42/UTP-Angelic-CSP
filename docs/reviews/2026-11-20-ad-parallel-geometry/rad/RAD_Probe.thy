@@ -161,6 +161,99 @@ proof
 qed
 
 
+(* the composite is exactly "wait at the start, offering a": it never diverges and never
+   performs a, so it behaves as a followed by Miracle *)
+lemma rad_sync_angelic_eval:
+  assumes s0: "\<not> rad_wait\<^sub>v s0" and ab: "a \<noteq> b"
+  shows "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
+           (ades_obs True s0 c Z) \<longleftrightarrow>
+         c \<and> (\<exists>y\<in>Z. rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s0 \<and> a \<notin> rad_ref\<^sub>v y)"
+proof
+  assume P: "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
+           (ades_obs True s0 c Z)"
+  from P obtain okL acL okR acR
+    where L: "PrefixSkip_RAD a (ades_obs True s0 okL acL)"
+      and R: "PrefixSkip_RAD a (ades_obs True s0 okR acR)" "PrefixSkip_RAD b (ades_obs True s0 okR acR)"
+      and M: "\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>Z. merge_eval (merge_rdes jsync)
+         \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>"
+    unfolding rad_par_obs RAD_angelic_choice by (auto simp: conj_pred_def inf_fun_def inf_bool_def)
+  from L obtain yL where yL: "yL \<in> acL" "pobs a s0 yL" and okL: okL
+    by (auto simp: PrefixSkip_RAD_obs[OF s0])
+  from R(1) obtain yA where yA: "yA \<in> acR" "pobs a s0 yA"
+    by (auto simp: PrefixSkip_RAD_obs[OF s0])
+  from R(2) obtain yB where yB: "yB \<in> acR" "pobs b s0 yB" and okR: okR
+    by (auto simp: PrefixSkip_RAD_obs[OF s0])
+  (* the left option merges with the right b-option, so it has not moved *)
+  obtain s1 where "s1 \<in> Z" and m1: "merge_eval (merge_rdes jsync) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = True, \<dots> = yL\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = yB\<rparr> \<lparr>ok\<^sub>v = c, \<dots> = s1\<rparr>"
+    using bspec[OF bspec[OF M yL(1)] yB(1)] okL okR by auto
+  from m1[unfolded merge_rdes_started[OF s0]]
+  have c and eqLB: "rad_tr\<^sub>v yL - rad_tr\<^sub>v s0 = rad_tr\<^sub>v yB - rad_tr\<^sub>v s0"
+    by simp_all
+  have incL: "rad_tr\<^sub>v yL - rad_tr\<^sub>v s0 = []"
+    using pobs_diff[OF yL(2)] pobs_diff[OF yB(2)] eqLB ab by auto
+  have wL: "rad_wait\<^sub>v yL" "a \<notin> rad_ref\<^sub>v yL"
+    using yL(2) incL unfolding pobs_def by (auto split: if_splits simp: minus_list_def)
+  (* the left option also merges with the right a-option, giving a waiting state that offers a *)
+  obtain s2 where s2: "s2 \<in> Z" and m2: "merge_eval (merge_rdes jsync) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>
+      \<lparr>ok\<^sub>v = True, \<dots> = yL\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = yA\<rparr> \<lparr>ok\<^sub>v = c, \<dots> = s2\<rparr>"
+    using bspec[OF bspec[OF M yL(1)] yA(1)] okL okR by auto
+  from m2[unfolded merge_rdes_started[OF s0]]
+  have w2: "rad_wait\<^sub>v s2" and le2: "rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s2"
+    and eqLA: "rad_tr\<^sub>v yL - rad_tr\<^sub>v s0 = rad_tr\<^sub>v yA - rad_tr\<^sub>v s0"
+    and out2: "rad_tr\<^sub>v s2 - rad_tr\<^sub>v s0 = rad_tr\<^sub>v yL - rad_tr\<^sub>v s0"
+    and ref2: "rad_ref\<^sub>v s2 = rad_ref\<^sub>v yL \<union> rad_ref\<^sub>v yA"
+    using wL(1) by simp_all
+  have "a \<notin> rad_ref\<^sub>v yA"
+    using yA(2) eqLA incL unfolding pobs_def by (auto split: if_splits simp: minus_list_def)
+  moreover have "rad_tr\<^sub>v s2 = rad_tr\<^sub>v s0"
+    using list_diff_nil[OF le2] out2 incL by simp
+  ultimately show "c \<and> (\<exists>y\<in>Z. rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s0 \<and> a \<notin> rad_ref\<^sub>v y)"
+    using \<open>c\<close> s2 w2 ref2 wL(2) by blast
+next
+  assume "c \<and> (\<exists>y\<in>Z. rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s0 \<and> a \<notin> rad_ref\<^sub>v y)"
+  then obtain w where c and w: "w \<in> Z" "rad_wait\<^sub>v w" "rad_tr\<^sub>v w = rad_tr\<^sub>v s0" "a \<notin> rad_ref\<^sub>v w"
+    by blast
+  (* pair w with a right option that waits at the start and refuses nothing *)
+  let ?y0 = "rea_vars_ext True (rad_tr\<^sub>v s0) {} :: ('a list, 'a) rad_state"
+  have pw: "pobs a s0 w" using w by (simp add: pobs_def)
+  have p0: "pobs a s0 ?y0" "pobs b s0 ?y0" by (simp_all add: pobs_def)
+  have m: "merge_eval (merge_rdes jsync) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = w\<rparr>
+      \<lparr>ok\<^sub>v = True, \<dots> = ?y0\<rparr> \<lparr>ok\<^sub>v = c, \<dots> = w\<rparr>"
+    using w \<open>c\<close> by (simp add: merge_rdes_started[OF s0] minus_list_def)
+  show "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
+           (ades_obs True s0 c Z)"
+    unfolding rad_par_obs RAD_angelic_choice
+    apply (rule exI[where x=True], rule exI[where x="{w}"])
+    apply (rule exI[where x=True], rule exI[where x="{?y0}"])
+    using pw p0 m w(1) s0
+    by (simp add: PrefixSkip_RAD_obs conj_pred_def inf_fun_def inf_bool_def; blast)
+qed
+
+(* a followed by Miracle waits at the start offering a, and has no observation after a *)
+lemma Prefix_RAD_top_obs:
+  assumes s0: "\<not> rad_wait\<^sub>v s0"
+  shows "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D) (ades_obs True s0 c Z) \<longleftrightarrow>
+         c \<and> (\<exists>y\<in>Z. rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s0 \<and> a \<notin> rad_ref\<^sub>v y)"
+  unfolding Prefix_RAD_def angelic_design_seq_def
+  by (auto simp: PrefixSkip_RAD_obs[OF s0] top_RAD_eval pobs_def split: if_splits)
+
+(* so the composite is exactly a followed by Miracle *)
+theorem rad_sync_angelic_miracle:
+  assumes ab: "a \<noteq> b"
+  shows "PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b) =
+         a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D"
+proof (rule RAD_eq_active)
+  show "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b)) is RAD"
+    by (intro rad_par_RAD RAD_angelic_closure PrefixSkip_RAD_is_RAD)
+  show "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D) is RAD"
+    by (rule Prefix_RAD_closure[OF RAD_healthy])
+  show "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
+          (ades_obs True s0 ok' Z) \<longleftrightarrow> (a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D) (ades_obs True s0 ok' Z)"
+    if "\<not> rad_wait\<^sub>v s0" for s0 ok' Z
+    by (simp only: rad_sync_angelic_eval[OF that ab] Prefix_RAD_top_obs[OF that])
+qed
+
 (* the angel cannot use the demon's choice in the other branch either:
    demonic choice against angelic choice is still stuck *)
 lemma rad_sync_demonic_angelic_stuck:
