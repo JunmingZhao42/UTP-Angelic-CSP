@@ -66,11 +66,11 @@ proof (rule ades_obs_ext)
       assume "((P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>D (P' \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q)) (ades_obs ok0 s0 ok' ac')"
       then obtain okL X okR Y okL' X' okR' Y' where
         px: "P (ades_obs True s0 okL X)" and qy: "Q (ades_obs True s0 okR Y)"
-        and f: "\<forall>a\<in>X. \<forall>b\<in>Y. \<exists>s'. merge_eval j s0 a b s'"
-        and h: "okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>a\<in>X. \<forall>b\<in>Y. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and f: "\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'. merge_eval j s0 sL sR s'"
+        and h: "okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')"
         and px': "P' (ades_obs True s0 okL' X')" and qy': "Q (ades_obs True s0 okR' Y')"
-        and f': "\<forall>a\<in>X'. \<forall>b\<in>Y'. \<exists>s'. merge_eval j s0 a b s'"
-        and h': "okL' \<and> okR' \<longrightarrow> ok' \<and> (\<forall>a\<in>X'. \<forall>b\<in>Y'. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and f': "\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'. merge_eval j s0 sL sR s'"
+        and h': "okL' \<and> okR' \<longrightarrow> ok' \<and> (\<forall>sL\<in>X'. \<forall>sR\<in>Y'. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')"
         using True by (simp only: ades_par_eval inf_fun_def inf_bool_def simp_thms) blast
       note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy] ndt[OF nd(2) px'] ndt[OF nd(3) qy']
       have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"
@@ -124,11 +124,11 @@ proof (rule ades_obs_ext)
       assume "((Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) \<squnion>\<^sub>A\<^sub>D (Q \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> P')) (ades_obs ok0 s0 ok' ac')"
       then obtain okR Y okL X okR' Y' okL' X' where
         qy: "Q (ades_obs True s0 okR Y)" and px: "P (ades_obs True s0 okL X)"
-        and f: "\<forall>a\<in>Y. \<forall>b\<in>X. \<exists>s'. merge_eval j s0 a b s'"
-        and h: "okR \<and> okL \<longrightarrow> ok' \<and> (\<forall>a\<in>Y. \<forall>b\<in>X. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and f: "\<forall>sL\<in>Y. \<forall>sR\<in>X. \<exists>s'. merge_eval j s0 sL sR s'"
+        and h: "okR \<and> okL \<longrightarrow> ok' \<and> (\<forall>sL\<in>Y. \<forall>sR\<in>X. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')"
         and qy': "Q (ades_obs True s0 okR' Y')" and px': "P' (ades_obs True s0 okL' X')"
-        and f': "\<forall>a\<in>Y'. \<forall>b\<in>X'. \<exists>s'. merge_eval j s0 a b s'"
-        and h': "okR' \<and> okL' \<longrightarrow> ok' \<and> (\<forall>a\<in>Y'. \<forall>b\<in>X'. \<exists>s'\<in>ac'. merge_eval j s0 a b s')"
+        and f': "\<forall>sL\<in>Y'. \<forall>sR\<in>X'. \<exists>s'. merge_eval j s0 sL sR s'"
+        and h': "okR' \<and> okL' \<longrightarrow> ok' \<and> (\<forall>sL\<in>Y'. \<forall>sR\<in>X'. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')"
         using True by (simp only: ades_par_eval inf_fun_def inf_bool_def simp_thms) blast
       note ok = ndt[OF nd(1) px] ndt[OF nd(3) qy] ndt[OF nd(2) px'] ndt[OF nd(3) qy']
       have T: "P (ades_obs True s0 True X)" "P' (ades_obs True s0 True X')"

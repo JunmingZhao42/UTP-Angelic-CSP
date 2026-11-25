@@ -15,7 +15,7 @@ type_synonym 's ades_merge_rel = "('s ades_mrg, 's achoices des_vars_ext) urel"
 
 abbreviation ades_merge_obs where
   "ades_merge_obs M ok0 s0 okL acL okR acR ok' ac' \<equiv>
-    (\<lambda>(prior,out). merge_eval M prior (ades_output okL acL) (ades_output okR acR) out)
+    (\<lambda>(x,z). merge_eval M x (ades_output okL acL) (ades_output okR acR) z)
       (ades_obs ok0 s0 ok' ac')"
 
 lemma ades_merge_ext:
@@ -45,9 +45,9 @@ definition A0m :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
       \<longrightarrow> M\<lbrakk>\<guillemotleft>False\<guillemotright>/ok\<^sup>>\<rbrakk>))"
 
 lemma A0m_eval:
-  "A0m M = (\<lambda>(m,out).
-     M (m,out) \<and>
-     (des_vars.ok\<^sub>v (mrg_prior\<^sub>v m) \<and> des_vars.ok\<^sub>v out \<and> achoices.ac\<^sub>v (des_vars.more out) = {}
+  "A0m M = (\<lambda>(m,z).
+     M (m,z) \<and>
+     (des_vars.ok\<^sub>v (mrg_prior\<^sub>v m) \<and> des_vars.ok\<^sub>v z \<and> achoices.ac\<^sub>v (des_vars.more z) = {}
        \<longrightarrow> M (m, ades_output False {})))"
   by (rule ades_merge_ext; rename_tac ok0 s0 okL acL okR acR ok' ac';
       case_tac ok'; simp add: A0m_def; pred_auto)
@@ -59,11 +59,11 @@ definition A1m :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
 (* A1m M (m, (ok', ac')) = \<not> ok \<or> (\<exists>Y \<subseteq> ac'. M (m, (False, Y))) \<or>
      (ok' \<and> (\<exists>Y \<subseteq> ac'. M (m, (True, Y)))) *)
 lemma A1m_eval:
-  "A1m M = (\<lambda>(m,out).
-     let ac' = achoices.ac\<^sub>v (des_vars.more out)
+  "A1m M = (\<lambda>(m,z).
+     let ac' = achoices.ac\<^sub>v (des_vars.more z)
      in \<not> des_vars.ok\<^sub>v (mrg_prior\<^sub>v m) \<or>
         (\<exists>Y\<subseteq>ac'. M (m, ades_output False Y)) \<or>
-        (des_vars.ok\<^sub>v out \<and> (\<exists>Y\<subseteq>ac'. M (m, ades_output True Y))))"
+        (des_vars.ok\<^sub>v z \<and> (\<exists>Y\<subseteq>ac'. M (m, ades_output True Y))))"
   by (rule ades_merge_ext; simp add: A1m_def PBMH_ades_def HDm_def Let_def H1m_def H2m_def J_def pbmh_step_def seq_def choices_ex ex_bool_eq;
       pred_auto)
 

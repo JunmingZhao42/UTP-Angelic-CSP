@@ -360,8 +360,8 @@ proof -
   (* started, non-waiting observations preserve termination *)
   let ?G = "\<lambda>x z. des_vars.ok\<^sub>v x \<and> \<not> rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x)) \<longrightarrow> des_vars.ok\<^sub>v z"
   (* the state merge with all termination flags true *)
-  let ?K = "\<lambda>s0 sL sR z. merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>
-    \<lparr>ok\<^sub>v = True, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = z\<rparr>"
+  let ?K = "\<lambda>s0 sL sR s'. merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>
+    \<lparr>ok\<^sub>v = True, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = True, \<dots> = s'\<rparr>"
   have uniq: "u = v" if active: "\<not> rad_wait\<^sub>v s0" and merged: "?K s0 sL sR u" "?K s0 sL sR v"
     for s0 sL sR u v
   proof -
@@ -373,52 +373,52 @@ proof -
     show ?thesis using merged active h
       by (cases u; cases v; auto simp: merge_rdes_eval; metis diff_add_cancel_left')
   qed
-  have cyc: "(\<exists>u. ?K s0 sL sR u \<and> ?K s0 u sT z) = (\<exists>u. ?K s0 sR sT u \<and> ?K s0 u sL z)"
-    if active: "\<not> rad_wait\<^sub>v s0" for s0 sL sR sT z
+  have cyc: "(\<exists>u. ?K s0 sP sQ u \<and> ?K s0 u sR s') = (\<exists>u. ?K s0 sQ sR u \<and> ?K s0 u sP s')"
+    if active: "\<not> rad_wait\<^sub>v s0" for s0 sP sQ sR s'
     using merge_rdes_guard_AssocMerge[OF assoc, unfolded AssocMerge_iff, rule_format,
-      of "\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sL\<rparr>"
-         "\<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sT\<rparr>"
-         "\<lparr>ok\<^sub>v = True, \<dots> = z\<rparr>"] active
+      of "\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sP\<rparr>"
+         "\<lparr>ok\<^sub>v = True, \<dots> = sQ\<rparr>" "\<lparr>ok\<^sub>v = True, \<dots> = sR\<rparr>"
+         "\<lparr>ok\<^sub>v = True, \<dots> = s'\<rparr>"] active
     by (simp add: merge_guard_eval des_vars.splits ex_bool_eq)
   (* the smallest middle set collects the unique first-step results *)
-  have middle: "(\<exists>okU U.
-      (okL \<and> okR \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> okU \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>u\<in>U. ?K s0 sL sR u)) \<and>
-      (okU \<and> okT \<and> U \<noteq> {} \<and> V \<noteq> {} \<and> ok' \<and> (\<forall>u\<in>U. \<forall>sT\<in>V. \<exists>z\<in>ac'. ?K s0 u sT z))) =
-    (okL \<and> okR \<and> okT \<and> ok' \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> V \<noteq> {} \<and>
-      (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<forall>sT\<in>V. \<exists>z\<in>ac'. \<exists>u. ?K s0 sL sR u \<and> ?K s0 u sT z))"
-    (is "?L = ?R") if active: "\<not> rad_wait\<^sub>v s0" for s0 okL okR okT ok' X Y V ac'
+  have middle: "(\<exists>okU acU.
+      (okP \<and> okQ \<and> acP \<noteq> {} \<and> acQ \<noteq> {} \<and> okU \<and> (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<exists>u\<in>acU. ?K s0 sP sQ u)) \<and>
+      (okU \<and> okR \<and> acU \<noteq> {} \<and> acR \<noteq> {} \<and> ok' \<and> (\<forall>u\<in>acU. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. ?K s0 u sR s'))) =
+    (okP \<and> okQ \<and> okR \<and> ok' \<and> acP \<noteq> {} \<and> acQ \<noteq> {} \<and> acR \<noteq> {} \<and>
+      (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. \<exists>u. ?K s0 sP sQ u \<and> ?K s0 u sR s'))"
+    (is "?L = ?R") if active: "\<not> rad_wait\<^sub>v s0" for s0 okP okQ okR ok' acP acQ acR ac'
   proof
     assume ?L then show ?R by blast
   next
     assume r: ?R
-    let ?U = "{u. \<exists>sL\<in>X. \<exists>sR\<in>Y. ?K s0 sL sR u}"
-    have uz: "\<exists>z\<in>ac'. ?K s0 u sT z" if "u \<in> ?U" "sT \<in> V" for u sT
+    let ?acU = "{u. \<exists>sP\<in>acP. \<exists>sQ\<in>acQ. ?K s0 sP sQ u}"
+    have uz: "\<exists>s'\<in>ac'. ?K s0 u sR s'" if "u \<in> ?acU" "sR \<in> acR" for u sR
       using that r uniq[OF active] by blast
-    show ?L by (rule exI[where x=True], rule exI[where x="?U"]) (use r uz in blast)
+    show ?L by (rule exI[where x=True], rule exI[where x="?acU"]) (use r uz in blast)
   qed
   have active_obs: "merge_eval (merge_guard ?G (merge_rad j))
-      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
-    (okL \<and> okR \<and> X \<noteq> {} \<and> Y \<noteq> {} \<and> ok' \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>z\<in>ac'. ?K s0 sL sR z))"
-    if "\<not> rad_wait\<^sub>v s0" for s0 okL X okR Y ok' ac'
+      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') =
+    (okL \<and> okR \<and> acL \<noteq> {} \<and> acR \<noteq> {} \<and> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. ?K s0 sL sR s'))"
+    if "\<not> rad_wait\<^sub>v s0" for s0 okL acL okR acR ok' ac'
     using that
     by (cases okL; cases okR; cases ok';
         simp add: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
   have unstarted_obs: "merge_eval (merge_guard ?G (merge_rad j))
-      \<lparr>ok\<^sub>v = False, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
-    (X \<noteq> {} \<and> Y \<noteq> {} \<and> rad_trace_extensions s0 \<inter> ac' \<noteq> {})"
-    for s0 okL X okR Y ok' ac'
+      \<lparr>ok\<^sub>v = False, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') =
+    (acL \<noteq> {} \<and> acR \<noteq> {} \<and> rad_trace_extensions s0 \<inter> ac' \<noteq> {})"
+    for s0 okL acL okR acR ok' ac'
     by (cases ok'; auto simp: merge_guard_eval rad_lift_merge_obs[simplified]
         merge_rdes_eval rad_trace_extensions_def; blast)
   have waiting_obs: "merge_eval (merge_guard ?G (merge_rad j))
-      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL X) (ades_output okR Y) (ades_output ok' ac') =
-    (X \<noteq> {} \<and> Y \<noteq> {} \<and> ok' \<and> s0 \<in> ac')"
-    if "rad_wait\<^sub>v s0" for s0 okL X okR Y ok' ac'
+      \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') =
+    (acL \<noteq> {} \<and> acR \<noteq> {} \<and> ok' \<and> s0 \<in> ac')"
+    if "rad_wait\<^sub>v s0" for s0 okL acL okR acR ok' ac'
     using that by (auto simp: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
   show ?thesis
     unfolding AssocMerge_iff
     apply (intro allI)
     apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
-    subgoal for ok0 s0 okL X okR Y okT V ok' ac'
+    subgoal for ok0 s0 okP acP okQ acQ okR acR ok' ac'
     proof (cases "ok0 \<and> \<not> rad_wait\<^sub>v s0")
       case True
       then have started: ok0 and active: "\<not> rad_wait\<^sub>v s0" by simp_all

@@ -41,16 +41,16 @@ lemma merge_ades_design_lift:
   by (case_tac "okL \<and> okR"; auto; blast intro: exI[where x=UNIV])
 
 lemma merge_ades_unfold:
-  "merge_ades j = (\<lambda>(m,out).
+  "merge_ades j = (\<lambda>(m,z).
     let s0 = astate.s\<^sub>v (des_vars.more (mrg_prior\<^sub>v m));
         acL = achoices.ac\<^sub>v (des_vars.more (mrg_left\<^sub>v m));
         acR = achoices.ac\<^sub>v (des_vars.more (mrg_right\<^sub>v m));
-        ac' = achoices.ac\<^sub>v (des_vars.more out)
+        ac' = achoices.ac\<^sub>v (des_vars.more z)
     in \<not> des_vars.ok\<^sub>v (mrg_prior\<^sub>v m) \<or>
        (acL \<noteq> {} \<and> acR \<noteq> {} \<and>
         (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'. merge_eval j s0 sL sR s') \<and>
         (des_vars.ok\<^sub>v (mrg_left\<^sub>v m) \<and> des_vars.ok\<^sub>v (mrg_right\<^sub>v m)
-          \<longrightarrow> (des_vars.ok\<^sub>v out \<and>
+          \<longrightarrow> (des_vars.ok\<^sub>v z \<and>
         (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')))))"
   by (rule ades_merge_ext; simp add: merge_ades_obs[simplified] Let_def)
 
@@ -102,53 +102,53 @@ lemma merge_ades_AssocMerge:
   assumes det: "Functional j" and tot: "mergeable j" and assoc: "AssocMerge j"
   shows "AssocMerge (merge_ades j)"
 proof -
-  obtain f where f: "\<And>s p q z. merge_eval j s p q z \<longleftrightarrow> z = f s p q"
+  obtain f where f: "\<And>s sL sR s'. merge_eval j s sL sR s' \<longleftrightarrow> s' = f s sL sR"
     using mergeable_Functional_fun[OF tot det] by blast
-  have fcyc: "f s (f s a b) c = f s (f s b c) a" for s a b c
-    using assoc[unfolded AssocMerge_iff, rule_format, of s a b c "f s (f s a b) c"]
+  have fcyc: "f s (f s sP sQ) sR = f s (f s sQ sR) sP" for s sP sQ sR
+    using assoc[unfolded AssocMerge_iff, rule_format, of s sP sQ sR "f s (f s sP sQ) sR"]
     by (simp add: f)
   (* one cyclic step; three steps return to the start *)
-  have rot: "\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. f s (f s a b) c \<in> Z"
-    if h: "\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. f s (f s a b) c \<in> Z" for s XP XQ XR Z
+  have rot: "\<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<forall>sP\<in>acP. f s (f s sQ sR) sP \<in> Z"
+    if h: "\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. f s (f s sP sQ) sR \<in> Z" for s acP acQ acR Z
   proof (intro ballI)
-    fix a b c assume "a \<in> XQ" "b \<in> XR" "c \<in> XP"
-    then have "f s (f s c a) b \<in> Z" using h by blast
-    then show "f s (f s a b) c \<in> Z" by (metis fcyc)
+    fix sQ sR sP assume "sQ \<in> acQ" "sR \<in> acR" "sP \<in> acP"
+    then have "f s (f s sP sQ) sR \<in> Z" using h by blast
+    then show "f s (f s sQ sR) sP \<in> Z" by (metis fcyc)
   qed
-  have rotate: "(\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. f s (f s a b) c \<in> Z) \<longleftrightarrow>
-      (\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. f s (f s a b) c \<in> Z)" for s XP XQ XR Z
-    using rot[of XP XQ XR s Z] rot[of XQ XR XP s Z] rot[of XR XP XQ s Z] by blast
+  have rotate: "(\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. f s (f s sP sQ) sR \<in> Z) \<longleftrightarrow>
+      (\<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<forall>sP\<in>acP. f s (f s sQ sR) sP \<in> Z)" for s acP acQ acR Z
+    using rot[of acP acQ acR s Z] rot[of acQ acR acP s Z] rot[of acR acP acQ s Z] by blast
   have started:
     "merge_eval (merge_ades j) \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>
         (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') \<longleftrightarrow>
-     acL \<noteq> {} \<and> acR \<noteq> {} \<and> (okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>a\<in>acL. \<forall>b\<in>acR. f s0 a b \<in> ac'))"
+     acL \<noteq> {} \<and> acR \<noteq> {} \<and> (okL \<and> okR \<longrightarrow> ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. f s0 sL sR \<in> ac'))"
     for s0 okL acL okR acR ok' ac'
     by (simp add: merge_ades_obs[simplified] f)
   (* the smallest middle set is the image of the first merge *)
   have middle:
-    "(\<exists>okU U. (XP \<noteq> {} \<and> XQ \<noteq> {} \<and> (okP \<and> okQ \<longrightarrow> okU \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. g a b \<in> U))) \<and>
-        (U \<noteq> {} \<and> XR \<noteq> {} \<and> (okU \<and> okR \<longrightarrow> ok' \<and> (\<forall>a\<in>U. \<forall>b\<in>XR. g a b \<in> Z)))) \<longleftrightarrow>
-     XP \<noteq> {} \<and> XQ \<noteq> {} \<and> XR \<noteq> {} \<and>
-     (okP \<and> okQ \<and> okR \<longrightarrow> ok' \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. g (g a b) c \<in> Z))"
+    "(\<exists>okU acU. (acP \<noteq> {} \<and> acQ \<noteq> {} \<and> (okP \<and> okQ \<longrightarrow> okU \<and> (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. g sP sQ \<in> acU))) \<and>
+        (acU \<noteq> {} \<and> acR \<noteq> {} \<and> (okU \<and> okR \<longrightarrow> ok' \<and> (\<forall>u\<in>acU. \<forall>sR\<in>acR. g u sR \<in> Z)))) \<longleftrightarrow>
+     acP \<noteq> {} \<and> acQ \<noteq> {} \<and> acR \<noteq> {} \<and>
+     (okP \<and> okQ \<and> okR \<longrightarrow> ok' \<and> (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. g (g sP sQ) sR \<in> Z))"
     (is "?L \<longleftrightarrow> ?R")
-    for g :: "'s \<Rightarrow> 's \<Rightarrow> 's" and XP XQ XR Z :: "'s set" and okP okQ okR ok' :: bool
+    for g :: "'s \<Rightarrow> 's \<Rightarrow> 's" and acP acQ acR Z :: "'s set" and okP okQ okR ok' :: bool
   proof
     assume ?L
     then show ?R by blast
   next
     assume r: ?R
-    let ?U = "{g a b | a b. a \<in> XP \<and> b \<in> XQ}"
-    have ne: "?U \<noteq> {}" using r by fastforce
+    let ?acU = "{g sP sQ | sP sQ. sP \<in> acP \<and> sQ \<in> acQ}"
+    have ne: "?acU \<noteq> {}" using r by fastforce
     show ?L
-      by (rule exI[where x="okP \<and> okQ"], rule exI[where x="?U"]) (use r ne in blast)
+      by (rule exI[where x="okP \<and> okQ"], rule exI[where x="?acU"]) (use r ne in blast)
   qed
   show ?thesis
     unfolding AssocMerge_iff
     apply (intro allI)
     apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
-    subgoal for ok0 s0 okP XP okQ XQ okR XR ok' ac'
+    subgoal for ok0 s0 okP acP okQ acQ okR acR ok' ac'
       apply (cases ok0)
-       apply (simp only: choices_ex started middle rotate[of XP XQ XR s0 ac'])
+       apply (simp only: choices_ex started middle rotate[of acP acQ acR s0 ac'])
        apply blast
       by (simp add: choices_ex merge_ades_obs[simplified])
     done
@@ -156,71 +156,71 @@ qed
 
 text \<open>We want associativity for nondivergent operands even when j is partial, so we
   guard the merge to nondivergent branches, as for designs. Then a deterministic j is
-  enough: both merge orders need the merge of a, b and then c to exist and lie in ac'.\<close>
+  enough: both merge orders need the merge of sP, sQ and then sR to exist and lie in ac'.\<close>
 
 lemma merge_ades_guard_AssocMerge:
   fixes j :: "'s merge"
   assumes det: "Functional j" and assoc: "AssocMerge j"
   shows "AssocMerge (merge_guard (\<lambda>x z. des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z) (merge_ades j))"
 proof -
-  have uniq: "u = v" if "merge_eval j s a b u" "merge_eval j s a b v" for s a b u v
+  have uniq: "u = v" if "merge_eval j s sL sR u" "merge_eval j s sL sR v" for s sL sR u v
     using det[unfolded Functional_merge_eval] that by blast
-  have Tcyc: "(\<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z) \<longleftrightarrow>
-      (\<exists>u. merge_eval j s b c u \<and> merge_eval j s u a z)" for s a b c z
+  have Tcyc: "(\<exists>u. merge_eval j s sP sQ u \<and> merge_eval j s u sR s') \<longleftrightarrow>
+      (\<exists>u. merge_eval j s sQ sR u \<and> merge_eval j s u sP s')" for s sP sQ sR s'
     by (rule assoc[unfolded AssocMerge_iff, rule_format])
   (* one cyclic step; three steps return to the start *)
-  have rot: "\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
-    if h: "\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
-    for s XP XQ XR Z
+  have rot: "\<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<forall>sP\<in>acP. \<exists>s'\<in>Z. \<exists>u. merge_eval j s sQ sR u \<and> merge_eval j s u sP s'"
+    if h: "\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<exists>s'\<in>Z. \<exists>u. merge_eval j s sP sQ u \<and> merge_eval j s u sR s'"
+    for s acP acQ acR Z
   proof (intro ballI)
-    fix a b c assume "a \<in> XQ" "b \<in> XR" "c \<in> XP"
-    then have "\<exists>z\<in>Z. \<exists>u. merge_eval j s c a u \<and> merge_eval j s u b z" using h by blast
-    then show "\<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z"
-      using Tcyc[of s c a b] by blast
+    fix sQ sR sP assume "sQ \<in> acQ" "sR \<in> acR" "sP \<in> acP"
+    then have "\<exists>s'\<in>Z. \<exists>u. merge_eval j s sP sQ u \<and> merge_eval j s u sR s'" using h by blast
+    then show "\<exists>s'\<in>Z. \<exists>u. merge_eval j s sQ sR u \<and> merge_eval j s u sP s'"
+      using Tcyc[of s sP sQ sR] by blast
   qed
   have rotate:
-    "(\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z) \<longleftrightarrow>
-     (\<forall>a\<in>XQ. \<forall>b\<in>XR. \<forall>c\<in>XP. \<exists>z\<in>Z. \<exists>u. merge_eval j s a b u \<and> merge_eval j s u c z)"
-    for s XP XQ XR Z
+    "(\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<exists>s'\<in>Z. \<exists>u. merge_eval j s sP sQ u \<and> merge_eval j s u sR s') \<longleftrightarrow>
+     (\<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<forall>sP\<in>acP. \<exists>s'\<in>Z. \<exists>u. merge_eval j s sQ sR u \<and> merge_eval j s u sP s')"
+    for s acP acQ acR Z
     by (rule iffI) (erule rot, erule rot[THEN rot])
   have started:
     "merge_eval (merge_guard (\<lambda>x z. des_vars.ok\<^sub>v x \<longrightarrow> des_vars.ok\<^sub>v z) (merge_ades j))
         \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr>
         (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') \<longleftrightarrow>
-     okL \<and> okR \<and> acL \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>a\<in>acL. \<forall>b\<in>acR. \<exists>z. merge_eval j s0 a b z) \<and>
-     ok' \<and> (\<forall>a\<in>acL. \<forall>b\<in>acR. \<exists>z\<in>ac'. merge_eval j s0 a b z)"
+     okL \<and> okR \<and> acL \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'. merge_eval j s0 sL sR s') \<and>
+     ok' \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. merge_eval j s0 sL sR s')"
     for s0 okL acL okR acR ok' ac'
     by (auto simp: merge_guard_eval merge_ades_obs[simplified])
   (* the middle set holds every result of the first merge *)
   have middle:
-    "(\<exists>okU U.
-        (okP \<and> okQ \<and> XP \<noteq> {} \<and> XQ \<noteq> {} \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<exists>z. merge_eval j s0 a b z) \<and>
-         okU \<and> (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<exists>z\<in>U. merge_eval j s0 a b z)) \<and>
-        (okU \<and> okR \<and> U \<noteq> {} \<and> XR \<noteq> {} \<and> (\<forall>a\<in>U. \<forall>b\<in>XR. \<exists>z. merge_eval j s0 a b z) \<and>
-         ok' \<and> (\<forall>a\<in>U. \<forall>b\<in>XR. \<exists>z\<in>Z. merge_eval j s0 a b z))) \<longleftrightarrow>
-     okP \<and> okQ \<and> okR \<and> XP \<noteq> {} \<and> XQ \<noteq> {} \<and> XR \<noteq> {} \<and> ok' \<and>
-     (\<forall>a\<in>XP. \<forall>b\<in>XQ. \<forall>c\<in>XR. \<exists>z\<in>Z. \<exists>u. merge_eval j s0 a b u \<and> merge_eval j s0 u c z)"
+    "(\<exists>okU acU.
+        (okP \<and> okQ \<and> acP \<noteq> {} \<and> acQ \<noteq> {} \<and> (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<exists>s'. merge_eval j s0 sP sQ s') \<and>
+         okU \<and> (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<exists>u\<in>acU. merge_eval j s0 sP sQ u)) \<and>
+        (okU \<and> okR \<and> acU \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>u\<in>acU. \<forall>sR\<in>acR. \<exists>s'. merge_eval j s0 u sR s') \<and>
+         ok' \<and> (\<forall>u\<in>acU. \<forall>sR\<in>acR. \<exists>s'\<in>Z. merge_eval j s0 u sR s'))) \<longleftrightarrow>
+     okP \<and> okQ \<and> okR \<and> acP \<noteq> {} \<and> acQ \<noteq> {} \<and> acR \<noteq> {} \<and> ok' \<and>
+     (\<forall>sP\<in>acP. \<forall>sQ\<in>acQ. \<forall>sR\<in>acR. \<exists>s'\<in>Z. \<exists>u. merge_eval j s0 sP sQ u \<and> merge_eval j s0 u sR s')"
     (is "?L \<longleftrightarrow> ?R")
-    for s0 XP XQ XR Z okP okQ okR ok'
+    for s0 acP acQ acR Z okP okQ okR ok'
   proof
     assume ?L
     then show ?R by blast
   next
     assume r: ?R
-    let ?U = "{u. \<exists>a\<in>XP. \<exists>b\<in>XQ. merge_eval j s0 a b u}"
-    have uz: "\<exists>z\<in>Z. merge_eval j s0 u c z" if "u \<in> ?U" "c \<in> XR" for u c
+    let ?acU = "{u. \<exists>sP\<in>acP. \<exists>sQ\<in>acQ. merge_eval j s0 sP sQ u}"
+    have uz: "\<exists>s'\<in>Z. merge_eval j s0 u sR s'" if "u \<in> ?acU" "sR \<in> acR" for u sR
       using that r uniq by blast
     show ?L
-      by (rule exI[where x=True], rule exI[where x="?U"]) (use r uz in blast)
+      by (rule exI[where x=True], rule exI[where x="?acU"]) (use r uz in blast)
   qed
   show ?thesis
     unfolding AssocMerge_iff
     apply (intro allI)
     apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
-    subgoal for ok0 s0 okP XP okQ XQ okR XR ok' ac'
+    subgoal for ok0 s0 okP acP okQ acQ okR acR ok' ac'
       apply (cases ok0)
        apply (simp only: choices_ex started middle
-          rotate[where s=s0 and XP=XP and XQ=XQ and XR=XR and Z=ac'])
+          rotate[where s=s0 and acP=acP and acQ=acQ and acR=acR and Z=ac'])
        apply blast
       by (simp add: choices_ex merge_guard_eval merge_ades_obs[simplified])
     done
