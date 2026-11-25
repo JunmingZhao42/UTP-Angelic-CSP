@@ -17,6 +17,91 @@ lemma rad_par_comm:
   shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q = Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P"
   by (rule par_by_merge_comm[OF rad_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF assms]]])
 
+subsection \<open>Zero laws\<close>
+
+(* As for RD, Miracle has no active observation and RAD fixes the inactive
+   ones, so we need no A2 premise:
+     P \<parallel>RAD[j] \<top>RAD = \<top>RAD *)
+lemma rad_par_miracle:
+  fixes P :: "('t::trace, 'e) reactive_angelic_design" and j :: "('t \<times> 'e set) merge"
+  assumes "P is RAD"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D = \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D"
+        "\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P = \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D"
+  by (rule RAD_eq_active, simp_all add: assms rad_par_RAD RAD_healthy rad_par_eval top_RAD_eval)+
+
+(* As for RD, we need P to have an observation at the prior trace, here through
+   its CSP image, and j to merge empty traces; we need no A2 premise:
+     (ac2p P \<and> tr' = tr) is H4 \<Longrightarrow> P \<parallel>RAD[j] Chaos_RAD = Chaos_RAD *)
+lemma rad_par_chaos:
+  fixes P :: "('t::trace, 'e) reactive_angelic_design" and j :: "('t \<times> 'e set) merge"
+  assumes rad: "P is RAD"
+      and stop: "(ac2p P \<and> ($tr\<^sup>> = $tr\<^sup><)\<^sub>e) is H4"
+      and empty: "\<And>s sL sR. \<exists>s'. merge_eval j (0, s) (0, sL) (0, sR) (0, s')"
+  shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Chaos\<^sub>R\<^sub>A\<^sub>D = Chaos\<^sub>R\<^sub>A\<^sub>D"
+        "Chaos\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P = Chaos\<^sub>R\<^sub>A\<^sub>D"
+proof -
+  have upper: "Chaos\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' Z)"
+    if "X (ades_obs ok0 s0 ok' Z)" "X is RAD"
+    for X :: "('t, 'e) reactive_angelic_design" and ok0 s0 ok' Z
+    using bottom_RAD_lower[OF that(2)] that(1) unfolding Chaos_RAD_RAD pred_refine_iff by blast
+  have par: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Chaos\<^sub>R\<^sub>A\<^sub>D) is RAD" "(Chaos\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) is RAD"
+    by (simp_all add: rad_par_RAD rad Chaos_RAD_is_RAD)
+  have h4: "\<exists>p. Q (x, p) \<and> tr\<^sub>v p = tr\<^sub>v x"
+    if "(Q \<and> ($tr\<^sup>> = $tr\<^sup><)\<^sub>e) is H4" for Q :: "('t, 'e set) rp_hrel" and x
+    using fun_cong[OF is_H4_alt_def[THEN iffD1, OF that], of "(x, x)"]
+    by (simp add: seq_def true_pred_def; pred_simp; blast)
+  (* at an active prior, P has a singleton choice at the prior trace *)
+  have active: "\<exists>okL sL. P (ades_obs True s0 okL {sL}) \<and> rad_tr\<^sub>v sL = rad_tr\<^sub>v s0" for s0
+  proof -
+    obtain p where p: "ac2p P (\<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>, p)"
+        "tr\<^sub>v p = tr\<^sub>v \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr>"
+      using h4[OF stop] by blast
+    obtain c z where pz: "p = \<lparr>ok\<^sub>v = c, \<dots> = z\<rparr>"
+      by (cases p rule: des_vars.cases_scheme)
+    have "P (ades_obs True s0 c {z})"
+      using p(1) unfolding pz by (simp only: ac2p_healthy_obs[OF RAD_is_PBMH_ades[OF rad]])
+    moreover have "rad_tr\<^sub>v z = rad_tr\<^sub>v s0"
+      using p(2) unfolding pz by (cases c) simp_all
+    ultimately show ?thesis by blast
+  qed
+  have lower: "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Chaos\<^sub>R\<^sub>A\<^sub>D) (ades_obs True s0 ok' Z) \<and>
+      (Chaos\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) (ades_obs True s0 ok' Z)"
+    if act: "\<not> rad_wait\<^sub>v s0" and chaos0: "Chaos\<^sub>R\<^sub>A\<^sub>D (ades_obs True s0 ok' Z)" for s0 ok' Z
+  proof -
+    obtain s' where s': "s' \<in> Z" "rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s'"
+      using chaos0 act by (auto simp: Chaos_RAD_eval)
+    obtain okL sL where p: "P (ades_obs True s0 okL {sL})" "rad_tr\<^sub>v sL = rad_tr\<^sub>v s0"
+      using active by blast
+    obtain e e' where
+      e: "merge_eval j (0, rad_ref\<^sub>v s0) (0, rad_ref\<^sub>v sL) (0, rad_ref\<^sub>v s0) (0, e)" and
+      e': "merge_eval j (0, rad_ref\<^sub>v s0) (0, rad_ref\<^sub>v s0) (0, rad_ref\<^sub>v sL) (0, e')"
+      using empty by blast
+    have q: "Chaos\<^sub>R\<^sub>A\<^sub>D (ades_obs True s0 False {s0})"
+      using act by (simp add: Chaos_RAD_eval)
+    have m1: "merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
+        \<lparr>ok\<^sub>v = False, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>"
+      using act s'(2) p(2) e
+      by (cases okL; cases ok'; simp add: merge_rdes_eval; blast intro: least_zero)
+    have m2: "merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = False, \<dots> = s0\<rparr>
+        \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>"
+      using act s'(2) p(2) e'
+      by (cases okL; cases ok'; simp add: merge_rdes_eval; blast intro: least_zero)
+    have "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Chaos\<^sub>R\<^sub>A\<^sub>D) (ades_obs True s0 ok' Z)"
+      unfolding rad_par_eval
+      by (rule exI[of _ okL], rule exI[of _ "{sL}"], rule exI[of _ False], rule exI[of _ "{s0}"])
+         (use p(1) q s'(1) m1 in blast)
+    moreover have "(Chaos\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P) (ades_obs True s0 ok' Z)"
+      unfolding rad_par_eval
+      by (rule exI[of _ False], rule exI[of _ "{s0}"], rule exI[of _ okL], rule exI[of _ "{sL}"])
+         (use p(1) q s'(1) m2 in blast)
+    ultimately show ?thesis by blast
+  qed
+  show "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Chaos\<^sub>R\<^sub>A\<^sub>D = Chaos\<^sub>R\<^sub>A\<^sub>D"
+       "Chaos\<^sub>R\<^sub>A\<^sub>D \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P = Chaos\<^sub>R\<^sub>A\<^sub>D"
+    by (rule RAD_eq_active, rule par, rule Chaos_RAD_is_RAD,
+        rule iffI, erule upper, rule par, use lower in blast)+
+qed
+
 text \<open>Associativity of the lifted merge transfers from the ordinary
   nondivergent law through @{const p2ac}. The premises on @{term M} are those of
   @{thm [source] par_by_merge_assoc_NDRD}.\<close>

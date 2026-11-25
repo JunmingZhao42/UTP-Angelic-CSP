@@ -152,9 +152,9 @@ Additional round-trip support: [`rad_p2ac_ac2p_A2_form`](../../reactive-angelic-
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d40"></a>**D40** / D120 | Choice | — | [`Choice_RAD`](../../reactive-angelic-designs/utp_rad_choice.thy#L265) |
-| <a id="t26"></a>**T26** / T.5.4.13 | Angelic choice with Choice | P is RAD | [`Choice_RAD_angelic_choice`](../../reactive-angelic-designs/utp_rad_choice.thy#L320) |
-| <a id="t27"></a>**T27** / T.5.4.14 | Demonic choice with Choice | P is RAD | [`Choice_RAD_demonic_choice`](../../reactive-angelic-designs/utp_rad_choice.thy#L355) |
+| <a id="d40"></a>**D40** / D120 | Choice | — | [`Choice_RAD`](../../reactive-angelic-designs/utp_rad_choice.thy#L330) |
+| <a id="t26"></a>**T26** / T.5.4.13 | Angelic choice with Choice | P is RAD | [`Choice_RAD_angelic_choice`](../../reactive-angelic-designs/utp_rad_choice.thy#L385) |
+| <a id="t27"></a>**T27** / T.5.4.14 | Demonic choice with Choice | P is RAD | [`Choice_RAD_demonic_choice`](../../reactive-angelic-designs/utp_rad_choice.thy#L420) |
 
 ### §6.4.5 Stop
 

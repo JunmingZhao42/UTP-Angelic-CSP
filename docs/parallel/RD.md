@@ -168,7 +168,7 @@ The lifted merge inherits these properties:
 | --- | --- | --- |
 | `ORDm` | - | [`merge_rdes_ORDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L124) |
 | `R1m`, `R2m`, `R3cm`, `RD1m`, `RD2` | - | [`merge_rdes_healths`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L127) |
-| `NDRDm` | - | [`merge_rdes_NDRDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L243) |
+| `NDRDm` | - | [`merge_rdes_NDRDm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L293) |
 | `SymMerge` | `SymMerge` | [`merge_rdes_SymMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L159) |
 | `merge_rdes j ⊑ merge_rdes k` | `j ⊑ k` | [`merge_rdes_mono`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L137) |
 
@@ -184,20 +184,22 @@ Its algebraic laws:
 | Law | Operand premises | Premises on `j` | Lemma |
 | --- | --- | --- | --- |
 | `P ∥RD[j] Q = Q ∥RD[j] P` | - | `SymMerge` | [`rdes_lift_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L205) |
-| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `RD`, `NDRD` | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L267) |
-| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `NRD` | `SymMerge`, `AssocMerge`, absorbing | [`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L284) |
+| `P ∥RD[j] ⊤RD =`<br>`⊤RD ∥RD[j] P = ⊤RD` | `P is RD` | - | [`rdes_lift_parallel_miracle`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L218) |
+| `P ∥RD[j] ⊥RD =`<br>`⊥RD ∥RD[j] P = ⊥RD` | `P is RD`, `(P ∧ tr' = tr) is H4` | merges empty traces | [`rdes_lift_parallel_chaos`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L228) |
+| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `RD`, `NDRD` | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L317) |
+| `(P ∥RD[j] Q) ∥RD[j] R =`<br>`P ∥RD[j] (Q ∥RD[j] R)` | All `NRD` | `SymMerge`, `AssocMerge`, absorbing | [`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L334) |
 
 Completion can extend a divergent intermediate trace, so `merge_rdes j` is
 not associative in general. The uncompleted merge is associative when
 `AssocMerge j`
-([`ORDm_merge_rdes_raw_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L215));
+([`ORDm_merge_rdes_raw_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L265));
 the completed merge retains this property under `G_RD`
-([`merge_rdes_guard_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L252)).
+([`merge_rdes_guard_AssocMerge`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L302)).
 For RD operands, [`NDRD_healthy_iff`](../../deps/UTP-Reactive-Designs/utp_rdes_triples.thy#L745)
 equates `NDRD` with `pre_R P = true_r`: these operands never diverge from an
 active prior.
 
-[`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L284)
+[`rdes_lift_parallel_assoc_nrd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L334)
 allows divergence for normal operands
 ([`NRD`](../../deps/UTP-Reactive-Designs/utp_rdes_normal.thy#L157)), which allow every
 extension after a divergence. Completion lets a divergent intermediate result end with
@@ -215,6 +217,37 @@ with exclusive or on time traces, `P` diverging at time 1 and `Q`, `R` terminati
 time 1, `(P ∥ Q) ∥ R` can terminate at time 0 but `P ∥ (Q ∥ R)` cannot. A synchronising
 merge fails as well: if `Q` terminates at `⟨⟩` and `R` diverges after `⟨a⟩`, then
 `Q ∥ R` has no observation while `(P ∥ Q) ∥ R` has one.
+
+Here Miracle and Chaos are the top and bottom of RD,
+[`top_RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L659) `⊤RD = RD false` and
+[`bottom_RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L656) `⊥RD = RD true`; the upstream `Miracle` and
+`Chaos` are their SRD versions. Both zero-law proofs use `RD_eq_active`: every RD process lies
+between `⊥RD` and `⊤RD`, which agree at unstarted and waiting priors, so only active priors need checking.
+
+
+| Fact | Premises | Lemma |
+| --- | --- | --- |
+| `⊥RD = R(false ⊢ true)` | - | [`bottom_RD_design`](../../deps/UTP-Reactive-Designs/utp_rdes_designs.thy#L150) |
+| `⊤RD = R(true ⊢ false)` | - | [`top_RD_design`](../../deps/UTP-Reactive-Designs/utp_rdes_designs.thy#L154) |
+| `⊥RD = (¬(ok ∧ wait) ∧ tr ≤ tr') ∨ (ok ∧ wait ∧ II)` | - | [`bottom_RD_eval`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L691) |
+| `⊤RD = (¬ok ∧ tr ≤ tr') ∨ (ok ∧ wait ∧ II)` | - | [`top_RD_eval`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L698) |
+| `⊥RD is RD`, `⊤RD is RD` | - | [`bottom_RD_is_RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L662), [`top_RD_is_RD`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L665) |
+| `⊥RD ⊑ P` | `P is RD` | [`bottom_RD_lower`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L668) |
+| `P ⊑ ⊤RD` | `P is RD` | [`top_RD_upper`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L678) |
+| `P = Q` if they agree at every active prior (`ok ∧ ¬wait`) | `P`, `Q` both `RD` | [`RD_eq_active`](../../deps/UTP-Reactive-Designs/utp_rdes_healths.thy#L706) |
+
+Feasibility is not enough for the Chaos law, unlike D. Chaos diverges at the prior trace, but the output must still
+extend the trace that `j` merges. So `P` needs an observation at the prior trace, and
+`j` must merge empty traces into an empty trace:
+
+```isabelle
+(P ∧ tr' = tr) is H4
+∀s sL sR. ∃s'. j((0,s), (0,sL), (0,sR), (0,s'))
+```
+
+With interleaving, a `P` that must perform an event first gives a parallel that cannot
+end at the prior trace. Waiting, terminating or diverging at once all qualify; the
+Circus Chaos law asks for the same through CACC ([related work](related-work.md)).
 
 ### Correspondence with upstream RD parallel
 

@@ -49,7 +49,7 @@ generic criterion is available, keep the specialised theorem and record the gap.
 | 3 | Dropped | D → RD embedding; not pursued (5 November 2026). |
 | 4 | Optional research | Broader RD associativity for divergent operands. |
 | 5a–b | Complete | Flat RD/RAD correspondence, lifted merge healthiness and closure. |
-| 5c | Partial | Commutativity and scoped associativity proved; qualified Chaos and Miracle laws remain to assess. |
+| 5c | Complete | Commutativity, scoped associativity, and Chaos and Miracle laws proved. |
 | 5d | Optional research | Transfer a broader Stage 4 associativity result if one is pursued. |
 | 6 | Pending | AP specialisation can use 5a–b; broader associativity depends on 5d. |
 | Off A2 | Active | AD and RAD laws for operands with angelic choice. |
@@ -165,8 +165,10 @@ round trip between flat RD and RAD ∩ A2 uses `rad_ac2p_p2ac_inverse`,
 CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
 [RAD guide](docs/parallel/RAD.md).
 
-- [ ] 5c: assess whether the selected operator needs qualified Chaos and Miracle
-  laws; retain the exact operand, merge and feasibility premises in any result.
+- [x] 5c: Chaos and Miracle laws for `∥RD[j]` and `∥RAD[j]`, the RAD ones off A2
+  (`rdes_lift_parallel_miracle`, `rdes_lift_parallel_chaos`, `rad_par_miracle`,
+  `rad_par_chaos`). Chaos needs an operand observation at the prior trace and a
+  merge of empty traces; see the [RD guide](docs/parallel/RD.md).
 - [ ] 5d: if Stage 4 establishes a broader ordinary RD law, transfer it through
   `rad_par_form` at the corresponding RAD/A2 operand scope. Not a prerequisite
   for AP.
@@ -194,6 +196,5 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
 
 - Stage 0b: where generic par-by-merge lemmas should live.
 - Stage 4: whether associativity beyond NDRD operands is needed.
-- Stage 5c: whether qualified Chaos and Miracle laws are needed for the selected merge.
 - Stage 6: whether angelic choice should cooperate with a synchronising partner; the choice-set lift itself is canonical.
 - Off A2: which geometry-review results to install.

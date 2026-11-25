@@ -259,6 +259,71 @@ proof -
     by (simp add: RA_disj[symmetric])
 qed
 
+(* RAD Chaos is the image of RD Chaos: Chaos_RAD = p2ac \<bottom>RD *)
+lemma Chaos_RAD_p2ac:
+  "(Chaos\<^sub>R\<^sub>A\<^sub>D :: ('t::trace, 'e) reactive_angelic_design) = p2ac \<^bold>\<bottom>\<^sub>R\<^sub>D"
+proof (rule ref_antisym)
+  show "Chaos\<^sub>R\<^sub>A\<^sub>D \<sqsubseteq> p2ac (\<^bold>\<bottom>\<^sub>R\<^sub>D :: ('t, 'e set) rp_hrel)"
+    unfolding Chaos_RAD_RAD by (rule bottom_RAD_lower[OF rad_p2ac_RD_closure[OF bottom_RD_is_RD]])
+  have ne: "(ac_non_empty \<and> RAD true) = (RAD true :: ('t, 'e) reactive_angelic_design)"
+    by (simp only: RAD_def comp_apply RA_ac_non_empty_absorb)
+  have "RAD ac_non_empty \<sqsubseteq> RAD (ac_non_empty \<and> RAD true :: ('t, 'e) reactive_angelic_design)"
+    by (rule RAD_mono) pred_auto
+  then show "p2ac (\<^bold>\<bottom>\<^sub>R\<^sub>D :: ('t, 'e set) rp_hrel) \<sqsubseteq> Chaos\<^sub>R\<^sub>A\<^sub>D"
+    by (simp only: rad_p2ac_RD p2ac_true ne RAD_idem Chaos_RAD_RAD)
+qed
+
+(* Chaos keeps a waiting prior and otherwise offers any choice set that extends
+   the trace:
+     Chaos_RAD = \<exists>s'\<in>ac'. (\<not>(ok \<and> wait) \<and> tr \<le> tr') \<or> (ok \<and> wait \<and> ok' \<and> s' = s) *)
+lemma Chaos_RAD_eval:
+  "(Chaos\<^sub>R\<^sub>A\<^sub>D :: ('t::trace, 'e) reactive_angelic_design) (ades_obs ok0 s0 ok' Z) \<longleftrightarrow>
+    (\<exists>s'\<in>Z. (\<not> (ok0 \<and> rad_wait\<^sub>v s0) \<and> rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s') \<or>
+      (ok0 \<and> rad_wait\<^sub>v s0 \<and> ok' \<and> s' = s0))"
+  by (cases ok0; cases ok'; simp add: Chaos_RAD_p2ac rad_p2ac_obs bottom_RD_eval)
+
+(* Miracle has no started observation:
+     \<top>RAD = \<exists>s'\<in>ac'. (\<not>ok \<and> tr \<le> tr') \<or> (ok \<and> wait \<and> ok' \<and> s' = s) *)
+lemma top_RAD_eval:
+  "(\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D :: ('t::trace, 'e) reactive_angelic_design) (ades_obs ok0 s0 ok' Z) \<longleftrightarrow>
+    (\<exists>s'\<in>Z. (\<not> ok0 \<and> rad_tr\<^sub>v s0 \<le> rad_tr\<^sub>v s') \<or> (ok0 \<and> rad_wait\<^sub>v s0 \<and> ok' \<and> s' = s0))"
+proof -
+  have "(\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D :: ('t, 'e) reactive_angelic_design) = p2ac \<^bold>\<top>\<^sub>R\<^sub>D"
+    by (simp only: rad_p2ac_RD p2ac_false)
+  then show ?thesis
+    by (cases ok0; cases ok'; simp add: rad_p2ac_obs top_RD_eval)
+qed
+
+(* As for RD, RAD fixes the unstarted and waiting priors, so we compare RAD
+   processes at the active priors only *)
+lemma RAD_eq_active:
+  fixes P Q :: "('t::trace, 'e) reactive_angelic_design"
+  assumes "P is RAD" "Q is RAD"
+      and "\<And>s0 ok' Z. \<not> rad_wait\<^sub>v s0 \<Longrightarrow>
+        P (ades_obs True s0 ok' Z) \<longleftrightarrow> Q (ades_obs True s0 ok' Z)"
+  shows "P = Q"
+proof (rule ades_obs_ext)
+  fix ok0 s0 ok' Z
+  have bounds: "\<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' Z) \<Longrightarrow> X (ades_obs ok0 s0 ok' Z)"
+      "X (ades_obs ok0 s0 ok' Z) \<Longrightarrow> Chaos\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' Z)"
+    if "X is RAD" for X :: "('t, 'e) reactive_angelic_design"
+    using top_RAD_upper[OF that] bottom_RAD_lower[OF that]
+    unfolding Chaos_RAD_RAD pred_refine_iff by blast+
+  show "P (ades_obs ok0 s0 ok' Z) = Q (ades_obs ok0 s0 ok' Z)"
+  proof (cases "ok0 \<and> \<not> rad_wait\<^sub>v s0")
+    case True
+    then show ?thesis
+      using assms(3)[of s0 ok' Z] by simp
+  next
+    (* elsewhere P and Q lie between Chaos and Miracle, which agree there *)
+    case False
+    then have "Chaos\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' Z) \<longleftrightarrow> \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D (ades_obs ok0 s0 ok' Z)"
+      by (cases ok0) (simp_all add: Chaos_RAD_eval top_RAD_eval)
+    then show ?thesis
+      using bounds[OF assms(1)] bounds[OF assms(2)] by blast
+  qed
+qed
+
 subsection \<open>Choice\<close>
 
 (* Paper Definition 40. *)
