@@ -177,18 +177,11 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
 
 - [ ] Transfer associativity to AP at the scope available from 5c; pursue a
   broader law only if 5d supplies one.
-- [ ] Decide how angelic choice should behave against a synchronising partner.
-  The shared choice-set lift needs a merge for every pair of kept-open
-  alternatives, so with a synchronising RAD merge
-  `(a→Skip) ∥ ((a→Skip) ⊔ (b→Skip))` never progresses past the choice, and an
-  AD equality merge makes the analogous composition infeasible. The lift is
-  canonical under the [shared admissibility conditions](docs/parallel/AD.md#shared-choice-set-canonicity),
-  so no such lift avoids the blocking or gives the blind
-  product. Options: keep the lift and document that angelic choice does not
-  cooperate with synchronisation (use external choice for that); change angelic
-  choice at the process level; or drop up-closure for parallel operands. Check AP
-  and waiting priors before deciding. See the
-  [geometry review](docs/reviews/2026-11-20-ad-parallel-geometry/README.md).
+- [ ] Research (deferred, not a prerequisite): prove associativity of the least
+  monotone parallel F, the join of `g ∥RAD[j] h` over A2 processes below the
+  operands, first for functional and then for relational merges. Production keeps
+  the lift; see the [RAD guide](docs/parallel/RAD.md#angelic-choice-against-a-synchronising-partner)
+  and the [comparison of candidate algebras](docs/reviews/2026-11-25-angelic-sync-algebra/README.md).
 - [ ] Update the guides: label the A2 laws as the ordinary fragment, add an
   off-A2 table for RAD, and retire superseded historical notes.
 
@@ -196,5 +189,4 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
 
 - Stage 0b: where generic par-by-merge lemmas should live.
 - Stage 4: whether associativity beyond NDRD operands is needed.
-- Stage 6: whether angelic choice should cooperate with a synchronising partner; the choice-set lift itself is canonical.
 - Off A2: which geometry-review results to install.

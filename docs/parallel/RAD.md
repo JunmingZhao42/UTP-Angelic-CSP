@@ -172,6 +172,34 @@ specialise directly to RAD's trace, waiting and refusal alphabet. In particular,
 It needs no operand healthiness or A2 premise. Its comparison
 premises do not assert RAD closure of parallel with the arbitrary merge `M`.
 
+## Angelic choice against a synchronising partner
+
+The lift merges every pair of kept-open alternatives before the angel picks, so
+an alternative the partner cannot match still blocks. With `jsync`, which
+synchronises on every event, and `a ≠ b`
+([`rad_sync_angelic_miracle`](../reviews/2026-11-20-ad-parallel-geometry/rad/RAD_Probe.thy#L242)):
+
+```isabelle
+PrefixSkip_RAD a ∥RAD[jsync] (PrefixSkip_RAD a ⊔RAD PrefixSkip_RAD b) = a →RAD ⊤RAD
+```
+
+By [canonicity](#canonicity), no admissible lift avoids this. Use external choice
+for a choice the partner resolves: in CSP, `a→Skip ∥ (a→Skip □ b→Skip) = a→Skip`.
+
+No definition that keeps `⊔` a join gives `a→Skip` here. A parallel that is
+monotone and agrees with `a→Skip ∥RAD[jsync] b→Skip` cannot
+([`sync_no_strong_cooperation`](../reviews/2026-11-25-angelic-sync-algebra/Sync_Algebra.thy#L159)).
+The least monotone parallel that agrees with RAD parallel on RAD and A2 operands is
+the join of `g ∥RAD[j] h` over A2 processes `g ⊑ P` and `h ⊑ Q`
+([`rad_par_F_least`](../reviews/2026-11-25-angelic-sync-algebra/Sync_Algebra.thy#L310)).
+It lies below the lift, and here it gives `a→Skip ⊔ Stop` (by brute force;
+[`rad_par_F_cooperates`](../reviews/2026-11-25-angelic-sync-algebra/Sync_Algebra.thy#L391)
+proves that it differs from the lift). It is not par-by-merge
+and does not distribute over `⊓` off A2. The
+[comparison of candidate algebras](../reviews/2026-11-25-angelic-sync-algebra/README.md)
+has its laws; its associativity is an open research item in the
+[plan](../../PLAN.md#stage-6--ap-and-documentation).
+
 ## ac2p/p2ac mapping laws
 
 These instantiate the generic correspondence with `M = merge_rdes j`:

@@ -45,6 +45,20 @@ There is no operand healthiness or A2 premise. This compares operators
 transported through RAD; it does not characterise arbitrary AP parallel
 operators or establish AP closure of the comparison operator.
 
+## Angelic choice against a synchronising partner
+
+`H1` leaves a started prior unchanged
+([`ap_par_started`](../reviews/2026-11-20-ad-parallel-geometry/ap/AP_Probe.thy#L9)),
+so AP inherits the [RAD behaviour](RAD.md#angelic-choice-against-a-synchronising-partner).
+With `a ≠ b`
+([`ap_sync_angelic_miracle`](../reviews/2026-11-20-ad-parallel-geometry/ap/AP_Probe.thy#L105)):
+
+```isabelle
+PrefixSkip_AP a ∥AP[jsync] (PrefixSkip_AP a ⊔AP PrefixSkip_AP b) = a →AP ⊤AP
+```
+
+It differs from the RAD result only at unstarted priors, where `H1` allows anything.
+
 ## Algebraic properties
 
 [`ap_par_mono`](../../angelic-processes/utp_ap_parallel.thy#L96) gives monotonicity. [`ap_par_comm`](../../angelic-processes/utp_ap_parallel.thy#L103) gives commutativity when

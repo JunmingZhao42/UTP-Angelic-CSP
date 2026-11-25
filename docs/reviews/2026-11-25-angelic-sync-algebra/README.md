@@ -31,6 +31,9 @@ results come from the [geometry review](../2026-11-20-ad-parallel-geometry/READM
   Do not pursue minimal sets (a), giving up (c) or `H` (f): (a) and (c) break
   monotonicity, and `H` loses both distributivities. Roscoe's choice (d) cooperates,
   but it is not a join, and the paper notes that it ignores divergence.
+- **Decision (2026-11-25):** production keeps the lift and documents the
+  behaviour in the [RAD guide](../../parallel/RAD.md#angelic-choice-against-a-synchronising-partner).
+  Associativity of F stays open as a deferred research item.
 
 ## Setting
 
