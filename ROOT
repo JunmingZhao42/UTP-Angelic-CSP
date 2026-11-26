@@ -40,15 +40,19 @@ session "UTP-Reactive-Angelic-Designs" in "reactive-angelic-designs" = "UTP-Ange
     utp_rad_nd
     utp_rad
 
-session "UTP-Angelic-CSP" = "UTP-Reactive-Angelic-Designs" +
+session "UTP-Angelic-CSP" in "angelic-processes" = "UTP-Reactive-Angelic-Designs" +
   options [document = false]
-  directories "angelic-processes"
   theories
-    "angelic-processes/utp_ap_healthy"
-    "angelic-processes/utp_ap_rad"
-    "angelic-processes/utp_ap_ops"
-    "angelic-processes/utp_ap_seq"
-    "angelic-processes/utp_ap_nd"
-    "angelic-processes/utp_ap_parallel"
-    "angelic-processes/utp_ap_examples"
-    Angelic_CSP
+    utp_ap_healthy
+    utp_ap_rad
+    utp_ap_ops
+    utp_ap_seq
+    utp_ap_prefix
+    utp_ap_nd
+    utp_ap_parallel_merge
+    utp_ap_parallel_laws
+    utp_ap_parallel_lifted_merge
+    utp_ap_parallel_operator
+    utp_ap_parallel_algebra
+    utp_ap_examples
+    utp_ap

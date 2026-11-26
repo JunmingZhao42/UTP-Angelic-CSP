@@ -33,11 +33,21 @@ lemma II_AP_is_PBMH_ades [closure]: "II_AP is PBMH_ades"
   by (simp add: Healthy_def' II_AP_design PBMH_ades_def design_def
       fun_eq_iff; pred_auto; blast)
 
+lemma II_AP_obs:
+  "II_AP (ades_obs ok0 s0 ok' Z) \<longleftrightarrow> (\<not> ok0 \<or> (ok' \<and> s0 \<in> Z))"
+  by (simp add: II_AP_def H1_def ades_state_choice_def; pred_auto)
+
 subsection \<open>RA3AP: Waiting\<close>
 
 (* Paper Definition 48: RA3AP (P) = II_AP \<triangleleft> s.wait \<triangleright> P. *)
 definition RA3AP :: "('t::trace, 'e) angelic_process \<Rightarrow> ('t, 'e) angelic_process" where
 [pred]: "RA3AP P = (II_AP \<triangleleft> $rad_wait_lens\<^sup>< \<triangleright> P)"
+
+lemma RA3AP_eval:
+  "RA3AP P (x, z) \<longleftrightarrow>
+   (if rad_wait\<^sub>v (astate.s\<^sub>v (des_vars.more x)) then II_AP (x, z) else P (x, z))"
+  by (simp add: RA3AP_def expr_if_def SEXP_def lens_defs
+      rad_wait_def astate.s_def des_vars.more\<^sub>L_def)
 
 lemma RA3AP_idem: "RA3AP (RA3AP P) = RA3AP P"
   by (simp add: RA3AP_def)
@@ -415,6 +425,32 @@ lemma AP_is_H:
   shows "P is \<^bold>H"
   using AP_H_healthy[of P]
   by (simp only: Healthy_def' Healthy_if[OF assms])
+
+lemma AP_is_RA2:
+  assumes "P is AP"
+  shows "P is RA2"
+proof -
+  have "RA2 (AP P) = AP P"
+    by (simp only: AP_def comp_apply RA2_RA3AP_commute[simplified comp_apply] RA2_idem)
+  then show ?thesis
+    using assms by (simp add: Healthy_def')
+qed
+
+lemma AP_unstarted_obs:
+  assumes "P is AP"
+  shows "P (ades_obs False s0 c X)"
+  using H1_healthy_obs_iff[THEN iffD1, OF H_implies_H1[OF AP_is_H[OF assms]]] by blast
+
+lemma AP_wait_obs:
+  assumes "P is AP" "rad_wait\<^sub>v s0"
+  shows "P (ades_obs ok0 s0 c X) \<longleftrightarrow> (\<not> ok0 \<or> (c \<and> s0 \<in> X))"
+proof -
+  have "P (ades_obs ok0 s0 c X) = RA3AP P (ades_obs ok0 s0 c X)"
+    by (simp only: Healthy_if[OF AP_is_RA3AP[OF assms(1)]])
+  also have "... = II_AP (ades_obs ok0 s0 c X)"
+    by (simp add: RA3AP_eval assms(2))
+  finally show ?thesis by (simp only: II_AP_obs)
+qed
 
 lemma AP_wait_false_PBMH_ades:
   assumes "P is AP"

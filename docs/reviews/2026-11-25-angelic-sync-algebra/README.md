@@ -84,7 +84,7 @@ the law is the standard CSP law.
 
 Proved entries:
 - (e) L1–L6: [`rad_par_form`](../../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L54), [`rad_par_mono`](../../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L9), [`par_by_merge_disj_distl`](../../../deps/UTP/utp_concurrency.thy#L332), [`rad_par_comm`](../../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L15), [`ades_par_assoc_det`](../../../angelic-designs/utp_ades_parallel_algebra.thy#L351), [`rad_par_assoc_det_nd`](../../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L438), [`rad_par_miracle`](../../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L25), [`rad_par_chaos`](../../../reactive-angelic-designs/utp_rad_parallel_algebra.thy#L35) and [`rad_par_RAD`](../../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L91).
-- (e) L3: [`rad_sync_angelic_miracle`](../2026-11-20-ad-parallel-geometry/rad/RAD_Probe.thy#L242), and [`ap_sync_angelic_miracle`](../2026-11-20-ad-parallel-geometry/ap/AP_Probe.thy#L105) for AP.
+- (e) L3: [`rad_sync_angelic_miracle`](../2026-11-20-ad-parallel-geometry/rad/RAD_Probe.thy#L242), and [`ap_sync_angelic_miracle`](../2026-11-20-ad-parallel-geometry/ap/AP_Probe.thy#L129) for AP.
 - (e) one-way distribution over `⊔`: [`rad_par_angelic_subdist`](Sync_Algebra.thy#L189).
 - F, L1–L3: [`rad_par_F_A2`](Sync_Algebra.thy#L268), [`rad_par_F_mono`](Sync_Algebra.thy#L291) and [`rad_par_F_cooperates`](Sync_Algebra.thy#L391). The value `a→Skip ⊔ Stop` is brute force; Isabelle shows that F can end after `a`, which the lift cannot.
 - F, L4–L6: [`rad_par_F_angelic_subdist`](Sync_F_Laws.thy#L223), [`rad_par_F_demonic_subdist`](Sync_F_Laws.thy#L244), [`rad_par_F_comm`](Sync_F_Laws.thy#L200) (symmetric `j`), [`rad_par_F_miracle`](Sync_F_Laws.thy#L268) and [`rad_par_F_chaos`](Sync_F_Laws.thy#L302) (the premises of the RAD laws), [`rad_par_F_A2_closed`](Sync_F_Laws.thy#L192), and [`rad_par_F_RAD`](Sync_F_Laws.thy#L171) for RAD operands and any `j`. RAD closure uses [`RAD_Inf_closed`](Sync_F_Laws.thy#L145): a nonempty join of RAD processes is RAD.
@@ -207,7 +207,7 @@ The one-shot UTP relation does not record that.
   - The meet normal form over A2 blocks is ill defined.
   - The AP versions follow at started priors, where
     [`ap_par_started`](../2026-11-20-ad-parallel-geometry/ap/AP_Probe.thy#L9) reduces
-    AP parallel to RAD parallel.
+    AP parallel to RAD parallel for nondivergent operands.
 
 ## Not checked
 

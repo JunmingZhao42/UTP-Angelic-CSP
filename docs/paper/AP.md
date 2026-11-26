@@ -28,9 +28,9 @@ AP keeps the [RAD alphabet and trace conventions](RAD.md#alphabet-and-notation),
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.6.2.1–2 | RA3AP idempotence and monotonicity | None | [`RA3AP_Idempotent`](../../angelic-processes/utp_ap_healthy.thy#L45), [`RA3AP_Monotonic`](../../angelic-processes/utp_ap_healthy.thy#L52) |
-| T.6.2.3–4 | RA3AP distributes over both choices | None | [`RA3AP_conj`](../../angelic-processes/utp_ap_healthy.thy#L55), [`RA3AP_disj`](../../angelic-processes/utp_ap_healthy.thy#L58) |
-| T.6.2.7 | RA2 and RA3AP commute | None | [`RA2_RA3AP_commute`](../../angelic-processes/utp_ap_healthy.thy#L74) |
+| T.6.2.1–2 | RA3AP idempotence and monotonicity | None | [`RA3AP_Idempotent`](../../angelic-processes/utp_ap_healthy.thy#L55), [`RA3AP_Monotonic`](../../angelic-processes/utp_ap_healthy.thy#L62) |
+| T.6.2.3–4 | RA3AP distributes over both choices | None | [`RA3AP_conj`](../../angelic-processes/utp_ap_healthy.thy#L65), [`RA3AP_disj`](../../angelic-processes/utp_ap_healthy.thy#L68) |
+| T.6.2.7 | RA2 and RA3AP commute | None | [`RA2_RA3AP_commute`](../../angelic-processes/utp_ap_healthy.thy#L84) |
 
 </details>
 
@@ -38,8 +38,8 @@ AP keeps the [RAD alphabet and trace conventions](RAD.md#alphabet-and-notation),
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="t36"></a>**T36** / T.6.2.8 | AP design representation | None | [`AP_design_form`](../../angelic-processes/utp_ap_healthy.thy#L162) |
-| <a id="t37"></a>**T37** / T.6.2.9 | Waiting-conditional AP normal form | None | [`AP_wait_cond_design`](../../angelic-processes/utp_ap_healthy.thy#L180) |
+| <a id="t36"></a>**T36** / T.6.2.8 | AP design representation | None | [`AP_design_form`](../../angelic-processes/utp_ap_healthy.thy#L172) |
+| <a id="t37"></a>**T37** / T.6.2.9 | Waiting-conditional AP normal form | None | [`AP_wait_cond_design`](../../angelic-processes/utp_ap_healthy.thy#L190) |
 
 ### §7.1.3 Non-divergent angelic processes
 
@@ -194,10 +194,10 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| <a id="d57"></a>**D57** / D138 | Primitive event prefix | — | [`PrefixSkip_AP`](../../angelic-processes/utp_ap_seq.thy#L538) |
-| §7.4.8 (paper) / §6.4.8 | Compound event prefix | List traces | [`Prefix_AP`](../../angelic-processes/utp_ap_seq.thy#L570) |
-| <a id="l12"></a>**L12** / L.6.4.4 | H1 maps RAD primitive prefix to AP | List traces | [`H1_PrefixSkip_RAD`](../../angelic-processes/utp_ap_seq.thy#L556) |
-| <a id="l13"></a>**L13** / L.6.4.5 | RA1 maps AP primitive prefix to RAD | List traces | [`RA1_PrefixSkip_AP`](../../angelic-processes/utp_ap_seq.thy#L562) |
+| <a id="d57"></a>**D57** / D138 | Primitive event prefix | — | [`PrefixSkip_AP`](../../angelic-processes/utp_ap_prefix.thy#L13) |
+| §7.4.8 (paper) / §6.4.8 | Compound event prefix | List traces | [`Prefix_AP`](../../angelic-processes/utp_ap_prefix.thy#L45) |
+| <a id="l12"></a>**L12** / L.6.4.4 | H1 maps RAD primitive prefix to AP | List traces | [`H1_PrefixSkip_RAD`](../../angelic-processes/utp_ap_prefix.thy#L31) |
+| <a id="l13"></a>**L13** / L.6.4.5 | RA1 maps AP primitive prefix to RAD | List traces | [`RA1_PrefixSkip_AP`](../../angelic-processes/utp_ap_prefix.thy#L37) |
 | <a id="l14"></a>**L14** / L.6.4.6 | Prefix followed by ChaosCSP | List traces | [`Prefix_ChaosCSP_AP`](../../angelic-processes/utp_ap_examples.thy#L119) |
 | <a id="ex27"></a>**Ex27** / Ex45 | Divergence erases an event prefix | — | [`Prefix_Chaos_AP`](../../angelic-processes/utp_ap_examples.thy#L108) |
 | <a id="ex28"></a>**Ex28** / Ex46 | Angelic choice avoids a divergent prefix; no a ≠ b premise | — | [`Prefix_Chaos_Skip_angelic_choice`](../../angelic-processes/utp_ap_examples.thy#L186) |
@@ -207,7 +207,7 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 
 | Paper / thesis | Brief idea / conditions | Essential premises / notes | Isabelle |
 | --- | --- | --- | --- |
-| T.6.4.23 | General prefix normal form | P is AP; list traces | [`Prefix_AP_design`](../../angelic-processes/utp_ap_seq.thy#L590) |
+| T.6.4.23 | General prefix normal form | P is AP; list traces | [`Prefix_AP_design`](../../angelic-processes/utp_ap_prefix.thy#L65) |
 
 </details>
 
@@ -218,18 +218,20 @@ T63 requires both AP and NDAP and does not assume associativity. Closure and cor
 | [`utp_ap_healthy`](../../angelic-processes/utp_ap_healthy.thy) | AP healthiness, waiting laws, normal forms and component support. |
 | [`utp_ap_rad`](../../angelic-processes/utp_ap_rad.thy) | H1/RA1 correspondence, closure and the Galois law. |
 | [`utp_ap_ops`](../../angelic-processes/utp_ap_ops.thy) | Choice, Chaos, Stop and Skip, with transport laws. |
-| [`utp_ap_seq`](../../angelic-processes/utp_ap_seq.thy) | Sequential composition and prefixing calculations. |
+| [`utp_ap_seq`](../../angelic-processes/utp_ap_seq.thy) | Sequential composition calculations. |
+| [`utp_ap_prefix`](../../angelic-processes/utp_ap_prefix.thy) | Prefixing calculations. |
 | [`utp_ap_nd`](../../angelic-processes/utp_ap_nd.thy) | NDAP, non-divergent transport and closure. |
 
 <details>
 <summary>Related research</summary>
 
-[AP parallel](../parallel/AP.md) documents the research operator [`ap_par`](../../angelic-processes/utp_ap_parallel.thy#L16):
+[AP parallel](../parallel/AP.md) documents [`ap_par`](../../angelic-processes/utp_ap_parallel_operator.thy#L10), a parallel by merge defined directly on AP processes, as sequential composition is:
 
 ```isabelle
-P ∥AP[j] Q = H1((RA1 P) ∥RAD[j] (RA1 Q))
+P ∥AP[j] Q = P ∥[merge_ap j] Q
+merge_ap j = RA3APm (H3m (H1m (merge_rad j)))
 ```
 
-[`ap_par_AP`](../../angelic-processes/utp_ap_parallel.thy#L23) proves AP closure for AP-and-A2 operands, without a premise on `j`. [`ap_par_RA1`](../../angelic-processes/utp_ap_parallel.thy#L30) proves its exact RAD image under the same premises; [`ap_par_H1`](../../angelic-processes/utp_ap_parallel.thy#L37) relates RAD operands transported through H1. The merge premises and further mapping laws belong in the parallel guide, not the paper coverage.
+[`ap_par_AP`](../../angelic-processes/utp_ap_parallel_operator.thy#L21) proves AP closure without an A2 premise or a premise on `j`. As for sequential composition (Theorems 61 to 63), [`ap_par_rad_refine`](../../angelic-processes/utp_ap_parallel_operator.thy#L74) gives `P ∥AP[j] Q ⊑ H1 (RA1 P ∥RAD[j] RA1 Q)`, and [`ap_par_rad_NDAP`](../../angelic-processes/utp_ap_parallel_operator.thy#L117) gives equality for NDAP operands. The merge premises and further laws belong in the parallel guide, not the paper coverage.
 
 </details>

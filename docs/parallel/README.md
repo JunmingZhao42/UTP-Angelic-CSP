@@ -8,7 +8,7 @@
 - [RD](RD.md): ordinary reactive designs, `P ∥RD[j] Q`.
 - [Stateful RD](RD-stateful.md): `P ∥R[M] Q`, including state-merge lifting and normality.
 - [RAD](RAD.md): reactive angelic designs, `P ∥RAD[j] Q`.
-- [AP](AP.md): angelic processes, `P ∥AP[M] Q`.
+- [AP](AP.md): angelic processes, `P ∥AP[j] Q`.
 - [Related work](related-work.md): divergence, infeasibility and comparisons with other models.
 
 ## Shared notation

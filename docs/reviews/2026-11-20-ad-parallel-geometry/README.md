@@ -105,15 +105,16 @@ CSP external choice gives `(a→Skip) ∥ ((a→Skip) □ (b→Skip)) = a→Skip
 current lift does not let angelic choice cooperate with a synchronising partner.
 The clairvoyance above needs a merge that combines every pair of offered states.
 
-The same holds for angelic processes. `P ∥AP[j] Q` is `H1` of RAD parallel on the
-`RA1` images, and `H1` leaves a started prior unchanged
+The same holds for angelic processes. The prefixes and their choices are
+nondivergent, so on them `P ∥AP[j] Q` is `H1` of RAD parallel on the `RA1` images,
+and `H1` leaves a started prior unchanged
 ([`ap_par_started`](ap/AP_Probe.thy#L9)). So with `PrefixSkip_AP`, `⊓AP` and `⊔AP`
 the composite progresses with a matching or demonic partner
-([`ap_sync_progress`](ap/AP_Probe.thy#L23),
-[`ap_sync_demonic_progress`](ap/AP_Probe.thy#L29)) and is stuck with an angelic one
-([`ap_sync_angelic_stuck`](ap/AP_Probe.thy#L37)), with the same exact form
-([`ap_sync_angelic_eval`](ap/AP_Probe.thy#L51)), so it equals `a →AP ⊤AP`
-([`ap_sync_angelic_miracle`](ap/AP_Probe.thy#L105)).
+([`ap_sync_progress`](ap/AP_Probe.thy#L47),
+[`ap_sync_demonic_progress`](ap/AP_Probe.thy#L53)) and is stuck with an angelic one
+([`ap_sync_angelic_stuck`](ap/AP_Probe.thy#L61)), with the same exact form
+([`ap_sync_angelic_eval`](ap/AP_Probe.thy#L75)), so it equals `a →AP ⊤AP`
+([`ap_sync_angelic_miracle`](ap/AP_Probe.thy#L129)).
 
 Waiting and unstarted priors add nothing. RAD fixes every process there, the
 parallel composite included ([`rad_par_RAD`](../../../reactive-angelic-designs/utp_rad_parallel_operator.thy#L91)),
@@ -156,8 +157,8 @@ up-closure `x := 2` also offers `{1,2}`, so `x := 2 ∥[jeq] x := 1` would offer
 `{1}`.
 
 The production [shared choice-set canonicity results](../../parallel/AD.md#shared-choice-set-canonicity)
-use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) and
-[AP](../../parallel/AP.md#canonicity-through-rad) consequences. The original
+use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) consequences; AP
+canonicity is [open](../../parallel/AP.md#not-covered). The original
 `AD_Lift_Canonical` theory above remains as support for the open RAD geometry probes.
 
 ## Not checked

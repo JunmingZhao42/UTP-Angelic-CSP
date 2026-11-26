@@ -6,7 +6,7 @@ paper_dir=$(mktemp -d "${TMPDIR:-/tmp}/utp-paperbuild.XXXXXX")
 trap 'rm -rf -- "$paper_dir"' EXIT
 
 # The paper import graph needs its own ROOT and entry theories, not checkout edits.
-for directory in . angelic-designs reactive-angelic-designs angelic-processes; do
+for directory in angelic-designs reactive-angelic-designs angelic-processes; do
   mkdir -p "$paper_dir/$directory"
   for source in "$repo/$directory"/*.thy; do
     case "${source##*/}" in
@@ -17,14 +17,14 @@ for directory in . angelic-designs reactive-angelic-designs angelic-processes; d
   done
 done
 
-sed -E '/^[[:space:]]+(utp_ades_parallel[a-z_]*|utp_rad_parallel[a-z_]*|"angelic-processes\/utp_ap_parallel[a-z_]*")$/d' \
+sed -E '/^[[:space:]]+(utp_ades_parallel[a-z_]*|utp_rad_parallel[a-z_]*|utp_ap_parallel[a-z_]*)$/d' \
   "$repo/ROOT" > "$paper_dir/ROOT"
 
-for entry in angelic-designs/utp_ades.thy reactive-angelic-designs/utp_rad.thy Angelic_CSP.thy; do
+for entry in angelic-designs/utp_ades.thy reactive-angelic-designs/utp_rad.thy angelic-processes/utp_ap.thy; do
   sed -E '/^[[:space:]]*imports / {
     s/ utp_ades_parallel[a-z_]*/ utp_ades_designs/g
     s/ utp_rad_parallel[a-z_]*//g
-    s/ "angelic-processes\/utp_ap_parallel[a-z_]*"//g
+    s/ utp_ap_parallel[a-z_]*//g
   }' "$paper_dir/$entry" > "$paper_dir/$entry.tmp"
   mv "$paper_dir/$entry.tmp" "$paper_dir/$entry"
 done

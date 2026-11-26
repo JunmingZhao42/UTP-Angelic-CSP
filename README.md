@@ -12,7 +12,7 @@ The three sessions build on each other:
 | Reactive angelic designs (RAD) | `reactive-angelic-designs/` | `UTP-Reactive-Angelic-Designs` |
 | Angelic processes (AP) | `angelic-processes/` | `UTP-Angelic-CSP` |
 
-[Angelic_CSP.thy](Angelic_CSP.thy) is the entry point. On `research/parallel2`,
+[angelic-processes/utp_ap.thy](angelic-processes/utp_ap.thy) is the entry point. On `research/parallel2`,
 ordinary design parallel follows the raw state merge with design Skip, as the
 reactive-design merge does with reactive Skip: the merge constrains the output
 only when both branches terminate, and after divergence some merged state must
@@ -26,9 +26,10 @@ notes and build checks.
 ## Parallel by merge
 
 AD lifts a state merge and applies A3. RAD lifts an ordinary reactive merge,
-with no outer RAD wrapper. AP transports RAD parallel through RA1 and H1. Each layer
-has closure and mapping laws with explicit premises; AP transport can
-identify distinct divergent processes. See the [parallel guide](docs/parallel/README.md).
+with no outer RAD wrapper. AP completes the RAD merge as AD does, and relates the
+result to RAD through RA1 and H1, as for sequential composition. Each layer has
+closure and mapping laws with explicit premises. See the
+[parallel guide](docs/parallel/README.md).
 
 ## Build
 

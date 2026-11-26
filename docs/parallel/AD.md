@@ -243,8 +243,8 @@ with the one-way exchange law `(P ∥ Q) ;; (P' ∥ Q') ⊑ (P ;; P') ∥ (Q ;; 
 ## Shared choice-set canonicity
 
 These results concern the shared choice-set alphabet, not AD healthiness.
-[RAD](RAD.md#canonicity) specialises the same lift, and
-[AP](AP.md#canonicity-through-rad) transports its refinement consequence.
+[RAD](RAD.md#canonicity) specialises the same lift; for AP it is
+[open](AP.md#not-covered).
 Write `L(N) = ABm (ac'_lift_merge N)` for an ordinary merge `N`.
 
 [`singleton_refines`](../../angelic-designs/utp_ades_parallel_choice_lift.thy#L65)

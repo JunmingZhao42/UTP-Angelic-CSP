@@ -8,9 +8,9 @@ correspondence outside A2 remains open.
 This file lists open work only. Finished work is in the commit history and the
 guides; [docs/reviews](docs/reviews/README.md) lists the milestones.
 
-**Current focus: AD and RAD laws off A2** (operands with angelic choice). AP is
-deferred. The D/AD and ordinary RD/RAD constructions, closure, correspondence
-and scoped associativity are installed; see the [parallel guides](docs/parallel/README.md).
+**Current focus: AD and RAD laws off A2** (operands with angelic choice). The
+D/AD, ordinary RD/RAD and AP constructions, closure, correspondence and scoped
+associativity are installed; see the [parallel guides](docs/parallel/README.md).
 
 ## Route and proof obligations
 
@@ -51,7 +51,7 @@ generic criterion is available, keep the specialised theorem and record the gap.
 | 5a–b | Complete | Flat RD/RAD correspondence, lifted merge healthiness and closure. |
 | 5c | Complete | Commutativity, scoped associativity, and Chaos and Miracle laws proved. |
 | 5d | Optional research | Transfer a broader Stage 4 associativity result if one is pursued. |
-| 6 | Pending | AP specialisation can use 5a–b; broader associativity depends on 5d. |
+| 6 | Complete | AP parallel defined directly on AP processes, with closure, RAD comparison and associativity. |
 | Off A2 | Active | AD and RAD laws for operands with angelic choice. |
 
 For each mechanisation stage, complete a clean build and update `docs/parallel`.
@@ -175,8 +175,8 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
 
 ## Stage 6 — AP and documentation
 
-- [ ] Transfer associativity to AP at the scope available from 5c; pursue a
-  broader law only if 5d supplies one.
+- [ ] Canonicity of `merge_ap` among AP merges, the counterpart of
+  `rad_par_canonical`; see the [AP guide](docs/parallel/AP.md#not-covered).
 - [ ] Research (deferred, not a prerequisite): prove associativity of the least
   monotone parallel F, the join of `g ∥RAD[j] h` over A2 processes below the
   operands, first for functional and then for relational merges. Production keeps

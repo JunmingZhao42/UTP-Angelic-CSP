@@ -1,15 +1,39 @@
 theory AP_Probe
-  imports "UTP-Angelic-CSP.utp_ap_parallel" "RAD_Geometry_Probe.RAD_Probe"
+  imports "UTP-Angelic-CSP.utp_ap_parallel_operator" "RAD_Geometry_Probe.RAD_Probe"
 begin
 
 section \<open>The synchronisation examples at AP level\<close>
 
-(* AP parallel is H1 of RAD parallel on the RA1 images, and H1 leaves a started
-   prior unchanged, so the AP examples reduce to the RAD ones *)
+(* On nondivergent operands AP parallel is H1 of RAD parallel on the RA1 images,
+   and H1 leaves a started prior unchanged, so the AP examples reduce to the RAD ones *)
 lemma ap_par_started:
-  "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) (ades_obs True s0 c Z) \<longleftrightarrow>
+  assumes "P is AP" "Q is AP" "P is NDAP" "Q is NDAP"
+  shows "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) (ades_obs True s0 c Z) \<longleftrightarrow>
     (RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 Q) (ades_obs True s0 c Z)"
-  by (simp only: ap_par_def H1_obs simp_thms)
+  by (simp only: ap_par_rad_NDAP[OF assms] H1_obs simp_thms)
+
+(* the prefix processes and their choices are nondivergent *)
+lemma PrefixSkip_AP_NDAP: "PrefixSkip_AP a is NDAP"
+  unfolding Healthy_def PrefixSkip_AP_def
+  by (rule NDAP_AP_true_design_fixed[OF PrefixSkip_AP_facts(1) _ PrefixSkip_AP_facts(3)])
+     (simp add: Healthy_def PrefixSkip_AP_facts(2))
+
+lemma PrefixSkip_AP_choice_healthy:
+  "(PrefixSkip_AP a \<sqinter>\<^sub>A\<^sub>P PrefixSkip_AP b) is AP" "(PrefixSkip_AP a \<sqinter>\<^sub>A\<^sub>P PrefixSkip_AP b) is NDAP"
+  "(PrefixSkip_AP a \<squnion>\<^sub>A\<^sub>P PrefixSkip_AP b) is AP" "(PrefixSkip_AP a \<squnion>\<^sub>A\<^sub>P PrefixSkip_AP b) is NDAP"
+  by (rule AP_demonic_closure[OF PrefixSkip_AP_is_AP PrefixSkip_AP_is_AP],
+      rule Healthy_intro[where H=NDAP, OF NDAP_demonic_closure[OF PrefixSkip_AP_NDAP PrefixSkip_AP_NDAP]],
+      rule AP_angelic_closure[OF PrefixSkip_AP_is_AP PrefixSkip_AP_is_AP],
+      rule Healthy_intro[where H=NDAP, OF NDAP_angelic_closure[OF PrefixSkip_AP_NDAP PrefixSkip_AP_NDAP]])
+
+lemmas ap_par_started_prefix =
+  ap_par_started[OF PrefixSkip_AP_is_AP PrefixSkip_AP_is_AP PrefixSkip_AP_NDAP PrefixSkip_AP_NDAP]
+lemmas ap_par_started_dchoice =
+  ap_par_started[OF PrefixSkip_AP_is_AP PrefixSkip_AP_choice_healthy(1)
+    PrefixSkip_AP_NDAP PrefixSkip_AP_choice_healthy(2)]
+lemmas ap_par_started_achoice =
+  ap_par_started[OF PrefixSkip_AP_is_AP PrefixSkip_AP_choice_healthy(3)
+    PrefixSkip_AP_NDAP PrefixSkip_AP_choice_healthy(4)]
 
 lemma RA1_PrefixSkip_AP_achoice:
   "RA1 (PrefixSkip_AP a \<squnion>\<^sub>A\<^sub>P PrefixSkip_AP b) = PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b"
@@ -23,7 +47,7 @@ lemma RA1_PrefixSkip_AP_dchoice:
 lemma ap_sync_progress:
   assumes "\<not> rad_wait\<^sub>v s0"
   shows "(PrefixSkip_AP a \<parallel>\<^sub>A\<^sub>P\<^bsub>jsync\<^esub> PrefixSkip_AP a) (ades_obs True s0 True {done_a a s0})"
-  using rad_sync_progress[OF assms] by (simp only: ap_par_started RA1_PrefixSkip_AP)
+  using rad_sync_progress[OF assms] by (simp only: ap_par_started_prefix RA1_PrefixSkip_AP)
 
 (* a demonic partner does not block progress *)
 lemma ap_sync_demonic_progress:
@@ -31,7 +55,7 @@ lemma ap_sync_demonic_progress:
   shows "(PrefixSkip_AP a \<parallel>\<^sub>A\<^sub>P\<^bsub>jsync\<^esub> (PrefixSkip_AP a \<sqinter>\<^sub>A\<^sub>P PrefixSkip_AP b))
            (ades_obs True s0 True {done_a a s0})"
   using rad_sync_demonic_progress[OF assms]
-  by (simp only: ap_par_started RA1_PrefixSkip_AP RA1_PrefixSkip_AP_dchoice)
+  by (simp only: ap_par_started_dchoice RA1_PrefixSkip_AP RA1_PrefixSkip_AP_dchoice)
 
 (* an angelic partner blocks progress, as in RAD *)
 lemma ap_sync_angelic_stuck:
@@ -42,7 +66,7 @@ lemma ap_sync_angelic_stuck:
 proof -
   have "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
           (ades_obs True s0 c Z)"
-    using assms(3) by (simp only: ap_par_started RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice)
+    using assms(3) by (simp only: ap_par_started_achoice RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice)
   then show ?thesis
     by (rule rad_sync_angelic_stuck[OF assms(1,2)])
 qed
@@ -53,7 +77,7 @@ lemma ap_sync_angelic_eval:
   shows "(PrefixSkip_AP a \<parallel>\<^sub>A\<^sub>P\<^bsub>jsync\<^esub> (PrefixSkip_AP a \<squnion>\<^sub>A\<^sub>P PrefixSkip_AP b))
            (ades_obs True s0 c Z) \<longleftrightarrow>
          c \<and> (\<exists>y\<in>Z. rad_wait\<^sub>v y \<and> rad_tr\<^sub>v y = rad_tr\<^sub>v s0 \<and> a \<notin> rad_ref\<^sub>v y)"
-  by (simp only: ap_par_started RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice
+  by (simp only: ap_par_started_achoice RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice
       rad_sync_angelic_eval[OF assms])
 
 (* AP Miracle, at a started prior, keeps a waiting state and has nothing else *)
@@ -109,8 +133,9 @@ theorem ap_sync_angelic_miracle:
 proof -
   have lhs: "PrefixSkip_AP a \<parallel>\<^sub>A\<^sub>P\<^bsub>jsync\<^esub> (PrefixSkip_AP a \<squnion>\<^sub>A\<^sub>P PrefixSkip_AP b) =
       H1 (a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D)"
-    by (simp only: ap_par_def RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice
-        rad_sync_angelic_miracle[OF ab])
+    by (simp only: ap_par_rad_NDAP[OF PrefixSkip_AP_is_AP PrefixSkip_AP_choice_healthy(3)
+          PrefixSkip_AP_NDAP PrefixSkip_AP_choice_healthy(4)]
+        RA1_PrefixSkip_AP RA1_PrefixSkip_AP_achoice rad_sync_angelic_miracle[OF ab])
   have rad: "(a \<rightarrow>\<^sub>R\<^sub>A\<^sub>D \<^bold>\<top>\<^sub>R\<^sub>A\<^sub>D) is RAD"
     by (rule Prefix_RAD_closure[OF RAD_healthy])
   show ?thesis

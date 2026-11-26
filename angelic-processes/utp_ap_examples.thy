@@ -6,7 +6,7 @@ text \<open>
 \<close>
 
 theory utp_ap_examples
-  imports utp_ap_seq
+  imports utp_ap_prefix
 begin
 
 (* Paper Example 22: Theorem 39 applied to Chaos_RAD = RAD true. *)

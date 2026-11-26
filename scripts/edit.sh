@@ -10,7 +10,7 @@ if (( $# )); then shift; fi
 case "$editor" in
   jedit)
     exec "${ISABELLE:-$HOME/Applications/Isabelle2026-patched.app/bin/isabelle}" jedit -u -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
-      -d "$repo/deps" -d "$repo" "$@" "$repo/Angelic_CSP.thy" ;;
+      -d "$repo/deps" -d "$repo" "$@" "$repo/angelic-processes/utp_ap.thy" ;;
   vscode)
     exec "${ISABELLE:-$HOME/Applications/Isabelle2026-patched.app/bin/isabelle}" vscode_server -A UTP-Angelic-Designs -R UTP-Angelic-CSP \
       -d "$repo/deps" -d "$repo" -o system_heaps=false "$@" ;;

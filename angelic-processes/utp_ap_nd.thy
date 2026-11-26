@@ -1,7 +1,7 @@
 section \<open>Non-Divergent Angelic Processes\<close>
 
 theory utp_ap_nd
-  imports utp_ap_seq
+  imports utp_ap_prefix
 begin
 
 subsection \<open>NDAP\<close>
@@ -218,5 +218,17 @@ lemma ap_RD_reverse_roundtrip_NDAP:
   shows "H1 (p2ac (ac2p (RA1 P))) = P"
   by (simp only: ap_RD_reverse_roundtrip[OF assms(1,2)]
         H1_RA1_NDAP_AP_healthy[OF assms(1,3)])
+
+(* A nondivergent process terminates at a started, non-waiting prior,
+   with a trace extension among its choices *)
+lemma NDAP_active_obs:
+  assumes "P is NDAP" "P (ades_obs True s0 c Z)" "\<not> rad_wait\<^sub>v s0"
+  shows "c \<and> rad_trace_extensions s0 \<inter> Z \<noteq> {}"
+proof -
+  have "Choice\<^sub>A\<^sub>P (ades_obs True s0 c Z)"
+    using assms(2) by (subst (asm) Healthy_if[OF assms(1), symmetric]) (simp add: NDAP_def inf_fun_def)
+  then show ?thesis
+    using assms(3) by (simp add: Choice_AP_design RA1_obs; pred_auto)
+qed
 
 end

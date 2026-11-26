@@ -17,20 +17,20 @@ printf '%s\n' "$@" > "$TEST_RECORD.args"
 grep -Fxq -- "$TEST_REPO/deps" "$TEST_RECORD.args"
 if [[ "$ISABELLE_IDENTIFIER" == build-script-test-paper ]]; then
   [[ "$PROJECT_DIR" != "$TEST_REPO" ]]
-  for directory in . angelic-designs reactive-angelic-designs angelic-processes; do
+  for directory in angelic-designs reactive-angelic-designs angelic-processes; do
     for source in "$TEST_REPO/$directory"/*.thy; do
       name=${source##*/}
       case "$name" in
         utp_ades_parallel*.thy|utp_rad_parallel*.thy|utp_ap_parallel*.thy)
           [[ ! -e "$PROJECT_DIR/$directory/$name" ]] ;;
-        utp_ades.thy|utp_rad.thy|Angelic_CSP.thy) ;;
+        utp_ades.thy|utp_rad.thy|utp_ap.thy) ;;
         *) cmp "$source" "$PROJECT_DIR/$directory/$name" ;;
       esac
     done
   done
   if grep -Eq 'utp_(ades_parallel|rad_parallel|ap_parallel)' \
     "$PROJECT_DIR/ROOT" "$PROJECT_DIR/angelic-designs/utp_ades.thy" \
-    "$PROJECT_DIR/reactive-angelic-designs/utp_rad.thy" "$PROJECT_DIR/Angelic_CSP.thy"; then
+    "$PROJECT_DIR/reactive-angelic-designs/utp_rad.thy" "$PROJECT_DIR/angelic-processes/utp_ap.thy"; then
     exit 1
   fi
   grep -q 'imports utp_ades_designs' "$PROJECT_DIR/angelic-designs/utp_ades.thy"
