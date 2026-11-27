@@ -12,7 +12,7 @@ text \<open>We define AP parallel directly on AP processes, as sequential compos
 subsection \<open>Construction and evaluation\<close>
 
 (* merge_ap j = RA3APm (H3m (H1m (merge_rad j))),
-   cf. merge_ades j = H3m (H1m (ABm (ac'_lift_merge (merge_des_raw j)))) *)
+   cf. merge_ades j = H3m (H1m (ac'_lift_merge (merge_des_raw j))) *)
 definition merge_ap :: "('t::trace \<times> 'e set) merge \<Rightarrow> ('t, 'e) rad_merge_rel" where
   "merge_ap j \<equiv> RA3APm (H3m (H1m (merge_rad j)))"
 
@@ -33,7 +33,7 @@ lemma merge_ap_obs:
               \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
               \<lparr>ok\<^sub>v = False, \<dots> = s'\<rparr>))))"
   by (cases "rad_wait\<^sub>v s0";
-      simp only: merge_ap_def RA3APm_obs II_AP_obs rad_lift_merge_def comp_apply
+      simp only: merge_ap_def RA3APm_obs II_AP_obs
         ac'_lift_merge_completion_obs if_True if_False)
 
 (* With both branches terminating, the merge is the RAD lift *)
@@ -359,7 +359,7 @@ proof -
     apply (unfold des_vars.splits(1) achoices.splits(1) unit_all_eq1)
     subgoal for okL X okR Y ok' Z
       using a merge_ap_both_ok[OF a, of j X Y ok' Z]
-      by (cases okL; cases okR; simp add: merge_guard_eval rad_lift_merge_obs[simplified])
+      by (cases okL; cases okR; simp add: merge_guard_eval ac'_lift_merge_obs[simplified])
     done
   (* elsewhere the guarded merge ignores the branches *)
   have inact: "\<forall>p q z. merge_eval ?A \<lparr>ok\<^sub>v = ok0, s\<^sub>v = s0, \<dots> = ()\<rparr> p q z =

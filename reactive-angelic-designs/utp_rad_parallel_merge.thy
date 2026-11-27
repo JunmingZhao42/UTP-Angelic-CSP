@@ -34,6 +34,19 @@ definition RA2m :: "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_mer
          (des_vars.ok\<^sub>v q) (image (rad_trace_difference s0) (achoices.ac\<^sub>v (des_vars.more q)))
          (des_vars.ok\<^sub>v z) (rad_normalise_choices s0 (achoices.ac\<^sub>v (des_vars.more z))))"
 
+(* We normalise as RA2m does, without asking for a trace extension in the final choices.
+   RA2 closure needs only this, and AP merges use it directly.
+   RA2APm M((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     M((ok,s[0/tr]),(okL,\<delta>_s ` acL),(okR,\<delta>_s ` acR),(ok',N_s(ac'))) *)
+definition RA2APm :: "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel" where
+  "RA2APm M \<equiv> (\<lambda>(m,z).
+    let x = mrg_prior\<^sub>v m; p = mrg_left\<^sub>v m; q = mrg_right\<^sub>v m;
+        s0 = astate.s\<^sub>v (des_vars.more x)
+    in ades_merge_obs M (des_vars.ok\<^sub>v x) (rad_zero_trace s0)
+         (des_vars.ok\<^sub>v p) (image (rad_trace_difference s0) (achoices.ac\<^sub>v (des_vars.more p)))
+         (des_vars.ok\<^sub>v q) (image (rad_trace_difference s0) (achoices.ac\<^sub>v (des_vars.more q)))
+         (des_vars.ok\<^sub>v z) (rad_normalise_choices s0 (achoices.ac\<^sub>v (des_vars.more z))))"
+
 (* While waiting, nonempty branches merge as reactive angelic skip. *)
 definition RA3m :: "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel" where
   "RA3m M \<equiv> (\<lambda>(m,z).
@@ -77,6 +90,13 @@ lemma RA2m_obs:
       ok' (rad_normalise_choices s0 Z))"
   by (simp add: RA2m_def Let_def)
 
+lemma RA2APm_obs:
+  "ades_merge_obs (RA2APm M) ok0 s0 okL X okR Y ok' Z =
+    ades_merge_obs M ok0 (rad_zero_trace s0)
+      okL (image (rad_trace_difference s0) X) okR (image (rad_trace_difference s0) Y)
+      ok' (rad_normalise_choices s0 Z)"
+  by (simp add: RA2APm_def Let_def)
+
 (* RA3m M(m,(ok',ac')) =
      (acL \<noteq> {} \<and> acR \<noteq> {} \<and> II_Rac((ok,s),(ok',ac'))) \<triangleleft> s.wait \<triangleright> M(m,(ok',ac')). *)
 lemma RA3m_obs:
@@ -101,6 +121,9 @@ lemma RA1m_idem: "RA1m (RA1m M) = RA1m M"
 lemma RA2m_idem: "RA2m (RA2m M) = RA2m M"
   by (rule ades_merge_ext; simp add: RA2m_obs[simplified])
 
+lemma RA2APm_idem: "RA2APm (RA2APm M) = RA2APm M"
+  by (rule ades_merge_ext; simp add: RA2APm_obs[simplified])
+
 lemma RA3m_idem: "RA3m (RA3m M) = RA3m M"
   by (rule ades_merge_ext; simp add: RA3m_obs[simplified])
 
@@ -119,6 +142,12 @@ lemma RA2m_Idempotent [closure]: "Idempotent RA2m"
 lemma RA2m_Monotonic [closure]: "Monotonic RA2m"
   by (rule MonotonicI; auto simp: pred_refine_iff RA2m_def Let_def split: prod.splits if_splits; blast)
 
+lemma RA2APm_Idempotent [closure]: "Idempotent RA2APm"
+  by (simp add: Idempotent_def RA2APm_idem)
+
+lemma RA2APm_Monotonic [closure]: "Monotonic RA2APm"
+  by (rule MonotonicI; auto simp: pred_refine_iff RA2APm_def Let_def split: prod.splits if_splits; blast)
+
 lemma RA3m_Idempotent [closure]: "Idempotent RA3m"
   by (simp add: Idempotent_def RA3m_idem)
 
@@ -130,6 +159,32 @@ lemma CSPA1m_Idempotent [closure]: "Idempotent CSPA1m"
 
 lemma CSPA1m_Monotonic [closure]: "Monotonic CSPA1m"
   by (rule MonotonicI; auto simp: pred_refine_iff CSPA1m_def Let_def split: prod.splits if_splits; blast)
+
+text \<open>Normalising twice changes nothing, so an RA2m merge differs from its RA2APm
+  form only by the nonempty check, which it already passes.\<close>
+
+lemma RA2m_is_RA2APm:
+  assumes "M is RA2m"
+  shows "M is RA2APm"
+proof -
+  have m: "ades_merge_obs M b s okL X okR Y c Z =
+      (rad_normalise_choices s Z \<noteq> {} \<and>
+       ades_merge_obs M b (rad_zero_trace s)
+         okL (rad_trace_difference s ` X) okR (rad_trace_difference s ` Y)
+         c (rad_normalise_choices s Z))" for b s okL X okR Y c Z
+    by (subst (1) Healthy_if[OF assms, symmetric]; simp only: RA2m_obs)
+  have idimg: "rad_trace_difference (rad_zero_trace s) ` A = A" for s A
+    by (simp add: image_def)
+  show ?thesis unfolding Healthy_def'
+  proof (rule ades_merge_ext)
+    fix b s okL X okR Y c Z
+    show "ades_merge_obs (RA2APm M) b s okL X okR Y c Z = ades_merge_obs M b s okL X okR Y c Z"
+      using m[where s="rad_zero_trace s" and X="rad_trace_difference s ` X"
+          and Y="rad_trace_difference s ` Y" and Z="rad_normalise_choices s Z"]
+        m[where s=s and X=X and Y=Y and Z=Z]
+      by (simp only: RA2APm_obs rad_zero_trace_idem rad_normalise_choices_zero idimg)
+  qed
+qed
 
 subsection \<open>Commutation\<close>
 
@@ -149,9 +204,6 @@ lemma RA1m_RA3m_commute: "RA1m (RA3m M) = RA3m (RA1m M)"
 
 lemma RA1m_CSPA1m_commute: "RA1m (CSPA1m M) = CSPA1m (RA1m M)"
   by (rule ades_merge_ext; auto simp: RA1m_obs[simplified] CSPA1m_obs[simplified] ; blast)
-
-lemma RA1m_ABm_commute: "RA1m (ABm M) = ABm (RA1m M)"
-  by (rule ades_merge_ext; auto simp: RA1m_obs[simplified] ABm_obs[simplified] ; blast)
 
 lemma RA1m_CSPA2m_commute: "RA1m (CSPA2m M) = CSPA2m (RA1m M)"
   by (rule ades_merge_ext; auto simp: RA1m_obs[simplified] H2m_ades_obs[simplified] ; blast)
@@ -174,17 +226,11 @@ lemma RA3m_CSPA1m_commute: "RA3m (CSPA1m M) = CSPA1m (RA3m M)"
 lemma RA3m_PBMHm_commute: "RA3m (PBMHm M) = PBMHm (RA3m M)"
   by (rule ades_merge_ext; auto simp: RA3m_obs[simplified] PBMHm_obs[simplified] II_Rac_eval; blast)
 
-lemma RA3m_ABm_commute: "RA3m (ABm M) = ABm (RA3m M)"
-  by (rule ades_merge_ext; auto simp: RA3m_obs[simplified] ABm_obs[simplified] ; blast)
-
 lemma RA3m_CSPA2m_commute: "RA3m (CSPA2m M) = CSPA2m (RA3m M)"
   by (rule ades_merge_ext; auto simp: RA3m_obs[simplified] H2m_ades_obs[simplified] II_Rac_eval; blast)
 
 lemma CSPA1m_PBMHm_commute: "CSPA1m (PBMHm M) = PBMHm (CSPA1m M)"
   by (rule ades_merge_ext; auto simp: CSPA1m_obs[simplified] PBMHm_obs[simplified] ; blast)
-
-lemma CSPA1m_ABm_commute: "CSPA1m (ABm M) = ABm (CSPA1m M)"
-  by (rule ades_merge_ext; auto simp: CSPA1m_obs[simplified] ABm_obs[simplified] ; blast)
 
 lemma CSPA1m_CSPA2m_commute: "CSPA1m (CSPA2m M) = CSPA2m (CSPA1m M)"
   by (rule ades_merge_ext; auto simp: CSPA1m_obs[simplified] H2m_ades_obs[simplified] ; blast)
@@ -246,62 +292,27 @@ proof (rule ades_merge_ext)
     by (simp only: RA2m_obs PBMHm_obs eq)
 qed
 
-lemma RA2m_ABm_commute:
-  fixes M :: "('t::trace, 'e) rad_merge_rel"
-  shows "RA2m (ABm M) = ABm (RA2m M)"
-proof (rule ades_merge_ext)
-  fix ok0 okL X okR Y ok' Z and s0 :: "('t, 'e) rad_state"
-  let ?f = "rad_trace_difference s0"
-  let ?F = "\<lambda>U V. ades_merge_obs M ok0 (rad_zero_trace s0)
-    okL U okR V ok' (rad_normalise_choices s0 Z)"
-  have surj: "surj ?f"
-    using rad_trace_difference_prepend[of s0] unfolding surj_def by metis
-  have eq: "(\<exists>U V. image ?f X \<subseteq> U \<and> image ?f Y \<subseteq> V \<and> ?F U V) =
-    (\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ?F (image ?f U) (image ?f V))"
-  proof
-    assume "\<exists>U V. image ?f X \<subseteq> U \<and> image ?f Y \<subseteq> V \<and> ?F U V"
-    then obtain U V where w: "image ?f X \<subseteq> U" "image ?f Y \<subseteq> V" "?F U V" by blast
-    show "\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ?F (image ?f U) (image ?f V)"
-      apply (rule exI[where x="vimage ?f U"])
-      apply (rule exI[where x="vimage ?f V"])
-      using w by (simp add: image_subset_iff_subset_vimage surj)
-  next
-    assume "\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ?F (image ?f U) (image ?f V)"
-    then obtain U V where w: "X \<subseteq> U" "Y \<subseteq> V" "?F (image ?f U) (image ?f V)" by blast
-    show "\<exists>U V. image ?f X \<subseteq> U \<and> image ?f Y \<subseteq> V \<and> ?F U V"
-      apply (rule exI[where x="image ?f U"])
-      apply (rule exI[where x="image ?f V"])
-      using w by (auto intro: image_mono)
-  qed
-  show "ades_merge_obs (RA2m (ABm M)) ok0 s0 okL X okR Y ok' Z =
-    ades_merge_obs (ABm (RA2m M)) ok0 s0 okL X okR Y ok' Z"
-    by (cases "rad_normalise_choices s0 Z = {}";
-        simp add: RA2m_obs[simplified] ABm_obs[simplified] eq[simplified])
-qed
-
 subsection \<open>Combined merge healthiness\<close>
 
-(* RAm combines trace normalisation, waiting, and branch choice-set closure. *)
+(* RAm combines trace normalisation and waiting. *)
 definition RAm :: "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel" where
-  "RAm \<equiv> RA2m \<circ> RA3m \<circ> ABm"
+  "RAm \<equiv> RA2m \<circ> RA3m"
 
 lemma RAm_healths [closure]:
   "RAm M is RA1m"
   "RAm M is RA2m"
   "RAm M is RA3m"
-  "RAm M is ABm"
   by (simp_all add: Healthy_def' RAm_def RA1m_RA2m_absorb
-      RA2m_RA3m_commute[symmetric] RA2m_ABm_commute[symmetric]
-      RA3m_ABm_commute[symmetric] RA2m_idem RA3m_idem ABm_idem)
+      RA2m_RA3m_commute[symmetric] RA2m_idem RA3m_idem)
 
 lemma RAm_healthy_iff:
-  "(M is RAm) \<longleftrightarrow> ((M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is ABm))"
+  "(M is RAm) \<longleftrightarrow> ((M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m))"
 proof
   assume "M is RAm"
-  then show "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is ABm)"
+  then show "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m)"
     using RAm_healths[of M] by (simp only: Healthy_if)
 next
-  assume "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is ABm)"
+  assume "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m)"
   then show "M is RAm" by (simp add: Healthy_def' RAm_def)
 qed
 
@@ -310,34 +321,28 @@ lemma RAm_Idempotent [closure]: "Idempotent RAm"
 
 lemma RAm_Monotonic [closure]: "Monotonic RAm"
   unfolding RAm_def
-  by (intro Monotonic_comp RA2m_Monotonic RA3m_Monotonic ABm_Monotonic)
+  by (intro Monotonic_comp RA2m_Monotonic RA3m_Monotonic)
 
 (* RADm combines the commuting reactive, design, and choice-set conditions. *)
 definition RADm :: "('t::trace, 'e) rad_merge_rel \<Rightarrow> ('t, 'e) rad_merge_rel" where
-  "RADm \<equiv> RA2m \<circ> RA3m \<circ> CSPA1m \<circ> PBMHm \<circ> ABm \<circ> CSPA2m"
+  "RADm \<equiv> RA2m \<circ> RA3m \<circ> CSPA1m \<circ> PBMHm \<circ> CSPA2m"
 
 lemmas RADm_comms =
   RA1m_RA2m_commute[symmetric]
   RA1m_RA3m_commute[symmetric]
   RA1m_CSPA1m_commute[symmetric]
   RA1m_PBMHm_commute[symmetric]
-  RA1m_ABm_commute[symmetric]
   RA1m_CSPA2m_commute[symmetric]
   RA2m_RA3m_commute[symmetric]
   RA2m_CSPA1m_commute[symmetric]
   RA2m_PBMHm_commute[symmetric]
-  RA2m_ABm_commute[symmetric]
   RA2m_CSPA2m_commute[symmetric]
   RA3m_CSPA1m_commute[symmetric]
   RA3m_PBMHm_commute[symmetric]
-  RA3m_ABm_commute[symmetric]
   RA3m_CSPA2m_commute[symmetric]
   CSPA1m_PBMHm_commute[symmetric]
-  CSPA1m_ABm_commute[symmetric]
   CSPA1m_CSPA2m_commute[symmetric]
-  PBMHm_ABm_commute[symmetric]
   PBMHm_H2m_commute[symmetric]
-  ABm_H2m_commute[symmetric]
 
 lemma RADm_healths [closure]:
   "RADm M is RA1m"
@@ -345,19 +350,18 @@ lemma RADm_healths [closure]:
   "RADm M is RA3m"
   "RADm M is CSPA1m"
   "RADm M is PBMHm"
-  "RADm M is ABm"
   "RADm M is CSPA2m"
   by (simp_all add: Healthy_def' RADm_def RADm_comms
-      RA1m_RA2m_absorb RA2m_idem RA3m_idem CSPA1m_idem PBMHm_idem ABm_idem H2m_Idempotent[unfolded Idempotent_def])
+      RA1m_RA2m_absorb RA2m_idem RA3m_idem CSPA1m_idem PBMHm_idem H2m_Idempotent[unfolded Idempotent_def])
 
 lemma RADm_healthy_iff:
-  "(M is RADm) \<longleftrightarrow> ((M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is ABm) \<and> (M is CSPA2m))"
+  "(M is RADm) \<longleftrightarrow> ((M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is CSPA2m))"
 proof
   assume "M is RADm"
-  then show "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is ABm) \<and> (M is CSPA2m)"
+  then show "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is CSPA2m)"
     using RADm_healths[of M] by (simp only: Healthy_if)
 next
-  assume "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is ABm) \<and> (M is CSPA2m)"
+  assume "(M is RA1m) \<and> (M is RA2m) \<and> (M is RA3m) \<and> (M is CSPA1m) \<and> (M is PBMHm) \<and> (M is CSPA2m)"
   then show "M is RADm" by (simp add: Healthy_def' RADm_def)
 qed
 
@@ -366,6 +370,6 @@ lemma RADm_Idempotent [closure]: "Idempotent RADm"
 
 lemma RADm_Monotonic [closure]: "Monotonic RADm"
   unfolding RADm_def
-  by (intro Monotonic_comp RA2m_Monotonic RA3m_Monotonic CSPA1m_Monotonic PBMHm_Monotonic ABm_Monotonic H2m_Monotonic)
+  by (intro Monotonic_comp RA2m_Monotonic RA3m_Monotonic CSPA1m_Monotonic PBMHm_Monotonic H2m_Monotonic)
 
 end

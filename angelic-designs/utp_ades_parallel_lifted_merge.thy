@@ -10,9 +10,9 @@ subsection \<open>Construction\<close>
 
 text \<open>The AD merge lifts the design merge of @{term j} through choice sets.\<close>
 
-(* merge_ades j = H3m (H1m (ABm (ac'_lift_merge (merge_des_raw j)))) *)
+(* merge_ades j = H3m (H1m (ac'_lift_merge (merge_des_raw j))) *)
 definition merge_ades :: "'s merge \<Rightarrow> 's ades_merge_rel" where
-  "merge_ades j \<equiv> H3m (H1m (ABm (ac'_lift_merge (merge_des_raw j))))"
+  "merge_ades j \<equiv> H3m (H1m (ac'_lift_merge (merge_des_raw j)))"
 
 lemma merge_ades_completion [simp]: "merge_ades j ;; II\<^sub>D = merge_ades j"
   by (simp add: merge_ades_def H3m_def seqr_assoc)
@@ -34,7 +34,7 @@ lemma merge_ades_obs:
   by (cases ok0; cases okL; cases okR; cases ok'; simp_all; blast intro: exI[where x=UNIV])
 
 lemma merge_ades_design_lift:
-  "merge_ades j = H3m (H1m (ABm (ac'_lift_merge (merge_des j))))"
+  "merge_ades j = H3m (H1m (ac'_lift_merge (merge_des j)))"
   apply (rule ades_merge_ext)
   apply (rename_tac ok0 s0 okL acL okR acR ok' ac')
   apply (simp only: merge_ades_obs ac'_lift_merge_completion_obs merge_des_expand simp_thms)

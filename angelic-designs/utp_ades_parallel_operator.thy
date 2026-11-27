@@ -130,11 +130,11 @@ theorem ades_par_canonical:
   assumes "M is ABm" "singleton_refines (merge_des j) M"
   shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>H3m (H1m M)\<^esub> Q"
 proof -
-  have "ABm (ac'_lift_merge (merge_des j)) \<sqsubseteq> M"
+  have "ac'_lift_merge (merge_des j) \<sqsubseteq> M"
     by (rule choice_lift_least[OF assms])
-  then have "H1m (ABm (ac'_lift_merge (merge_des j))) \<sqsubseteq> H1m M"
+  then have "H1m (ac'_lift_merge (merge_des j)) \<sqsubseteq> H1m M"
     by (rule H1m_Monotonic[unfolded Monotonic_refine, rule_format])
-  then have "H3m (H1m (ABm (ac'_lift_merge (merge_des j)))) \<sqsubseteq> H3m (H1m M)"
+  then have "H3m (H1m (ac'_lift_merge (merge_des j))) \<sqsubseteq> H3m (H1m M)"
     by (rule H3m_Monotonic[unfolded Monotonic_refine, rule_format])
   then show ?thesis
     unfolding ades_par_def merge_ades_design_lift by (rule par_by_merge_mono_merge)

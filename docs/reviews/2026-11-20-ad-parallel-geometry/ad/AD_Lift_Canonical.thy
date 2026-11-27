@@ -5,7 +5,7 @@ begin
 section \<open>Which merges on choice sets are admissible\<close>
 
 text \<open>We compare an arbitrary merge M on choice sets with the shared lift
-  ABm (ac'_lift_merge N) of an inner merge N on single states. We ask two things of M:
+  ac'_lift_merge N of an inner merge N on single states. We ask two things of M:
   growing a branch choice set never helps, and on single branch states M merges
   no more than N.\<close>
 
@@ -44,27 +44,27 @@ lemma sound_mD:
 
 section \<open>The shared lift is admissible and greatest\<close>
 
-lemma lift_antitone: "antitone_m (ABm (ac'_lift_merge N))"
-  unfolding antitone_m_def ABm_ac'_lift_merge_obs by blast
+lemma lift_antitone: "antitone_m (ac'_lift_merge N)"
+  unfolding antitone_m_def ac'_lift_merge_obs by blast
 
-lemma lift_nonempty: "nonempty_m (ABm (ac'_lift_merge N))"
-  unfolding nonempty_m_def ABm_ac'_lift_merge_obs by blast
+lemma lift_nonempty: "nonempty_m (ac'_lift_merge N)"
+  unfolding nonempty_m_def ac'_lift_merge_obs by blast
 
-lemma lift_sound: "sound_m N (ABm (ac'_lift_merge N))"
-  unfolding sound_m_def ABm_ac'_lift_merge_obs by simp
+lemma lift_sound: "sound_m N (ac'_lift_merge N)"
+  unfolding sound_m_def ac'_lift_merge_obs by simp
 
 (* on single branch states the lift is exactly N *)
 lemma lift_singleton:
-  "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL {sL} okR {sR} ok' Z \<longleftrightarrow>
+  "ades_merge_obs (ac'_lift_merge N) ok0 s0 okL {sL} okR {sR} ok' Z \<longleftrightarrow>
    (\<exists>s'\<in>Z. merge_eval N \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
                         \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
-  by (simp only: ABm_ac'_lift_merge_obs) simp
+  by (simp only: ac'_lift_merge_obs) simp
 
 (* every admissible merge is contained in the lift *)
 lemma lift_greatest_obs:
   assumes A: "antitone_m M" and E: "nonempty_m M" and S: "sound_m N M"
     and M: "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
-  shows "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL X okR Y ok' Z"
+  shows "ades_merge_obs (ac'_lift_merge N) ok0 s0 okL X okR Y ok' Z"
 proof -
   have ne: "X \<noteq> {}" "Y \<noteq> {}" using nonempty_mD[OF E M] by simp_all
   have pairs: "\<exists>s'\<in>Z. merge_eval N \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
@@ -75,7 +75,7 @@ proof -
     from antitone_mD[OF A this M] show ?thesis by (rule sound_mD[OF S])
   qed
   show ?thesis
-    unfolding ABm_ac'_lift_merge_obs using ne pairs by blast
+    unfolding ac'_lift_merge_obs using ne pairs by blast
 qed
 
 section \<open>Refinement consequences\<close>
@@ -102,13 +102,13 @@ qed
 
 lemma lift_greatest:
   assumes "antitone_m M" "nonempty_m M" "sound_m N M"
-  shows "ABm (ac'_lift_merge N) \<sqsubseteq> M"
+  shows "ac'_lift_merge N \<sqsubseteq> M"
   by (rule ades_merge_refine) (rule lift_greatest_obs[OF assms])
 
 (* every admissible merge refines the shared lift's parallel composition *)
 theorem par_lift_canonical:
   assumes "antitone_m M" "nonempty_m M" "sound_m N M"
-  shows "P \<parallel>\<^bsub>ABm (ac'_lift_merge N)\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
+  shows "P \<parallel>\<^bsub>ac'_lift_merge N\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
   by (rule par_by_merge_merge_mono[OF lift_greatest[OF assms]])
 
 section \<open>Antitonicity costs nothing for up-closed operands\<close>
@@ -180,7 +180,7 @@ qed
    once made antitone by ABm, refines the shared lift *)
 corollary par_lift_canonical_PBMH:
   assumes "P is PBMH_ades" "Q is PBMH_ades" "nonempty_m M" "sound_m N (ABm M)"
-  shows "P \<parallel>\<^bsub>ABm (ac'_lift_merge N)\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
+  shows "P \<parallel>\<^bsub>ac'_lift_merge N\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
   using par_lift_canonical[OF ABm_antitone ABm_nonempty assms(4), of P Q]
   by (simp only: par_ABm_eq[OF assms(1,2,3)])
 
@@ -191,10 +191,10 @@ theorem ades_par_canonical:
   assumes "antitone_m M" "nonempty_m M" "sound_m (merge_des j) M"
   shows "P \<parallel>\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>H3m (H1m M)\<^esub> Q"
 proof -
-  have "ABm (ac'_lift_merge (merge_des j)) \<sqsubseteq> M" by (rule lift_greatest[OF assms])
-  then have "H1m (ABm (ac'_lift_merge (merge_des j))) \<sqsubseteq> H1m M"
+  have "ac'_lift_merge (merge_des j) \<sqsubseteq> M" by (rule lift_greatest[OF assms])
+  then have "H1m (ac'_lift_merge (merge_des j)) \<sqsubseteq> H1m M"
     by (rule H1m_Monotonic[unfolded Monotonic_refine, rule_format])
-  then have "H3m (H1m (ABm (ac'_lift_merge (merge_des j)))) \<sqsubseteq> H3m (H1m M)"
+  then have "H3m (H1m (ac'_lift_merge (merge_des j))) \<sqsubseteq> H3m (H1m M)"
     by (rule H3m_Monotonic[unfolded Monotonic_refine, rule_format])
   then show ?thesis
     unfolding ades_par_def merge_ades_design_lift by (rule par_by_merge_merge_mono)

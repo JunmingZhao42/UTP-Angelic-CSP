@@ -15,7 +15,7 @@ lemma rad_par_mono:
 lemma rad_par_comm:
   assumes "j is SymMerge"
   shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q = Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> P"
-  by (rule par_by_merge_comm[OF rad_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF assms]]])
+  by (rule par_by_merge_comm[OF ac'_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF assms]]])
 
 subsection \<open>Zero laws\<close>
 
@@ -106,15 +106,15 @@ text \<open>Associativity of the lifted merge transfers from the ordinary
   nondivergent law through @{const p2ac}. The premises on @{term M} are those of
   @{thm [source] par_by_merge_assoc_NDRD}.\<close>
 
-lemma par_by_rad_lift_merge_assoc_NDRAD:
+lemma par_by_ac'_lift_merge_assoc_NDRAD:
   fixes M :: "('t::trace, 'e set) rp merge"
   assumes rad: "P is RAD" "Q is RAD" "R is RAD"
       and a2: "P is A2" "Q is A2" "R is A2"
       and nondiv: "P is NDRAD" "Q is NDRAD" "R is NDRAD"
       and merge: "M is SymMerge" "M is NDRDm"
         "AssocMerge (merge_guard (\<lambda>x z. ok\<^sub>v x \<and> \<not> wait\<^sub>v x \<longrightarrow> ok\<^sub>v z) M)"
-  shows "(P \<parallel>\<^bsub>rad_lift_merge M\<^esub> Q) \<parallel>\<^bsub>rad_lift_merge M\<^esub> R =
-    P \<parallel>\<^bsub>rad_lift_merge M\<^esub> (Q \<parallel>\<^bsub>rad_lift_merge M\<^esub> R)"
+  shows "(P \<parallel>\<^bsub>ac'_lift_merge M\<^esub> Q) \<parallel>\<^bsub>ac'_lift_merge M\<^esub> R =
+    P \<parallel>\<^bsub>ac'_lift_merge M\<^esub> (Q \<parallel>\<^bsub>ac'_lift_merge M\<^esub> R)"
 proof -
   have rd: "ac2p P is RD" "ac2p Q is RD" "ac2p R is RD"
     using rad a2 by (blast intro: rad_ac2p_RD)+
@@ -138,7 +138,7 @@ lemma rad_par_assoc:
       and merge: "j is SymMerge" "AssocMerge j"
   shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R =
     P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> (Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> R)"
-  by (rule par_by_rad_lift_merge_assoc_NDRAD[OF rad a2 nondiv
+  by (rule par_by_ac'_lift_merge_assoc_NDRAD[OF rad a2 nondiv
         merge_rdes_SymMerge[OF merge(1)] merge_rdes_NDRDm
         merge_rdes_guard_AssocMerge[OF merge(2)]])
 
@@ -402,18 +402,18 @@ proof -
     if "\<not> rad_wait\<^sub>v s0" for s0 okL acL okR acR ok' ac'
     using that
     by (cases okL; cases okR; cases ok';
-        simp add: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
+        simp add: merge_guard_eval ac'_lift_merge_obs[simplified] merge_rdes_eval; blast)
   have unstarted_obs: "merge_eval (merge_guard ?G (merge_rad j))
       \<lparr>ok\<^sub>v = False, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') =
     (acL \<noteq> {} \<and> acR \<noteq> {} \<and> rad_trace_extensions s0 \<inter> ac' \<noteq> {})"
     for s0 okL acL okR acR ok' ac'
-    by (cases ok'; auto simp: merge_guard_eval rad_lift_merge_obs[simplified]
+    by (cases ok'; auto simp: merge_guard_eval ac'_lift_merge_obs[simplified]
         merge_rdes_eval rad_trace_extensions_def; blast)
   have waiting_obs: "merge_eval (merge_guard ?G (merge_rad j))
       \<lparr>ok\<^sub>v = True, s\<^sub>v = s0, \<dots> = ()\<rparr> (ades_output okL acL) (ades_output okR acR) (ades_output ok' ac') =
     (acL \<noteq> {} \<and> acR \<noteq> {} \<and> ok' \<and> s0 \<in> ac')"
     if "rad_wait\<^sub>v s0" for s0 okL acL okR acR ok' ac'
-    using that by (auto simp: merge_guard_eval rad_lift_merge_obs[simplified] merge_rdes_eval; blast)
+    using that by (auto simp: merge_guard_eval ac'_lift_merge_obs[simplified] merge_rdes_eval; blast)
   show ?thesis
     unfolding AssocMerge_iff
     apply (intro allI)
@@ -448,7 +448,7 @@ proof -
   have closed: "\<And>x p q z. \<lbrakk>?G x p; ?G x q; merge_eval (merge_rad j) x p q z\<rbrakk> \<Longrightarrow> ?G x z"
     apply (unfold des_vars.splits(1) astate.splits(1) achoices.splits(1) unit_all_eq1)
     subgoal for ok0 s0 okL X okR Y ok' ac'
-      by (auto simp: rad_lift_merge_obs[simplified] merge_rdes_eval)
+      by (auto simp: ac'_lift_merge_obs[simplified] merge_rdes_eval)
     done
   (* nondivergent operands satisfy the guard *)
   have nd: "\<And>x z. S (x, z) \<Longrightarrow> ?G x z" if "S is NDRAD" for S :: "('t, 'e) reactive_angelic_design"
@@ -464,7 +464,7 @@ proof -
     done
   show ?thesis
     by (rule par_by_merge_assoc_guard[OF
-        SymMerge_merge_guard[OF rad_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF sym]]]
+        SymMerge_merge_guard[OF ac'_lift_merge_SymMerge[OF merge_rdes_SymMerge[OF sym]]]
         merge_rad_guard_AssocMerge[OF det assoc] closed
         nd[OF nondiv(1)] nd[OF nondiv(2)] nd[OF nondiv(3)]])
 qed

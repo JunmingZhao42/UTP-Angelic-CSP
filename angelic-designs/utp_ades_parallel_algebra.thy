@@ -250,11 +250,11 @@ lemma ades_lift_par_assoc_transfer:
   assumes ops: "P is A" "Q is A" "R is A" "P is A2" "Q is A2" "R is A2"
     and merge: "M is HDm" "M is H3m"
     and ordinary: "(ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q) \<parallel>\<^bsub>M\<^esub> ac2p R = ac2p P \<parallel>\<^bsub>M\<^esub> (ac2p Q \<parallel>\<^bsub>M\<^esub> ac2p R)"
-  shows "(P \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> Q) \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> R =
-    P \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> (Q \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> R)"
+  shows "(P \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> Q) \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> R =
+    P \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> (Q \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> R)"
 proof -
-  have pq: "(P \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> Q) is A" "(P \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> Q) is A2"
-    and qr: "(Q \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> R) is A" "(Q \<parallel>\<^bsub>H3m (H1m (ABm (ac'_lift_merge M)))\<^esub> R) is A2"
+  have pq: "(P \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> Q) is A" "(P \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> Q) is A2"
+    and qr: "(Q \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> R) is A" "(Q \<parallel>\<^bsub>H3m (H1m (ac'_lift_merge M))\<^esub> R) is A2"
     by (simp_all only: ades_par_by_merge_d2ac_ac2p[OF ops(1,2,4,5) merge refl]
         ades_par_by_merge_d2ac_ac2p[OF ops(2,3,5,6) merge refl] d2ac_is_A d2ac_is_A2)
   show ?thesis

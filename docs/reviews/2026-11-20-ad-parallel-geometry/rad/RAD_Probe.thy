@@ -51,7 +51,7 @@ lemma rad_par_obs:
       acL \<noteq> {} \<and> acR \<noteq> {} \<and>
       (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>Z. merge_eval (merge_rdes j)
          \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr>))"
-  by (simp only: ades_par_by_merge_obs rad_lift_merge_obs)
+  by (simp only: ades_par_by_merge_obs ac'_lift_merge_obs)
 
 (* from a started, non-waiting prior with both branches stable, merge_rdes applies j
    to the trace contributions *)
@@ -307,16 +307,13 @@ lemma rad_sync_angelic_stuck_any_lift:
               (ades_obs True s0 c Z)"
   shows "\<exists>z\<in>Z. rad_tr\<^sub>v z = rad_tr\<^sub>v s0"
 proof -
-  have R: "PrefixSkip_RAD a \<parallel>\<^bsub>ABm (ac'_lift_merge (merge_rdes jsync))\<^esub>
+  have R: "PrefixSkip_RAD a \<parallel>\<^bsub>ac'_lift_merge (merge_rdes jsync)\<^esub>
              (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b) \<sqsubseteq>
            PrefixSkip_RAD a \<parallel>\<^bsub>M\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b)"
     by (rule par_lift_canonical[OF adm])
-  have e: "merge_rad jsync = ABm (ac'_lift_merge (merge_rdes jsync))"
-    by (simp add: rad_lift_merge_def)
   from R[unfolded pred_refine_iff, rule_format, OF P]
   have "(PrefixSkip_RAD a \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>jsync\<^esub> (PrefixSkip_RAD a \<squnion>\<^sub>R\<^sub>A\<^sub>D PrefixSkip_RAD b))
-          (ades_obs True s0 c Z)"
-    unfolding e .
+          (ades_obs True s0 c Z)" .
   then show ?thesis by (rule rad_sync_angelic_stuck[OF s0 ab])
 qed
 

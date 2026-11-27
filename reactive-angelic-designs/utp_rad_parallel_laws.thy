@@ -6,28 +6,6 @@ begin
 
 subsection \<open>Generic parallel closure\<close>
 
-lemma RA2m_trace_prepend_obs:
-  assumes "M is RA2m"
-  shows "ades_merge_obs M ok0 s0 okL (image (rad_trace_prepend s0) X)
-      okR (image (rad_trace_prepend s0) Y) ok' Z =
-    ades_merge_obs M ok0 (rad_zero_trace s0) okL X okR Y ok'
-      (rad_normalise_choices s0 Z)"
-proof -
-  have a: "ades_merge_obs M ok0 s0 okL (image (rad_trace_prepend s0) X)
-      okR (image (rad_trace_prepend s0) Y) ok' Z =
-    (rad_normalise_choices s0 Z \<noteq> {} \<and>
-     ades_merge_obs M ok0 (rad_zero_trace s0)
-      okL (image (rad_trace_difference s0) (image (rad_trace_prepend s0) X))
-      okR (image (rad_trace_difference s0) (image (rad_trace_prepend s0) Y))
-      ok' (rad_normalise_choices s0 Z))"
-    by (subst (1) Healthy_if[OF assms, symmetric]; rule RA2m_obs)
-  have b: "ades_merge_obs M ok0 (rad_zero_trace s0) okL X okR Y ok' (rad_normalise_choices s0 Z) =
-    (rad_normalise_choices s0 Z \<noteq> {} \<and>
-     ades_merge_obs M ok0 (rad_zero_trace s0) okL X okR Y ok' (rad_normalise_choices s0 Z))"
-    by (subst (1) Healthy_if[OF assms, symmetric]; simp add: RA2m_obs[simplified])
-  show ?thesis using a b by (simp add: image_image rad_trace_difference_prepend)
-qed
-
 lemma rad_par_by_merge_RA1 [closure]:
   fixes M :: "('t::trace, 'e) rad_merge_rel"
   assumes "M is RA1m"
@@ -67,87 +45,96 @@ lemma rad_par_by_merge_RA3 [closure]:
         simp add: RA3_eval ades_par_by_merge_obs RA3m_obs[simplified] II_Rac_eval; fast)
   done
 
+text \<open>We need PBMH operands for RA2 closure. A branch observation then survives trace
+  normalisation with every choice kept, not just the trace extensions, so the merge
+  needs only RA2APm. RAD operands are PBMH, and so are AP operands, which may diverge
+  with no trace extension among their choices.\<close>
+
 lemma rad_par_by_merge_RA2 [closure]:
   fixes M :: "('t::trace, 'e) rad_merge_rel"
-  assumes "P is RA1" "Q is RA1" "P is RA2" "Q is RA2"
-    "M is RA2m" "M is ABm"
+  assumes "P is RA2" "Q is RA2" "P is PBMH_ades" "Q is PBMH_ades" "M is RA2APm"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is RA2"
 proof -
   let ?R = "P \<parallel>\<^bsub>M\<^esub> Q"
+  have m: "ades_merge_obs M ok0 s0 okL X okR Y ok' Z =
+      ades_merge_obs M ok0 (rad_zero_trace s0)
+        okL (rad_trace_difference s0 ` X) okR (rad_trace_difference s0 ` Y)
+        ok' (rad_normalise_choices s0 Z)" for ok0 s0 okL X okR Y ok' Z
+    by (subst (1) Healthy_if[OF assms(5), symmetric]; simp only: RA2APm_obs)
+  have prepend: "ades_merge_obs M ok0 s0 okL (rad_trace_prepend s0 ` X)
+      okR (rad_trace_prepend s0 ` Y) ok' Z =
+    ades_merge_obs M ok0 (rad_zero_trace s0) okL X okR Y ok' (rad_normalise_choices s0 Z)"
+    for ok0 s0 okL X okR Y ok' Z
+    by (subst (1) Healthy_if[OF assms(5), symmetric];
+        simp only: RA2APm_obs image_image rad_trace_difference_prepend image_ident)
+  (* PBMH keeps a branch observation when we add back the non-extensions *)
+  have down: "S (ades_obs b (rad_zero_trace s1) c (rad_trace_difference s1 ` V))"
+    if "S is RA2" "S is PBMH_ades" "S (ades_obs b s1 c V)"
+    for S :: "('t, 'e) reactive_angelic_design" and b s1 c V
+  proof -
+    have "S (ades_obs b (rad_zero_trace s1) c (rad_normalise_choices s1 V))"
+      using that(3) by (subst (asm) Healthy_if[OF that(1), symmetric]; simp only: RA2_obs')
+    moreover have "rad_normalise_choices s1 V \<subseteq> rad_trace_difference s1 ` V"
+      by (auto simp: rad_normalise_choices_def)
+    ultimately show ?thesis
+      by (subst Healthy_if[OF that(2), symmetric]; simp only: PBMH_ades_obs; blast)
+  qed
   show ?thesis
     unfolding Healthy_def'
   proof (rule ades_obs_ext)
-    fix ok0 s0 ok' ac'
-    show "RA2 ?R (ades_obs ok0 s0 ok' ac') = ?R (ades_obs ok0 s0 ok' ac')"
-    proof (rule iffI)
-      assume "RA2 ?R (ades_obs ok0 s0 ok' ac')"
+    fix ok0 s0 ok' Z
+    show "RA2 ?R (ades_obs ok0 s0 ok' Z) = ?R (ades_obs ok0 s0 ok' Z)"
+    proof
+      assume "RA2 ?R (ades_obs ok0 s0 ok' Z)"
       then obtain okL X okR Y where
         p: "P (ades_obs ok0 (rad_zero_trace s0) okL X)" and
         q: "Q (ades_obs ok0 (rad_zero_trace s0) okR Y)" and
-        n: "ades_merge_obs M ok0 (rad_zero_trace s0)
-          okL X okR Y ok' (rad_normalise_choices s0 ac')"
+        n: "ades_merge_obs M ok0 (rad_zero_trace s0) okL X okR Y ok'
+              (rad_normalise_choices s0 Z)"
         unfolding RA2_obs' ades_par_by_merge_obs by blast
       have "P (ades_obs ok0 s0 okL (rad_trace_prepend s0 ` X))"
         "Q (ades_obs ok0 s0 okR (rad_trace_prepend s0 ` Y))"
-        using p q by (simp_all only: RA2_trace_prepend_obs[OF assms(3)]
-            RA2_trace_prepend_obs[OF assms(4)])
-      moreover have "ades_merge_obs M ok0 s0 okL
-          (rad_trace_prepend s0 ` X) okR (rad_trace_prepend s0 ` Y) ok' ac'"
-        using n by (simp only: RA2m_trace_prepend_obs[OF assms(5)])
-      ultimately show "?R (ades_obs ok0 s0 ok' ac')"
+        using p q by (simp_all only: RA2_trace_prepend_obs[OF assms(1)]
+            RA2_trace_prepend_obs[OF assms(2)])
+      moreover have "ades_merge_obs M ok0 s0 okL (rad_trace_prepend s0 ` X)
+          okR (rad_trace_prepend s0 ` Y) ok' Z"
+        using n by (simp only: prepend)
+      ultimately show "?R (ades_obs ok0 s0 ok' Z)"
         unfolding ades_par_by_merge_obs by blast
     next
-      assume "?R (ades_obs ok0 s0 ok' ac')"
+      assume "?R (ades_obs ok0 s0 ok' Z)"
       then obtain okL X okR Y where
-        p: "P (ades_obs ok0 s0 okL X)" and
-        q: "Q (ades_obs ok0 s0 okR Y)" and
-        n: "ades_merge_obs M ok0 s0 okL X okR Y ok' ac'"
+        p: "P (ades_obs ok0 s0 okL X)" and q: "Q (ades_obs ok0 s0 okR Y)" and
+        n: "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
         unfolding ades_par_by_merge_obs by blast
-      have nx: "rad_trace_extensions s0 \<inter> X \<noteq> {}"
-        using assms(1) p by (metis Healthy_def' RA1_obs)
-      have ny: "rad_trace_extensions s0 \<inter> Y \<noteq> {}"
-        using assms(2) q by (metis Healthy_def' RA1_obs)
-      have nxy: "ades_merge_obs M ok0 s0 okL
-          (rad_trace_extensions s0 \<inter> X) okR
-          (rad_trace_extensions s0 \<inter> Y) ok' ac'"
-        by (rule ABm_restrict[OF assms(6) _ _ nx ny n]; auto)
-      have p0: "P (ades_obs ok0 (rad_zero_trace s0) okL
-          (rad_normalise_choices s0 X))"
-        using p
-        by (subst (asm) Healthy_if[OF assms(3), symmetric]; simp only: RA2_obs')
-      have q0: "Q (ades_obs ok0 (rad_zero_trace s0) okR
-          (rad_normalise_choices s0 Y))"
-        using q
-        by (subst (asm) Healthy_if[OF assms(4), symmetric]; simp only: RA2_obs')
-      have normalise: "rad_trace_difference s0 ` (rad_trace_extensions s0 \<inter> W) =
-          rad_normalise_choices s0 W" for W
-        by (auto simp: rad_normalise_choices_def rad_trace_extensions_def)
-      have n0: "ades_merge_obs M ok0 (rad_zero_trace s0)
-          okL (rad_normalise_choices s0 X) okR
-          (rad_normalise_choices s0 Y) ok' (rad_normalise_choices s0 ac')"
-        using nxy
-        by (subst (asm) Healthy_if[OF assms(5), symmetric];
-            simp add: RA2m_obs[simplified] normalise)
-      show "RA2 ?R (ades_obs ok0 s0 ok' ac')"
-        using p0 q0 n0 by (simp only: RA2_obs' ades_par_by_merge_obs; blast)
+      have "P (ades_obs ok0 (rad_zero_trace s0) okL (rad_trace_difference s0 ` X))"
+        by (rule down[OF assms(1,3) p])
+      moreover have "Q (ades_obs ok0 (rad_zero_trace s0) okR (rad_trace_difference s0 ` Y))"
+        by (rule down[OF assms(2,4) q])
+      moreover have "ades_merge_obs M ok0 (rad_zero_trace s0)
+          okL (rad_trace_difference s0 ` X) okR (rad_trace_difference s0 ` Y)
+          ok' (rad_normalise_choices s0 Z)"
+        using n by (simp only: m[of okL X okR Y ok0 s0 ok' Z])
+      ultimately show "RA2 ?R (ades_obs ok0 s0 ok' Z)"
+        unfolding RA2_obs' ades_par_by_merge_obs by blast
     qed
   qed
 qed
 
 lemma rad_par_by_merge_RA [closure]:
   fixes M :: "('t::trace, 'e) rad_merge_rel"
-  assumes "P is RA" "Q is RA" "M is RAm"
+  assumes "P is RA" "Q is RA" "P is PBMH_ades" "Q is PBMH_ades" "M is RAm"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is RA"
 proof -
-  have ra1: "P is RA1" "Q is RA1"
-    using RA1_idem[of "RA2 (RA3 P)"] RA1_idem[of "RA2 (RA3 Q)"] assms(1,2)
-    by (simp_all add: Healthy_def' RA_def)
+  have m: "M is RA1m" "M is RA2m" "M is RA3m"
+    using assms(5) by (simp_all add: RAm_healthy_iff)
   have "(P \<parallel>\<^bsub>M\<^esub> Q) is RA1"
     "(P \<parallel>\<^bsub>M\<^esub> Q) is RA2"
     "(P \<parallel>\<^bsub>M\<^esub> Q) is RA3"
-    using assms ra1
-    by (auto simp: RAm_healthy_iff intro: rad_par_by_merge_RA1
-        rad_par_by_merge_RA2 rad_par_by_merge_RA3 RA_is_RA2 RA_is_RA3)
+    by (rule rad_par_by_merge_RA1[OF m(1)],
+        rule rad_par_by_merge_RA2[OF RA_is_RA2[OF assms(1)] RA_is_RA2[OF assms(2)]
+          assms(3,4) RA2m_is_RA2APm[OF m(2)]],
+        rule rad_par_by_merge_RA3[OF RA_is_RA3[OF assms(1)] RA_is_RA3[OF assms(2)] m(3)])
   then show ?thesis by (simp add: Healthy_def' RA_def)
 qed
 
@@ -164,8 +151,9 @@ lemma rad_par_by_merge_RAD [closure]:
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is RAD"
   using assms
   unfolding RAD_components_iff RADm_healthy_iff
-  by (auto intro: rad_par_by_merge_RA1 rad_par_by_merge_RA2 rad_par_by_merge_RA3
-      rad_par_by_merge_CSPA1 rad_par_by_merge_CSPA2 PBMH_ades_par_by_merge)
+  by (auto intro: rad_par_by_merge_RA1 rad_par_by_merge_RA2 RA2m_is_RA2APm
+      rad_par_by_merge_RA3 rad_par_by_merge_CSPA1 rad_par_by_merge_CSPA2
+      PBMH_ades_par_by_merge)
 
 subsection \<open>Choice\<close>
 

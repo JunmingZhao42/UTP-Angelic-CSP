@@ -97,59 +97,25 @@ lemma rad_basic_merge_PBMHm [closure]:
           II_Rac_eval rad_trace_extensions_def; blast)
   done
 
-lemma rad_basic_merge_ABm [closure]:
-  "(rad_basic_merge :: ('t::trace, 'e) rad_merge_rel) is ABm"
-  unfolding Healthy_def'
-  apply (rule ades_merge_ext)
-  subgoal for ok0 s0 okL acL okR acR ok' ac'
-    by (cases "rad_wait\<^sub>v s0"; cases ok0;
-        simp add: ABm_obs[simplified] rad_basic_merge_obs[simplified]; blast)
-  done
-
 lemma rad_basic_merge_RADm [closure]: "rad_basic_merge is RADm"
   by (simp add: RADm_healthy_iff rad_basic_merge_RA1m rad_basic_merge_RA2m
       rad_basic_merge_RA3m rad_basic_merge_CSPA1m rad_basic_merge_CSPA2m
-      rad_basic_merge_PBMHm rad_basic_merge_ABm)
+      rad_basic_merge_PBMHm)
 
 subsection \<open>Choice-set lifting\<close>
 
-text \<open>Every pair of branch states must have a merged output in the final set.
-  The ordinary merge supplies the control, trace, waiting and refusal policy.\<close>
-
-(* Lift ordinary reactive observations to nonempty branch choice sets. *)
-definition rad_lift_merge ::
-  "('t::trace, 'e set) rp merge \<Rightarrow> ('t, 'e) rad_merge_rel"
-where
-  "rad_lift_merge \<equiv> ABm \<circ> ac'_lift_merge"
-
-lemma rad_lift_merge_obs:
-  "ades_merge_obs (rad_lift_merge M) ok0 s0 okL X okR Y ok' Z =
-    (X \<noteq> {} \<and> Y \<noteq> {} \<and> (\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>Z.
-      merge_eval M (\<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>)
-        (\<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>)
-        (\<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>)
-        (\<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)))"
-  by (simp add: rad_lift_merge_def ABm_ac'_lift_merge_obs[simplified])
-
-lemma rad_lift_merge_SymMerge:
-  "M is SymMerge \<Longrightarrow> rad_lift_merge M is SymMerge"
-proof -
-  assume assms: "M is SymMerge"
-  have sym: "merge_eval M x p q z = merge_eval M x q p z" for x p q z
-    using assms by (simp add: SymMerge_eval)
-  show ?thesis
-    by (simp add: SymMerge_eval des_vars.splits astate.splits achoices.splits
-        rad_lift_merge_obs[simplified] sym; blast)
-qed
+text \<open>We lift an ordinary reactive merge with the AD choice-set lift
+  @{const ac'_lift_merge}: every pair of branch states must have a merged output in the
+  final set. The ordinary merge supplies the control, trace, waiting and refusal policy.\<close>
 
 subsubsection \<open>ORDm lift facts\<close>
 
-lemma rad_lift_merge_CSPA2m:
+lemma ac'_lift_merge_CSPA2m:
   assumes "M is RD2"
-  shows "rad_lift_merge M is CSPA2m"
+  shows "ac'_lift_merge M is CSPA2m"
   unfolding Healthy_def'
   apply (rule ades_merge_ext)
-  apply (simp only: H2m_ades_obs rad_lift_merge_obs)
+  apply (simp only: H2m_ades_obs ac'_lift_merge_obs)
   using RD2_ok_up[OF assms]
   apply auto
   by blast
@@ -239,35 +205,35 @@ lemma R2m_choice_normalise:
   by (subst R2m_rad_eval[OF assms];
       auto simp: rad_normalise_choices_def rad_trace_extensions_def)
 
-lemma rad_lift_merge_RA1m:
+lemma ac'_lift_merge_RA1m:
   assumes "M is ORDm"
-  shows "rad_lift_merge M is RA1m"
+  shows "ac'_lift_merge M is RA1m"
   unfolding Healthy_def'
   apply (rule ades_merge_ext)
-  apply (simp add: RA1m_obs[simplified] rad_lift_merge_obs[simplified])
+  apply (simp add: RA1m_obs[simplified] ac'_lift_merge_obs[simplified])
   using ORDm_ext_eval[OF assms] by blast
 
-lemma rad_lift_merge_RA2m:
+lemma ac'_lift_merge_RA2m:
   assumes "M is R2m"
-  shows "rad_lift_merge M is RA2m"
+  shows "ac'_lift_merge M is RA2m"
   unfolding Healthy_def'
   apply (rule ades_merge_ext)
-  apply (simp only: RA2m_obs rad_lift_merge_obs)
+  apply (simp only: RA2m_obs ac'_lift_merge_obs)
   apply (subst (2) R2m_choice_normalise[OF assms])
   apply simp
   by fast
 
-lemma rad_lift_merge_CSPA1m:
+lemma ac'_lift_merge_CSPA1m:
   assumes "M is ORDm"
-  shows "rad_lift_merge M is CSPA1m"
+  shows "ac'_lift_merge M is CSPA1m"
   unfolding Healthy_def'
   apply (rule ades_merge_ext)
-  apply (simp add: CSPA1m_obs[simplified] rad_lift_merge_obs[simplified])
+  apply (simp add: CSPA1m_obs[simplified] ac'_lift_merge_obs[simplified])
   using ORDm_div_eval[OF assms] by blast
 
-lemma rad_lift_merge_RA3m:
+lemma ac'_lift_merge_RA3m:
   assumes "M is ORDm"
-  shows "rad_lift_merge M is RA3m"
+  shows "ac'_lift_merge M is RA3m"
 proof -
   have div: "merge_eval M \<lparr>ok\<^sub>v = False, \<dots> = s0\<rparr> p q
       \<lparr>ok\<^sub>v = c, \<dots> = s'\<rparr> = (s' \<in> rad_trace_extensions s0)" for s0 p q c s'
@@ -284,7 +250,7 @@ proof -
     apply (rule ades_merge_ext)
     subgoal for ok0 s0 okL X okR Y ok' Z
       apply (cases "rad_wait\<^sub>v s0"; cases ok0)
-      apply (simp_all add: RA3m_obs[simplified] rad_lift_merge_obs[simplified]
+      apply (simp_all add: RA3m_obs[simplified] ac'_lift_merge_obs[simplified]
           II_Rac_eval waiting div)
       apply blast
       apply (simp add: rad_trace_extensions_def)
@@ -292,23 +258,12 @@ proof -
     done
 qed
 
-lemma rad_lift_merge_PBMHm [closure]:
-  "rad_lift_merge M is PBMHm"
-  unfolding Healthy_def'
-  apply (rule ades_merge_ext)
-  apply (simp add: PBMHm_obs[simplified] rad_lift_merge_obs[simplified])
-  by blast
-
-lemma rad_lift_merge_ABm [closure]:
-  "rad_lift_merge M is ABm"
-  by (simp add: Healthy_def' rad_lift_merge_def ABm_idem)
-
-lemma rad_lift_merge_RADm:
+lemma ac'_lift_merge_RADm:
   assumes "M is ORDm"
-  shows "rad_lift_merge M is RADm"
+  shows "ac'_lift_merge M is RADm"
   using assms unfolding RADm_healthy_iff
-  by (auto simp: ORDm_healthy_iff intro: rad_lift_merge_RA1m rad_lift_merge_RA2m
-      rad_lift_merge_RA3m rad_lift_merge_CSPA1m rad_lift_merge_PBMHm
-      rad_lift_merge_ABm rad_lift_merge_CSPA2m)
+  by (auto simp: ORDm_healthy_iff intro: ac'_lift_merge_RA1m ac'_lift_merge_RA2m
+      ac'_lift_merge_RA3m ac'_lift_merge_CSPA1m ac'_lift_merge_PBMHm
+      ac'_lift_merge_CSPA2m)
 
 end

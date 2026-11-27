@@ -176,14 +176,6 @@ subsubsection \<open>Choice-set closure\<close>
 definition PBMHm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
   "PBMHm M \<equiv> PBMH_ades (M \<and> ($\<^bold>v\<^sub>D:ac\<^sup>> \<noteq> \<guillemotleft>{}\<guillemotright>)\<^sub>e)"
 
-(* ABm M = acL \<noteq> {} \<and> acR \<noteq> {} \<and>
-     (\<exists>X Y. acL \<subseteq> X \<and> acR \<subseteq> Y \<and> M[X,Y/acL,acR]) *)
-definition ABm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
-  "ABm M \<equiv>
-    ($0:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and> $1:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and>
-     (\<exists>X Y. $0:\<^bold>v\<^sub>D:ac\<^sup>< \<subseteq> X \<and> $1:\<^bold>v\<^sub>D:ac\<^sup>< \<subseteq> Y \<and>
-       M\<lbrakk>\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>/0:\<^bold>v\<^sub>D:ac\<^sup><, 1:\<^bold>v\<^sub>D:ac\<^sup><\<rbrakk>))\<^sub>e"
-
 (* m = ((ok,s),(okL,acL),(okR,acR)).
    PBMHm M(m,(ok',ac')) =
      (\<exists>X \<subseteq> ac'. X \<noteq> {} \<and> M(m,(ok',X))). *)
@@ -192,24 +184,10 @@ lemma PBMHm_obs:
     (\<exists>Z' \<subseteq> Z. Z' \<noteq> {} \<and> ades_merge_obs M ok0 s0 okL X okR Y ok' Z')"
   by (simp add: PBMHm_def PBMH_ades_def pbmh_step_def seq_def choices_ex; pred_auto)
 
-(* ABm M((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
-     acL \<noteq> {} \<and> acR \<noteq> {} \<and>
-     (\<exists>X Y. acL \<subseteq> X \<and> acR \<subseteq> Y \<and> M((ok,s),(okL,X),(okR,Y),(ok',ac'))). *)
-lemma ABm_obs:
-  "ades_merge_obs (ABm M) ok0 s0 okL X okR Y ok' Z =
-    (X \<noteq> {} \<and> Y \<noteq> {} \<and>
-      (\<exists>X' Y'. X \<subseteq> X' \<and> Y \<subseteq> Y' \<and> ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z))"
-  by (simp add: ABm_def; pred_auto)
-
 lemma PBMHm_idem: "PBMHm (PBMHm M) = PBMHm M"
   apply (rule ades_merge_ext)
   apply (simp add: PBMHm_obs[simplified])
   by blast
-
-lemma ABm_idem: "ABm (ABm M) = ABm M"
-  apply (rule ades_merge_ext)
-  apply (simp add: ABm_obs[simplified])
-  by (meson order_refl order_trans)
 
 lemma PBMHm_Idempotent [closure]: "Idempotent PBMHm"
   by (simp add: Idempotent_def PBMHm_idem)
@@ -217,35 +195,6 @@ lemma PBMHm_Idempotent [closure]: "Idempotent PBMHm"
 lemma PBMHm_Monotonic [closure]: "Monotonic PBMHm"
   unfolding PBMHm_def
   by (rule MonotonicI, rule PBMH_ades_mono; simp add: pred_refine_iff conj_pred_def)
-
-lemma ABm_Idempotent [closure]: "Idempotent ABm"
-  by (simp add: Idempotent_def ABm_idem)
-
-lemma ABm_Monotonic [closure]: "Monotonic ABm"
-proof (rule MonotonicI)
-  fix P Q :: "'s ades_merge_rel"
-  assume "P \<sqsubseteq> Q"
-  then have pointwise: "Q z \<Longrightarrow> P z" for z
-    unfolding pred_refine_iff by blast
-  show "ABm P \<sqsubseteq> ABm Q"
-    by (auto simp: pred_refine_iff ABm_def expr_defs dest: pointwise)
-qed
-
-lemma ABm_restrict:
-  assumes "M is ABm" "X' \<subseteq> X" "Y' \<subseteq> Y" "X' \<noteq> {}" "Y' \<noteq> {}"
-    "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
-  shows "ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z"
-proof -
-  have w: "\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ades_merge_obs M ok0 s0 okL U okR V ok' Z"
-    using assms(6)
-    by (subst (asm) Healthy_if[OF assms(1), symmetric]; simp add: ABm_obs[simplified])
-  show ?thesis
-    apply (subst Healthy_if[OF assms(1), symmetric])
-    apply (simp add: ABm_obs[simplified] assms(4,5))
-    using w assms(2,3)
-    apply (simp only: case_prod_conv)
-    by (meson subset_trans)
-qed
 
 lemma PBMHm_up:
   assumes "M is PBMHm" "Z \<subseteq> Z'" "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
@@ -308,13 +257,7 @@ lemma HDm_angelic_commute:
   "HDm (A1m M) = A1m (HDm M)"
   by (simp add: HDm_def H1m_AD_commute H2m_A0m_commute H2m_A1m_commute)+
 
-lemma PBMHm_ABm_commute: "PBMHm (ABm M) = ABm (PBMHm M)"
-  by (rule ades_merge_ext; simp add: PBMHm_obs[simplified] ABm_obs[simplified]; blast)
-
 lemma PBMHm_H2m_commute: "PBMHm (H2m M) = H2m (PBMHm M)"
   by (rule ades_merge_ext; auto simp: PBMHm_obs[simplified] H2m_ades_obs[simplified] ; blast)
-
-lemma ABm_H2m_commute: "ABm (H2m M) = H2m (ABm M)"
-  by (rule ades_merge_ext; auto simp: ABm_obs[simplified] H2m_ades_obs[simplified] ; blast)
 
 end

@@ -91,7 +91,7 @@ proof -
       obtain sL sR s' where "s' \<in> Z" and
         m: "merge_eval (merge_rdes j) \<lparr>ok\<^sub>v = True, \<dots> = s0\<rparr> \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
             \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>"
-        using h True by (simp only: rad_lift_merge_obs simp_thms ex_in_conv[symmetric]; blast)
+        using h True by (simp only: ac'_lift_merge_obs simp_thms ex_in_conv[symmetric]; blast)
       moreover have "ok' \<and> s' = s0"
         using m True by (cases s0; simp add: merge_rdes_eval)
       ultimately show ?thesis
@@ -100,7 +100,7 @@ proof -
       case False
       then show ?thesis
         using h by (cases ok0; cases "rad_wait\<^sub>v s0";
-            simp only: merge_ap_obs rad_lift_merge_obs if_True if_False simp_thms; blast)
+            simp only: merge_ap_obs ac'_lift_merge_obs if_True if_False simp_thms; blast)
     qed
   qed
   then have "P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q \<sqsubseteq> RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 Q"

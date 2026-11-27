@@ -8,16 +8,16 @@ subsection \<open>RAD parallel by merge\<close>
 
 lemma rad_lift_par_p2ac:
   fixes P Q :: "('t::trace, 'e set) rp_hrel"
-  shows "p2ac P \<parallel>\<^bsub>rad_lift_merge M\<^esub> p2ac Q = p2ac (P \<parallel>\<^bsub>M\<^esub> Q)"
+  shows "p2ac P \<parallel>\<^bsub>ac'_lift_merge M\<^esub> p2ac Q = p2ac (P \<parallel>\<^bsub>M\<^esub> Q)"
   apply (rule ades_obs_ext)
   apply (simp only: rad_p2ac_obs par_by_merge_eval
-      choices_ex rad_lift_merge_obs[simplified])
+      choices_ex ac'_lift_merge_obs[simplified])
   apply (simp only: des_vars.splits)
   by (blast intro: exI[where x="{_}"])
 
 lemma rad_par_by_merge_form:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    and "AM = rad_lift_merge M"
+    and "AM = ac'_lift_merge M"
   shows "P \<parallel>\<^bsub>AM\<^esub> Q =
     p2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
   using rad_lift_par_p2ac[where P="ac2p P" and Q="ac2p Q" and M=M]
@@ -26,14 +26,14 @@ lemma rad_par_by_merge_form:
 
 lemma rad_par_by_merge_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
-    and "AM = rad_lift_merge M"
+    and "AM = ac'_lift_merge M"
   shows "ac2p (P \<parallel>\<^bsub>AM\<^esub> Q) =
     ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q"
   by (simp only: rad_par_by_merge_form[OF assms] rad_ac2p_p2ac_inverse')
 
-(* merge_rad j = rad_lift_merge (merge_rdes j) *)
+(* merge_rad j = ac'_lift_merge (merge_rdes j) *)
 abbreviation merge_rad :: "('t::trace \<times> 'e set) merge \<Rightarrow> ('t, 'e) rad_merge_rel"
-  where "merge_rad j \<equiv> rad_lift_merge (merge_rdes j)"
+  where "merge_rad j \<equiv> ac'_lift_merge (merge_rdes j)"
 
 (* P \<parallel>\<^sub>R\<^sub>A\<^sub>D[j] Q = P \<parallel>[merge_rad j] Q. *)
 abbreviation rad_par_lift ::
@@ -68,7 +68,7 @@ lemma rad_par_eval:
           \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
           \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
           \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
-  by (simp add: par_by_merge_eval choices_ex rad_lift_merge_obs[simplified])
+  by (simp add: par_by_merge_eval choices_ex ac'_lift_merge_obs[simplified])
 
 lemma rad_par_ac2p:
   assumes "P is RAD" "Q is RAD" "P is A2" "Q is A2"
@@ -91,7 +91,7 @@ lemma rad_par_A2:
 lemma rad_par_RAD [closure]:
   assumes "P is RAD" "Q is RAD"
   shows "(P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q) is RAD"
-  by (rule rad_par_by_merge_RAD[OF assms rad_lift_merge_RADm[OF merge_rdes_ORDm]])
+  by (rule rad_par_by_merge_RAD[OF assms ac'_lift_merge_RADm[OF merge_rdes_ORDm]])
 
 lemma rad_par_NDRAD [closure]:
   assumes rad: "P is RAD" "Q is RAD"
@@ -115,7 +115,6 @@ subsection \<open>Canonicity\<close>
 theorem rad_par_canonical:
   assumes "M is ABm" "singleton_refines (merge_rdes j) M"
   shows "P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
-  unfolding rad_lift_merge_def comp_apply
   by (rule par_choice_lift_canonical[OF assms])
 
 end

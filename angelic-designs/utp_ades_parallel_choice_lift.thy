@@ -9,37 +9,51 @@ text \<open>The choice-set lift of an ordinary merge, its canonicity, and its co
 
 subsection \<open>Choice-set lifting\<close>
 
-(* ac'_lift_merge N ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
-     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. N((ok,s),(okL,sL),(okR,sR),(ok',s'))). *)
+(* We merge every pair of branch states into the output set, and need both branch
+   sets nonempty:
+   ac'_lift_merge M ((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+     (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'. M((ok,s),(okL,sL),(okR,sR),(ok',s'))). *)
 definition ac'_lift_merge :: "'s des_merge \<Rightarrow> 's ades_merge_rel" where
-  "ac'_lift_merge N \<equiv>
-    (\<forall>sL\<in>$0:\<^bold>v\<^sub>D:ac\<^sup><. \<forall>sR\<in>$1:\<^bold>v\<^sub>D:ac\<^sup><. \<exists>s'\<in>$\<^bold>v\<^sub>D:ac\<^sup>>.
-      merge_eval \<guillemotleft>N\<guillemotright>
+  "ac'_lift_merge M \<equiv>
+    ($0:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and> $1:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and>
+     (\<forall>sL\<in>$0:\<^bold>v\<^sub>D:ac\<^sup><. \<forall>sR\<in>$1:\<^bold>v\<^sub>D:ac\<^sup><. \<exists>s'\<in>$\<^bold>v\<^sub>D:ac\<^sup>>.
+      merge_eval \<guillemotleft>M\<guillemotright>
         \<lparr>ok\<^sub>v = $<:ok\<^sup><, \<dots> = $<:\<^bold>v\<^sub>D:s\<^sup><\<rparr>
         \<lparr>ok\<^sub>v = $0:ok\<^sup><, \<dots> = sL\<rparr>
         \<lparr>ok\<^sub>v = $1:ok\<^sup><, \<dots> = sR\<rparr>
-        \<lparr>ok\<^sub>v = $ok\<^sup>>, \<dots> = s'\<rparr>)\<^sub>e"
+        \<lparr>ok\<^sub>v = $ok\<^sup>>, \<dots> = s'\<rparr>))\<^sub>e"
 
 lemma ac'_lift_merge_obs:
   "ades_merge_obs (ac'_lift_merge M) ok0 s0 okL acL okR acR ok' ac' =
-    (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
-      merge_eval M \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
-        \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
-  by (simp add: ac'_lift_merge_def; pred_auto)
-
-lemma ABm_ac'_lift_merge_obs:
-  "ades_merge_obs (ABm (ac'_lift_merge M)) ok0 s0 okL acL okR acR ok' ac' =
     (acL \<noteq> {} \<and> acR \<noteq> {} \<and> (\<forall>sL\<in>acL. \<forall>sR\<in>acR. \<exists>s'\<in>ac'.
       merge_eval M \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
         \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr> \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr> \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>))"
-  by (simp add: ABm_obs[simplified] ac'_lift_merge_obs[simplified]; blast)
+  by (simp add: ac'_lift_merge_def; pred_auto)
+
+lemma ac'_lift_merge_PBMHm [closure]: "ac'_lift_merge M is PBMHm"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp add: PBMHm_obs[simplified] ac'_lift_merge_obs[simplified])
+  by blast
+
+lemma ac'_lift_merge_SymMerge:
+  "M is SymMerge \<Longrightarrow> ac'_lift_merge M is SymMerge"
+proof -
+  assume assms: "M is SymMerge"
+  have sym: "merge_eval M x p q z = merge_eval M x q p z" for x p q z
+    using assms by (simp add: SymMerge_eval)
+  show ?thesis
+    by (simp add: SymMerge_eval des_vars.splits astate.splits achoices.splits
+        ac'_lift_merge_obs[simplified] sym; blast)
+qed
 
 text \<open>The AD lift of a design merge completes after lifting, so divergence
   releases the final choice set, including to the empty set.\<close>
 
 (* Before start, ordinary merging into Z, or divergence with unrestricted output. *)
 lemma ac'_lift_merge_completion_obs:
-  "ades_merge_obs (H3m (H1m (ABm (ac'_lift_merge M)))) ok0 s0 okL X okR Y ok' Z \<longleftrightarrow>
+  "ades_merge_obs (H3m (H1m (ac'_lift_merge M))) ok0 s0 okL X okR Y ok' Z \<longleftrightarrow>
     (\<not> ok0 \<or>
      (X \<noteq> {} \<and> Y \<noteq> {} \<and>
        ((\<forall>sL\<in>X. \<forall>sR\<in>Y. \<exists>s'\<in>Z.
@@ -52,12 +66,74 @@ lemma ac'_lift_merge_completion_obs:
              \<lparr>ok\<^sub>v = False, \<dots> = s'\<rparr>))))"
   apply (simp only: H3m_ades_obs)
   apply (simp add: H1m_def disj_pred_def expr_defs lens_defs alpha_defs)
-  apply (simp add: ABm_ac'_lift_merge_obs[simplified])
+  apply (simp add: ac'_lift_merge_obs[simplified])
   by (cases ok0; simp; blast intro: exI[where x=UNIV])
 
 subsubsection \<open>Canonicity of the shared lift\<close>
 
-text \<open>We show the lift L(N) = ABm (ac'_lift_merge N) is canonical: every ABm merge M
+text \<open>We want to show that the lift is not an arbitrary way to extend an ordinary
+  merge to choice sets. So we compare it with other merges M on choice sets. We admit
+  M when accepting larger branch sets means accepting smaller nonempty ones too, since
+  a smaller branch set is a stronger guarantee from that branch.\<close>
+
+(* We enlarge nonempty branch choice sets, as pbmh_step enlarges the output set:
+   acL \<noteq> {} \<and> acR \<noteq> {} \<and> acL \<subseteq> acL' \<and> acR \<subseteq> acR', with the rest unchanged *)
+definition branch_step :: "('s ades_mrg, 's ades_mrg) urel" where
+  "branch_step \<equiv>
+    ($0:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and> $1:\<^bold>v\<^sub>D:ac\<^sup>< \<noteq> {} \<and>
+     $0:\<^bold>v\<^sub>D:ac\<^sup>< \<subseteq> $0:\<^bold>v\<^sub>D:ac\<^sup>> \<and> $1:\<^bold>v\<^sub>D:ac\<^sup>< \<subseteq> $1:\<^bold>v\<^sub>D:ac\<^sup>> \<and>
+     $<\<^sup>> = $<\<^sup>< \<and> $0:ok\<^sup>> = $0:ok\<^sup>< \<and> $1:ok\<^sup>> = $1:ok\<^sup><)\<^sub>e"
+
+(* A merge that accepts larger branch sets also accepts smaller nonempty ones:
+   ABm M = branch_step ;; M *)
+definition ABm :: "'s ades_merge_rel \<Rightarrow> 's ades_merge_rel" where
+  "ABm M \<equiv> branch_step ;; M"
+
+(* ABm M((ok,s),(okL,acL),(okR,acR),(ok',ac')) =
+     acL \<noteq> {} \<and> acR \<noteq> {} \<and>
+     (\<exists>X Y. acL \<subseteq> X \<and> acR \<subseteq> Y \<and> M((ok,s),(okL,X),(okR,Y),(ok',ac'))). *)
+lemma ABm_obs:
+  "ades_merge_obs (ABm M) ok0 s0 okL X okR Y ok' Z =
+    (X \<noteq> {} \<and> Y \<noteq> {} \<and>
+      (\<exists>X' Y'. X \<subseteq> X' \<and> Y \<subseteq> Y' \<and> ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z))"
+  by (simp add: ABm_def branch_step_def seq_def; pred_auto; blast)
+
+lemma ABm_idem: "ABm (ABm M) = ABm M"
+  apply (rule ades_merge_ext)
+  apply (simp add: ABm_obs[simplified])
+  by (meson order_refl order_trans)
+
+lemma ABm_Idempotent [closure]: "Idempotent ABm"
+  by (simp add: Idempotent_def ABm_idem)
+
+lemma ABm_Monotonic [closure]: "Monotonic ABm"
+  by (rule MonotonicI) (simp add: ABm_def seqr_mono)
+
+lemma ABm_restrict:
+  assumes "M is ABm" "X' \<subseteq> X" "Y' \<subseteq> Y" "X' \<noteq> {}" "Y' \<noteq> {}"
+    "ades_merge_obs M ok0 s0 okL X okR Y ok' Z"
+  shows "ades_merge_obs M ok0 s0 okL X' okR Y' ok' Z"
+proof -
+  have w: "\<exists>U V. X \<subseteq> U \<and> Y \<subseteq> V \<and> ades_merge_obs M ok0 s0 okL U okR V ok' Z"
+    using assms(6)
+    by (subst (asm) Healthy_if[OF assms(1), symmetric]; simp add: ABm_obs[simplified])
+  show ?thesis
+    apply (subst Healthy_if[OF assms(1), symmetric])
+    apply (simp add: ABm_obs[simplified] assms(4,5))
+    using w assms(2,3)
+    apply (simp only: case_prod_conv)
+    by (meson subset_trans)
+qed
+
+text \<open>The lift holds for any smaller nonempty branch sets, so the lift is admissible.\<close>
+
+lemma ac'_lift_merge_ABm [closure]: "ac'_lift_merge M is ABm"
+  unfolding Healthy_def'
+  apply (rule ades_merge_ext)
+  apply (simp only: ABm_obs ac'_lift_merge_obs)
+  by (meson order_refl subset_iff)
+
+text \<open>We show the lift L(N) = ac'_lift_merge N is canonical: every ABm merge M
   that refines it on singletons refines it everywhere, L(N) \<sqsubseteq> M.\<close>
 
 (* M((ok,s),(okL,{sL}),(okR,{sR}),(ok',ac')) \<Longrightarrow>
@@ -74,22 +150,22 @@ definition singleton_refines :: "'s des_merge \<Rightarrow> 's ades_merge_rel \<
 (* L(N)((ok,s),(okL,{sL}),(okR,{sR}),(ok',ac')) =
      (\<exists>s'\<in>ac'. N((ok,s),(okL,sL),(okR,sR),(ok',s'))) *)
 lemma choice_lift_singleton:
-  "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL {sL} okR {sR} ok' ac' \<longleftrightarrow>
+  "ades_merge_obs (ac'_lift_merge N) ok0 s0 okL {sL} okR {sR} ok' ac' \<longleftrightarrow>
     (\<exists>s'\<in>ac'. merge_eval N
       \<lparr>ok\<^sub>v = ok0, \<dots> = s0\<rparr>
       \<lparr>ok\<^sub>v = okL, \<dots> = sL\<rparr>
       \<lparr>ok\<^sub>v = okR, \<dots> = sR\<rparr>
       \<lparr>ok\<^sub>v = ok', \<dots> = s'\<rparr>)"
-  by (simp only: ABm_ac'_lift_merge_obs) simp
+  by (simp only: ac'_lift_merge_obs) simp
 
 subsubsection \<open>The universal property\<close>
 
 (* singleton_refines N M \<Longrightarrow> L(N) \<sqsubseteq> M *)
 lemma choice_lift_least:
   assumes healthy: "M is ABm" and refines: "singleton_refines N M"
-  shows "ABm (ac'_lift_merge N) \<sqsubseteq> M"
+  shows "ac'_lift_merge N \<sqsubseteq> M"
 proof -
-  have "ades_merge_obs (ABm (ac'_lift_merge N)) ok0 s0 okL acL okR acR ok' ac'"
+  have "ades_merge_obs (ac'_lift_merge N) ok0 s0 okL acL okR acR ok' ac'"
     if accepted: "ades_merge_obs M ok0 s0 okL acL okR acR ok' ac'"
     for ok0 s0 okL acL okR acR ok' ac'
   proof -
@@ -100,7 +176,7 @@ proof -
       if "sL \<in> acL" "sR \<in> acR" for sL sR
       by (rule ABm_restrict[OF healthy _ _ _ _ accepted]; use that in auto)
     ultimately show ?thesis
-      unfolding ABm_ac'_lift_merge_obs
+      unfolding ac'_lift_merge_obs
       by (auto intro: refines[unfolded singleton_refines_def, rule_format])
   qed
   then show ?thesis by (simp add: pred_refine_iff; pred_auto)
@@ -109,9 +185,9 @@ qed
 (* L(N) \<sqsubseteq> M \<longleftrightarrow> singleton_refines N M *)
 theorem choice_lift_refine_iff:
   assumes "M is ABm"
-  shows "ABm (ac'_lift_merge N) \<sqsubseteq> M \<longleftrightarrow> singleton_refines N M"
+  shows "ac'_lift_merge N \<sqsubseteq> M \<longleftrightarrow> singleton_refines N M"
 proof
-  assume "ABm (ac'_lift_merge N) \<sqsubseteq> M"
+  assume "ac'_lift_merge N \<sqsubseteq> M"
   then show "singleton_refines N M"
     unfolding singleton_refines_def
     by (auto simp: pred_refine_iff simp flip: choice_lift_singleton)
@@ -124,7 +200,7 @@ subsubsection \<open>Parallel refinement\<close>
 (* P \<parallel>[L(N)] Q \<sqsubseteq> P \<parallel>[M] Q *)
 theorem par_choice_lift_canonical:
   assumes "M is ABm" "singleton_refines N M"
-  shows "P \<parallel>\<^bsub>ABm (ac'_lift_merge N)\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
+  shows "P \<parallel>\<^bsub>ac'_lift_merge N\<^esub> Q \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q"
   by (rule par_by_merge_mono_merge[OF choice_lift_least[OF assms]])
 
 subsection \<open>Correspondence with Designs\<close>
@@ -147,7 +223,7 @@ lemma ades_par_by_merge_d2ac_ac2p:
   fixes M :: "'s des_merge" and AM :: "'s ades_merge_rel"
   assumes ops: "P is A" "Q is A" "P is A2" "Q is A2"
     and merge: "M is HDm" "M is H3m"
-    and lift: "AM = H3m (H1m (ABm (ac'_lift_merge M)))"
+    and lift: "AM = H3m (H1m (ac'_lift_merge M))"
   shows "P \<parallel>\<^bsub>AM\<^esub> Q = d2ac (ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q)"
 proof -
   have h1: "P is H1" "Q is H1"
@@ -264,7 +340,7 @@ lemma ades_par_by_merge_ac2p:
   fixes M :: "'s des_merge" and AM :: "'s ades_merge_rel"
   assumes ops: "P is A" "Q is A" "P is A2" "Q is A2"
     and merge: "M is HDm" "M is H3m"
-    and lift: "AM = H3m (H1m (ABm (ac'_lift_merge M)))"
+    and lift: "AM = H3m (H1m (ac'_lift_merge M))"
   shows "ac2p (P \<parallel>\<^bsub>AM\<^esub> Q) = ac2p P \<parallel>\<^bsub>M\<^esub> ac2p Q"
 proof -
   have designs_H: "ac2p P is \<^bold>H" "ac2p Q is \<^bold>H"
