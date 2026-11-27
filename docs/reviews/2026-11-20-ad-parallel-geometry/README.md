@@ -11,10 +11,9 @@ Fix a started prior `s`. An AD offers a family of sets `ac'` (faces of the
 simplex of final states): the demon offers a set, and the angel picks a state in
 it. Refinement shrinks the family; `⊓` is union of families and `⊔` is pairwise
 union of sets. The AD lift
-[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_choice_lift.thy#L14),
-shared by RAD through
-[`rad_lift_merge`](../../../reactive-angelic-designs/utp_rad_parallel_lifted_merge.thy#L120),
-needs a merge result in `ac'` for every pair of branch states:
+[`ac'_lift_merge`](../../../angelic-designs/utp_ades_parallel_choice_lift.thy#L17),
+which RAD shares, needs nonempty branch sets and a merge result in `ac'` for every
+pair of branch states:
 
 ```isabelle
 ∀sL ∈ acL. ∀sR ∈ acR. ∃s' ∈ ac'. j(s,sL,sR,s')
@@ -61,8 +60,7 @@ blockers; the repo has no operator for it.
 the real AD operators, with `A`, `NDAD` operands: `P` ignores a lens `a`, `Q` uses only
 `a`, and `j` takes `a` from `Q`. It also shows that these two premises say `P` commutes
 with every assignment to `a` and `Q` with every assignment that keeps `a`. They stay
-here because they hold for one merge only; the
-[AD guide](../../parallel/AD.md#parallel-and-sequential-composition) states the result.
+here because they hold for one merge only.
 
 ## Results for any merge
 
@@ -125,7 +123,7 @@ blocking is therefore exactly the started, non-waiting case above.
 ## The shared lift is canonical
 
 [`AD_Lift_Canonical`](ad/AD_Lift_Canonical.thy) compares an arbitrary merge `M`
-on choice sets with `ABm (ac'_lift_merge N)` for an inner merge `N` on single
+on choice sets with `ac'_lift_merge N` for an inner merge `N` on single
 states. `merge_rad j` is exactly this lift with `N = merge_rdes j`; `merge_ades j`
 wraps it in `H1m` and `H3m`
 ([`merge_ades_design_lift`](../../../angelic-designs/utp_ades_parallel_lifted_merge.thy#L36)).
@@ -141,7 +139,7 @@ M({sL},{sR},Z) ⟹ ∃s' ∈ Z. N(s,sL,sR,s')
 | Result | Premises | Lemma |
 | --- | --- | --- |
 | The lift is admissible and equals `N` on single states | - | [`lift_antitone`](ad/AD_Lift_Canonical.thy#L47), [`lift_sound`](ad/AD_Lift_Canonical.thy#L53), [`lift_singleton`](ad/AD_Lift_Canonical.thy#L57) |
-| Every admissible `M` lies inside the lift, so `P ∥[ABm (ac'_lift_merge N)] Q ⊑ P ∥[M] Q` | `M` admissible | [`lift_greatest_obs`](ad/AD_Lift_Canonical.thy#L64), [`par_lift_canonical`](ad/AD_Lift_Canonical.thy#L109) |
+| Every admissible `M` lies inside the lift, so `P ∥[ac'_lift_merge N] Q ⊑ P ∥[M] Q` | `M` admissible | [`lift_greatest_obs`](ad/AD_Lift_Canonical.thy#L64), [`par_lift_canonical`](ad/AD_Lift_Canonical.thy#L109) |
 | Antitonicity is free: `P ∥[ABm M] Q = P ∥[M] Q` | `P`, `Q` `PBMH_ades`; `M` nonempty | [`par_ABm_eq`](ad/AD_Lift_Canonical.thy#L136), [`par_lift_canonical_PBMH`](ad/AD_Lift_Canonical.thy#L181) |
 | `P ∥AD[j] Q ⊑ P ∥[H3m (H1m M)] Q` | `M` admissible for `merge_des j` | [`ades_par_canonical`](ad/AD_Lift_Canonical.thy#L190) |
 | The RAD blocking holds for every admissible `M` | `M` admissible for `merge_rdes jsync` | [`rad_sync_angelic_stuck_any_lift`](rad/RAD_Probe.thy#L303) |
@@ -156,8 +154,8 @@ stated as one lemma. Merging only the compatible pairs is not admissible: by
 up-closure `x := 2` also offers `{1,2}`, so `x := 2 ∥[jeq] x := 1` would offer
 `{1}`.
 
-The production [shared choice-set canonicity results](../../parallel/AD.md#shared-choice-set-canonicity)
-use `ABm` directly, with [RAD](../../parallel/RAD.md#canonicity) consequences; AP
+The production [shared choice-set canonicity results](../../parallel/Canonicity.md)
+use `ABm` directly, with [RAD](../../parallel/Canonicity.md#rad) consequences; AP
 canonicity is [open](../../parallel/AP.md#not-covered). The original
 `AD_Lift_Canonical` theory above remains as support for the open RAD geometry probes.
 

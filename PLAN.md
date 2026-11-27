@@ -99,7 +99,7 @@ operand premise when `j` is `Functional`, `mergeable`, symmetric and associative
   `H1m`, `H2m` and `H3m` stay as the premises of their rules.
 - [ ] Conditional commutation and one-way preservation between the merge
   transformers. The unconditional pairwise results
-  ([AD guide](docs/parallel/AD.md#generic-merge-healthiness-and-closure)) do not
+  ([AD guide](docs/parallel/AD.md#merge-conditions)) do not
   settle these questions or idempotence of arbitrary noncommuting compositions.
 - [ ] Record the two completion orders, their empty-set rationale, and their
   correspondence scope as an ADR. AD completes after lifting, keeping the
@@ -135,7 +135,7 @@ their exact premises.
 
 D, RD and RAD have generic associativity laws with operand healthiness and merge
 premises: `par_by_merge_assoc_NDD`, `par_by_merge_assoc_NDRD` and
-`par_by_rad_lift_merge_assoc_NDRAD`, all through `par_by_merge_assoc_guard`.
+`par_by_ac'_lift_merge_assoc_NDRAD`, all through `par_by_merge_assoc_guard`.
 For `merge_rdes j`, `rdes_lift_parallel_assoc_nd` proves associativity when
 `j is SymMerge` and `AssocMerge j` and all three operands are RD and NDRD.
 Completion can extend a divergent intermediate trace, so this does not establish
@@ -158,7 +158,7 @@ stateful research.
 ## Stage 5 — RAD from ordinary RD parallel
 
 Take `M = merge_rdes j`. Ordinary `P ∥RD[j] Q` uses `M` directly;
-`P ∥RAD[j] Q = P ∥[rad_lift_merge M] Q` uses its RAD choice-set lift. The
+`P ∥RAD[j] Q = P ∥[ac'_lift_merge M] Q` uses its AD choice-set lift. The
 round trip between flat RD and RAD ∩ A2 uses `rad_ac2p_p2ac_inverse`,
 `rad_p2ac_ac2p_RAD_A2`, `rad_p2ac_RD_closure`, `A2_p2ac` and `rad_ac2p_RD`;
 `rad_p2ac_RD1` and `rad_p2ac_RD2` carry RD1/RD2 (the paper's CSP1/CSP2) to
@@ -182,8 +182,6 @@ CSPA1/CSPA2. See the [RD guide](docs/parallel/RD.md) and the
   operands, first for functional and then for relational merges. Production keeps
   the lift; see the [RAD guide](docs/parallel/RAD.md#angelic-choice-against-a-synchronising-partner)
   and the [comparison of candidate algebras](docs/reviews/2026-11-25-angelic-sync-algebra/README.md).
-- [ ] Update the guides: label the A2 laws as the ordinary fragment, add an
-  off-A2 table for RAD, and retire superseded historical notes.
 
 ## Remaining decisions
 

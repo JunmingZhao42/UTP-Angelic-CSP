@@ -4,7 +4,8 @@
 
 - [Generic](Generic.md): `P ∥[M] Q`, its symmetry and associativity laws, and guarded merges.
 - [D](D.md): ordinary designs, `P ∥D[j] Q`.
-- [AD](AD.md): angelic designs, `P ∥AD[j] Q`, and [shared choice-set canonicity](AD.md#shared-choice-set-canonicity).
+- [AD](AD.md): angelic designs, `P ∥AD[j] Q`.
+- [Canonicity](Canonicity.md): the choice-set lift as the least admissible merge on choice sets, for AD and RAD.
 - [RD](RD.md): ordinary reactive designs, `P ∥RD[j] Q`.
 - [Stateful RD](RD-stateful.md): `P ∥R[M] Q`, including state-merge lifting and normality.
 - [RAD](RAD.md): reactive angelic designs, `P ∥RAD[j] Q`.
@@ -18,17 +19,27 @@
 | `P, Q, R` | Operands |
 | `j` | State merge; each model lifts it to its observations |
 | `M` | Merge of complete observations |
-| `P is H` | `H P = P` |
-| `(ok, s)` | Prior observation |
-| `okL, sR, …` | Branch observations, subscripted `L`, `R` |
-| `ok', s'` | Merged output |
-| `acL, acR, ac'` | AD choice sets, rather than individual states |
+
+Each merge reads a prior, two branches and an output:
+
+| | Prior | Left | Right | Output |
+| --- | --- | --- | --- | --- |
+| Termination flag | `ok` | `okL` | `okR` | `ok'` |
+| State | `s` | `sL` | `sR` | `s'` |
+| Choice set (AD, RAD) | - | `acL` | `acR` | `ac'` |
+| Whole record | `x` | `p` | `q` | `z` |
+
+`j` reads states and `M` reads whole records; a record also carries any auxiliary
+variables. With three branches, for operands `P`, `Q` and `R`, the states are
+`sP, sQ, sR`, the flags `okP, okQ, okR`, the choice sets `acP, acQ, acR` and the
+records `p, q, r`. An intermediate merge result is `u`, with flag `okU` and choice
+set `acU`.
+
+| Notation | Meaning |
+| --- | --- |
 | `j(s,sL,sR,s')` | `merge_eval j s sL sR s'` |
-| `mergeable j` | `∀s sL sR. ∃s'. j(s,sL,sR,s')` |
-| `x`, `z` | Prior and output records with auxiliary variables |
-| `p, q, r` | Branch records |
-| `u` | Intermediate merge result |
 | `M(x,p,q,z)` | `merge_eval M x p q z` |
+| `A2` | [No angelic choice](../paper/AD.md#d20): the ordinary fragment, which corresponds to D or RD through `ac2p` |
 | `ok0, s0` | Isabelle names for `ok, s` where those would resolve to lens constants |
 
 The guides use readable observation tuples rather than literal record syntax.

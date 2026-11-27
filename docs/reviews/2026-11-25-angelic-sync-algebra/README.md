@@ -125,7 +125,7 @@ Here `a`, `b`, `Stop` and `Miracle` stand for `a→Skip`, `b→Skip`, `Stop_RAD`
   `P = b→Stop`, `Q = a→Stop` and `R = Skip ⊔ a→Stop`. For AD,
   `j(0,x) = {x}` and `j(1,1) = {0,1}` give
   `⟨1⟩ ∥ ⟨1⟩ ∥ (⟨0⟩ ⊔ ⟨1⟩)` as `⟨1⟩` or `⟨0⟩ ⊓ ⟨1⟩`
-  ([AD guide](../../parallel/AD.md#lifted-merge-and-laws)). F gives `⟨0⟩ ⊓ ⟨1⟩` both ways.
+  ([AD guide](../../parallel/AD.md#symmetry-and-associativity)). F gives `⟨0⟩ ⊓ ⟨1⟩` both ways.
 - **C8, any monotone `∥` over `⊔`, with divergence.** Let `b'` be `b→Skip` with every
   observation from a started prior allowed to diverge as well
   ([`rad_div`](Sync_F_Laws.thy#L352)). It is RAD and A2, and `b' ⊑ b`. Since `a` never

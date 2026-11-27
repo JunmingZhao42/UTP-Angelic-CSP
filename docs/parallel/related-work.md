@@ -7,7 +7,7 @@ between the published operators and this repository's lifting.
 
 ## Divergence and infeasibility
 
-[D](D.md#lifted-merge-and-laws) and [AD](AD.md#lifted-merge-and-laws) release
+[D](D.md#the-lifted-merge) and [AD](AD.md#the-lifted-merge) release
 the final observation after divergence but retain branch and merge feasibility.
 Completed RD parallel additionally requires a merged witness whose trace is
 a prefix of the final trace, through the completed
@@ -21,9 +21,9 @@ Thus Miracle absorbs Chaos in the installed [`des_par_miracle`](../../deps/UTP-D
 [`ades_par_miracle`](../../angelic-designs/utp_ades_parallel_algebra.thy#L223) laws. Universal Chaos absorption on a carrier containing
 Miracle would require a different operand-combination rule.
 
-The [RAD choice-set lift](RAD.md#choice-set-lifting) applies the supplied
+The [RAD choice-set lift](RAD.md#the-lifted-merge) applies the supplied
 ordinary merge directly. Reactive skip completion belongs to the selected
-ordinary merge construction; see [RD lifting](RD.md#lifted-merge-and-laws).
+ordinary merge construction; see [RD lifting](RD.md#the-lifted-merge).
 
 ## UTP sources
 
