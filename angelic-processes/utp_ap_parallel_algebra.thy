@@ -42,15 +42,15 @@ lemma ap_par_angelic_subdistr:
   by (simp only: AP_angelic_choice par_by_merge_conj_subdistr)
 
 text \<open>For nondivergent operands, AP parallel is H1 of RAD parallel on the RA1
-  images, so the RAD equality carries over: (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q.\<close>
+  images, so the RAD equality carries over: (P \<parallel> R) \<squnion> (Q \<parallel> R) = (P \<squnion> Q) \<parallel> R.\<close>
 
-(* (P \<parallel> Q) \<squnion> (P' \<parallel> Q) = (P \<squnion> P') \<parallel> Q *)
+(* (P \<parallel> R) \<squnion> (Q \<parallel> R) = (P \<squnion> Q) \<parallel> R *)
 lemma ap_par_angelic_distr:
-  fixes P P' Q :: "('t::trace, 'e) angelic_process"
-  assumes ap: "P is AP" "P' is AP" "Q is AP" and nd: "P is NDAP" "P' is NDAP" "Q is NDAP"
-    and q: "\<And>s0 Y Y'. Q (ades_obs True s0 True Y) \<Longrightarrow> Q (ades_obs True s0 True Y') \<Longrightarrow>
-      Q (ades_obs True s0 True (Y \<inter> Y'))"
-  shows "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>P (P' \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) = (P \<squnion>\<^sub>A\<^sub>P P') \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q"
+  fixes P Q R :: "('t::trace, 'e) angelic_process"
+  assumes ap: "P is AP" "Q is AP" "R is AP" and nd: "P is NDAP" "Q is NDAP" "R is NDAP"
+    and r: "\<And>s0 Y Y'. R (ades_obs True s0 True Y) \<Longrightarrow> R (ades_obs True s0 True Y') \<Longrightarrow>
+      R (ades_obs True s0 True (Y \<inter> Y'))"
+  shows "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R) \<squnion>\<^sub>A\<^sub>P (Q \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R) = (P \<squnion>\<^sub>A\<^sub>P Q) \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R"
 proof -
   have ndrad: "RA1 S is NDRAD" if "S is AP" "S is NDAP" for S :: "('t, 'e) angelic_process"
   proof -
@@ -60,34 +60,34 @@ proof -
   qed
   have h1: "(H1 S \<and> H1 T) = H1 (S \<and> T)" for S T :: "('t, 'e) angelic_process"
     by (simp add: H1_def; pred_auto)
-  have ne: "rad_trace_extensions s0 \<inter> W \<noteq> {}" if "Q (ades_obs True s0 True W)" for s0 W
+  have ne: "rad_trace_extensions s0 \<inter> W \<noteq> {}" if "R (ades_obs True s0 True W)" for s0 W
     using that AP_wait_obs[OF ap(3), of s0 True True W] NDAP_active_obs[OF nd(3), of s0 True W]
     by (cases "rad_wait\<^sub>v s0"; auto simp: rad_trace_extensions_def)
-  have qr: "RA1 Q (ades_obs True s0 True (Y \<inter> Y'))"
-    if "RA1 Q (ades_obs True s0 True Y)" "RA1 Q (ades_obs True s0 True Y')" for s0 Y Y'
+  have rr: "RA1 R (ades_obs True s0 True (Y \<inter> Y'))"
+    if "RA1 R (ades_obs True s0 True Y)" "RA1 R (ades_obs True s0 True Y')" for s0 Y Y'
   proof -
     let ?E = "rad_trace_extensions s0"
-    have "Q (ades_obs True s0 True ((?E \<inter> Y) \<inter> (?E \<inter> Y')))"
-      by (rule q) (use that in \<open>simp_all add: RA1_obs\<close>)
+    have "R (ades_obs True s0 True ((?E \<inter> Y) \<inter> (?E \<inter> Y')))"
+      by (rule r) (use that in \<open>simp_all add: RA1_obs\<close>)
     moreover have "(?E \<inter> Y) \<inter> (?E \<inter> Y') = ?E \<inter> (Y \<inter> Y')" by blast
-    ultimately have w: "Q (ades_obs True s0 True (?E \<inter> (Y \<inter> Y')))" by simp
+    ultimately have w: "R (ades_obs True s0 True (?E \<inter> (Y \<inter> Y')))" by simp
     have "?E \<inter> (?E \<inter> (Y \<inter> Y')) \<noteq> {}" by (rule ne[OF w])
     then show ?thesis using w by (simp add: RA1_obs Int_assoc[symmetric])
   qed
-  have pp: "(P \<squnion>\<^sub>A\<^sub>P P') is AP" "(P \<squnion>\<^sub>A\<^sub>P P') is NDAP"
+  have pq: "(P \<squnion>\<^sub>A\<^sub>P Q) is AP" "(P \<squnion>\<^sub>A\<^sub>P Q) is NDAP"
     by (rule AP_angelic_closure[OF ap(1,2)],
         simp add: Healthy_def NDAP_angelic_closure[OF nd(1,2)])
-  have rad: "RA1 P is RAD" "RA1 P' is RAD"
+  have rad: "RA1 P is RAD" "RA1 Q is RAD"
     by (simp_all add: RA1_AP_RAD_closure ap)
-  have "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) \<squnion>\<^sub>A\<^sub>P (P' \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q) =
-      H1 ((RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 Q) \<squnion>\<^sub>R\<^sub>A\<^sub>D (RA1 P' \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 Q))"
+  have "(P \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R) \<squnion>\<^sub>A\<^sub>P (Q \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R) =
+      H1 ((RA1 P \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 R) \<squnion>\<^sub>R\<^sub>A\<^sub>D (RA1 Q \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 R))"
     by (simp only: ap_par_rad_NDAP[OF ap(1,3) nd(1,3)] ap_par_rad_NDAP[OF ap(2,3) nd(2,3)]
         AP_angelic_choice angelic_design_angelic h1)
-  also have "... = H1 ((RA1 P \<squnion>\<^sub>R\<^sub>A\<^sub>D RA1 P') \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 Q)"
+  also have "... = H1 ((RA1 P \<squnion>\<^sub>R\<^sub>A\<^sub>D RA1 Q) \<parallel>\<^sub>R\<^sub>A\<^sub>D\<^bsub>j\<^esub> RA1 R)"
     by (simp only: rad_par_angelic_distr[OF rad ndrad[OF ap(1) nd(1)]
-          ndrad[OF ap(2) nd(2)] ndrad[OF ap(3) nd(3)] qr])
-  also have "... = (P \<squnion>\<^sub>A\<^sub>P P') \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> Q"
-    by (subst ap_par_rad_NDAP[OF pp(1) ap(3) pp(2) nd(3)])
+          ndrad[OF ap(2) nd(2)] ndrad[OF ap(3) nd(3)] rr])
+  also have "... = (P \<squnion>\<^sub>A\<^sub>P Q) \<parallel>\<^sub>A\<^sub>P\<^bsub>j\<^esub> R"
+    by (subst ap_par_rad_NDAP[OF pq(1) ap(3) pq(2) nd(3)])
        (simp only: AP_angelic_choice angelic_design_angelic RA1_conj)
   finally show ?thesis .
 qed
