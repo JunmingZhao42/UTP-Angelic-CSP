@@ -176,8 +176,7 @@ premises on `j`:
 | Law for `P ∥[M] Q` | Operand premises | Merge premises | Lemma | Premises on `j` | `P ∥RD[j] Q` |
 | --- | --- | --- | --- | --- | --- |
 | `P ∥[M] Q = Q ∥[M] P` | - | `M is SymMerge` | [`par_by_merge_comm`](../../deps/UTP/utp_concurrency.thy#L414) | `SymMerge` | [`rdes_lift_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L205) |
-| `P ∥[ORDm M] Q = Q ∥[ORDm M] P` | - | `M is SymMerge` | [`ORDm_parallel_comm`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L520) | - | - |
-| `(P ∥[M] Q) ∥[M] R =`<br>`P ∥[M] (Q ∥[M] R)` | All `RD`, `NDRD` | `M is SymMerge`, `M is NDRDm`, `AssocMerge (merge_guard G_RD M)` | [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L533) | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L317) |
+| `(P ∥[M] Q) ∥[M] R =`<br>`P ∥[M] (Q ∥[M] R)` | All `RD`, `NDRD` | `M is SymMerge`, `M is NDRDm`, `AssocMerge (merge_guard G_RD M)` | [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L526) | `SymMerge`, `AssocMerge` | [`rdes_lift_parallel_assoc_nd`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_lift.thy#L317) |
 
 - The `NDRD` associativity row instantiates
   [`par_by_merge_assoc_guard`](Generic.md#associativity-on-nondivergent-operands)

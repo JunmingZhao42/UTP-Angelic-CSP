@@ -107,7 +107,7 @@ Each model guide states the instance for that model's nondivergence guard:
 - [D](D.md#symmetry-and-associativity):
   [`par_by_merge_assoc_NDD`](../../deps/UTP-Designs/utp_des_nd.thy#L72);
 - [RD](RD.md#symmetry-and-associativity):
-  [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L533),
+  [`par_by_merge_assoc_NDRD`](../../deps/UTP-Reactive-Designs/utp_rdes_parallel_laws.thy#L526),
   which [RAD](RAD.md#correspondence-with-rd) transfers through `p2ac`;
 - [AD](AD.md#symmetry-and-associativity) and [RAD](RAD.md#symmetry-and-associativity): the
   laws for a `Functional` `j` off A2.
